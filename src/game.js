@@ -42529,9 +42529,17 @@ function exploreDungeon() {
   })();
   const enemyPower = explorePlan.enemyPower;
   const damage = explorePlan.damage;
-  run.hp = Math.max(0, run.hp - damage);
   const loot = rollLoot(enemy?.drop_pool_id || dungeon.resource_group_id, run.floor, mechanicEffects.lootMultiplier);
   const lootText = loot.map((entry) => `${itemName(entry.itemId)} x${entry.count}`).join("、") || "少量灵砂";
+  const exploreStatePlan = dungeonRuntime()?.dungeonExploreStatePlan({
+    hp: run.hp,
+    damage,
+    progress: run.progress,
+    turn: run.turn,
+    enemyId: enemy?.enemy_id || null,
+    lootCount: loot.length,
+  }) || null;
+  run.hp = Number(exploreStatePlan?.hpAfter ?? Math.max(0, run.hp - damage));
   run.loot.push(...loot);
   recordDailyIntentProgress("explore", `${dungeonName(dungeon)} 推进一层`, {
     title: "秘境推进",
@@ -42540,12 +42548,12 @@ function exploreDungeon() {
     rewardText: lootText,
   });
   run.lastLoot = loot;
-  run.lastEnemyId = enemy?.enemy_id || null;
+  run.lastEnemyId = exploreStatePlan?.lastEnemyId ?? enemy?.enemy_id ?? null;
   run.hazards = hazards;
   run.roomEvent = `${mechanic?.puzzle_core || "观察路线"} · ${hazards[0]?.label || "灵雾扰动"}`;
-  run.combatMoment = damage >= 16 ? "danger" : loot.length > 0 ? "loot" : "steady";
-  run.progress += 1;
-  run.turn += 1;
+  run.combatMoment = exploreStatePlan?.combatMoment || (damage >= 16 ? "danger" : loot.length > 0 ? "loot" : "steady");
+  run.progress = Number(exploreStatePlan?.progressAfter ?? run.progress + 1);
+  run.turn = Number(exploreStatePlan?.turnAfter ?? run.turn + 1);
   const mechanicNote = advanceDungeonMechanicState(run, mechanic, dungeon, "explore");
   if (hiddenRevealPressureDown > 0) run.hiddenRevealConsumed = true;
   run.skillLog.unshift(`随行技能：${supportSkill ? skillName(supportSkill) : "基础协同"}，战力 ${spiritPower}${solutionLog ? `，${solutionLog}` : mechanicBonus ? `，精怪解法 +${mechanicBonus}` : ""}${rotationPathBonus > 0 ? `，隐藏层辨路 +${rotationPathBonus}` : ""}${rotationHazardReduce > 0 ? `，入口减压 -${rotationHazardReduce}` : ""}${hiddenRevealPressureDown > 0 ? `，灯影照路 -${hiddenRevealPressureDown}` : ""}${failureInsightPathBonus > 0 ? `，旧见闻减压 -${failureInsightPathBonus}` : ""}${failureInsightOverflowRelief > 0 ? `，满溢记忆 -${failureInsightOverflowRelief}` : ""}${mechanicEffects.enemyPowerDown > 0 ? `，机制压场 -${mechanicEffects.enemyPowerDown}` : ""}${mechanicEffects.lootMultiplier > 1 ? `，掉落 +${Math.round((mechanicEffects.lootMultiplier - 1) * 100)}%` : ""}`);

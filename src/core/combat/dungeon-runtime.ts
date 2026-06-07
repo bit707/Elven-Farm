@@ -117,6 +117,23 @@ namespace XiannongCore.Combat {
     damage: number;
   }
 
+  export interface DungeonExploreStatePlanInput {
+    hp?: number | string | null;
+    damage?: number | string | null;
+    progress?: number | string | null;
+    turn?: number | string | null;
+    enemyId?: string | null;
+    lootCount?: number | string | null;
+  }
+
+  export interface DungeonExploreStatePlan {
+    hpAfter: number;
+    progressAfter: number;
+    turnAfter: number;
+    lastEnemyId: string | null;
+    combatMoment: "danger" | "loot" | "steady";
+  }
+
   export interface DungeonLootPlanInput {
     pool?: CombatRow[] | null;
     floor?: number | string | null;
@@ -194,6 +211,7 @@ namespace XiannongCore.Combat {
     dungeonMechanicAdvancePlan(input?: DungeonMechanicAdvancePlanInput | null): DungeonMechanicAdvancePlan;
     dungeonMechanicActionPlan(input?: DungeonMechanicActionPlanInput | null): DungeonMechanicActionPlan;
     dungeonExplorePlan(input?: DungeonExplorePlanInput | null): DungeonExplorePlan;
+    dungeonExploreStatePlan(input?: DungeonExploreStatePlanInput | null): DungeonExploreStatePlan;
     dungeonLootPlan(input?: DungeonLootPlanInput | null): DungeonLootPlanEntry[];
     dungeonBossExchangePlan(input?: DungeonBossExchangePlanInput | null): DungeonBossExchangePlan;
     dungeonBossExchangeStatePlan(input?: DungeonBossExchangeStatePlanInput | null): DungeonBossExchangeStatePlan;
@@ -528,6 +546,18 @@ namespace XiannongCore.Combat {
       return { enemyPower, damage };
     }
 
+    function dungeonExploreStatePlan(input: DungeonExploreStatePlanInput | null = null): DungeonExploreStatePlan {
+      const damage = finiteNumber(input?.damage, 0);
+      const lootCount = finiteNumber(input?.lootCount, 0);
+      return {
+        hpAfter: Math.max(0, finiteNumber(input?.hp, 0) - damage),
+        progressAfter: finiteNumber(input?.progress, 0) + 1,
+        turnAfter: finiteNumber(input?.turn, 0) + 1,
+        lastEnemyId: input?.enemyId || null,
+        combatMoment: damage >= 16 ? "danger" : lootCount > 0 ? "loot" : "steady",
+      };
+    }
+
     function dungeonLootPlan(input: DungeonLootPlanInput | null = null): DungeonLootPlanEntry[] {
       const pool = input?.pool || [];
       if (pool.length === 0) return [];
@@ -637,6 +667,7 @@ namespace XiannongCore.Combat {
       dungeonMechanicAdvancePlan,
       dungeonMechanicActionPlan,
       dungeonExplorePlan,
+      dungeonExploreStatePlan,
       dungeonLootPlan,
       dungeonBossExchangePlan,
       dungeonBossExchangeStatePlan,

@@ -342,6 +342,17 @@ var XiannongCore;
                 const damage = Math.max(4, Math.round(enemyPower / 4) + effectValue(effects, "damageUp") - effectValue(effects, "damageDown"));
                 return { enemyPower, damage };
             }
+            function dungeonExploreStatePlan(input = null) {
+                const damage = finiteNumber(input?.damage, 0);
+                const lootCount = finiteNumber(input?.lootCount, 0);
+                return {
+                    hpAfter: Math.max(0, finiteNumber(input?.hp, 0) - damage),
+                    progressAfter: finiteNumber(input?.progress, 0) + 1,
+                    turnAfter: finiteNumber(input?.turn, 0) + 1,
+                    lastEnemyId: input?.enemyId || null,
+                    combatMoment: damage >= 16 ? "danger" : lootCount > 0 ? "loot" : "steady",
+                };
+            }
             function dungeonLootPlan(input = null) {
                 const pool = input?.pool || [];
                 if (pool.length === 0)
@@ -449,6 +460,7 @@ var XiannongCore;
                 dungeonMechanicAdvancePlan,
                 dungeonMechanicActionPlan,
                 dungeonExplorePlan,
+                dungeonExploreStatePlan,
                 dungeonLootPlan,
                 dungeonBossExchangePlan,
                 dungeonBossExchangeStatePlan,
