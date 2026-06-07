@@ -7,6 +7,7 @@ const requiredFiles = [
   "tsconfig.json",
   "src/game.js",
   "src/styles.css",
+  "src/core/combat/dungeon-runtime.ts",
   "src/core/data/runtime-data.ts",
   "src/core/farming/farming-runtime.ts",
   "src/core/persistence/save-runtime.ts",
@@ -2899,6 +2900,7 @@ const desktopShellPreload = readFileSync("desktop-shell/preload.cjs", "utf8");
 const desktopShellTemplate = readFileSync("desktop-shell/package.template.json", "utf8");
 const desktopSaveSmokeScript = readFileSync("tools/smoke-desktop-json-save.mjs", "utf8");
 const runtimeDataScript = readFileSync("tools/build-runtime-data.mjs", "utf8");
+const combatRuntimeTs = readFileSync("src/core/combat/dungeon-runtime.ts", "utf8");
 const farmingRuntimeTs = readFileSync("src/core/farming/farming-runtime.ts", "utf8");
 const questRuntimeTs = readFileSync("src/core/quests/quest-runtime.ts", "utf8");
 const shopRuntimeTs = readFileSync("src/core/shop/shop-runtime.ts", "utf8");
@@ -2950,7 +2952,7 @@ if (!runtimeDataManifest.contentHash || Object.keys(runtimeDataManifest.files ||
   throw new Error("Runtime JSON manifest must include a content hash and all gameplay CSV tables");
 }
 
-for (const coreTerm of ["XiannongCore.Data", "createRuntimeDataLoader", "XiannongCore.Persistence", "createSaveRuntime", "XiannongStorage", "XiannongCore.Quests", "createQuestRuntime", "XiannongCore.Shop", "createShopRuntime", "XiannongCore.Farming", "createFarmingRuntime"]) {
+for (const coreTerm of ["XiannongCore.Data", "createRuntimeDataLoader", "XiannongCore.Persistence", "createSaveRuntime", "XiannongStorage", "XiannongCore.Quests", "createQuestRuntime", "XiannongCore.Shop", "createShopRuntime", "XiannongCore.Farming", "createFarmingRuntime", "XiannongCore.Combat", "createDungeonRuntime"]) {
   if (!coreRuntimeJs.includes(coreTerm) && !game.includes(coreTerm)) {
     throw new Error(`Generated core runtime or game bridge missing: ${coreTerm}`);
   }
@@ -3081,6 +3083,26 @@ for (const farmingRuntimeTerm of [
   "yieldPlan.solarYield",
 ]) {
   if (!game.includes(farmingRuntimeTerm)) throw new Error(`Farming TypeScript runtime bridge missing: ${farmingRuntimeTerm}`);
+}
+
+for (const combatRuntimeTerm of [
+  "function dungeonRuntime()",
+  "globalThis.XiannongCore.Combat.createDungeonRuntime",
+  "bosses: data.bosses",
+  "bossSkills: data.bossSkills",
+  "spiritSkills: data.spiritSkills",
+  "bossSkillsByBoss: data.bossSkillsByBoss",
+  "spiritSkillsBySpirit: data.spiritSkillsBySpirit",
+  "runtime.bossSkillsFor(bossId)",
+  "runtime.bossPhaseForPercent(bossId, hpPercent)",
+  "runtime.bossSkillForTurn({ bossId, turn, hpPercent })",
+  "runtime.spiritCombatSkills({ spirit, dungeonClearCount: state.dungeonClears.size })",
+  "runtime.spiritCombatBonus({ spirit, dungeonClearCount: state.dungeonClears.size })",
+  "runtime.skillImpact(skill)",
+  "runtime.dungeonBossMaxHp({ bossId: dungeonBossId(dungeon, run), fallback: 1200 })",
+  "runtime.bossHpPercent({ run, bossId: dungeonBossId(dungeon, run), bossMaxHp: run?.bossMaxHp })",
+]) {
+  if (!game.includes(combatRuntimeTerm)) throw new Error(`Combat TypeScript runtime bridge missing: ${combatRuntimeTerm}`);
 }
 
 for (const questCoreSourceTerm of [
@@ -3475,6 +3497,54 @@ for (const farmingCoreRuntimeTerm of [
   "yieldBonus: Math.min(2, boostCount)",
 ]) {
   if (!coreRuntimeJs.includes(farmingCoreRuntimeTerm)) throw new Error(`Generated farming runtime missing farming term: ${farmingCoreRuntimeTerm}`);
+}
+
+for (const combatCoreSourceTerm of [
+  "namespace XiannongCore.Combat",
+  "export interface CombatRuntime",
+  "export function createDungeonRuntime",
+  "bossSkillsFor(bossId",
+  "bossPhaseForPercent(bossId",
+  "bossSkillForTurn(input",
+  "skillImpact(skill",
+  "spiritCombatSkills(input",
+  "spiritCombatBonus(input",
+  "dungeonBossMaxHp(input",
+  "bossHpPercent(input",
+  "phaseCount >= 3",
+  "percent <= 0.35",
+  "percent <= 0.7",
+  "skill.effect_type === \"spawn_hazard\"",
+  "skill.effect_type === \"shield\"",
+  "data.spiritSkillsBySpirit?.get",
+  "dungeonClearCount",
+  "Number(spirit.jobLevels?.expedition || 0) * 3",
+  "Math.max(300, Number(boss?.hp_total",
+]) {
+  if (!combatRuntimeTs.includes(combatCoreSourceTerm)) throw new Error(`Combat TypeScript source missing combat runtime term: ${combatCoreSourceTerm}`);
+}
+
+for (const combatCoreRuntimeTerm of [
+  "XiannongCore.Combat",
+  "function createDungeonRuntime",
+  "function bossSkillsFor",
+  "function bossPhaseForPercent",
+  "function bossSkillForTurn",
+  "function skillImpact",
+  "function spiritCombatSkills",
+  "function spiritCombatBonus",
+  "function dungeonBossMaxHp",
+  "function bossHpPercent",
+  "phaseCount >= 3",
+  "percent <= 0.35",
+  "percent <= 0.7",
+  "skill.effect_type === \"spawn_hazard\"",
+  "skill.effect_type === \"shield\"",
+  "data.spiritSkillsBySpirit?.get",
+  "Number(spirit.jobLevels?.expedition || 0) * 3",
+  "Math.max(300, Number(boss?.hp_total",
+]) {
+  if (!coreRuntimeJs.includes(combatCoreRuntimeTerm)) throw new Error(`Generated combat runtime missing combat term: ${combatCoreRuntimeTerm}`);
 }
 
 for (const desktopSaveTerm of ["xiannong:save-json", "registerJsonSaveIpc", "SAVE_DIR_NAME", "savePathForProfile", "XiannongStorage", "writeProfile", "readProfile", "desktop-json-save-v1"]) {

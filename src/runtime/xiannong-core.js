@@ -1,6 +1,104 @@
 "use strict";
 var XiannongCore;
 (function (XiannongCore) {
+    var Combat;
+    (function (Combat) {
+        function byId(rows, idField, id) {
+            if (!id)
+                return null;
+            return rows.find((row) => row[idField] === id) || null;
+        }
+        function clampPercent(value) {
+            return Math.max(0, Math.min(1, value));
+        }
+        function createDungeonRuntime(data) {
+            function bossForId(bossId) {
+                if (!bossId)
+                    return null;
+                return data.bossesById?.get(bossId) || byId(data.bosses, "boss_id", bossId);
+            }
+            function bossSkillsFor(bossId = "") {
+                return [...(data.bossSkillsByBoss?.get(bossId || "") || data.bossSkills.filter((skill) => skill.boss_id === bossId))]
+                    .sort((a, b) => Number(a.phase_index) - Number(b.phase_index) || Number(a.order_in_phase) - Number(b.order_in_phase));
+            }
+            function bossPhaseForPercent(bossId = "", hpPercent = 1) {
+                const boss = bossForId(bossId);
+                const phaseCount = Math.max(1, Number(boss?.phase_count || 1));
+                const percent = clampPercent(Number(hpPercent ?? 1));
+                if (phaseCount >= 3) {
+                    if (percent <= 0.35)
+                        return 3;
+                    if (percent <= 0.7)
+                        return 2;
+                    return 1;
+                }
+                if (phaseCount >= 2 && percent <= 0.5)
+                    return 2;
+                return 1;
+            }
+            function bossSkillForTurn(input = null) {
+                const bossId = input?.bossId || "";
+                const phase = bossPhaseForPercent(bossId, input?.hpPercent ?? 1);
+                const skills = bossSkillsFor(bossId).filter((skill) => Number(skill.phase_index) === phase);
+                if (skills.length === 0)
+                    return null;
+                return skills[Math.max(0, Number(input?.turn || 0)) % skills.length];
+            }
+            function skillImpact(skill = null) {
+                if (!skill)
+                    return 0;
+                const primary = Number(skill.effect_param_1 || 0);
+                if (skill.effect_type === "damage")
+                    return primary;
+                if (skill.effect_type === "spawn_hazard")
+                    return primary * 4;
+                if (skill.effect_type === "shield")
+                    return Math.round(primary / 12);
+                return Math.max(0, primary);
+            }
+            function spiritCombatSkills(input = null) {
+                const spirit = input?.spirit || null;
+                if (!spirit)
+                    return [];
+                const direct = data.spiritSkillsBySpirit?.get(spirit.id || "") || data.spiritSkills.filter((skill) => skill.spirit_id === spirit.id);
+                const combat = data.spiritSkills.filter((skill) => skill.effect_type === "combat");
+                return direct.length > 0 ? [...direct] : combat.slice(0, Number(input?.dungeonClearCount || 0) > 0 ? 2 : 1);
+            }
+            function spiritCombatBonus(input = null) {
+                const spirit = input?.spirit || null;
+                const skills = input?.skills || spiritCombatSkills(input);
+                const skillBonus = skills.reduce((sum, skill) => {
+                    const value = Number(skill.effect_param_1 || 0);
+                    return sum + (skill.effect_type === "combat" ? Math.max(3, Math.round(value * 6)) : 1);
+                }, 0);
+                return skillBonus + (spirit ? Math.max(0, Number(spirit.jobLevels?.expedition || 0) * 3) : 0);
+            }
+            function dungeonBossMaxHp(input = null) {
+                const boss = input?.boss || bossForId(input?.bossId || "");
+                return Math.max(300, Number(boss?.hp_total || input?.fallback || 1200));
+            }
+            function bossHpPercent(input = null) {
+                const maxHp = Number(input?.bossMaxHp || input?.run?.bossMaxHp || dungeonBossMaxHp(input));
+                if (maxHp <= 0)
+                    return 1;
+                return clampPercent(Number(input?.bossHp ?? input?.run?.bossHp ?? maxHp) / maxHp);
+            }
+            return {
+                bossSkillsFor,
+                bossPhaseForPercent,
+                bossSkillForTurn,
+                skillImpact,
+                spiritCombatSkills,
+                spiritCombatBonus,
+                dungeonBossMaxHp,
+                bossHpPercent,
+            };
+        }
+        Combat.createDungeonRuntime = createDungeonRuntime;
+    })(Combat = XiannongCore.Combat || (XiannongCore.Combat = {}));
+})(XiannongCore || (XiannongCore = {}));
+var XiannongCore;
+(function (XiannongCore) {
     var Data;
     (function (Data) {
         function globalValue(name) {
