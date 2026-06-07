@@ -986,6 +986,22 @@ var XiannongCore;
                     hasRoute: Boolean(itemId),
                 };
             }
+            function harvestRouteSelectionPlan(input) {
+                const candidates = (input.candidates || []).filter((route) => Boolean(route));
+                const route = candidates[0] || input.fallbackRoute || null;
+                if (!route)
+                    return { route: null, candidateCount: candidates.length };
+                return {
+                    route: {
+                        ...route,
+                        itemId: String(route.itemId || input.itemId || ""),
+                        count: Math.max(1, Number(route.count || input.count || 1)),
+                        day: Number(route.day || input.day || 1),
+                        ready: Boolean(route.ready),
+                    },
+                    candidateCount: candidates.length,
+                };
+            }
             function plantStatePlan(input) {
                 const crop = input.crop || {};
                 const cropId = String(crop.crop_id || "");
@@ -1031,6 +1047,7 @@ var XiannongCore;
                 harvestProgressPlan,
                 harvestQualityRewardPlan,
                 harvestRouteAccountingPlan,
+                harvestRouteSelectionPlan,
                 plantStatePlan,
                 waterStatePlan,
             };

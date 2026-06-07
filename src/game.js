@@ -36682,11 +36682,13 @@ function harvestUseRouteSafe(route = null) {
 
 function harvestUseRouteSpec(itemId = "", count = 1) {
   if (!itemId) return null;
-  const route = harvestDirectOrderRoute(itemId, count)
-    || harvestRecipeOrderRoute(itemId, count)
-    || harvestRecipeRoute(itemId, count)
-    || harvestShopRoute(itemId, count)
-    || {
+  const routeCandidates = [
+    harvestDirectOrderRoute(itemId, count),
+    harvestRecipeOrderRoute(itemId, count),
+    harvestRecipeRoute(itemId, count),
+    harvestShopRoute(itemId, count),
+  ];
+  const fallbackRoute = {
       type: "stock",
       itemId,
       itemName: itemName(itemId),
@@ -36700,6 +36702,15 @@ function harvestUseRouteSpec(itemId = "", count = 1) {
       ready: true,
       day: state.day,
     };
+  const route = farmingRuntime()?.harvestRouteSelectionPlan({
+    candidates: routeCandidates,
+    fallbackRoute,
+    itemId,
+    count,
+    day: state.day,
+  })?.route
+    || routeCandidates.find(Boolean)
+    || fallbackRoute;
   return harvestUseRouteSafe(route);
 }
 

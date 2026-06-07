@@ -220,6 +220,19 @@ namespace XiannongCore.Farming {
     hasRoute: boolean;
   }
 
+  export interface HarvestRouteSelectionPlanInput {
+    candidates?: Array<HarvestRoutePlan | null | undefined>;
+    fallbackRoute?: HarvestRoutePlan | null;
+    itemId?: string;
+    count?: number;
+    day?: number;
+  }
+
+  export interface HarvestRouteSelectionPlan {
+    route: HarvestRoutePlan | null;
+    candidateCount: number;
+  }
+
   export interface PlantStatePlanInput {
     crop?: FarmingRow | null;
     seedItemId?: string;
@@ -271,6 +284,7 @@ namespace XiannongCore.Farming {
     harvestProgressPlan(input: HarvestProgressPlanInput): HarvestProgressPlan;
     harvestQualityRewardPlan(input: HarvestQualityRewardPlanInput): HarvestQualityRewardPlan;
     harvestRouteAccountingPlan(input: HarvestRouteAccountingPlanInput): HarvestRouteAccountingPlan;
+    harvestRouteSelectionPlan(input: HarvestRouteSelectionPlanInput): HarvestRouteSelectionPlan;
     plantStatePlan(input: PlantStatePlanInput): PlantStatePlan;
     waterStatePlan(input: WaterStatePlanInput): WaterStatePlan;
   }
@@ -598,6 +612,22 @@ namespace XiannongCore.Farming {
       };
     }
 
+    function harvestRouteSelectionPlan(input: HarvestRouteSelectionPlanInput): HarvestRouteSelectionPlan {
+      const candidates = (input.candidates || []).filter((route): route is HarvestRoutePlan => Boolean(route));
+      const route = candidates[0] || input.fallbackRoute || null;
+      if (!route) return { route: null, candidateCount: candidates.length };
+      return {
+        route: {
+          ...route,
+          itemId: String(route.itemId || input.itemId || ""),
+          count: Math.max(1, Number(route.count || input.count || 1)),
+          day: Number(route.day || input.day || 1),
+          ready: Boolean(route.ready),
+        },
+        candidateCount: candidates.length,
+      };
+    }
+
     function plantStatePlan(input: PlantStatePlanInput): PlantStatePlan {
       const crop = input.crop || {};
       const cropId = String(crop.crop_id || "");
@@ -645,6 +675,7 @@ namespace XiannongCore.Farming {
       harvestProgressPlan,
       harvestQualityRewardPlan,
       harvestRouteAccountingPlan,
+      harvestRouteSelectionPlan,
       plantStatePlan,
       waterStatePlan,
     };
