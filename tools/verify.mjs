@@ -3011,6 +3011,9 @@ for (const farmingRuntimeTerm of [
   "runtime.seedProjectedHarvestSpec(crop, plot)",
   "runtime.harvestQualitySpec(crop, plot, amount, affinity)",
   "runtime.cropWorldGrowthVisualSpec(crop, plot, plotIndex, state.day)",
+  "runtime.nightCropGrowthPlan",
+  "growthPlan.matureAfter",
+  "growthPlan.caredBySystem",
 ]) {
   if (!game.includes(farmingRuntimeTerm)) throw new Error(`Farming TypeScript runtime bridge missing: ${farmingRuntimeTerm}`);
 }
@@ -3153,6 +3156,11 @@ for (const farmingCoreSourceTerm of [
   "hooks.hasAnySpirit()",
   "hooks.qualityQuestItemIdForCrop",
   "spriteScale: plot.mature ? 0.76",
+  "export interface NightCropGrowthPlan",
+  "nightCropGrowthPlan(input",
+  "careSource",
+  "adjustedGrowDays",
+  "newlyMature",
   "data.cropsById?.get",
   "data.cropsBySeed?.get",
   "hooks.unresolvedRisks()",
@@ -3174,6 +3182,10 @@ for (const farmingCoreRuntimeTerm of [
   "hooks.hasAnySpirit()",
   "hooks.qualityQuestItemIdForCrop",
   "spriteScale: plot.mature ? 0.76",
+  "function nightCropGrowthPlan",
+  "careSource",
+  "adjustedGrowDays",
+  "newlyMature",
   "data.cropsById?.get",
   "data.cropsBySeed?.get",
   "hooks.unresolvedRisks()",

@@ -259,6 +259,44 @@ var XiannongCore;
                     badge: yieldBonus.amount > 0 ? `${affinity.label || "Term"}+${yieldBonus.amount}` : affinity.label || stageLabel,
                 };
             }
+            function nightCropGrowthPlan(input) {
+                const plot = input.plot;
+                const crop = input.crop || (plot.cropId ? cropForHarvestTarget(plot.cropId) : null);
+                const cropId = plot.cropId || crop?.crop_id || "";
+                const growDays = Math.max(1, Number(crop?.grow_days || 1));
+                const growthModifier = Math.max(0.01, Number(input.growthModifier || 1));
+                const rainWatered = Number(input.waterBonus || 0) >= 0.3;
+                const finaleWatered = Number(input.waterCareBonus || 0) > 0 && crop?.element_type === "water";
+                const pondWatered = Boolean(input.pondAutoWater && plot.waterSoil && crop?.element_type === "water");
+                const finaleFarmCare = Number(input.farmGrowthBonus || 0) > 0 && Boolean(cropId) && Number(input.day || 1) % 2 === 0;
+                const manualWatered = Boolean(plot.watered);
+                const effectiveWatered = manualWatered || rainWatered || pondWatered || finaleWatered || finaleFarmCare;
+                const adjustedGrowDays = Math.max(1, Math.ceil(growDays / growthModifier));
+                const beforeMature = Boolean(input.beforeMature ?? plot.mature);
+                const matureAfter = beforeMature || (effectiveWatered && Number(input.day || 1) - Number(plot.plantedDay || input.day || 1) >= adjustedGrowDays);
+                const careSource = manualWatered
+                    ? "manual"
+                    : rainWatered
+                        ? "rain"
+                        : pondWatered
+                            ? "pond"
+                            : finaleWatered
+                                ? "finale_water"
+                                : finaleFarmCare
+                                    ? "finale_farm"
+                                    : "";
+                return {
+                    cropId,
+                    effectiveWatered,
+                    careSource,
+                    caredBySystem: !Boolean(input.beforeWatered) && careSource !== "" && careSource !== "manual",
+                    beforeMature,
+                    matureAfter,
+                    newlyMature: !beforeMature && matureAfter,
+                    growDays,
+                    adjustedGrowDays,
+                };
+            }
             return {
                 cropForHarvestTarget,
                 cropSolarAffinity,
@@ -266,6 +304,7 @@ var XiannongCore;
                 seedProjectedHarvestSpec,
                 harvestQualitySpec,
                 cropWorldGrowthVisualSpec,
+                nightCropGrowthPlan,
             };
         }
         Farming.createFarmingRuntime = createFarmingRuntime;

@@ -61494,27 +61494,42 @@ function sleep() {
   for (const plot of state.plots) {
     if (!plot.cropId) continue;
     const beforePlot = plotGrowthBefore.get(`${plot.x},${plot.y}`) || {};
-    const crop = data.crops.find((entry) => entry.crop_id === plot.cropId);
+    const crop = data.cropsById.get(plot.cropId) || data.crops.find((entry) => entry.crop_id === plot.cropId);
+    const runtime = farmingRuntime();
+    const growthPlan = runtime
+      ? runtime.nightCropGrowthPlan({
+        plot,
+        crop,
+        beforeWatered: beforePlot.watered,
+        beforeMature: beforePlot.mature,
+        day: state.day,
+        waterBonus,
+        growthModifier,
+        waterCareBonus: finaleEffects.waterCareBonus,
+        farmGrowthBonus: finaleEffects.farmGrowthBonus,
+        pondAutoWater: pondCropAutoWaterActive(),
+      })
+      : null;
     const growDays = Number(crop.grow_days || 1);
-    const rainWatered = waterBonus >= 0.3;
-    const finaleWatered = finaleEffects.waterCareBonus > 0 && crop.element_type === "water";
-    const pondWatered = plot.waterSoil && crop.element_type === "water" && pondCropAutoWaterActive();
-    const finaleFarmCare = finaleEffects.farmGrowthBonus > 0 && plot.cropId && state.day % 2 === 0;
-    const effectiveWatered = plot.watered || rainWatered || pondWatered || finaleWatered || finaleFarmCare;
-    const adjustedGrowDays = Math.max(1, Math.ceil(growDays / growthModifier));
+    const rainWatered = growthPlan ? growthPlan.careSource === "rain" : waterBonus >= 0.3;
+    const finaleWatered = growthPlan ? growthPlan.careSource === "finale_water" : finaleEffects.waterCareBonus > 0 && crop.element_type === "water";
+    const pondWatered = growthPlan ? growthPlan.careSource === "pond" : plot.waterSoil && crop.element_type === "water" && pondCropAutoWaterActive();
+    const finaleFarmCare = growthPlan ? growthPlan.careSource === "finale_farm" : finaleEffects.farmGrowthBonus > 0 && plot.cropId && state.day % 2 === 0;
+    const effectiveWatered = growthPlan ? growthPlan.effectiveWatered : plot.watered || rainWatered || pondWatered || finaleWatered || finaleFarmCare;
+    const adjustedGrowDays = growthPlan ? growthPlan.adjustedGrowDays : Math.max(1, Math.ceil(growDays / growthModifier));
     if (effectiveWatered) {
       nightGrowth.grownCount += 1;
-      if (!beforePlot.watered && (rainWatered || pondWatered || finaleWatered || finaleFarmCare)) {
+      if (growthPlan ? growthPlan.caredBySystem : !beforePlot.watered && (rainWatered || pondWatered || finaleWatered || finaleFarmCare)) {
         nightGrowth.caredPlots.push({
           x: plot.x,
           y: plot.y,
           cropId: plot.cropId,
-          source: rainWatered ? "rain" : pondWatered ? "pond" : finaleWatered ? "finale_water" : "finale_farm",
+          source: growthPlan?.careSource || (rainWatered ? "rain" : pondWatered ? "pond" : finaleWatered ? "finale_water" : "finale_farm"),
         });
       }
     }
-    if (effectiveWatered && state.day - plot.plantedDay >= adjustedGrowDays) plot.mature = true;
-    if (!beforePlot.mature && plot.mature) {
+    if (growthPlan ? growthPlan.matureAfter : effectiveWatered && state.day - plot.plantedDay >= adjustedGrowDays) plot.mature = true;
+    if (growthPlan ? growthPlan.newlyMature : !beforePlot.mature && plot.mature) {
       const matureRoute = growingCropUseRouteSpec(plot);
       nightGrowth.maturedPlots.push({
         x: plot.x,

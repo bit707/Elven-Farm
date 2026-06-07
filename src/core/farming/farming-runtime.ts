@@ -73,6 +73,33 @@ namespace XiannongCore.Farming {
     badge: string;
   }
 
+  export interface NightCropGrowthInput {
+    plot: FarmingPlot;
+    crop?: FarmingRow | null;
+    beforeWatered?: boolean;
+    beforeMature?: boolean;
+    day: number;
+    waterBonus: number;
+    growthModifier: number;
+    waterCareBonus?: number;
+    farmGrowthBonus?: number;
+    pondAutoWater?: boolean;
+  }
+
+  export type NightCropCareSource = "manual" | "rain" | "pond" | "finale_water" | "finale_farm" | "";
+
+  export interface NightCropGrowthPlan {
+    cropId: string;
+    effectiveWatered: boolean;
+    careSource: NightCropCareSource;
+    caredBySystem: boolean;
+    beforeMature: boolean;
+    matureAfter: boolean;
+    newlyMature: boolean;
+    growDays: number;
+    adjustedGrowDays: number;
+  }
+
   export interface FarmingRuntime {
     cropForHarvestTarget(targetId?: string): FarmingRow | null;
     cropSolarAffinity(
@@ -85,6 +112,7 @@ namespace XiannongCore.Farming {
     seedProjectedHarvestSpec(crop?: FarmingRow | null, plot?: FarmingPlot | null): SeedProjectedHarvestSpec;
     harvestQualitySpec(crop?: FarmingRow | null, plot?: FarmingPlot | null, amount?: number, affinity?: CropSolarAffinity | null): HarvestQualitySpec;
     cropWorldGrowthVisualSpec(crop?: FarmingRow | null, plot?: FarmingPlot | null, plotIndex?: number, day?: number): CropWorldGrowthVisualSpec | null;
+    nightCropGrowthPlan(input: NightCropGrowthInput): NightCropGrowthPlan;
   }
 
   export function createFarmingRuntime(data: FarmingRuntimeData, hooks: FarmingRuntimeHooks): FarmingRuntime {
@@ -265,6 +293,45 @@ namespace XiannongCore.Farming {
       };
     }
 
+    function nightCropGrowthPlan(input: NightCropGrowthInput): NightCropGrowthPlan {
+      const plot = input.plot;
+      const crop = input.crop || (plot.cropId ? cropForHarvestTarget(plot.cropId) : null);
+      const cropId = plot.cropId || crop?.crop_id || "";
+      const growDays = Math.max(1, Number(crop?.grow_days || 1));
+      const growthModifier = Math.max(0.01, Number(input.growthModifier || 1));
+      const rainWatered = Number(input.waterBonus || 0) >= 0.3;
+      const finaleWatered = Number(input.waterCareBonus || 0) > 0 && crop?.element_type === "water";
+      const pondWatered = Boolean(input.pondAutoWater && plot.waterSoil && crop?.element_type === "water");
+      const finaleFarmCare = Number(input.farmGrowthBonus || 0) > 0 && Boolean(cropId) && Number(input.day || 1) % 2 === 0;
+      const manualWatered = Boolean(plot.watered);
+      const effectiveWatered = manualWatered || rainWatered || pondWatered || finaleWatered || finaleFarmCare;
+      const adjustedGrowDays = Math.max(1, Math.ceil(growDays / growthModifier));
+      const beforeMature = Boolean(input.beforeMature ?? plot.mature);
+      const matureAfter = beforeMature || (effectiveWatered && Number(input.day || 1) - Number(plot.plantedDay || input.day || 1) >= adjustedGrowDays);
+      const careSource: NightCropCareSource = manualWatered
+        ? "manual"
+        : rainWatered
+          ? "rain"
+          : pondWatered
+            ? "pond"
+            : finaleWatered
+              ? "finale_water"
+              : finaleFarmCare
+                ? "finale_farm"
+                : "";
+      return {
+        cropId,
+        effectiveWatered,
+        careSource,
+        caredBySystem: !Boolean(input.beforeWatered) && careSource !== "" && careSource !== "manual",
+        beforeMature,
+        matureAfter,
+        newlyMature: !beforeMature && matureAfter,
+        growDays,
+        adjustedGrowDays,
+      };
+    }
+
     return {
       cropForHarvestTarget,
       cropSolarAffinity,
@@ -272,6 +339,7 @@ namespace XiannongCore.Farming {
       seedProjectedHarvestSpec,
       harvestQualitySpec,
       cropWorldGrowthVisualSpec,
+      nightCropGrowthPlan,
     };
   }
 }
