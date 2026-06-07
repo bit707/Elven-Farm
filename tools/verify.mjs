@@ -3861,6 +3861,9 @@ const sideQuestDialogue0205 = sideQuestDialogueMaps.find((entry) => entry.map_id
 const mainQuest0001Rewards = rewardPools.filter((entry) => entry.reward_pool_id === mainQuest0001?.complete_reward_group);
 const mainQuest0101 = quests.find((entry) => entry.quest_id === "quest_main_0101_lingjing_huisheng");
 const mainQuest0101Rewards = rewardPools.filter((entry) => entry.reward_pool_id === mainQuest0101?.complete_reward_group);
+const mainQuest0102 = quests.find((entry) => entry.quest_id === "quest_main_0102_tonghuo_chuming");
+const mainQuestSteps0102 = questSteps.filter((entry) => entry.quest_id === "quest_main_0102_tonghuo_chuming");
+const copperHoeRecipe = recipes.find((entry) => entry.recipe_id === "recipe_tool_copper_set");
 const sideQuest0101Rewards = rewardPools.filter((entry) => entry.reward_pool_id === sideQuest0101?.complete_reward_group);
 const reliefSideQuest = sideQuests.find((entry) => entry.quest_id === "quest_side_0401_relief_supply");
 const reliefSideRewards = rewardPools.filter((entry) => entry.reward_pool_id === reliefSideQuest?.complete_reward_group);
@@ -4428,6 +4431,18 @@ if (mainQuest0001Rewards.length < 2 || !mainQuest0001Rewards.some((entry) => ent
 }
 if (!mainQuest0101 || !mainQuest0101Rewards.some((entry) => entry.reward_type === "building" && entry.reward_param === "build_lingjing_001")) {
   throw new Error("Main quest 0101 must unlock Lingjing building through quest reward runtime");
+}
+if (!mainQuest0102 || !mainQuestSteps0102.some((step) => step.objective_type === "craft" && step.target_id === "item_tool_copper_hoe")) {
+  throw new Error("Main quest 0102 must include the copper hoe crafting objective");
+}
+if (!copperHoeRecipe || copperHoeRecipe.output_item_id !== "item_tool_copper_hoe" || copperHoeRecipe.machine_type !== "furnace") {
+  throw new Error("Copper hoe recipe must exist and output the chapter-one tool through the furnace");
+}
+if (copperHoeRecipe.unlock_type !== "chapter" || copperHoeRecipe.unlock_param !== "quest_main_0102_step_1_done") {
+  throw new Error("Copper hoe recipe must unlock from the Jingzhe pest step and must not be self-locked behind quest completion");
+}
+if (!game.includes("function storyRecipeForTarget") || !game.includes('item_tool_copper_hoe: "recipe_tool_copper_set"')) {
+  throw new Error("Story compass must route the copper hoe objective to its crafting recipe");
 }
 if (!sideQuest0101 || sideQuestSteps0101.length < 2 || !sideQuestTrigger0101) {
   throw new Error("Side quest 0101 must include base, steps, and trigger rows");

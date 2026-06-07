@@ -6,6 +6,7 @@ recipe_water_crop_intro,recipe_name_water_crop_intro,food,kitchen,"item_fish_spi
 recipe_lingchi_sanxian_geng,recipe_name_lingchi_sanxian_geng,food,kitchen,"item_fish_spiritling|crop_luzhu_qin|crop_yuewen_huanggua|item_material_clean_water","1|1|1|1",item_food_lingchi_sanxian_geng,1,85,avg,completed,qingbo_water_fresh_signature_line,1.62,fx_cook_water
 recipe_plain_ration,recipe_name_plain_ration,food,kitchen,"crop_mangzhong_maisui|item_material_clean_water","2|1",item_food_plain_ration,2,50,avg,default,,1.15,fx_cook_steam
 recipe_zhixue_san,recipe_name_zhixue_san,medicine,alchemy,"crop_tiepi_shihu|item_material_clean_water","2|1",item_med_zhixue_san,1,70,weighted,quest,quest_main_0102_tonghuo_chuming,1.45,fx_alchemy_green
+recipe_tool_copper_set,recipe_name_tool_copper_set,tool,furnace,"item_ore_copper|item_wood_basic","3|2",item_tool_copper_hoe,1,75,highest,chapter,quest_main_0102_step_1_done,1.10,fx_forge_fire
 recipe_cu_mianfen,recipe_name_cu_mianfen,material,mill,"crop_mangzhong_maisui","2",item_material_cu_mianfen,1,40,fixed,default,,1.10,fx_mill_dust
 recipe_mianbing,recipe_name_mianbing,food,kitchen,"item_material_cu_mianfen|item_material_clean_water","1|1",item_food_mianbing,1,60,avg,default,,1.35,fx_cook_basic
 recipe_lingcha,recipe_name_lingcha,drink,kitchen,"crop_guyu_chaya|item_material_clean_water","2|1",item_drink_lingcha,1,80,weighted,npc_favor,npc_lu_sanxiao_favor_2,1.35,fx_tea_steam

@@ -563,6 +563,33 @@ function buildWorkshop() {
   if (machine) state.machines.add(machine.machine_id);
 }
 
+function buildFurnace() {
+  const furnace = data.buildings.find((entry) => entry.building_id === "build_furnace_001");
+  const machine = data.machines.find((entry) => entry.building_unlock_id === furnace?.building_id);
+  if (!furnace || !machine) return errors.push("Furnace building or machine is missing from chapter-one data");
+  state.buildings.add(furnace.building_id);
+  state.machines.add(machine.machine_id);
+  complete("chapter_1_furnace_online");
+  return true;
+}
+
+function completeChapterOneToolchain() {
+  const recipe = data.recipes.find((entry) => entry.recipe_id === "recipe_tool_copper_set");
+  if (!recipe) return errors.push("Copper hoe recipe is missing from chapter-one smoke path");
+  if (recipe.output_item_id !== "item_tool_copper_hoe") errors.push("Copper hoe recipe must output item_tool_copper_hoe");
+  if (recipe.unlock_type !== "chapter" || recipe.unlock_param !== "quest_main_0102_step_1_done") {
+    errors.push("Copper hoe recipe must unlock after the Jingzhe pest step instead of self-locking behind quest completion");
+  }
+  buildFurnace();
+  complete("quest_main_0102_step_1_done");
+  ensureItem("item_ore_copper", 3);
+  ensureItem("item_wood_basic", 2);
+  if (craftRecipe(recipe.recipe_id)) {
+    complete("chapter_1_copper_hoe_crafted");
+    state.claimedQuestRewards.add("quest_main_0102_tonghuo_chuming");
+  }
+}
+
 function allOrders() {
   return [...data.orders, ...data.year2Orders];
 }
@@ -756,6 +783,7 @@ for (let day = 1; day <= 30; day += 1) {
   deliverCanalOrder();
   if (day % 4 === 0) openShop();
   if (day === 6) buildWorkshop();
+  if (day === 7) completeChapterOneToolchain();
   if (day >= 7) repairCanal();
   if (state.canalRestorationState.waterCropUnlocked && !state.plots.some((plot) => plot.cropId === "crop_luzhu_qin")) plant("seed_luzhu_qin");
   if (day >= 8) buildFishpond();
@@ -785,11 +813,15 @@ completeLotusBasinReturn();
 deliverQingheLotusFollowupOrder();
 const payload = savePayload();
 
-const requiredCompleted = ["clear", "plant", "harvest", "spirit", "assist", "craft", "first_workshop_aroma", "first_shop_opening", "first_shop_sale_summary", "shop", "bond", "first_spirit_interaction", "repair", "first_canal_restoration", "first_lingqin_dish_crafted", "pond_water_control", "pond_water_mastery", "day_summary", "risk_pest", "dungeon_enter"];
+const requiredCompleted = ["clear", "plant", "harvest", "spirit", "assist", "craft", "first_workshop_aroma", "first_shop_opening", "first_shop_sale_summary", "shop", "bond", "first_spirit_interaction", "repair", "first_canal_restoration", "first_lingqin_dish_crafted", "chapter_1_furnace_online", "quest_main_0102_step_1_done", "chapter_1_copper_hoe_crafted", "pond_water_control", "pond_water_mastery", "day_summary", "risk_pest", "dungeon_enter"];
 for (const id of requiredCompleted) {
   if (!state.completed.has(id)) errors.push(`Missing completed milestone: ${id}`);
 }
 if (!state.dungeonClears.has("area_mine_qingyun")) errors.push("Dungeon clear was not preserved");
+if (!state.buildings.has("build_furnace_001") || !state.machines.has("machine_furnace_001")) errors.push("Chapter-one furnace did not come online");
+if (!state.inventory.item_tool_copper_hoe || !state.claimedQuestRewards.has("quest_main_0102_tonghuo_chuming")) {
+  errors.push("Chapter-one copper hoe toolchain did not craft and preserve quest progress");
+}
 if (!state.tradeRuns.some((run) => run.status === "returned")) errors.push("Trade run did not return");
 if (!state.completedSolarTrials.has("trial_guyu_herb")) errors.push("Solar trial did not complete");
 if (!payload.cloudMirrorAt) errors.push("Cloud mirror timestamp missing");

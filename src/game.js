@@ -16587,6 +16587,15 @@ function recipeForOutputItem(itemId = "") {
   return data.recipes.find((recipe) => recipe.output_item_id === itemId) || null;
 }
 
+function storyRecipeForTarget(itemId = "") {
+  const direct = recipeForOutputItem(itemId);
+  if (direct) return direct;
+  const map = {
+    item_tool_copper_hoe: "recipe_tool_copper_set",
+  };
+  return data.recipes.find((recipe) => recipe.recipe_id === map[itemId]) || null;
+}
+
 function cropForHarvestTarget(targetId = "") {
   return data.crops.find((crop) => crop.crop_id === targetId || crop.seed_item_id === targetId || crop.output_item_id === targetId) || null;
 }
@@ -16661,7 +16670,7 @@ function runStoryCompassAction() {
     if (crop?.seed_item_id) return focusPlotRouteSeed(crop.seed_item_id);
   }
   if (objectiveType === "craft") {
-    const recipe = recipeForOutputItem(targetId);
+    const recipe = storyRecipeForTarget(targetId);
     if (recipe) return focusPlotRouteRecipe(recipe.recipe_id);
   }
   if (objectiveType === "sell") {
@@ -16695,10 +16704,23 @@ function runStoryCompassAction() {
     }
   }
   if (objectiveType === "collect") {
-    const recipe = recipeForOutputItem(targetId);
+    const recipe = storyRecipeForTarget(targetId);
     const crop = cropForHarvestTarget(targetId);
     if (recipe) return focusPlotRouteRecipe(recipe.recipe_id);
     if (crop?.seed_item_id) return focusPlotRouteSeed(crop.seed_item_id);
+    if (["item_ore_copper", "item_ore_iron", "item_ore_iron_raw", "item_metal_xuantie"].includes(targetId)) {
+      const dungeon = dungeonForStoryTarget("area_mine_qingyun", "area_mine_qingyun");
+      if (dungeon) {
+        queueStoryCompassFocusTarget({
+          selector: `[data-dungeon-card-id="${selectorDataValue(dungeon.area_id)}"]`,
+          fallbackSelector: ".dungeon-panel",
+          label: "主线导航：定位矿材",
+          log: `${itemName(targetId)} 主要来自${dungeonName(dungeon)}。先进入矿洞探索，再回到主线任务书确认数量。这里只定位入口，不会自动进入秘境或发放材料。`,
+          panelGroup: "systems",
+        });
+        return;
+      }
+    }
     const order = visibleOrders().find((entry) => orderNeeds(entry).some((need) => need.itemId === targetId));
     if (order) return focusPlotRouteOrder(order.order_id);
   }
