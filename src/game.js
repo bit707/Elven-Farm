@@ -20458,6 +20458,8 @@ function currentShelfTheme() {
 }
 
 function themeMatchScore(goods, theme) {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.themeMatchScore(goods, theme);
   if (!theme || goods.length === 0) return 0;
   const required = splitTags(theme.required_item_tags);
   const matched = goods.filter(({ item }) => splitTags(item.tags).some((tag) => required.includes(tag))).length;

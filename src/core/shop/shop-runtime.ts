@@ -22,6 +22,7 @@ namespace XiannongCore.Shop {
     pricedGood(choice: ShopGoodChoice | null | undefined, customer: ShopRow | null | undefined, options?: PricedGoodOptions): PricedGoodResult;
     customerPurchaseDecision(input: CustomerPurchaseDecisionInput): CustomerPurchaseDecision;
     salePricePlan(input: SalePricePlanInput): SalePricePlan;
+    themeMatchScore(goods?: ShopGoodChoice[] | null, theme?: ShopRow | null): number;
   }
 
   export interface ShopGoodChoice {
@@ -199,6 +200,18 @@ namespace XiannongCore.Shop {
       };
     }
 
+    function splitTags(value?: string): string[] {
+      return String(value || "").split("|").map((tag) => tag.trim()).filter(Boolean);
+    }
+
+    function themeMatchScore(goods: ShopGoodChoice[] | null = [], theme: ShopRow | null = null): number {
+      const safeGoods = Array.isArray(goods) ? goods : [];
+      if (!theme || safeGoods.length === 0) return 0;
+      const required = splitTags(theme.required_item_tags);
+      const matched = safeGoods.filter((good) => splitTags(good.item?.tags).some((tag) => required.includes(tag))).length;
+      return matched / safeGoods.length;
+    }
+
     return {
       customerPriceRule,
       customerProfile,
@@ -208,6 +221,7 @@ namespace XiannongCore.Shop {
       pricedGood,
       customerPurchaseDecision,
       salePricePlan,
+      themeMatchScore,
     };
   }
 }

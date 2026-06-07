@@ -3003,6 +3003,7 @@ for (const shopRuntimeTerm of [
   "purchaseDecision.canBuy",
   "salePricePlan",
   "salePlan.dessertBonusGold",
+  "runtime.themeMatchScore(goods, theme)",
 ]) {
   if (!game.includes(shopRuntimeTerm)) throw new Error(`Shop TypeScript runtime bridge missing: ${shopRuntimeTerm}`);
 }
@@ -3141,6 +3142,8 @@ for (const shopCoreSourceTerm of [
   "salePricePlan(input",
   "baseSalePrice",
   "dessertBonusGold",
+  "themeMatchScore(goods",
+  "required_item_tags",
   "data.priceRulesByArchetype?.get",
   "data.customerProfilesBy?.get",
   "preferred_tags: compactJoin",
@@ -3168,6 +3171,8 @@ for (const shopCoreRuntimeTerm of [
   "function salePricePlan",
   "baseSalePrice",
   "dessertBonusGold",
+  "function themeMatchScore",
+  "required_item_tags",
   "data.priceRulesByArchetype?.get",
   "data.customerProfilesBy?.get",
   "preferred_tags: compactJoin",

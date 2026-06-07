@@ -1107,6 +1107,17 @@ var XiannongCore;
                     dessertBonusGold: Math.max(0, salePrice - baseSalePrice),
                 };
             }
+            function splitTags(value) {
+                return String(value || "").split("|").map((tag) => tag.trim()).filter(Boolean);
+            }
+            function themeMatchScore(goods = [], theme = null) {
+                const safeGoods = Array.isArray(goods) ? goods : [];
+                if (!theme || safeGoods.length === 0)
+                    return 0;
+                const required = splitTags(theme.required_item_tags);
+                const matched = safeGoods.filter((good) => splitTags(good.item?.tags).some((tag) => required.includes(tag))).length;
+                return matched / safeGoods.length;
+            }
             return {
                 customerPriceRule,
                 customerProfile,
@@ -1116,6 +1127,7 @@ var XiannongCore;
                 pricedGood,
                 customerPurchaseDecision,
                 salePricePlan,
+                themeMatchScore,
             };
         }
         Shop.createShopRuntime = createShopRuntime;
