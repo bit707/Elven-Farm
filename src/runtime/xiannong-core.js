@@ -1449,6 +1449,15 @@ var XiannongCore;
                 const seasonId = season?.season_id || info.season?.season_id || "season_shop_001";
                 return `${seasonId}:${Number((input?.cycleIndex ?? info.cycleIndex) || 0)}`;
             }
+            function shopSeasonRules(season = shopSeasonCycleInfo().season) {
+                const seasonId = season?.season_id || "";
+                return (Array.isArray(data.shopSettlementRules) ? data.shopSettlementRules : [])
+                    .filter((rule) => rule.season_id === seasonId);
+            }
+            function shopSeasonLeadKey(counts = {}) {
+                return Object.entries(counts || {})
+                    .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))[0]?.[0] || "";
+            }
             function shopSeasonRewards(season = shopSeasonCycleInfo().season) {
                 const seasonId = season?.season_id || "";
                 return (Array.isArray(data.shopRankRewards) ? data.shopRankRewards : [])
@@ -1493,6 +1502,8 @@ var XiannongCore;
                 shopSalesStatsDelta,
                 shopSeasonCycleInfo,
                 shopSeasonCycleKey,
+                shopSeasonRules,
+                shopSeasonLeadKey,
                 shopSeasonRewards,
                 shopSeasonRank,
             };

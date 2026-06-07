@@ -12,6 +12,7 @@ namespace XiannongCore.Shop {
     customerProfiles: ShopRow[];
     shopFeedback: ShopRow[];
     shopSeasons?: ShopRow[];
+    shopSettlementRules?: ShopRow[];
     shopRankRewards?: ShopRow[];
     priceRulesByArchetype?: Map<string, ShopRow>;
     customerProfilesBy?: Map<string, ShopRow>;
@@ -44,6 +45,8 @@ namespace XiannongCore.Shop {
     shopSalesStatsDelta(input?: ShopSalesStatsDeltaInput | null): ShopSalesStatsDelta;
     shopSeasonCycleInfo(day?: number | string | null): ShopSeasonCycleInfo;
     shopSeasonCycleKey(input?: ShopSeasonCycleKeyInput | null): string;
+    shopSeasonRules(season?: ShopRow | null): ShopRow[];
+    shopSeasonLeadKey(counts?: ShopNumericCounts | null): string;
     shopSeasonRewards(season?: ShopRow | null): ShopRow[];
     shopSeasonRank(score?: number | string | null, season?: ShopRow | null): ShopRow;
   }
@@ -59,6 +62,7 @@ namespace XiannongCore.Shop {
   }
 
   export type ShopTagCounts = Map<string, number> | Record<string, number | undefined>;
+  export type ShopNumericCounts = Record<string, number | string | undefined>;
 
   export interface ShopWordOfMouthSpec {
     preferredArchetypes?: string[] | null;
@@ -723,6 +727,17 @@ namespace XiannongCore.Shop {
       return `${seasonId}:${Number((input?.cycleIndex ?? info.cycleIndex) || 0)}`;
     }
 
+    function shopSeasonRules(season: ShopRow | null = shopSeasonCycleInfo().season): ShopRow[] {
+      const seasonId = season?.season_id || "";
+      return (Array.isArray(data.shopSettlementRules) ? data.shopSettlementRules : [])
+        .filter((rule) => rule.season_id === seasonId);
+    }
+
+    function shopSeasonLeadKey(counts: ShopNumericCounts | null = {}): string {
+      return Object.entries(counts || {})
+        .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))[0]?.[0] || "";
+    }
+
     function shopSeasonRewards(season: ShopRow | null = shopSeasonCycleInfo().season): ShopRow[] {
       const seasonId = season?.season_id || "";
       return (Array.isArray(data.shopRankRewards) ? data.shopRankRewards : [])
@@ -769,6 +784,8 @@ namespace XiannongCore.Shop {
       shopSalesStatsDelta,
       shopSeasonCycleInfo,
       shopSeasonCycleKey,
+      shopSeasonRules,
+      shopSeasonLeadKey,
       shopSeasonRewards,
       shopSeasonRank,
     };

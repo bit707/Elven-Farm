@@ -15611,6 +15611,7 @@ function shopRuntime() {
       customerProfiles: data.customerProfiles,
       shopFeedback: data.shopFeedback,
       shopSeasons: data.shopSeasons,
+      shopSettlementRules: data.shopSettlementRules,
       shopRankRewards: data.shopRankRewards,
       priceRulesByArchetype: data.priceRulesByArchetype,
       customerProfilesBy: data.customerProfilesBy,
@@ -26749,6 +26750,8 @@ function shopSeasonTitle(rankTier = "c") {
 }
 
 function shopSeasonRules(season = currentShopSeason()) {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.shopSeasonRules(season);
   return data.shopSettlementRules.filter((rule) => rule.season_id === season?.season_id);
 }
 
@@ -26819,6 +26822,8 @@ function shopSeasonRank(score, season = currentShopSeason()) {
 }
 
 function shopSeasonLeadKey(map = {}) {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.shopSeasonLeadKey(map);
   return Object.entries(map)
     .sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] || "";
 }
