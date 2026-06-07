@@ -42468,8 +42468,26 @@ function exploreDungeon() {
   const hiddenRevealPressureDown = run.hiddenReveal && !run.hiddenRevealConsumed ? Number(run.hiddenRevealPressureDown || 0) : 0;
   const failureInsightPathBonus = run.floor <= Math.max(1, Number(run.failureInsightRevealedFloor || 0)) ? Number(run.failureInsightPathBonus || 0) : 0;
   const failureInsightOverflowRelief = mechanic?.dungeon_id === "dsm_004" ? Number(run.failureInsightOverflowRelief || 0) : 0;
-  const enemyPower = Math.max(8, Number(enemy?.atk || 16) + Number(enemy?.def || 6) + hazardPressure - spiritPower - mechanicBonus - rotationHazardReduce - rotationPathBonus - hiddenRevealPressureDown - failureInsightPathBonus - failureInsightOverflowRelief - mechanicEffects.enemyPowerDown);
-  const damage = Math.max(4, Math.round(enemyPower / 4) + mechanicEffects.damageUp - mechanicEffects.damageDown);
+  const explorePlan = dungeonRuntime()?.dungeonExplorePlan({
+    enemy,
+    hazardPressure,
+    spiritPower,
+    mechanicBonus,
+    rotationHazardReduce,
+    rotationPathBonus,
+    hiddenRevealPressureDown,
+    failureInsightPathBonus,
+    failureInsightOverflowRelief,
+    mechanicEffects,
+  }) || (() => {
+    const fallbackEnemyPower = Math.max(8, Number(enemy?.atk || 16) + Number(enemy?.def || 6) + hazardPressure - spiritPower - mechanicBonus - rotationHazardReduce - rotationPathBonus - hiddenRevealPressureDown - failureInsightPathBonus - failureInsightOverflowRelief - mechanicEffects.enemyPowerDown);
+    return {
+      enemyPower: fallbackEnemyPower,
+      damage: Math.max(4, Math.round(fallbackEnemyPower / 4) + mechanicEffects.damageUp - mechanicEffects.damageDown),
+    };
+  })();
+  const enemyPower = explorePlan.enemyPower;
+  const damage = explorePlan.damage;
   run.hp = Math.max(0, run.hp - damage);
   const loot = rollLoot(enemy?.drop_pool_id || dungeon.resource_group_id, run.floor, mechanicEffects.lootMultiplier);
   const lootText = loot.map((entry) => `${itemName(entry.itemId)} x${entry.count}`).join("、") || "少量灵砂";
@@ -42574,10 +42592,7 @@ function challengeDungeonBoss() {
   const bossSkill = bossSkillForTurn(bossId, run.turn, beforePercent);
   const phase = bossPhaseForPercent(bossId, beforePercent);
   const supportSkill = spiritCombatSkills()[0];
-  const bossPressure = Math.max(20, Math.round(Number(boss?.hp_total || 1200) / 90) + Number(boss?.phase_count || 1) * 6);
   const spiritPower = companionPower();
-  const skillPressure = skillImpact(bossSkill);
-  const supportGuard = supportSkill ? Math.max(2, Math.round(Number(supportSkill.effect_param_1 || 1) * 4)) : 0;
   const mechanic = currentDungeonMechanic(dungeon);
   const solutionSpec = dungeonSpiritSolutionSpec(run, mechanic, dungeon);
   const solutionBossLog = dungeonSpiritSolutionLogText(solutionSpec, "boss");
@@ -42587,12 +42602,45 @@ function challengeDungeonBoss() {
   const failureInsightBossGuard = Number(run.failureInsightBossGuard || 0);
   const failureInsightBossStrikeBonus = Number(run.failureInsightBossStrikeBonus || 0);
   const hazards = dungeonHazards(mechanic, run, dungeon);
-  const damage = Math.max(8, bossPressure + skillPressure + dungeonHazardPressure(hazards) - Math.round(spiritPower / 3) - supportGuard - rotationBossGuard - failureInsightBossGuard - mechanicEffects.bossGuard + mechanicEffects.damageUp - mechanicEffects.damageDown);
-  const baseStrike = 260 + run.maxFloor * 28 + Math.round(spiritPower * 7) + rotationPathBonus * 8 + failureInsightBossStrikeBonus + mechanicEffects.strikeBonus + (supportSkill?.effect_type === "combat" ? Math.round(Number(supportSkill.effect_param_1 || 1) * 90) : 0);
-  if (bossSkill?.effect_type === "shield") run.bossShield = Math.max(run.bossShield || 0, Number(bossSkill.effect_param_1 || 0));
-  const absorbed = Math.min(run.bossShield || 0, Math.round(baseStrike * 0.45));
-  run.bossShield = Math.max(0, (run.bossShield || 0) - absorbed);
-  const bossDamage = Math.max(80, baseStrike - absorbed - phase * 12);
+  const hazardPressure = dungeonHazardPressure(hazards);
+  const exchangePlan = dungeonRuntime()?.dungeonBossExchangePlan({
+    boss,
+    bossSkill,
+    supportSkill,
+    bossShield: run.bossShield,
+    phase,
+    maxFloor: run.maxFloor,
+    spiritPower,
+    hazardPressure,
+    rotationBossGuard,
+    rotationPathBonus,
+    failureInsightBossGuard,
+    failureInsightBossStrikeBonus,
+    mechanicEffects,
+  }) || (() => {
+    const bossPressure = Math.max(20, Math.round(Number(boss?.hp_total || 1200) / 90) + Number(boss?.phase_count || 1) * 6);
+    const skillPressure = skillImpact(bossSkill);
+    const supportGuard = supportSkill ? Math.max(2, Math.round(Number(supportSkill.effect_param_1 || 1) * 4)) : 0;
+    const baseStrike = 260 + run.maxFloor * 28 + Math.round(spiritPower * 7) + rotationPathBonus * 8 + failureInsightBossStrikeBonus + mechanicEffects.strikeBonus + (supportSkill?.effect_type === "combat" ? Math.round(Number(supportSkill.effect_param_1 || 1) * 90) : 0);
+    const shieldAfterSkill = bossSkill?.effect_type === "shield" ? Math.max(run.bossShield || 0, Number(bossSkill.effect_param_1 || 0)) : Number(run.bossShield || 0);
+    const absorbed = Math.min(shieldAfterSkill, Math.round(baseStrike * 0.45));
+    return {
+      bossPressure,
+      skillPressure,
+      supportGuard,
+      damage: Math.max(8, bossPressure + skillPressure + hazardPressure - Math.round(spiritPower / 3) - supportGuard - rotationBossGuard - failureInsightBossGuard - mechanicEffects.bossGuard + mechanicEffects.damageUp - mechanicEffects.damageDown),
+      baseStrike,
+      shieldAfterSkill,
+      absorbed,
+      bossShieldAfter: Math.max(0, shieldAfterSkill - absorbed),
+      bossDamage: Math.max(80, baseStrike - absorbed - phase * 12),
+    };
+  })();
+  const supportGuard = exchangePlan.supportGuard;
+  const damage = exchangePlan.damage;
+  const absorbed = exchangePlan.absorbed;
+  const bossDamage = exchangePlan.bossDamage;
+  run.bossShield = exchangePlan.bossShieldAfter;
   run.bossHp = Math.max(0, run.bossHp - bossDamage);
   run.hp = Math.max(0, run.hp - damage);
   run.turn += 1;

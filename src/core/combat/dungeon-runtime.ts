@@ -50,6 +50,60 @@ namespace XiannongCore.Combat {
     bossMaxHp?: number | string | null;
   }
 
+  export interface DungeonMechanicEffects {
+    enemyPowerDown?: number | string | null;
+    damageUp?: number | string | null;
+    damageDown?: number | string | null;
+    bossGuard?: number | string | null;
+    strikeBonus?: number | string | null;
+  }
+
+  export interface DungeonExplorePlanInput {
+    enemy?: CombatRow | null;
+    hazardPressure?: number | string | null;
+    spiritPower?: number | string | null;
+    mechanicBonus?: number | string | null;
+    rotationHazardReduce?: number | string | null;
+    rotationPathBonus?: number | string | null;
+    hiddenRevealPressureDown?: number | string | null;
+    failureInsightPathBonus?: number | string | null;
+    failureInsightOverflowRelief?: number | string | null;
+    mechanicEffects?: DungeonMechanicEffects | null;
+  }
+
+  export interface DungeonExplorePlan {
+    enemyPower: number;
+    damage: number;
+  }
+
+  export interface DungeonBossExchangePlanInput {
+    boss?: CombatRow | null;
+    bossSkill?: CombatRow | null;
+    supportSkill?: CombatRow | null;
+    bossShield?: number | string | null;
+    phase?: number | string | null;
+    maxFloor?: number | string | null;
+    spiritPower?: number | string | null;
+    hazardPressure?: number | string | null;
+    rotationBossGuard?: number | string | null;
+    rotationPathBonus?: number | string | null;
+    failureInsightBossGuard?: number | string | null;
+    failureInsightBossStrikeBonus?: number | string | null;
+    mechanicEffects?: DungeonMechanicEffects | null;
+  }
+
+  export interface DungeonBossExchangePlan {
+    bossPressure: number;
+    skillPressure: number;
+    supportGuard: number;
+    damage: number;
+    baseStrike: number;
+    shieldAfterSkill: number;
+    absorbed: number;
+    bossShieldAfter: number;
+    bossDamage: number;
+  }
+
   export interface CombatRuntime {
     bossSkillsFor(bossId?: string | null): CombatRow[];
     bossPhaseForPercent(bossId?: string | null, hpPercent?: number | string | null): number;
@@ -59,6 +113,8 @@ namespace XiannongCore.Combat {
     spiritCombatBonus(input?: SpiritCombatBonusInput | null): number;
     dungeonBossMaxHp(input?: DungeonBossMaxHpInput | null): number;
     bossHpPercent(input?: BossHpPercentInput | null): number;
+    dungeonExplorePlan(input?: DungeonExplorePlanInput | null): DungeonExplorePlan;
+    dungeonBossExchangePlan(input?: DungeonBossExchangePlanInput | null): DungeonBossExchangePlan;
   }
 
   function byId(rows: CombatRow[], idField: string, id?: string | null): CombatRow | null {
@@ -68,6 +124,10 @@ namespace XiannongCore.Combat {
 
   function clampPercent(value: number): number {
     return Math.max(0, Math.min(1, value));
+  }
+
+  function effectValue(effects: DungeonMechanicEffects | null | undefined, key: keyof DungeonMechanicEffects): number {
+    return Number(effects?.[key] || 0);
   }
 
   export function createDungeonRuntime(data: CombatRuntimeData): CombatRuntime {
@@ -140,6 +200,69 @@ namespace XiannongCore.Combat {
       return clampPercent(Number(input?.bossHp ?? input?.run?.bossHp ?? maxHp) / maxHp);
     }
 
+    function dungeonExplorePlan(input: DungeonExplorePlanInput | null = null): DungeonExplorePlan {
+      const effects = input?.mechanicEffects || null;
+      const enemyPower = Math.max(8,
+        Number(input?.enemy?.atk || 16)
+        + Number(input?.enemy?.def || 6)
+        + Number(input?.hazardPressure || 0)
+        - Number(input?.spiritPower || 0)
+        - Number(input?.mechanicBonus || 0)
+        - Number(input?.rotationHazardReduce || 0)
+        - Number(input?.rotationPathBonus || 0)
+        - Number(input?.hiddenRevealPressureDown || 0)
+        - Number(input?.failureInsightPathBonus || 0)
+        - Number(input?.failureInsightOverflowRelief || 0)
+        - effectValue(effects, "enemyPowerDown"),
+      );
+      const damage = Math.max(4, Math.round(enemyPower / 4) + effectValue(effects, "damageUp") - effectValue(effects, "damageDown"));
+      return { enemyPower, damage };
+    }
+
+    function dungeonBossExchangePlan(input: DungeonBossExchangePlanInput | null = null): DungeonBossExchangePlan {
+      const effects = input?.mechanicEffects || null;
+      const bossPressure = Math.max(20, Math.round(Number(input?.boss?.hp_total || 1200) / 90) + Number(input?.boss?.phase_count || 1) * 6);
+      const skillPressure = skillImpact(input?.bossSkill || null);
+      const supportGuard = input?.supportSkill ? Math.max(2, Math.round(Number(input.supportSkill.effect_param_1 || 1) * 4)) : 0;
+      const damage = Math.max(8,
+        bossPressure
+        + skillPressure
+        + Number(input?.hazardPressure || 0)
+        - Math.round(Number(input?.spiritPower || 0) / 3)
+        - supportGuard
+        - Number(input?.rotationBossGuard || 0)
+        - Number(input?.failureInsightBossGuard || 0)
+        - effectValue(effects, "bossGuard")
+        + effectValue(effects, "damageUp")
+        - effectValue(effects, "damageDown"),
+      );
+      const supportStrike = input?.supportSkill?.effect_type === "combat" ? Math.round(Number(input.supportSkill.effect_param_1 || 1) * 90) : 0;
+      const baseStrike = 260
+        + Number(input?.maxFloor || 0) * 28
+        + Math.round(Number(input?.spiritPower || 0) * 7)
+        + Number(input?.rotationPathBonus || 0) * 8
+        + Number(input?.failureInsightBossStrikeBonus || 0)
+        + effectValue(effects, "strikeBonus")
+        + supportStrike;
+      const shieldAfterSkill = input?.bossSkill?.effect_type === "shield"
+        ? Math.max(Number(input?.bossShield || 0), Number(input.bossSkill.effect_param_1 || 0))
+        : Number(input?.bossShield || 0);
+      const absorbed = Math.min(shieldAfterSkill, Math.round(baseStrike * 0.45));
+      const bossShieldAfter = Math.max(0, shieldAfterSkill - absorbed);
+      const bossDamage = Math.max(80, baseStrike - absorbed - Number(input?.phase || 1) * 12);
+      return {
+        bossPressure,
+        skillPressure,
+        supportGuard,
+        damage,
+        baseStrike,
+        shieldAfterSkill,
+        absorbed,
+        bossShieldAfter,
+        bossDamage,
+      };
+    }
+
     return {
       bossSkillsFor,
       bossPhaseForPercent,
@@ -149,6 +272,8 @@ namespace XiannongCore.Combat {
       spiritCombatBonus,
       dungeonBossMaxHp,
       bossHpPercent,
+      dungeonExplorePlan,
+      dungeonBossExchangePlan,
     };
   }
 }
