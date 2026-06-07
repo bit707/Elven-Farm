@@ -297,6 +297,27 @@ var XiannongCore;
                     adjustedGrowDays,
                 };
             }
+            function harvestYieldPlan(input) {
+                const crop = input.crop || null;
+                const plot = input.plot || null;
+                const affinity = input.affinity || cropSolarAffinity(crop, plot);
+                const solarYield = cropSolarYieldBonus(crop, plot, affinity);
+                const baseYield = Math.max(1, Number(crop?.harvest_yield_min || 1));
+                const farmTaskLevel = Number(input.farmTaskLevel || 0);
+                const harvestBonus = farmTaskLevel >= 5 ? 2 : farmTaskLevel >= 3 ? 1 : 0;
+                const cohabWaterBonus = Number(input.cohabWaterBonus || 0);
+                const pondCropBonus = Number(input.pondCropBonus || 0);
+                const amount = Math.max(1, baseYield + harvestBonus + cohabWaterBonus + pondCropBonus + Number(solarYield.amount || 0));
+                return {
+                    amount,
+                    baseYield,
+                    harvestBonus,
+                    cohabWaterBonus,
+                    pondCropBonus,
+                    solarYield,
+                    affinity,
+                };
+            }
             return {
                 cropForHarvestTarget,
                 cropSolarAffinity,
@@ -305,6 +326,7 @@ var XiannongCore;
                 harvestQualitySpec,
                 cropWorldGrowthVisualSpec,
                 nightCropGrowthPlan,
+                harvestYieldPlan,
             };
         }
         Farming.createFarmingRuntime = createFarmingRuntime;

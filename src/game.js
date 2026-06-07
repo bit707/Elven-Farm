@@ -54820,14 +54820,30 @@ function harvest() {
   if (!plot.mature) return addLog("尚未成熟", "入夜后作物会按天结算成长。");
   if (!spendStamina(4)) return;
 
-  const crop = data.crops.find((entry) => entry.crop_id === plot.cropId);
+  const crop = data.cropsById.get(plot.cropId) || data.crops.find((entry) => entry.crop_id === plot.cropId);
   const taskLevel = spiritJobTaskEffectLevel("farm");
-  const harvestBonus = taskLevel >= 5 ? 2 : taskLevel >= 3 ? 1 : 0;
-  const cohabWaterBonus = Math.floor(cohabSharedBonusValue("water_yield") * 6) + Math.floor(cohabBuffValue("buff_water_yield_up"));
-  const pondCropBonus = plot.waterSoil && crop.element_type === "water" ? pondWaterCropBonus() : 0;
   const affinity = cropSolarAffinity(crop, plot);
-  const solarYield = cropSolarYieldBonus(crop, plot, affinity);
-  const amount = Math.max(1, Number(crop.harvest_yield_min || 1) + harvestBonus + cohabWaterBonus + pondCropBonus + solarYield.amount);
+  const cohabWaterBonusInput = Math.floor(cohabSharedBonusValue("water_yield") * 6) + Math.floor(cohabBuffValue("buff_water_yield_up"));
+  const pondCropBonusInput = plot.waterSoil && crop.element_type === "water" ? pondWaterCropBonus() : 0;
+  const yieldPlan = farmingRuntime()?.harvestYieldPlan({
+    crop,
+    plot,
+    affinity,
+    farmTaskLevel: taskLevel,
+    cohabWaterBonus: cohabWaterBonusInput,
+    pondCropBonus: pondCropBonusInput,
+  }) || {
+    amount: Math.max(1, Number(crop.harvest_yield_min || 1) + (taskLevel >= 5 ? 2 : taskLevel >= 3 ? 1 : 0) + cohabWaterBonusInput + pondCropBonusInput + cropSolarYieldBonus(crop, plot, affinity).amount),
+    harvestBonus: taskLevel >= 5 ? 2 : taskLevel >= 3 ? 1 : 0,
+    cohabWaterBonus: cohabWaterBonusInput,
+    pondCropBonus: pondCropBonusInput,
+    solarYield: cropSolarYieldBonus(crop, plot, affinity),
+  };
+  const harvestBonus = yieldPlan.harvestBonus;
+  const cohabWaterBonus = yieldPlan.cohabWaterBonus;
+  const pondCropBonus = yieldPlan.pondCropBonus;
+  const solarYield = yieldPlan.solarYield;
+  const amount = yieldPlan.amount;
   const firstCanalHarvest = crop.crop_id === "crop_luzhu_qin" && !state.completed.has("first_luzhu_qin_harvest");
   const harvestBefore = Number(state.harvestCounts[crop.crop_id] || 0);
   const qualitySpec = harvestQualitySpec(crop, plot, amount, affinity);

@@ -100,6 +100,25 @@ namespace XiannongCore.Farming {
     adjustedGrowDays: number;
   }
 
+  export interface HarvestYieldPlanInput {
+    crop?: FarmingRow | null;
+    plot?: FarmingPlot | null;
+    affinity?: CropSolarAffinity | null;
+    farmTaskLevel?: number;
+    cohabWaterBonus?: number;
+    pondCropBonus?: number;
+  }
+
+  export interface HarvestYieldPlan {
+    amount: number;
+    baseYield: number;
+    harvestBonus: number;
+    cohabWaterBonus: number;
+    pondCropBonus: number;
+    solarYield: CropSolarYieldBonus;
+    affinity: CropSolarAffinity | null;
+  }
+
   export interface FarmingRuntime {
     cropForHarvestTarget(targetId?: string): FarmingRow | null;
     cropSolarAffinity(
@@ -113,6 +132,7 @@ namespace XiannongCore.Farming {
     harvestQualitySpec(crop?: FarmingRow | null, plot?: FarmingPlot | null, amount?: number, affinity?: CropSolarAffinity | null): HarvestQualitySpec;
     cropWorldGrowthVisualSpec(crop?: FarmingRow | null, plot?: FarmingPlot | null, plotIndex?: number, day?: number): CropWorldGrowthVisualSpec | null;
     nightCropGrowthPlan(input: NightCropGrowthInput): NightCropGrowthPlan;
+    harvestYieldPlan(input: HarvestYieldPlanInput): HarvestYieldPlan;
   }
 
   export function createFarmingRuntime(data: FarmingRuntimeData, hooks: FarmingRuntimeHooks): FarmingRuntime {
@@ -332,6 +352,28 @@ namespace XiannongCore.Farming {
       };
     }
 
+    function harvestYieldPlan(input: HarvestYieldPlanInput): HarvestYieldPlan {
+      const crop = input.crop || null;
+      const plot = input.plot || null;
+      const affinity = input.affinity || cropSolarAffinity(crop, plot);
+      const solarYield = cropSolarYieldBonus(crop, plot, affinity);
+      const baseYield = Math.max(1, Number(crop?.harvest_yield_min || 1));
+      const farmTaskLevel = Number(input.farmTaskLevel || 0);
+      const harvestBonus = farmTaskLevel >= 5 ? 2 : farmTaskLevel >= 3 ? 1 : 0;
+      const cohabWaterBonus = Number(input.cohabWaterBonus || 0);
+      const pondCropBonus = Number(input.pondCropBonus || 0);
+      const amount = Math.max(1, baseYield + harvestBonus + cohabWaterBonus + pondCropBonus + Number(solarYield.amount || 0));
+      return {
+        amount,
+        baseYield,
+        harvestBonus,
+        cohabWaterBonus,
+        pondCropBonus,
+        solarYield,
+        affinity,
+      };
+    }
+
     return {
       cropForHarvestTarget,
       cropSolarAffinity,
@@ -340,6 +382,7 @@ namespace XiannongCore.Farming {
       harvestQualitySpec,
       cropWorldGrowthVisualSpec,
       nightCropGrowthPlan,
+      harvestYieldPlan,
     };
   }
 }

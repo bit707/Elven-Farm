@@ -3014,6 +3014,9 @@ for (const farmingRuntimeTerm of [
   "runtime.nightCropGrowthPlan",
   "growthPlan.matureAfter",
   "growthPlan.caredBySystem",
+  "farmingRuntime()?.harvestYieldPlan",
+  "yieldPlan.harvestBonus",
+  "yieldPlan.solarYield",
 ]) {
   if (!game.includes(farmingRuntimeTerm)) throw new Error(`Farming TypeScript runtime bridge missing: ${farmingRuntimeTerm}`);
 }
@@ -3161,6 +3164,10 @@ for (const farmingCoreSourceTerm of [
   "careSource",
   "adjustedGrowDays",
   "newlyMature",
+  "export interface HarvestYieldPlan",
+  "harvestYieldPlan(input",
+  "farmTaskLevel >= 5 ? 2",
+  "baseYield + harvestBonus + cohabWaterBonus + pondCropBonus",
   "data.cropsById?.get",
   "data.cropsBySeed?.get",
   "hooks.unresolvedRisks()",
@@ -3186,6 +3193,9 @@ for (const farmingCoreRuntimeTerm of [
   "careSource",
   "adjustedGrowDays",
   "newlyMature",
+  "function harvestYieldPlan",
+  "farmTaskLevel >= 5 ? 2",
+  "baseYield + harvestBonus + cohabWaterBonus + pondCropBonus",
   "data.cropsById?.get",
   "data.cropsBySeed?.get",
   "hooks.unresolvedRisks()",
