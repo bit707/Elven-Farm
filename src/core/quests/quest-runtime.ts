@@ -206,6 +206,7 @@ namespace XiannongCore.Quests {
     configuredEventExecutionPlan(event: ConfiguredTriggerRow): ConfiguredEventExecutionPlan;
     configuredEventSideQuestActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSideQuestActionPlan;
     configuredEventMainQuestActionPlan(event: ConfiguredTriggerRow): ConfiguredEventMainQuestActionPlan;
+    configuredEventCutsceneActionPlan(event: ConfiguredTriggerRow): ConfiguredEventCutsceneActionPlan;
   }
 
   export interface QuestRewardClaimResult {
@@ -277,6 +278,13 @@ namespace XiannongCore.Quests {
     applies: boolean;
     eventId: string;
     questId: string;
+    dialogueGroup: string;
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventCutsceneActionPlan {
+    applies: boolean;
+    eventId: string;
     dialogueGroup: string;
     actions: ConfiguredEventExecutionAction[];
   }
@@ -1009,6 +1017,23 @@ namespace XiannongCore.Quests {
       };
     }
 
+    function configuredEventCutsceneActionPlan(event: ConfiguredTriggerRow): ConfiguredEventCutsceneActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "cutscene";
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          ...(plan.dialogueGroup ? [{ kind: "show_dialogue" as const, groupId: plan.dialogueGroup, when: "if_not_presented" as const }] : []),
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        dialogueGroup: plan.dialogueGroup,
+        actions,
+      };
+    }
+
     function rewardPoolEntries(poolId: string): RewardPoolRow[] {
       return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
     }
@@ -1102,6 +1127,7 @@ namespace XiannongCore.Quests {
       configuredEventExecutionPlan,
       configuredEventSideQuestActionPlan,
       configuredEventMainQuestActionPlan,
+      configuredEventCutsceneActionPlan,
     };
   }
 }

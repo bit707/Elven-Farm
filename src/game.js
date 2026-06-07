@@ -17280,8 +17280,16 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "cutscene" || (!actionKind && executeGroup.includes("cutscene"))) {
-    const dialogueGroup = plan?.dialogueGroup || dialogueGroupForExecuteGroup(executeGroup);
-    if (dialogueGroup) showDialogue(dialogueGroup);
+    const actionPlan = runtime?.configuredEventCutsceneActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      dialogueGroup: plan?.dialogueGroup || dialogueGroupForExecuteGroup(executeGroup),
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        ...((plan?.dialogueGroup || dialogueGroupForExecuteGroup(executeGroup)) ? [{ kind: "show_dialogue", groupId: plan?.dialogueGroup || dialogueGroupForExecuteGroup(executeGroup), when: "if_not_presented" }] : []),
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan);
     addLog("配置演出", `${eventName}：${executeGroup}`);
     return true;
   }

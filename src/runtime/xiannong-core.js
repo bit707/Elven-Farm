@@ -2143,6 +2143,22 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventCutsceneActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "cutscene";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...(plan.dialogueGroup ? [{ kind: "show_dialogue", groupId: plan.dialogueGroup, when: "if_not_presented" }] : []),
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    dialogueGroup: plan.dialogueGroup,
+                    actions,
+                };
+            }
             function rewardPoolEntries(poolId) {
                 return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
             }
@@ -2235,6 +2251,7 @@ var XiannongCore;
                 configuredEventExecutionPlan,
                 configuredEventSideQuestActionPlan,
                 configuredEventMainQuestActionPlan,
+                configuredEventCutsceneActionPlan,
             };
         }
         Quests.createQuestRuntime = createQuestRuntime;
