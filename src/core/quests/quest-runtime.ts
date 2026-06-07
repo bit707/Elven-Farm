@@ -151,6 +151,7 @@ namespace XiannongCore.Quests {
     configuredEventActionKind(event: ConfiguredTriggerRow): ConfiguredEventActionKind;
     dialogueGroupForExecuteGroup(executeGroup: string): string;
     questForExecuteGroup(executeGroup: string, side?: boolean): QuestRow | null;
+    configuredEventExecutionPlan(event: ConfiguredTriggerRow): ConfiguredEventExecutionPlan;
   }
 
   export interface QuestRewardClaimResult {
@@ -171,6 +172,17 @@ namespace XiannongCore.Quests {
   export interface ConfiguredEventCandidate {
     event: ConfiguredTriggerRow;
     status: TriggerReadyStatus;
+  }
+
+  export interface ConfiguredEventExecutionPlan {
+    eventId: string;
+    eventNameKey: string;
+    executeGroup: string;
+    actionKind: ConfiguredEventActionKind;
+    dialogueGroup: string;
+    questId: string;
+    quest: QuestRow | null;
+    sideQuest: QuestRow | null;
   }
 
   export type ConfiguredEventActionKind =
@@ -640,6 +652,23 @@ namespace XiannongCore.Quests {
       return rows.find((quest) => quest.quest_id.startsWith(match[0])) || null;
     }
 
+    function configuredEventExecutionPlan(event: ConfiguredTriggerRow): ConfiguredEventExecutionPlan {
+      const executeGroup = event.execute_group || "";
+      const sideQuest = event.quest_id
+        ? data.sideQuests.find((quest) => quest.quest_id === event.quest_id) || null
+        : questForExecuteGroup(executeGroup, true);
+      return {
+        eventId: event.event_id || "",
+        eventNameKey: event.event_name_key || event.event_id || "",
+        executeGroup,
+        actionKind: configuredEventActionKind(event),
+        dialogueGroup: dialogueGroupForExecuteGroup(executeGroup),
+        questId: event.quest_id || "",
+        quest: questForExecuteGroup(executeGroup),
+        sideQuest,
+      };
+    }
+
     function rewardPoolEntries(poolId: string): RewardPoolRow[] {
       return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
     }
@@ -723,6 +752,7 @@ namespace XiannongCore.Quests {
       configuredEventActionKind,
       dialogueGroupForExecuteGroup,
       questForExecuteGroup,
+      configuredEventExecutionPlan,
     };
   }
 }

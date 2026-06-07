@@ -17064,18 +17064,19 @@ let scanningConfiguredEvents = false;
 
 function executeConfiguredEvent(event, source = "runtime") {
   state.triggeredEvents.add(event.event_id);
-  const executeGroup = event.execute_group || "";
-  const eventName = localize(event.event_name_key, event.event_id);
   const runtime = questRuntime();
-  const actionKind = runtime ? runtime.configuredEventActionKind(event) : "";
+  const plan = runtime ? runtime.configuredEventExecutionPlan(event) : null;
+  const executeGroup = plan?.executeGroup || event.execute_group || "";
+  const eventName = localize(event.event_name_key, event.event_id);
+  const actionKind = plan?.actionKind || "";
 
   if (actionKind === "side_quest_accept" || (!actionKind && event.quest_id)) {
     state.activeSideQuests.add(event.quest_id);
-    const quest = data.sideQuests.find((entry) => entry.quest_id === event.quest_id);
+    const quest = plan?.sideQuest || data.sideQuests.find((entry) => entry.quest_id === event.quest_id);
     addLog("支线开启", `${questTitle(quest || { quest_id: event.quest_id })}：${event.note || eventName}`);
     const presented = triggerSideQuestPresentation(event.quest_id, "after_accept");
     state.sideQuestFeedback = sideQuestFeedbackSpec(event.quest_id, "accept", "after_accept", "", presented);
-    const dialogueGroup = dialogueGroupForExecuteGroup(executeGroup);
+    const dialogueGroup = plan?.dialogueGroup || dialogueGroupForExecuteGroup(executeGroup);
     if (!presented && dialogueGroup) showDialogue(dialogueGroup);
     return true;
   }
@@ -17096,10 +17097,10 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "start_main_quest" || (!actionKind && executeGroup.includes("start_quest_main"))) {
-    const quest = questForExecuteGroup(executeGroup);
+    const quest = plan?.quest || questForExecuteGroup(executeGroup);
     if (quest && !state.missionDone.has(quest.quest_id)) {
       state.missionDone.add(quest.quest_id);
-      const dialogueGroup = dialogueGroupForExecuteGroup(executeGroup);
+      const dialogueGroup = plan?.dialogueGroup || dialogueGroupForExecuteGroup(executeGroup);
       if (dialogueGroup) showDialogue(dialogueGroup);
     }
     addLog("配置事件", `${eventName}：${quest ? questTitle(quest) : executeGroup}`);
@@ -17113,7 +17114,7 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "cutscene" || (!actionKind && executeGroup.includes("cutscene"))) {
-    const dialogueGroup = dialogueGroupForExecuteGroup(executeGroup);
+    const dialogueGroup = plan?.dialogueGroup || dialogueGroupForExecuteGroup(executeGroup);
     if (dialogueGroup) showDialogue(dialogueGroup);
     addLog("配置演出", `${eventName}：${executeGroup}`);
     return true;

@@ -2978,9 +2978,9 @@ for (const questRuntimeTerm of [
   "runtime.sideQuestVisible(quest)",
   "runtime.sideQuestClueForNpc(npcId, questId)",
   "runtime.configuredEventReadyQueue()",
-  "runtime.configuredEventActionKind(event)",
   "runtime.dialogueGroupForExecuteGroup(executeGroup)",
   "runtime.questForExecuteGroup(executeGroup, side)",
+  "runtime.configuredEventExecutionPlan(event)",
   "finishClaimedQuestReward",
 ]) {
   if (!game.includes(questRuntimeTerm)) throw new Error(`Quest TypeScript runtime bridge missing: ${questRuntimeTerm}`);
@@ -3013,10 +3013,14 @@ for (const questCoreSourceTerm of [
   "export type SideQuestClueStatus",
   "export interface ConfiguredEventCandidate",
   "export type ConfiguredEventActionKind",
+  "export interface ConfiguredEventExecutionPlan",
   "configuredEventReadyQueue()",
   "configuredEventActionKind(event",
   "dialogueGroupForExecuteGroup(executeGroup",
   "questForExecuteGroup(executeGroup",
+  "configuredEventExecutionPlan(event",
+  "actionKind: configuredEventActionKind(event)",
+  "dialogueGroup: dialogueGroupForExecuteGroup(executeGroup)",
   "data.dialoguesByGroup",
   "start_spirit_manor_chapter",
   "finish_herb_valley_baizhi",
@@ -3057,6 +3061,9 @@ for (const questCoreRuntimeTerm of [
   "function configuredEventActionKind",
   "function dialogueGroupForExecuteGroup",
   "function questForExecuteGroup",
+  "function configuredEventExecutionPlan",
+  "actionKind: configuredEventActionKind(event)",
+  "dialogueGroup: dialogueGroupForExecuteGroup(executeGroup)",
   "data.dialoguesByGroup",
   "start_spirit_manor_chapter",
   "finish_herb_valley_baizhi",
@@ -3346,7 +3353,7 @@ for (const questRewardTerm of ["claimedQuestRewards", "questRewardReady", "claim
   if (!game.includes(questRewardTerm)) throw new Error(`Quest reward runtime path missing: ${questRewardTerm}`);
 }
 
-for (const configuredEventTerm of ["triggerParamMet", "configuredTriggerReady", "configuredEventReadyQueue", "configuredEventActionKind", "dialogueGroupForExecuteGroup", "questForExecuteGroup", "actionKind === \"start_main_quest\"", "actionKind === \"generic_unlock\"", "executeConfiguredEvent", "scanConfiguredEvents", "activeSideQuests", "conditionMet(event.condition_group)", "state.activeSideQuests.add", "source !== \"term-risk\""]) {
+for (const configuredEventTerm of ["triggerParamMet", "configuredTriggerReady", "configuredEventReadyQueue", "configuredEventExecutionPlan", "plan?.dialogueGroup", "plan?.quest", "dialogueGroupForExecuteGroup", "questForExecuteGroup", "actionKind === \"start_main_quest\"", "actionKind === \"generic_unlock\"", "executeConfiguredEvent", "scanConfiguredEvents", "activeSideQuests", "conditionMet(event.condition_group)", "state.activeSideQuests.add", "source !== \"term-risk\""]) {
   if (!game.includes(configuredEventTerm)) throw new Error(`Configured event runtime path missing: ${configuredEventTerm}`);
 }
 

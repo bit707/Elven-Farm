@@ -642,6 +642,22 @@ var XiannongCore;
                 const rows = side ? data.sideQuests : data.quests;
                 return rows.find((quest) => quest.quest_id.startsWith(match[0])) || null;
             }
+            function configuredEventExecutionPlan(event) {
+                const executeGroup = event.execute_group || "";
+                const sideQuest = event.quest_id
+                    ? data.sideQuests.find((quest) => quest.quest_id === event.quest_id) || null
+                    : questForExecuteGroup(executeGroup, true);
+                return {
+                    eventId: event.event_id || "",
+                    eventNameKey: event.event_name_key || event.event_id || "",
+                    executeGroup,
+                    actionKind: configuredEventActionKind(event),
+                    dialogueGroup: dialogueGroupForExecuteGroup(executeGroup),
+                    questId: event.quest_id || "",
+                    quest: questForExecuteGroup(executeGroup),
+                    sideQuest,
+                };
+            }
             function rewardPoolEntries(poolId) {
                 return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
             }
@@ -724,6 +740,7 @@ var XiannongCore;
                 configuredEventActionKind,
                 dialogueGroupForExecuteGroup,
                 questForExecuteGroup,
+                configuredEventExecutionPlan,
             };
         }
         Quests.createQuestRuntime = createQuestRuntime;
