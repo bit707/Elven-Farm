@@ -537,6 +537,56 @@ var XiannongCore;
                     stampAmount: overflowFailure ? 2 : finiteNumber(input?.floor, 1) >= 3 ? 2 : 1,
                 };
             }
+            function dungeonFailureInsightPlan(input = null) {
+                const reason = input?.reason || "battle";
+                const previous = input?.previous || {};
+                const run = input?.run || null;
+                const mechanicId = input?.mechanicId || input?.mechanic?.dungeon_id || "";
+                const bossRelated = reason === "boss" || truthyFlag(run?.bossReady);
+                const bossId = input?.bossId || "";
+                const bossPercent = bossHpPercent({ run, bossId, bossMaxHp: run?.bossMaxHp });
+                const failures = Math.max(0, Number(previous.failures || 0)) + 1;
+                const revealedFloor = Math.max(Number(previous.revealedFloor || 0), Number(run?.floor || input?.floorStart || input?.dungeon?.floor_start || 1));
+                const bossPhaseSeen = Math.max(Number(previous.bossPhaseSeen || 0), bossRelated ? Number(run?.bossPhase || 1) : 0);
+                const bossPercentNow = Math.ceil(bossPercent * 100);
+                const previousBestPercent = Number(previous.bossBestPercent || 100);
+                const bossBestPercent = bossRelated ? Math.min(previousBestPercent, bossPercentNow) : previousBestPercent;
+                const previousSkillIds = Array.isArray(previous.bossSkillIds) ? previous.bossSkillIds : [];
+                const lastBossSkillId = String(run?.lastBossSkillId || "");
+                const bossSkillIds = [...new Set([...previousSkillIds, lastBossSkillId]
+                        .map((skillId) => String(skillId || ""))
+                        .filter(Boolean))]
+                    .slice(-5);
+                const nextBossSkill = truthyFlag(run?.bossReady)
+                    ? bossSkillForTurn({ bossId, turn: Number(run?.turn || 0), hpPercent: bossPercent })
+                    : null;
+                const bossFamiliarity = bossRelated
+                    ? Math.min(5, Math.max(Number(previous.bossFamiliarity || 0), Math.ceil((100 - bossBestPercent) / 20) + Math.max(0, bossPhaseSeen - 1) + Math.min(1, bossSkillIds.length)))
+                    : Number(previous.bossFamiliarity || 0);
+                const basePathBonus = Math.min(3, 1 + Math.floor(failures / 2));
+                const pathBonus = Math.max(Number(previous.pathBonus || 0), reason === "boss" ? Math.max(1, basePathBonus - 1) : basePathBonus);
+                const overflowRelief = Math.max(Number(previous.overflowRelief || 0), mechanicId === "dsm_004" && Number(run?.mechanicState?.overflow || 0) >= 4 ? 2 : 0);
+                const bossGuard = Math.max(Number(previous.bossGuard || 0), bossPhaseSeen > 0 ? Math.min(4, bossPhaseSeen + Math.floor(bossFamiliarity / 2)) : 0);
+                const bossStrikeBonus = Math.max(Number(previous.bossStrikeBonus || 0), bossFamiliarity > 0 ? Math.min(90, 18 * bossFamiliarity) : 0);
+                return {
+                    key: input?.key || "",
+                    dungeonId: input?.dungeonId || input?.dungeon?.area_id || "",
+                    mechanicId,
+                    failures,
+                    lastReason: reason,
+                    unlockedDay: Number(input?.day || 0),
+                    revealedFloor,
+                    pathBonus,
+                    bossPhaseSeen,
+                    bossGuard,
+                    bossStrikeBonus,
+                    bossFamiliarity,
+                    bossBestPercent,
+                    bossSkillIds,
+                    bossNextSkillId: nextBossSkill?.boss_skill_id || "",
+                    overflowRelief,
+                };
+            }
             function dungeonPostBattleSideEffectPlan(input = null) {
                 const bossId = input?.bossId || "";
                 const storyHooks = [];
@@ -582,6 +632,7 @@ var XiannongCore;
                 dungeonBossExchangeStatePlan,
                 dungeonBossClearPlan,
                 dungeonFailureRewardPlan,
+                dungeonFailureInsightPlan,
                 dungeonPostBattleSideEffectPlan,
             };
         }

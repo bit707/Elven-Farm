@@ -41636,48 +41636,62 @@ function recordDungeonFailureInsight(reason = "battle", run = state.dungeon, dun
   if (!run || !dungeon || !mechanic) return null;
   const key = dungeonFailureInsightKey(dungeon, mechanic);
   const previous = state.dungeonFailureInsights?.[key] || {};
-  const failures = Math.max(0, Number(previous.failures || 0)) + 1;
-  const revealedFloor = Math.max(Number(previous.revealedFloor || 0), Number(run.floor || dungeon?.floor_start || 1));
-  const bossPhaseSeen = Math.max(Number(previous.bossPhaseSeen || 0), reason === "boss" || run.bossReady ? Number(run.bossPhase || 1) : 0);
-  const bossPercentNow = Math.ceil(bossHpPercent(run, dungeon) * 100);
-  const previousBestPercent = Number(previous.bossBestPercent || 100);
-  const bossBestPercent = reason === "boss" || run.bossReady ? Math.min(previousBestPercent, bossPercentNow) : previousBestPercent;
-  const lastBossSkillId = String(run.lastBossSkillId || "");
-  const previousSkillIds = Array.isArray(previous.bossSkillIds) ? previous.bossSkillIds : [];
-  const bossSkillIds = [...new Set([...previousSkillIds, lastBossSkillId].filter(Boolean))].slice(-5);
-  const bossSkillNames = bossSkillIds.map((skillId) => skillName(data.bossSkills.find((skill) => skill.boss_skill_id === skillId))).filter(Boolean);
-  const nextBossSkill = run.bossReady ? bossSkillForTurn(dungeonBossId(dungeon, run), Number(run.turn || 0), bossHpPercent(run, dungeon)) : null;
-  const bossFamiliarity = reason === "boss" || run.bossReady
-    ? Math.min(5, Math.max(Number(previous.bossFamiliarity || 0), Math.ceil((100 - bossBestPercent) / 20) + Math.max(0, bossPhaseSeen - 1) + Math.min(1, bossSkillIds.length)))
-    : Number(previous.bossFamiliarity || 0);
-  const basePathBonus = Math.min(3, 1 + Math.floor(failures / 2));
-  const pathBonus = Math.max(Number(previous.pathBonus || 0), reason === "boss" ? Math.max(1, basePathBonus - 1) : basePathBonus);
-  const overflowRelief = Math.max(
-    Number(previous.overflowRelief || 0),
-    mechanic?.dungeon_id === "dsm_004" && Number(run.mechanicState?.overflow || 0) >= 4 ? 2 : 0,
-  );
-  const bossGuard = Math.max(Number(previous.bossGuard || 0), bossPhaseSeen > 0 ? Math.min(4, bossPhaseSeen + Math.floor(bossFamiliarity / 2)) : 0);
-  const bossStrikeBonus = Math.max(Number(previous.bossStrikeBonus || 0), bossFamiliarity > 0 ? Math.min(90, 18 * bossFamiliarity) : 0);
-  const insight = {
+  const bossId = dungeonBossId(dungeon, run);
+  const insight = dungeonRuntime()?.dungeonFailureInsightPlan({
     key,
-    dungeonId: dungeon?.area_id || "",
-    mechanicId: mechanic?.dungeon_id || "",
-    failures,
-    lastReason: reason,
-    unlockedDay: state.day,
-    revealedFloor,
-    pathBonus,
-    bossPhaseSeen,
-    bossGuard,
-    bossStrikeBonus,
-    bossFamiliarity,
-    bossBestPercent,
-    bossSkillIds,
-    bossSkillNames,
-    bossNextSkillId: nextBossSkill?.boss_skill_id || "",
-    bossNextSkillName: nextBossSkill ? skillName(nextBossSkill) : "",
-    overflowRelief,
-  };
+    reason,
+    day: state.day,
+    previous,
+    run,
+    dungeon,
+    mechanic,
+    bossId,
+  }) || (() => {
+    const failures = Math.max(0, Number(previous.failures || 0)) + 1;
+    const revealedFloor = Math.max(Number(previous.revealedFloor || 0), Number(run.floor || dungeon?.floor_start || 1));
+    const bossPhaseSeen = Math.max(Number(previous.bossPhaseSeen || 0), reason === "boss" || run.bossReady ? Number(run.bossPhase || 1) : 0);
+    const bossPercentNow = Math.ceil(bossHpPercent(run, dungeon) * 100);
+    const previousBestPercent = Number(previous.bossBestPercent || 100);
+    const bossBestPercent = reason === "boss" || run.bossReady ? Math.min(previousBestPercent, bossPercentNow) : previousBestPercent;
+    const lastBossSkillId = String(run.lastBossSkillId || "");
+    const previousSkillIds = Array.isArray(previous.bossSkillIds) ? previous.bossSkillIds : [];
+    const bossSkillIds = [...new Set([...previousSkillIds, lastBossSkillId].filter(Boolean))].slice(-5);
+    const nextBossSkill = run.bossReady ? bossSkillForTurn(bossId, Number(run.turn || 0), bossHpPercent(run, dungeon)) : null;
+    const bossFamiliarity = reason === "boss" || run.bossReady
+      ? Math.min(5, Math.max(Number(previous.bossFamiliarity || 0), Math.ceil((100 - bossBestPercent) / 20) + Math.max(0, bossPhaseSeen - 1) + Math.min(1, bossSkillIds.length)))
+      : Number(previous.bossFamiliarity || 0);
+    const basePathBonus = Math.min(3, 1 + Math.floor(failures / 2));
+    const pathBonus = Math.max(Number(previous.pathBonus || 0), reason === "boss" ? Math.max(1, basePathBonus - 1) : basePathBonus);
+    const overflowRelief = Math.max(
+      Number(previous.overflowRelief || 0),
+      mechanic?.dungeon_id === "dsm_004" && Number(run.mechanicState?.overflow || 0) >= 4 ? 2 : 0,
+    );
+    const bossGuard = Math.max(Number(previous.bossGuard || 0), bossPhaseSeen > 0 ? Math.min(4, bossPhaseSeen + Math.floor(bossFamiliarity / 2)) : 0);
+    const bossStrikeBonus = Math.max(Number(previous.bossStrikeBonus || 0), bossFamiliarity > 0 ? Math.min(90, 18 * bossFamiliarity) : 0);
+    return {
+      key,
+      dungeonId: dungeon?.area_id || "",
+      mechanicId: mechanic?.dungeon_id || "",
+      failures,
+      lastReason: reason,
+      unlockedDay: state.day,
+      revealedFloor,
+      pathBonus,
+      bossPhaseSeen,
+      bossGuard,
+      bossStrikeBonus,
+      bossFamiliarity,
+      bossBestPercent,
+      bossSkillIds,
+      bossNextSkillId: nextBossSkill?.boss_skill_id || "",
+      overflowRelief,
+    };
+  })();
+  insight.bossSkillNames = (Array.isArray(insight.bossSkillIds) ? insight.bossSkillIds : [])
+    .map((skillId) => skillName(data.bossSkills.find((skill) => skill.boss_skill_id === skillId)))
+    .filter(Boolean);
+  const nextBossSkill = insight.bossNextSkillId ? data.bossSkills.find((skill) => skill.boss_skill_id === insight.bossNextSkillId) : null;
+  insight.bossNextSkillName = nextBossSkill ? skillName(nextBossSkill) : "";
   insight.note = dungeonFailureInsightNote(reason, dungeon, mechanic, insight);
   state.dungeonFailureInsights = {
     ...(state.dungeonFailureInsights || {}),
