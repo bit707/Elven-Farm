@@ -1325,6 +1325,32 @@ var XiannongCore;
                     priceRelief: Math.min(0.06, budgetBonus * 0.7),
                 };
             }
+            function shopWeatherShelfChoiceWeight(input = null) {
+                const support = input?.support || inactiveWeatherShelfPlan("");
+                if (!support.active) {
+                    return {
+                        support,
+                        score: 0,
+                        preferredBridge: 0,
+                        topWeight: 0,
+                        budgetWeight: 0,
+                        labelKind: "",
+                    };
+                }
+                const itemTags = Array.isArray(input?.itemTags) ? input.itemTags : [];
+                const preferredTags = Array.isArray(input?.preferredTags) ? input.preferredTags : [];
+                const preferredBridge = shopTagsOverlap(itemTags, preferredTags) ? 12 : 0;
+                const topWeight = support.isTopGood ? 34 : 18;
+                const budgetWeight = Math.round(Number(support.budgetBonus || 0) * 180);
+                return {
+                    support,
+                    score: topWeight + budgetWeight + preferredBridge,
+                    preferredBridge,
+                    topWeight,
+                    budgetWeight,
+                    labelKind: support.isTopGood ? "top" : "match",
+                };
+            }
             return {
                 customerPriceRule,
                 customerProfile,
@@ -1347,6 +1373,7 @@ var XiannongCore;
                 shopWordOfMouthBudgetBonus,
                 shopCompendiumCustomerSupport,
                 shopWeatherShelfChoiceSupport,
+                shopWeatherShelfChoiceWeight,
             };
         }
         Shop.createShopRuntime = createShopRuntime;

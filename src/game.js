@@ -20508,6 +20508,17 @@ function pricedGood(choice, customer, themeScore) {
 
 function shopWeatherShelfChoiceWeight(choice = null, shelf = null, customer = null, ecologyGarden = null, preferred = []) {
   const support = shopWeatherShelfChoiceSupport(choice, shelf, customer, ecologyGarden);
+  const runtime = shopRuntime();
+  if (runtime) {
+    const tags = shopTagsForItem(choice?.item || choice?.itemId || "", ecologyGarden);
+    const plan = runtime.shopWeatherShelfChoiceWeight({ support, itemTags: tags, preferredTags: preferred });
+    if (!plan.support.active) return { support: plan.support, score: 0, label: "" };
+    return {
+      support: plan.support,
+      score: plan.score,
+      label: plan.labelKind === "top" ? "天气主推" : support.label || "天气对口",
+    };
+  }
   if (!support.active) return { support, score: 0, label: "" };
   const tags = shopTagsForItem(choice?.item || choice?.itemId || "", ecologyGarden);
   const preferredBridge = shopTagsOverlap(tags, preferred) ? 12 : 0;

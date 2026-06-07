@@ -36,6 +36,7 @@ namespace XiannongCore.Shop {
     shopWordOfMouthBudgetBonus(customer?: ShopRow | null, choiceTags?: string[] | null, spec?: ShopWordOfMouthSpec | null): number;
     shopCompendiumCustomerSupport(input?: ShopCompendiumCustomerSupportInput | null): ShopCompendiumCustomerSupportPlan;
     shopWeatherShelfChoiceSupport(input?: ShopWeatherShelfChoiceSupportInput | null): ShopWeatherShelfChoiceSupportPlan;
+    shopWeatherShelfChoiceWeight(input?: ShopWeatherShelfChoiceWeightInput | null): ShopWeatherShelfChoiceWeightPlan;
   }
 
   export interface ShopGoodChoice {
@@ -105,6 +106,21 @@ namespace XiannongCore.Shop {
     labelTag: string;
     budgetBonus: number;
     priceRelief: number;
+  }
+
+  export interface ShopWeatherShelfChoiceWeightInput {
+    support?: ShopWeatherShelfChoiceSupportPlan | null;
+    itemTags?: string[] | null;
+    preferredTags?: string[] | null;
+  }
+
+  export interface ShopWeatherShelfChoiceWeightPlan {
+    support: ShopWeatherShelfChoiceSupportPlan;
+    score: number;
+    preferredBridge: number;
+    topWeight: number;
+    budgetWeight: number;
+    labelKind: "top" | "match" | "";
   }
 
   export interface PricedGoodOptions {
@@ -493,6 +509,33 @@ namespace XiannongCore.Shop {
       };
     }
 
+    function shopWeatherShelfChoiceWeight(input: ShopWeatherShelfChoiceWeightInput | null = null): ShopWeatherShelfChoiceWeightPlan {
+      const support = input?.support || inactiveWeatherShelfPlan("");
+      if (!support.active) {
+        return {
+          support,
+          score: 0,
+          preferredBridge: 0,
+          topWeight: 0,
+          budgetWeight: 0,
+          labelKind: "",
+        };
+      }
+      const itemTags = Array.isArray(input?.itemTags) ? input.itemTags : [];
+      const preferredTags = Array.isArray(input?.preferredTags) ? input.preferredTags : [];
+      const preferredBridge = shopTagsOverlap(itemTags, preferredTags) ? 12 : 0;
+      const topWeight = support.isTopGood ? 34 : 18;
+      const budgetWeight = Math.round(Number(support.budgetBonus || 0) * 180);
+      return {
+        support,
+        score: topWeight + budgetWeight + preferredBridge,
+        preferredBridge,
+        topWeight,
+        budgetWeight,
+        labelKind: support.isTopGood ? "top" : "match",
+      };
+    }
+
     return {
       customerPriceRule,
       customerProfile,
@@ -515,6 +558,7 @@ namespace XiannongCore.Shop {
       shopWordOfMouthBudgetBonus,
       shopCompendiumCustomerSupport,
       shopWeatherShelfChoiceSupport,
+      shopWeatherShelfChoiceWeight,
     };
   }
 }
