@@ -17264,9 +17264,20 @@ function applyConfiguredEventAction(action, context = {}) {
     triggerSpiritManorFeedback(action.phase, context.eventName);
     return null;
   }
+  if (action.kind === "trigger_chapter3_trade_feedback") {
+    triggerChapter3TradeFeedback(action.phase, context.eventName);
+    return null;
+  }
   if (action.kind === "start_faction_order_chapter_if_needed") {
     if (!state.triggeredEvents.has(FACTION_ORDER_ENTRY_EVENT_ID)) {
-      startFactionOrderChapter(localize(action.eventNameKey, action.fallbackName));
+      const plan = questRuntime()?.configuredEventFactionOrderStartActionPlan({
+        event_id: FACTION_ORDER_ENTRY_EVENT_ID,
+        trigger_type: "on_world_state",
+        trigger_param: SPIRIT_MANOR_OVERVIEW_FLAG,
+        execute_group: "exec_start_quest_main_0302",
+      });
+      if (plan?.applies) applyConfiguredEventActionPlan(plan, { eventName: localize(action.eventNameKey, action.fallbackName) });
+      else startFactionOrderChapter(localize(action.eventNameKey, action.fallbackName));
     }
     return null;
   }
@@ -17288,6 +17299,10 @@ function applyConfiguredEventAction(action, context = {}) {
   }
   if (action.kind === "log_spirit_manor_overview_unlock") {
     addLog("百怪大院建成", `${context.eventName}：岗位总览、宿舍分配与情绪管理已接入精怪面板，洞天自动化进入第三章。`);
+    return null;
+  }
+  if (action.kind === "log_faction_order_chapter_start") {
+    addLog("商会来客", `${context.eventName}：胡四海把门派采办首单压到柜上，外路客真正开始按“成套、稳定、像样”的标准看你的货。`);
     return null;
   }
   if (action.kind === "check_quest_rewards") {
@@ -17366,7 +17381,29 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "start_faction_order_chapter" || (!actionKind && executeGroup.includes("start_quest_main_0302"))) {
-    startFactionOrderChapter(eventName);
+    const actionPlan = runtime?.configuredEventFactionOrderStartActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      firstStart: !chapter3TradeStarted(),
+      completedFlags: [CHAPTER_3_TRADE_FLAG, `quest_unlock_${FACTION_ORDER_QUEST_ID}`],
+      npcId: "npc_hu_sihai",
+      favorAmount: !chapter3TradeStarted() ? 8 : 0,
+      favorSource: !chapter3TradeStarted() ? "商会来客" : "",
+      dialogueGroup: "dialogue_main_0302_faction_order",
+      cue: "成就解锁",
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: CHAPTER_3_TRADE_FLAG },
+        { kind: "complete_flag", flag: `quest_unlock_${FACTION_ORDER_QUEST_ID}` },
+        ...(!chapter3TradeStarted() ? [{ kind: "add_npc_favor", npcId: "npc_hu_sihai", amount: 8, source: "商会来客" }] : []),
+        { kind: "trigger_chapter3_trade_feedback", phase: "entry" },
+        { kind: "queue_dialogue_group", groupId: "dialogue_main_0302_faction_order" },
+        { kind: "play_cue", cue: "成就解锁" },
+        { kind: "log_faction_order_chapter_start" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan, { eventName });
     return true;
   }
 

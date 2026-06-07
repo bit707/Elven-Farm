@@ -213,6 +213,7 @@ namespace XiannongCore.Quests {
     configuredEventHerbValleyFinishActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHerbValleyFinishActionPlan;
     configuredEventSpiritManorStartActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSpiritManorStartActionPlan;
     configuredEventSpiritManorOverviewActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSpiritManorOverviewActionPlan;
+    configuredEventFactionOrderStartActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFactionOrderStartActionPlan;
     configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan;
   }
 
@@ -321,6 +322,10 @@ namespace XiannongCore.Quests {
       phase: "entry" | "build";
     }
     | {
+      kind: "trigger_chapter3_trade_feedback";
+      phase: "entry";
+    }
+    | {
       kind: "start_faction_order_chapter_if_needed";
       eventNameKey: string;
       fallbackName: string;
@@ -340,6 +345,9 @@ namespace XiannongCore.Quests {
     }
     | {
       kind: "log_spirit_manor_overview_unlock";
+    }
+    | {
+      kind: "log_faction_order_chapter_start";
     }
     | {
       kind: "check_quest_rewards";
@@ -445,6 +453,20 @@ namespace XiannongCore.Quests {
     favorAmount: number;
     favorSource: string;
     fameAmount: number;
+    dialogueGroup: string;
+    cue: string;
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventFactionOrderStartActionPlan {
+    applies: boolean;
+    eventId: string;
+    executeGroup: string;
+    firstStart: boolean;
+    completedFlags: string[];
+    npcId: string;
+    favorAmount: number;
+    favorSource: string;
     dialogueGroup: string;
     cue: string;
     actions: ConfiguredEventExecutionAction[];
@@ -1412,6 +1434,45 @@ namespace XiannongCore.Quests {
       };
     }
 
+    function configuredEventFactionOrderStartActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFactionOrderStartActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "start_faction_order_chapter";
+      const firstStart = applies
+        && !setHas(state.completed, "chapter_3_trade_started")
+        && !setHas(state.triggeredEvents, "event_main_0302")
+        && !setHas(state.missionDone, "quest_main_0302_shanghui_laike");
+      const completedFlags = applies ? ["chapter_3_trade_started", "quest_unlock_quest_main_0302_shanghui_laike"] : [];
+      const npcId = applies ? "npc_hu_sihai" : "";
+      const favorAmount = firstStart ? 8 : 0;
+      const favorSource = firstStart ? "商会来客" : "";
+      const dialogueGroup = applies ? "dialogue_main_0302_faction_order" : "";
+      const cue = applies ? "成就解锁" : "";
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          ...completedFlags.map((flag) => ({ kind: "complete_flag" as const, flag })),
+          ...(favorAmount > 0 ? [{ kind: "add_npc_favor" as const, npcId, amount: favorAmount, source: favorSource }] : []),
+          { kind: "trigger_chapter3_trade_feedback", phase: "entry" },
+          { kind: "queue_dialogue_group", groupId: dialogueGroup },
+          { kind: "play_cue", cue },
+          { kind: "log_faction_order_chapter_start" },
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        executeGroup: plan.executeGroup,
+        firstStart,
+        completedFlags,
+        npcId,
+        favorAmount,
+        favorSource,
+        dialogueGroup,
+        cue,
+        actions,
+      };
+    }
+
     function configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan {
       const plan = configuredEventExecutionPlan(event);
       const applies = plan.actionKind === "generic_unlock";
@@ -1526,6 +1587,7 @@ namespace XiannongCore.Quests {
       configuredEventHerbValleyFinishActionPlan,
       configuredEventSpiritManorStartActionPlan,
       configuredEventSpiritManorOverviewActionPlan,
+      configuredEventFactionOrderStartActionPlan,
       configuredEventGenericUnlockActionPlan,
     };
   }

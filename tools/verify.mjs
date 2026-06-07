@@ -3005,6 +3005,7 @@ for (const questRuntimeTerm of [
   "runtime?.configuredEventHerbValleyFinishActionPlan(event)",
   "runtime?.configuredEventSpiritManorStartActionPlan(event)",
   "runtime?.configuredEventSpiritManorOverviewActionPlan(event)",
+  "runtime?.configuredEventFactionOrderStartActionPlan(event)",
   "runtime?.configuredEventGenericUnlockActionPlan(event)",
   "applyConfiguredEventActionPlan(actionPlan)",
   "applyConfiguredEventAction(action",
@@ -3272,6 +3273,7 @@ for (const questCoreSourceTerm of [
   "export interface ConfiguredEventHerbValleyFinishActionPlan",
   "export interface ConfiguredEventSpiritManorStartActionPlan",
   "export interface ConfiguredEventSpiritManorOverviewActionPlan",
+  "export interface ConfiguredEventFactionOrderStartActionPlan",
   "export interface ConfiguredEventGenericUnlockActionPlan",
   "configuredEventSideQuestActionPlan(event",
   "configuredEventMainQuestActionPlan(event",
@@ -3282,6 +3284,7 @@ for (const questCoreSourceTerm of [
   "configuredEventHerbValleyFinishActionPlan(event",
   "configuredEventSpiritManorStartActionPlan(event",
   "configuredEventSpiritManorOverviewActionPlan(event",
+  "configuredEventFactionOrderStartActionPlan(event",
   "configuredEventGenericUnlockActionPlan(event",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -3299,12 +3302,14 @@ for (const questCoreSourceTerm of [
   "kind: \"trigger_baizhi_chapter_finish_feedback\"",
   "kind: \"start_spirit_manor_chapter_if_needed\"",
   "kind: \"trigger_spirit_manor_feedback\"",
+  "kind: \"trigger_chapter3_trade_feedback\"",
   "kind: \"start_faction_order_chapter_if_needed\"",
   "kind: \"update_missions\"",
   "kind: \"play_cue\"",
   "kind: \"log_baizhi_chapter_finish\"",
   "kind: \"log_spirit_manor_chapter_start\"",
   "kind: \"log_spirit_manor_overview_unlock\"",
+  "kind: \"log_faction_order_chapter_start\"",
   "kind: \"check_quest_rewards\"",
   "kind: \"scan_configured_events\"",
   "configuredEventReadyQueue()",
@@ -3375,6 +3380,7 @@ for (const questCoreRuntimeTerm of [
   "function configuredEventHerbValleyFinishActionPlan",
   "function configuredEventSpiritManorStartActionPlan",
   "function configuredEventSpiritManorOverviewActionPlan",
+  "function configuredEventFactionOrderStartActionPlan",
   "function configuredEventGenericUnlockActionPlan",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -3392,12 +3398,14 @@ for (const questCoreRuntimeTerm of [
   "kind: \"trigger_baizhi_chapter_finish_feedback\"",
   "kind: \"start_spirit_manor_chapter_if_needed\"",
   "kind: \"trigger_spirit_manor_feedback\"",
+  "kind: \"trigger_chapter3_trade_feedback\"",
   "kind: \"start_faction_order_chapter_if_needed\"",
   "kind: \"update_missions\"",
   "kind: \"play_cue\"",
   "kind: \"log_baizhi_chapter_finish\"",
   "kind: \"log_spirit_manor_chapter_start\"",
   "kind: \"log_spirit_manor_overview_unlock\"",
+  "kind: \"log_faction_order_chapter_start\"",
   "kind: \"check_quest_rewards\"",
   "kind: \"scan_configured_events\"",
   "function dialogueGroupForExecuteGroup",
@@ -5787,6 +5795,12 @@ if (!spiritManorOverviewCondition || spiritManorOverviewCondition.expression !==
 }
 if (!eventMain0302 || eventMain0302.trigger_type !== "on_world_state" || eventMain0302.trigger_param !== "spirit_manor_overview_unlocked" || eventMain0302.condition_group !== "spirit_manor_overview_unlocked" || eventMain0302.execute_group !== "exec_start_quest_main_0302") {
   throw new Error("Faction order chapter must start from the Spirit Manor overview event chain");
+}
+if (!game.includes('executeGroup.includes("start_quest_main_0302")')
+  || !game.includes("runtime?.configuredEventFactionOrderStartActionPlan(event)")
+  || !game.includes('kind: "trigger_chapter3_trade_feedback"')
+  || !game.includes('kind: "log_faction_order_chapter_start"')) {
+  throw new Error("Faction order chapter start must run through a TypeScript configured-event action plan");
 }
 if (!mainQuest0302 || mainQuest0302.chapter !== "3" || mainQuestSteps0302.length < 3) {
   throw new Error("Main quest 0302 must exist as the faction order and Fire Ruin chapter-three quest");

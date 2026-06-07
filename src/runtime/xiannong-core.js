@@ -2363,6 +2363,44 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventFactionOrderStartActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "start_faction_order_chapter";
+                const firstStart = applies
+                    && !setHas(state.completed, "chapter_3_trade_started")
+                    && !setHas(state.triggeredEvents, "event_main_0302")
+                    && !setHas(state.missionDone, "quest_main_0302_shanghui_laike");
+                const completedFlags = applies ? ["chapter_3_trade_started", "quest_unlock_quest_main_0302_shanghui_laike"] : [];
+                const npcId = applies ? "npc_hu_sihai" : "";
+                const favorAmount = firstStart ? 8 : 0;
+                const favorSource = firstStart ? "商会来客" : "";
+                const dialogueGroup = applies ? "dialogue_main_0302_faction_order" : "";
+                const cue = applies ? "成就解锁" : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        ...(favorAmount > 0 ? [{ kind: "add_npc_favor", npcId, amount: favorAmount, source: favorSource }] : []),
+                        { kind: "trigger_chapter3_trade_feedback", phase: "entry" },
+                        { kind: "queue_dialogue_group", groupId: dialogueGroup },
+                        { kind: "play_cue", cue },
+                        { kind: "log_faction_order_chapter_start" },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    firstStart,
+                    completedFlags,
+                    npcId,
+                    favorAmount,
+                    favorSource,
+                    dialogueGroup,
+                    cue,
+                    actions,
+                };
+            }
             function configuredEventGenericUnlockActionPlan(event) {
                 const plan = configuredEventExecutionPlan(event);
                 const applies = plan.actionKind === "generic_unlock";
@@ -2475,6 +2513,7 @@ var XiannongCore;
                 configuredEventHerbValleyFinishActionPlan,
                 configuredEventSpiritManorStartActionPlan,
                 configuredEventSpiritManorOverviewActionPlan,
+                configuredEventFactionOrderStartActionPlan,
                 configuredEventGenericUnlockActionPlan,
             };
         }
