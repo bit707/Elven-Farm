@@ -3133,6 +3133,10 @@ for (const combatRuntimeTerm of [
   "bossShieldAfter: exchangePlan.bossShieldAfter",
   "run.combatMoment = exchangeStatePlan?.combatMoment",
   "run.bossShield = Number(exchangeStatePlan?.bossShieldAfter ?? exchangePlan.bossShieldAfter)",
+  "dungeonRuntime()?.dungeonBossClearPlan({",
+  "for (const entry of clearPlan?.guaranteedLoot || []) addItem(entry.itemId, entry.count)",
+  "state.fame += Number(clearPlan?.fameDelta ?? 5)",
+  "run.lastLoot = [...finalBossLoot, ...rotationRewardItems]",
 ]) {
   if (!game.includes(combatRuntimeTerm)) throw new Error(`Combat TypeScript runtime bridge missing: ${combatRuntimeTerm}`);
 }
@@ -3593,6 +3597,11 @@ for (const combatCoreSourceTerm of [
   "dungeonBossExchangeStatePlan(input",
   "bossHpAfter <= 0",
   "phaseBefore !== bossPhaseAfter",
+  "export interface DungeonBossClearPlan",
+  "dungeonBossClearPlan(input",
+  "boss_shixiang_tengmu",
+  "item_special_baicao_mulu",
+  "fameDelta: 5",
   "phaseCount >= 3",
   "percent <= 0.35",
   "percent <= 0.7",
@@ -3657,6 +3666,10 @@ for (const combatCoreRuntimeTerm of [
   "function dungeonBossExchangeStatePlan",
   "bossHpAfter <= 0",
   "phaseBefore !== bossPhaseAfter",
+  "function dungeonBossClearPlan",
+  "boss_shixiang_tengmu",
+  "item_special_baicao_mulu",
+  "fameDelta: 5",
   "phaseCount >= 3",
   "percent <= 0.35",
   "percent <= 0.7",

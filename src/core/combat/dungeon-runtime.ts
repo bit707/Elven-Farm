@@ -214,6 +214,25 @@ namespace XiannongCore.Combat {
     combatMoment: "boss_defeat" | "failed" | "phase_shift" | "boss_exchange";
   }
 
+  export interface DungeonBossClearPlanInput {
+    areaId?: string | null;
+    bossId?: string | null;
+    bossLoot?: DungeonLootPlanEntry[] | null;
+    hasBaizhiMotherDew?: boolean | number | string | null;
+    hasFireCore?: boolean | number | string | null;
+    hasDinghaiItem?: boolean | number | string | null;
+  }
+
+  export interface DungeonBossClearPlan {
+    finished: boolean;
+    fameDelta: number;
+    clearAreaId: string;
+    defeatedBossId: string;
+    guaranteedLoot: DungeonLootPlanEntry[];
+    bossLoot: DungeonLootPlanEntry[];
+    lastLoot: DungeonLootPlanEntry[];
+  }
+
   export interface CombatRuntime {
     bossSkillsFor(bossId?: string | null): CombatRow[];
     bossPhaseForPercent(bossId?: string | null, hpPercent?: number | string | null): number;
@@ -232,6 +251,7 @@ namespace XiannongCore.Combat {
     dungeonLootPlan(input?: DungeonLootPlanInput | null): DungeonLootPlanEntry[];
     dungeonBossExchangePlan(input?: DungeonBossExchangePlanInput | null): DungeonBossExchangePlan;
     dungeonBossExchangeStatePlan(input?: DungeonBossExchangeStatePlanInput | null): DungeonBossExchangeStatePlan;
+    dungeonBossClearPlan(input?: DungeonBossClearPlanInput | null): DungeonBossClearPlan;
   }
 
   function byId(rows: CombatRow[], idField: string, id?: string | null): CombatRow | null {
@@ -261,6 +281,10 @@ namespace XiannongCore.Combat {
     if (!condition || condition === "always_true") return true;
     const result = conditionResults[condition];
     return result === true || result === 1 || result === "1" || result === "true";
+  }
+
+  function truthyFlag(value: boolean | number | string | null | undefined): boolean {
+    return value === true || value === 1 || value === "1" || value === "true";
   }
 
   function changedKeys(before: DungeonMechanicState, after: DungeonMechanicState): Array<keyof DungeonMechanicState> {
@@ -705,6 +729,31 @@ namespace XiannongCore.Combat {
       };
     }
 
+    function dungeonBossClearPlan(input: DungeonBossClearPlanInput | null = null): DungeonBossClearPlan {
+      const bossId = input?.bossId || "";
+      const bossLoot = [...(input?.bossLoot || [])];
+      const guaranteedLoot: DungeonLootPlanEntry[] = [];
+      if (bossId === "boss_shixiang_tengmu" && !truthyFlag(input?.hasBaizhiMotherDew)) {
+        guaranteedLoot.push({ itemId: "item_special_baicao_mulu", count: 1 });
+      }
+      if (bossId === "boss_chiyan_xiehou" && !truthyFlag(input?.hasFireCore)) {
+        guaranteedLoot.push({ itemId: "item_special_huojing", count: 1 });
+      }
+      if (bossId === "boss_shiling_mingmu" && !truthyFlag(input?.hasDinghaiItem)) {
+        guaranteedLoot.push({ itemId: "item_special_dinghai_shenzhu", count: 1 });
+      }
+      const lastLoot = [...bossLoot, ...guaranteedLoot];
+      return {
+        finished: true,
+        fameDelta: 5,
+        clearAreaId: input?.areaId || "",
+        defeatedBossId: bossId,
+        guaranteedLoot,
+        bossLoot: lastLoot,
+        lastLoot,
+      };
+    }
+
     return {
       bossSkillsFor,
       bossPhaseForPercent,
@@ -723,6 +772,7 @@ namespace XiannongCore.Combat {
       dungeonLootPlan,
       dungeonBossExchangePlan,
       dungeonBossExchangeStatePlan,
+      dungeonBossClearPlan,
     };
   }
 }

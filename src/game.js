@@ -42759,29 +42759,42 @@ function challengeDungeonBoss() {
   }
 
   const bossLoot = rollLoot(dungeon.resource_group_id, run.maxFloor + 1, mechanicEffects.lootMultiplier);
-  if (bossId === BAIZHI_BOSS_ID && !hasItem(BAIZHI_MOTHER_DEW_ITEM_ID, 1)) {
-    addItem(BAIZHI_MOTHER_DEW_ITEM_ID, 1);
-    bossLoot.push({ itemId: BAIZHI_MOTHER_DEW_ITEM_ID, count: 1 });
-  }
-  if (bossId === FIRE_RUIN_BOSS_ID && !hasItem(FIRE_CORE_ITEM_ID, 1)) {
-    addItem(FIRE_CORE_ITEM_ID, 1);
-    bossLoot.push({ itemId: FIRE_CORE_ITEM_ID, count: 1 });
-  }
-  if (bossId === CHAPTER_4_FINAL_BOSS_ID && !hasItem(CHAPTER_4_DINGHAI_ITEM_ID, 1)) {
-    addItem(CHAPTER_4_DINGHAI_ITEM_ID, 1);
-    bossLoot.push({ itemId: CHAPTER_4_DINGHAI_ITEM_ID, count: 1 });
-  }
-  run.loot.push(...bossLoot);
-  run.lastLoot = bossLoot;
-  run.finished = true;
-  state.dungeonClears.add(dungeon.area_id);
-  state.defeatedBosses.add(bossId);
-  state.fame += 5;
+  const clearPlan = dungeonRuntime()?.dungeonBossClearPlan({
+    areaId: dungeon.area_id,
+    bossId,
+    bossLoot,
+    hasBaizhiMotherDew: hasItem(BAIZHI_MOTHER_DEW_ITEM_ID, 1),
+    hasFireCore: hasItem(FIRE_CORE_ITEM_ID, 1),
+    hasDinghaiItem: hasItem(CHAPTER_4_DINGHAI_ITEM_ID, 1),
+  }) || (() => {
+    const guaranteedLoot = [];
+    if (bossId === BAIZHI_BOSS_ID && !hasItem(BAIZHI_MOTHER_DEW_ITEM_ID, 1)) guaranteedLoot.push({ itemId: BAIZHI_MOTHER_DEW_ITEM_ID, count: 1 });
+    if (bossId === FIRE_RUIN_BOSS_ID && !hasItem(FIRE_CORE_ITEM_ID, 1)) guaranteedLoot.push({ itemId: FIRE_CORE_ITEM_ID, count: 1 });
+    if (bossId === CHAPTER_4_FINAL_BOSS_ID && !hasItem(CHAPTER_4_DINGHAI_ITEM_ID, 1)) guaranteedLoot.push({ itemId: CHAPTER_4_DINGHAI_ITEM_ID, count: 1 });
+    const fallbackLoot = [...bossLoot, ...guaranteedLoot];
+    return {
+      finished: true,
+      fameDelta: 5,
+      clearAreaId: dungeon.area_id,
+      defeatedBossId: bossId,
+      guaranteedLoot,
+      bossLoot: fallbackLoot,
+      lastLoot: fallbackLoot,
+    };
+  })();
+  for (const entry of clearPlan?.guaranteedLoot || []) addItem(entry.itemId, entry.count);
+  const finalBossLoot = clearPlan?.bossLoot || bossLoot;
+  run.loot.push(...finalBossLoot);
+  run.lastLoot = clearPlan?.lastLoot || finalBossLoot;
+  run.finished = Boolean(clearPlan?.finished ?? true);
+  state.dungeonClears.add(clearPlan?.clearAreaId || dungeon.area_id);
+  state.defeatedBosses.add(clearPlan?.defeatedBossId || bossId);
+  state.fame += Number(clearPlan?.fameDelta ?? 5);
   recordDailyIntentProgress("explore", `击破 ${bossName(bossId)}`, {
     title: "Boss 击破",
     amount: 6,
     target: dungeon.area_id,
-    rewardText: `声望 +5 · ${bossLoot.map((entry) => `${itemName(entry.itemId)} x${entry.count}`).join("、") || "秘境余波"}`,
+    rewardText: `声望 +5 · ${finalBossLoot.map((entry) => `${itemName(entry.itemId)} x${entry.count}`).join("、") || "秘境余波"}`,
   });
   if (currentTermId() === "term_dongzhi") addGoalBookProgress("seasonal", "lanternDungeonClears", 1);
   const rotationRewards = run.rotationRareDropPool ? resolveDungeonRewardPool(run.rotationRareDropPool, run.hiddenReveal ? 1.25 : 1) : [];
@@ -42790,11 +42803,11 @@ function challengeDungeonBoss() {
     .map((entry) => ({ itemId: entry.itemId, count: entry.count }));
   if (rotationRewardItems.length > 0) {
     run.loot.push(...rotationRewardItems);
-    run.lastLoot = [...bossLoot, ...rotationRewardItems];
+    run.lastLoot = [...finalBossLoot, ...rotationRewardItems];
   }
   run.rotationRewards = rotationRewards.map((entry) => entry.text);
   const stampGain = grantDungeonCompendiumProgress("clear", 3, run, dungeon, mechanic);
-  const aftermath = applyDungeonWorldChange(dungeon, mechanic, bossLoot);
+  const aftermath = applyDungeonWorldChange(dungeon, mechanic, finalBossLoot);
   if (bossId === BAIZHI_BOSS_ID) finishHerbValleyBaizhiLine(localize("event_name_main_0207", "百草母露入手"));
   if (bossId === FIRE_RUIN_BOSS_ID) finishFireRuinLine(localize("event_name_main_0307", "炽炎火精归位"));
   if (bossId === CHAPTER_4_FINAL_BOSS_ID) startChapter4PantaoFinale(localize("event_name_main_0405", "终章决战收束"));
@@ -42802,7 +42815,7 @@ function challengeDungeonBoss() {
   triggerCohabWeeklyEvents("on_dungeon_return", { areaId: dungeon.area_id, day: state.day });
   addLog("Boss 击破", `${bossName(bossId)} 已击败，最后化解了 ${skillName(bossSkill)}。${stampGain ? `；${stampGain.text}` : ""}${aftermath.change?.title || `${dungeonName(dungeon)} 外部生态发生变化。`}${aftermath.clue ? `；发现 ${aftermath.clue.spiritName} 线索：${aftermath.clue.sceneSummary}` : ""}${rotationRewards.length > 0 ? `；隐藏层回响：${rotationRewards.map((entry) => entry.text).join("、")}` : ""} 声望 +5。`);
   recordDungeonDayEcho("clear", run, dungeon, mechanic, {
-    bossLoot: run.lastLoot || bossLoot,
+    bossLoot: run.lastLoot || finalBossLoot,
     stampGain,
     aftermath,
     bossId,

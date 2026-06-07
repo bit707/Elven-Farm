@@ -28,6 +28,9 @@ var XiannongCore;
             const result = conditionResults[condition];
             return result === true || result === 1 || result === "1" || result === "true";
         }
+        function truthyFlag(value) {
+            return value === true || value === 1 || value === "1" || value === "true";
+        }
         function changedKeys(before, after) {
             const keys = [
                 "pillarsLit",
@@ -480,6 +483,30 @@ var XiannongCore;
                     combatMoment,
                 };
             }
+            function dungeonBossClearPlan(input = null) {
+                const bossId = input?.bossId || "";
+                const bossLoot = [...(input?.bossLoot || [])];
+                const guaranteedLoot = [];
+                if (bossId === "boss_shixiang_tengmu" && !truthyFlag(input?.hasBaizhiMotherDew)) {
+                    guaranteedLoot.push({ itemId: "item_special_baicao_mulu", count: 1 });
+                }
+                if (bossId === "boss_chiyan_xiehou" && !truthyFlag(input?.hasFireCore)) {
+                    guaranteedLoot.push({ itemId: "item_special_huojing", count: 1 });
+                }
+                if (bossId === "boss_shiling_mingmu" && !truthyFlag(input?.hasDinghaiItem)) {
+                    guaranteedLoot.push({ itemId: "item_special_dinghai_shenzhu", count: 1 });
+                }
+                const lastLoot = [...bossLoot, ...guaranteedLoot];
+                return {
+                    finished: true,
+                    fameDelta: 5,
+                    clearAreaId: input?.areaId || "",
+                    defeatedBossId: bossId,
+                    guaranteedLoot,
+                    bossLoot: lastLoot,
+                    lastLoot,
+                };
+            }
             return {
                 bossSkillsFor,
                 bossPhaseForPercent,
@@ -498,6 +525,7 @@ var XiannongCore;
                 dungeonLootPlan,
                 dungeonBossExchangePlan,
                 dungeonBossExchangeStatePlan,
+                dungeonBossClearPlan,
             };
         }
         Combat.createDungeonRuntime = createDungeonRuntime;
