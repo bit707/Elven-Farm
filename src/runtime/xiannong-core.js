@@ -2784,6 +2784,59 @@ var XiannongCore;
                     actions,
                 };
             }
+            function hasPantaoSeedOrCrop(seedId) {
+                return hasItem(state, seedId, 1)
+                    || (state.plots || []).some((plot) => plot.seedItemId === seedId || plot.cropId === "item_crop_wannian_pantao");
+            }
+            function configuredEventChapter4FinalPlantingUnlockActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "unlock_final_planting";
+                const firstUnlock = applies && !setHas(state.completed, "final_pantao_planting_unlocked");
+                const completedFlags = applies ? ["final_array_built", "final_pantao_planting_unlocked"] : [];
+                const seedId = applies ? constants.chapter4PantaoSeedId : "";
+                const seedCount = applies ? 1 : 0;
+                const shouldGrantSeed = applies && !hasPantaoSeedOrCrop(seedId);
+                const npcFavors = firstUnlock
+                    ? [
+                        { npcId: "npc_xubo", amount: 6, source: "\u7ec8\u9635\u5f00\u5149" },
+                        { npcId: "npc_atan", amount: 6, source: "\u9635\u53f0\u843d\u6210" },
+                        { npcId: "npc_qinghe", amount: 6, source: "\u56db\u65f6\u6c34\u7ebf" },
+                    ]
+                    : [];
+                const fameAmount = firstUnlock ? 8 : 0;
+                const dialogueGroup = applies ? "dialogue_final_array" : "";
+                const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        ...(shouldGrantSeed ? [{ kind: "grant_item_if_missing", itemId: seedId, count: seedCount }] : []),
+                        { kind: "select_seed", seedId },
+                        ...npcFavors.map((favor) => ({ kind: "add_npc_favor", npcId: favor.npcId, amount: favor.amount, source: favor.source })),
+                        ...(fameAmount > 0 ? [{ kind: "add_fame", amount: fameAmount }] : []),
+                        { kind: "apply_chapter4_final_planting_world_change" },
+                        { kind: "queue_dialogue_group", groupId: dialogueGroup },
+                        { kind: "play_cue", cue },
+                        { kind: "log_chapter4_final_planting_unlock" },
+                        { kind: "update_missions" },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    firstUnlock,
+                    completedFlags,
+                    seedId,
+                    seedCount,
+                    shouldGrantSeed,
+                    npcFavors,
+                    fameAmount,
+                    dialogueGroup,
+                    cue,
+                    actions,
+                };
+            }
             function configuredEventGenericUnlockActionPlan(event) {
                 const plan = configuredEventExecutionPlan(event);
                 const applies = plan.actionKind === "generic_unlock";
@@ -2904,6 +2957,7 @@ var XiannongCore;
                 configuredEventChapter4LuTruthActionPlan,
                 configuredEventChapter4FinalNestUnlockActionPlan,
                 configuredEventChapter4PantaoFinaleActionPlan,
+                configuredEventChapter4FinalPlantingUnlockActionPlan,
                 configuredEventGenericUnlockActionPlan,
             };
         }

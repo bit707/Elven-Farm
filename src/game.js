@@ -17232,6 +17232,10 @@ function applyConfiguredEventAction(action, context = {}) {
     addItem(action.itemId, action.count);
     return null;
   }
+  if (action.kind === "select_seed") {
+    state.selectedSeedId = action.seedId;
+    return null;
+  }
   if (action.kind === "add_fame") {
     state.fame += Number(action.amount || 0);
     return null;
@@ -17434,6 +17438,20 @@ function applyConfiguredEventAction(action, context = {}) {
   }
   if (action.kind === "log_chapter4_pantao_finale") {
     addLog("终章协力", `${context.eventName}：${bossName(CHAPTER_4_FINAL_BOSS_ID)}已伏，众人开始把终阵材料、守护和灯火接到阵台。`);
+    return null;
+  }
+  if (action.kind === "apply_chapter4_final_planting_world_change") {
+    upsertWorldChange({
+      key: "chapter4_final_array_built",
+      title: "二十四节气大阵亮起",
+      detail: "四时光纹从阵台铺到田垄，旱热终于被压下一线。阵心吐出一枚万年蟠桃种子，等你亲手种下。",
+      rewardHint: `${itemName(CHAPTER_4_PANTAO_SEED_ID)} x1 · 结局作物`,
+      visualType: "solar_array_stela",
+    });
+    return null;
+  }
+  if (action.kind === "log_chapter4_final_planting_unlock") {
+    addLog("终阵搭建", `${context.eventName}：${buildingName(data.buildingsById.get(CHAPTER_4_FINAL_ARRAY_BUILDING_ID))}已经落成，${itemName(CHAPTER_4_PANTAO_SEED_ID)}在阵心发亮。`);
     return null;
   }
   if (action.kind === "unlock_final_nest_if_ready") {
@@ -17935,7 +17953,9 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "unlock_final_planting" || (!actionKind && executeGroup.includes("unlock_final_planting"))) {
-    unlockFinalPlanting(eventName);
+    const actionPlan = runtime?.configuredEventChapter4FinalPlantingUnlockActionPlan(event);
+    if (actionPlan?.applies) applyConfiguredEventActionPlan(actionPlan, { eventName });
+    else unlockFinalPlanting(eventName);
     return true;
   }
 
@@ -38791,6 +38811,18 @@ function startChapter4PantaoFinale(eventName = "终章决战收束") {
 }
 
 function unlockFinalPlanting(eventName = "终阵搭建完成") {
+  const plan = questRuntime()?.configuredEventChapter4FinalPlantingUnlockActionPlan({
+    event_id: "event_main_0406",
+    event_name_key: "event_name_main_0406",
+    trigger_type: "on_build_complete",
+    trigger_param: CHAPTER_4_FINAL_ARRAY_BUILDING_ID,
+    condition_group: "quest_main_0403_step_1_done",
+    execute_group: "exec_unlock_final_planting",
+  });
+  if (plan?.applies) {
+    applyConfiguredEventActionPlan(plan, { eventName });
+    return true;
+  }
   const firstUnlock = !state.completed.has("final_pantao_planting_unlocked");
   state.completed.add("final_array_built");
   state.completed.add("final_pantao_planting_unlocked");
