@@ -1380,6 +1380,44 @@ var XiannongCore;
                     return { good: scoredCandidate.good, candidate: scoredCandidate, reason: "score" };
                 return { good: input?.fallbackGood || null, candidate: null, reason: "fallback" };
             }
+            function incrementShopStatsCount(counts, key) {
+                const safeKey = String(key || "");
+                if (!safeKey)
+                    return;
+                counts[safeKey] = Number(counts[safeKey] || 0) + 1;
+            }
+            function shopSalesStatsDelta(input = null) {
+                const customers = Array.isArray(input?.customers) ? input.customers : [];
+                const report = Array.isArray(input?.report) ? input.report : [];
+                const boughtRows = report.filter((entry) => entry?.reason === "buy");
+                const itemSales = {};
+                const customerVisits = {};
+                const customerBuys = {};
+                const themeUsage = {};
+                for (const customer of customers)
+                    incrementShopStatsCount(customerVisits, customer?.archetype);
+                for (const entry of boughtRows) {
+                    incrementShopStatsCount(customerBuys, entry?.customerArchetype);
+                    incrementShopStatsCount(itemSales, entry?.itemId);
+                }
+                incrementShopStatsCount(themeUsage, input?.shelfTheme);
+                const lowStock = Number(input?.lowStockCount || 0) > 0;
+                return {
+                    sessions: 1,
+                    visitors: customers.length,
+                    buyers: Number(input?.sold || 0),
+                    soldCount: Number(input?.sold || 0),
+                    sales: Number(input?.sessionSales || 0),
+                    positive: boughtRows.length,
+                    themeTotal: Number(input?.themeScore || 0),
+                    stockWarnings: lowStock ? 1 : 0,
+                    stockSafeSessions: lowStock ? 0 : 1,
+                    itemSales,
+                    customerVisits,
+                    customerBuys,
+                    themeUsage,
+                };
+            }
             return {
                 customerPriceRule,
                 customerProfile,
@@ -1404,6 +1442,7 @@ var XiannongCore;
                 shopWeatherShelfChoiceSupport,
                 shopWeatherShelfChoiceWeight,
                 matchCustomerGood,
+                shopSalesStatsDelta,
             };
         }
         Shop.createShopRuntime = createShopRuntime;

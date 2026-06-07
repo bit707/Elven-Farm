@@ -20582,6 +20582,32 @@ function matchCustomerGoodLegacy(goods, customer, ecologyGarden = null) {
   return preferredGood || goods.find(({ item }) => !shopTagsOverlap(shopTagsForItem(item, ecologyGarden), disliked)) || goods[0];
 }
 
+function applyShopSalesStatsDelta(stats, delta) {
+  if (!stats || !delta) return stats;
+  stats.sessions += Number(delta.sessions || 0);
+  stats.visitors += Number(delta.visitors || 0);
+  stats.buyers += Number(delta.buyers || 0);
+  stats.soldCount += Number(delta.soldCount || 0);
+  stats.sales += Number(delta.sales || 0);
+  stats.positive += Number(delta.positive || 0);
+  stats.themeTotal += Number(delta.themeTotal || 0);
+  stats.stockWarnings += Number(delta.stockWarnings || 0);
+  stats.stockSafeSessions += Number(delta.stockSafeSessions || 0);
+  for (const [key, value] of Object.entries(delta.customerVisits || {})) {
+    stats.customerVisits[key] = Number(stats.customerVisits[key] || 0) + Number(value || 0);
+  }
+  for (const [key, value] of Object.entries(delta.customerBuys || {})) {
+    stats.customerBuys[key] = Number(stats.customerBuys[key] || 0) + Number(value || 0);
+  }
+  for (const [key, value] of Object.entries(delta.itemSales || {})) {
+    stats.itemSales[key] = Number(stats.itemSales[key] || 0) + Number(value || 0);
+  }
+  for (const [key, value] of Object.entries(delta.themeUsage || {})) {
+    stats.themeUsage[key] = Number(stats.themeUsage[key] || 0) + Number(value || 0);
+  }
+  return stats;
+}
+
 function customerProfile(customer) {
   const runtime = shopRuntime();
   if (runtime) return runtime.customerProfile(customer);
@@ -58337,53 +58363,42 @@ function openShop() {
     amount: Math.max(1, sold + Math.ceil(sessionSales / 60)),
     rewardText: `来客 ${customers.length} 位 · 主题匹配 ${Math.round(themeScore * 100)}%`,
   });
-  state.shopStats.sessions += 1;
-  state.shopStats.visitors += customers.length;
-  state.shopStats.buyers += sold;
-  state.shopStats.soldCount += sold;
-  state.shopStats.sales += sessionSales;
-  state.shopStats.positive += report.filter((entry) => entry.reason === "buy").length;
-  state.shopStats.themeTotal += themeScore;
-  for (const customer of customers) {
-    state.shopStats.customerVisits[customer.archetype] = Number(state.shopStats.customerVisits[customer.archetype] || 0) + 1;
-  }
-  for (const entry of report.filter((saleEntry) => saleEntry.reason === "buy")) {
-    if (entry.customerArchetype) {
-      state.shopStats.customerBuys[entry.customerArchetype] = Number(state.shopStats.customerBuys[entry.customerArchetype] || 0) + 1;
-    }
-    if (entry.itemId) state.shopStats.itemSales[entry.itemId] = Number(state.shopStats.itemSales[entry.itemId] || 0) + 1;
-  }
-  state.shopStats.themeUsage[state.shopShelfTheme] = Number(state.shopStats.themeUsage[state.shopShelfTheme] || 0) + 1;
+  const shopStatsDelta = shopRuntime()?.shopSalesStatsDelta({
+    customers,
+    report,
+    sold,
+    sessionSales,
+    themeScore,
+    shelfTheme: state.shopShelfTheme,
+    lowStockCount: lowStockBeforeOpen.length,
+  }) || {
+    sessions: 1,
+    visitors: customers.length,
+    buyers: sold,
+    soldCount: sold,
+    sales: sessionSales,
+    positive: report.filter((entry) => entry.reason === "buy").length,
+    themeTotal: themeScore,
+    stockWarnings: lowStockBeforeOpen.length > 0 ? 1 : 0,
+    stockSafeSessions: lowStockBeforeOpen.length > 0 ? 0 : 1,
+    customerVisits: customers.reduce((counts, customer) => {
+      counts[customer.archetype] = Number(counts[customer.archetype] || 0) + 1;
+      return counts;
+    }, {}),
+    customerBuys: report.filter((entry) => entry.reason === "buy").reduce((counts, entry) => {
+      if (entry.customerArchetype) counts[entry.customerArchetype] = Number(counts[entry.customerArchetype] || 0) + 1;
+      return counts;
+    }, {}),
+    itemSales: report.filter((entry) => entry.reason === "buy").reduce((counts, entry) => {
+      if (entry.itemId) counts[entry.itemId] = Number(counts[entry.itemId] || 0) + 1;
+      return counts;
+    }, {}),
+    themeUsage: { [state.shopShelfTheme]: 1 },
+  };
+  applyShopSalesStatsDelta(state.shopStats, shopStatsDelta);
   const trackSeason = shouldTrackShopSeason();
   const seasonStats = trackSeason ? currentShopSeasonStats() : null;
-  if (trackSeason) {
-    seasonStats.sessions += 1;
-    seasonStats.visitors += customers.length;
-    seasonStats.buyers += sold;
-    seasonStats.soldCount += sold;
-    seasonStats.sales += sessionSales;
-    seasonStats.positive += report.filter((entry) => entry.reason === "buy").length;
-    seasonStats.themeTotal += themeScore;
-    seasonStats.themeUsage[state.shopShelfTheme] = Number(seasonStats.themeUsage[state.shopShelfTheme] || 0) + 1;
-  }
-  if (lowStockBeforeOpen.length > 0) {
-    state.shopStats.stockWarnings += 1;
-    if (trackSeason) seasonStats.stockWarnings += 1;
-  } else {
-    state.shopStats.stockSafeSessions += 1;
-    if (trackSeason) seasonStats.stockSafeSessions += 1;
-  }
-  if (trackSeason) {
-    for (const customer of customers) {
-      seasonStats.customerVisits[customer.archetype] = Number(seasonStats.customerVisits[customer.archetype] || 0) + 1;
-    }
-    for (const entry of report.filter((sale) => sale.reason === "buy")) {
-      if (entry.customerArchetype) {
-        seasonStats.customerBuys[entry.customerArchetype] = Number(seasonStats.customerBuys[entry.customerArchetype] || 0) + 1;
-      }
-      if (entry.itemId) seasonStats.itemSales[entry.itemId] = Number(seasonStats.itemSales[entry.itemId] || 0) + 1;
-    }
-  }
+  if (trackSeason) applyShopSalesStatsDelta(seasonStats, shopStatsDelta);
   const diagnosis = shopDiagnosis(report, goods, themeScore).map((text) => ({
     name: "经营诊断",
     text,

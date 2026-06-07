@@ -38,6 +38,7 @@ namespace XiannongCore.Shop {
     shopWeatherShelfChoiceSupport(input?: ShopWeatherShelfChoiceSupportInput | null): ShopWeatherShelfChoiceSupportPlan;
     shopWeatherShelfChoiceWeight(input?: ShopWeatherShelfChoiceWeightInput | null): ShopWeatherShelfChoiceWeightPlan;
     matchCustomerGood(input?: ShopCustomerGoodMatchInput | null): ShopCustomerGoodMatchPlan;
+    shopSalesStatsDelta(input?: ShopSalesStatsDeltaInput | null): ShopSalesStatsDelta;
   }
 
   export interface ShopGoodChoice {
@@ -151,6 +152,42 @@ namespace XiannongCore.Shop {
     good: ShopGoodChoice | null;
     candidate: ShopCustomerGoodScoredCandidate | null;
     reason: ShopCustomerGoodMatchReason;
+  }
+
+  export interface ShopSalesStatsCustomer {
+    archetype?: string | null;
+  }
+
+  export interface ShopSalesStatsReportEntry {
+    reason?: string | null;
+    customerArchetype?: string | null;
+    itemId?: string | null;
+  }
+
+  export interface ShopSalesStatsDeltaInput {
+    customers?: Array<ShopSalesStatsCustomer | null> | null;
+    report?: Array<ShopSalesStatsReportEntry | null> | null;
+    sold?: number | string;
+    sessionSales?: number | string;
+    themeScore?: number | string;
+    shelfTheme?: string | null;
+    lowStockCount?: number | string;
+  }
+
+  export interface ShopSalesStatsDelta {
+    sessions: number;
+    visitors: number;
+    buyers: number;
+    soldCount: number;
+    sales: number;
+    positive: number;
+    themeTotal: number;
+    stockWarnings: number;
+    stockSafeSessions: number;
+    itemSales: Record<string, number>;
+    customerVisits: Record<string, number>;
+    customerBuys: Record<string, number>;
+    themeUsage: Record<string, number>;
   }
 
   export interface PricedGoodOptions {
@@ -595,6 +632,44 @@ namespace XiannongCore.Shop {
       return { good: input?.fallbackGood || null, candidate: null, reason: "fallback" };
     }
 
+    function incrementShopStatsCount(counts: Record<string, number>, key?: string | null): void {
+      const safeKey = String(key || "");
+      if (!safeKey) return;
+      counts[safeKey] = Number(counts[safeKey] || 0) + 1;
+    }
+
+    function shopSalesStatsDelta(input: ShopSalesStatsDeltaInput | null = null): ShopSalesStatsDelta {
+      const customers = Array.isArray(input?.customers) ? input.customers : [];
+      const report = Array.isArray(input?.report) ? input.report : [];
+      const boughtRows = report.filter((entry) => entry?.reason === "buy");
+      const itemSales: Record<string, number> = {};
+      const customerVisits: Record<string, number> = {};
+      const customerBuys: Record<string, number> = {};
+      const themeUsage: Record<string, number> = {};
+      for (const customer of customers) incrementShopStatsCount(customerVisits, customer?.archetype);
+      for (const entry of boughtRows) {
+        incrementShopStatsCount(customerBuys, entry?.customerArchetype);
+        incrementShopStatsCount(itemSales, entry?.itemId);
+      }
+      incrementShopStatsCount(themeUsage, input?.shelfTheme);
+      const lowStock = Number(input?.lowStockCount || 0) > 0;
+      return {
+        sessions: 1,
+        visitors: customers.length,
+        buyers: Number(input?.sold || 0),
+        soldCount: Number(input?.sold || 0),
+        sales: Number(input?.sessionSales || 0),
+        positive: boughtRows.length,
+        themeTotal: Number(input?.themeScore || 0),
+        stockWarnings: lowStock ? 1 : 0,
+        stockSafeSessions: lowStock ? 0 : 1,
+        itemSales,
+        customerVisits,
+        customerBuys,
+        themeUsage,
+      };
+    }
+
     return {
       customerPriceRule,
       customerProfile,
@@ -619,6 +694,7 @@ namespace XiannongCore.Shop {
       shopWeatherShelfChoiceSupport,
       shopWeatherShelfChoiceWeight,
       matchCustomerGood,
+      shopSalesStatsDelta,
     };
   }
 }
