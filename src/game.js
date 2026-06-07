@@ -15732,6 +15732,7 @@ function questRuntime() {
     {
       favorLevel,
       npcName,
+      localize,
       chapter4DroughtActive,
       baizhiChapterFinished,
       year2Unlocked,
@@ -18125,12 +18126,10 @@ function showStory(id) {
 }
 
 function showDialogue(groupId) {
-  const lines = (data.dialoguesByGroup.get(groupId) || []).slice().sort((a, b) => {
+  const runtimeLines = questRuntime()?.dialogueLinesForGroup(groupId);
+  const lines = runtimeLines || (data.dialoguesByGroup.get(groupId) || []).slice().sort((a, b) => {
     return Number(a.line_order) - Number(b.line_order);
-  });
-  if (lines.length === 0) return false;
-
-  state.activeDialogue = lines.map((line) => ({
+  }).map((line) => ({
     speakerId: line.speaker_id,
     speaker: npcName(line.speaker_id),
     text: localize(line.content_key, line.content_key),
@@ -18138,6 +18137,9 @@ function showDialogue(groupId) {
     lineOrder: Number(line.line_order || 0),
     contextType: line.context_type,
   }));
+  if (lines.length === 0) return false;
+
+  state.activeDialogue = lines;
   playCue("对话翻页");
   return true;
 }

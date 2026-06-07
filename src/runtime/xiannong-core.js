@@ -1817,6 +1817,19 @@ var XiannongCore;
                     return "";
                 return [...data.dialoguesByGroup.keys()].find((groupId) => groupId.startsWith(prefix)) || "";
             }
+            function dialogueLinesForGroup(groupId) {
+                return (data.dialoguesByGroup.get(groupId) || [])
+                    .slice()
+                    .sort((a, b) => Number(a.line_order || 0) - Number(b.line_order || 0))
+                    .map((line) => ({
+                    speakerId: line.speaker_id || "",
+                    speaker: hooks.npcName(line.speaker_id || ""),
+                    text: hooks.localize(line.content_key || "", line.content_key || ""),
+                    groupId,
+                    lineOrder: Number(line.line_order || 0),
+                    contextType: line.context_type,
+                }));
+            }
             function questForExecuteGroup(executeGroup, side = false) {
                 const raw = String(executeGroup || "");
                 const match = raw.match(side ? /side_\d+/ : /quest_main_\d+/);
@@ -1922,6 +1935,7 @@ var XiannongCore;
                 configuredEventReadyQueue,
                 configuredEventActionKind,
                 dialogueGroupForExecuteGroup,
+                dialogueLinesForGroup,
                 questForExecuteGroup,
                 configuredEventExecutionPlan,
             };

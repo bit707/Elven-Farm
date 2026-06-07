@@ -36,6 +36,24 @@ namespace XiannongCore.Quests {
     [key: string]: string | undefined;
   }
 
+  export interface DialogueRow {
+    dialogue_group_id: string;
+    speaker_id: string;
+    content_key: string;
+    line_order?: string;
+    context_type?: string;
+    [key: string]: string | undefined;
+  }
+
+  export interface ActiveDialogueLine {
+    speakerId: string;
+    speaker: string;
+    text: string;
+    groupId: string;
+    lineOrder: number;
+    contextType?: string;
+  }
+
   export interface QuestRuntimeState {
     day?: number;
     gold?: number;
@@ -78,7 +96,7 @@ namespace XiannongCore.Quests {
     questStepsByQuest: Map<string, QuestStepRow[]>;
     sideQuestStepsByQuest: Map<string, QuestStepRow[]>;
     sideQuestTriggersByQuest: Map<string, ConfiguredTriggerRow[]>;
-    dialoguesByGroup: Map<string, unknown[]>;
+    dialoguesByGroup: Map<string, DialogueRow[]>;
     cropsBySeed: Map<string, { crop_id?: string }>;
   }
 
@@ -104,6 +122,7 @@ namespace XiannongCore.Quests {
   export interface QuestRuntimeHooks {
     favorLevel(value: number): number;
     npcName(id: string): string;
+    localize(key: string, fallback: string): string;
     chapter4DroughtActive(): boolean;
     baizhiChapterFinished(): boolean;
     year2Unlocked(): boolean;
@@ -150,6 +169,7 @@ namespace XiannongCore.Quests {
     configuredEventReadyQueue(): ConfiguredEventCandidate[];
     configuredEventActionKind(event: ConfiguredTriggerRow): ConfiguredEventActionKind;
     dialogueGroupForExecuteGroup(executeGroup: string): string;
+    dialogueLinesForGroup(groupId: string): ActiveDialogueLine[];
     questForExecuteGroup(executeGroup: string, side?: boolean): QuestRow | null;
     configuredEventExecutionPlan(event: ConfiguredTriggerRow): ConfiguredEventExecutionPlan;
   }
@@ -644,6 +664,20 @@ namespace XiannongCore.Quests {
       return [...data.dialoguesByGroup.keys()].find((groupId) => groupId.startsWith(prefix)) || "";
     }
 
+    function dialogueLinesForGroup(groupId: string): ActiveDialogueLine[] {
+      return (data.dialoguesByGroup.get(groupId) || [])
+        .slice()
+        .sort((a, b) => Number(a.line_order || 0) - Number(b.line_order || 0))
+        .map((line) => ({
+          speakerId: line.speaker_id || "",
+          speaker: hooks.npcName(line.speaker_id || ""),
+          text: hooks.localize(line.content_key || "", line.content_key || ""),
+          groupId,
+          lineOrder: Number(line.line_order || 0),
+          contextType: line.context_type,
+        }));
+    }
+
     function questForExecuteGroup(executeGroup: string, side = false): QuestRow | null {
       const raw = String(executeGroup || "");
       const match = raw.match(side ? /side_\d+/ : /quest_main_\d+/);
@@ -751,6 +785,7 @@ namespace XiannongCore.Quests {
       configuredEventReadyQueue,
       configuredEventActionKind,
       dialogueGroupForExecuteGroup,
+      dialogueLinesForGroup,
       questForExecuteGroup,
       configuredEventExecutionPlan,
     };
