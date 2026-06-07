@@ -15639,6 +15639,8 @@ function questRuntime() {
       hasCoreLoop,
       sideQuestVisible,
       conditionMet,
+      currentTermId,
+      shopReputationScore,
       applyRewardEntry,
     },
   );
@@ -16972,6 +16974,8 @@ function triggerReadable(trigger) {
 }
 
 function triggerParamMet(trigger) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.triggerParamMet(trigger);
   const type = trigger.trigger_type;
   const param = trigger.trigger_param || "";
   if (type === "on_new_game") return state.day >= 1;
@@ -17015,11 +17019,15 @@ function triggerParamMet(trigger) {
 }
 
 function configuredTriggerReady(trigger) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.configuredTriggerReady(trigger);
   const condition = trigger.condition_group || "always_true";
+  const paramReady = triggerParamMet(trigger);
+  const conditionReady = conditionMet(condition);
   return {
-    param: triggerParamMet(trigger),
-    condition: conditionMet(condition),
-    ready: triggerParamMet(trigger) && conditionMet(condition),
+    param: paramReady,
+    condition: conditionReady,
+    ready: paramReady && conditionReady,
   };
 }
 

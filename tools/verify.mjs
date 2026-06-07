@@ -2968,6 +2968,8 @@ for (const questRuntimeTerm of [
   "runtime.questRewardReady(quest, side)",
   "runtime.claimQuestReward(quest, side)",
   "runtime.checkQuestRewards()",
+  "runtime.triggerParamMet(trigger)",
+  "runtime.configuredTriggerReady(trigger)",
   "finishClaimedQuestReward",
 ]) {
   if (!game.includes(questRuntimeTerm)) throw new Error(`Quest TypeScript runtime bridge missing: ${questRuntimeTerm}`);
@@ -2982,8 +2984,14 @@ for (const questCoreSourceTerm of [
   "state.claimedQuestRewards?.add",
   "state.missionDone?.add",
   "state.activeSideQuests?.add",
+  "export interface ConfiguredTriggerRow",
+  "export interface TriggerReadyStatus",
+  "triggerParamMet(trigger",
+  "configuredTriggerReady(trigger",
+  "hooks.currentTermId()",
+  "hooks.shopReputationScore()",
 ]) {
-  if (!questRuntimeTs.includes(questCoreSourceTerm)) throw new Error(`Quest TypeScript source missing reward runtime term: ${questCoreSourceTerm}`);
+  if (!questRuntimeTs.includes(questCoreSourceTerm)) throw new Error(`Quest TypeScript source missing quest runtime term: ${questCoreSourceTerm}`);
 }
 
 for (const questCoreRuntimeTerm of [
@@ -2995,8 +3003,12 @@ for (const questCoreRuntimeTerm of [
   "state.claimedQuestRewards?.add",
   "state.missionDone?.add",
   "state.activeSideQuests?.add",
+  "function triggerParamMet",
+  "function configuredTriggerReady",
+  "hooks.currentTermId()",
+  "hooks.shopReputationScore()",
 ]) {
-  if (!coreRuntimeJs.includes(questCoreRuntimeTerm)) throw new Error(`Generated quest runtime missing reward term: ${questCoreRuntimeTerm}`);
+  if (!coreRuntimeJs.includes(questCoreRuntimeTerm)) throw new Error(`Generated quest runtime missing quest term: ${questCoreRuntimeTerm}`);
 }
 
 for (const desktopSaveTerm of ["xiannong:save-json", "registerJsonSaveIpc", "SAVE_DIR_NAME", "savePathForProfile", "XiannongStorage", "writeProfile", "readProfile", "desktop-json-save-v1"]) {

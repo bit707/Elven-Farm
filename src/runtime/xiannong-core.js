@@ -374,6 +374,73 @@ var XiannongCore;
                 const step = [...data.questSteps, ...data.sideQuestSteps].find((entry) => entry.step_id === stepId);
                 return Boolean(step && stepProgress(step) >= Number(step.target_count || 1));
             }
+            function triggerParamMet(trigger) {
+                const type = trigger.trigger_type;
+                const param = trigger.trigger_param || "";
+                if (type === "on_new_game")
+                    return Number(state.day || 0) >= 1;
+                if (type === "on_item_collected")
+                    return hasItem(state, param, 1) || (param === "item_weed" && setHas(state.completed, "plant"));
+                if (type === "on_crop_harvest") {
+                    if (!param)
+                        return setHas(state.completed, "harvest");
+                    return numberMapValue(state.harvestCounts, param) > 0 || hasItem(state, param, 1);
+                }
+                if (type === "on_day_start") {
+                    const dayMatch = param.match(/^day_(\d+)/);
+                    return dayMatch ? Number(state.day || 0) >= Number(dayMatch[1] || 0) : true;
+                }
+                if (type === "on_day_end")
+                    return true;
+                if (type === "on_enter_area") {
+                    if (param === "area_town_main")
+                        return (state.missionDone?.size || 0) > 0 || setHas(state.completed, "shop") || Number(state.day || 0) >= 2;
+                    return setHas(state.completed, param);
+                }
+                if (type === "on_build_complete")
+                    return param ? setHas(state.builtBuildings, param) : setHas(state.completed, "build") || setHas(state.completed, "repair");
+                if (type === "on_recipe_complete" || type === "on_craft_complete")
+                    return hasItem(state, param, 1) || setHas(state.completed, "craft");
+                if (type === "on_shop_sales_reach") {
+                    const target = Number(param.match(/(\d+)/)?.[1] || 1);
+                    const value = param.includes("total") ? state.shopStats?.sales : state.shopStats?.soldCount;
+                    return Number(value || 0) >= target;
+                }
+                if (type === "on_shop_reputation_reach") {
+                    const target = Number(param.match(/(\d+)/)?.[1] || 0);
+                    return hooks.shopReputationScore() >= target;
+                }
+                if (type === "on_term_change")
+                    return hooks.currentTermId() === param;
+                if (type === "on_boss_defeat")
+                    return setHas(state.defeatedBosses, param);
+                if (type === "on_crop_spirit_birth")
+                    return (state.spirits?.length || 0) > 0;
+                if (type === "on_talk")
+                    return numberMapValue(state.npcFavor, param) > 0 || (state.missionDone?.size || 0) > 0;
+                if (type === "on_trade_complete") {
+                    if (param.startsWith("order_"))
+                        return setHas(state.completedOrders, param);
+                    return setHas(state.completed, "trade_route_complete") || (state.completedOrders?.size || 0) > 0;
+                }
+                if (type === "on_npc_arrive")
+                    return setHas(state.completed, "shop") || (state.missionDone?.size || 0) >= 2;
+                if (type === "on_quest_accept")
+                    return setHas(state.missionDone, param) || setHas(state.activeSideQuests, param);
+                if (type === "on_world_state")
+                    return setHas(state.completed, param) || setHas(state.triggeredEvents, param);
+                return hooks.hasCoreLoop();
+            }
+            function configuredTriggerReady(trigger) {
+                const condition = trigger.condition_group || "always_true";
+                const paramReady = triggerParamMet(trigger);
+                const conditionReady = hooks.conditionMet(condition);
+                return {
+                    param: paramReady,
+                    condition: conditionReady,
+                    ready: paramReady && conditionReady,
+                };
+            }
             function rewardPoolEntries(poolId) {
                 return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
             }
@@ -441,6 +508,8 @@ var XiannongCore;
                 questRewardReady,
                 claimQuestReward,
                 checkQuestRewards,
+                triggerParamMet,
+                configuredTriggerReady,
             };
         }
         Quests.createQuestRuntime = createQuestRuntime;
