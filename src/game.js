@@ -15716,6 +15716,10 @@ function questRuntime() {
       spiritManorQuestId: SPIRIT_MANOR_QUEST_ID,
       spiritManorBuildingId: SPIRIT_MANOR_BUILDING_ID,
       factionOrderQuestId: FACTION_ORDER_QUEST_ID,
+      fireRuinUnlockEventId: FIRE_RUIN_UNLOCK_EVENT_ID,
+      fireRuinEntryEventId: FIRE_RUIN_ENTRY_EVENT_ID,
+      fireRuinAreaId: FIRE_RUIN_AREA_ID,
+      fireRuinUnlockFlag: FIRE_RUIN_UNLOCK_FLAG,
       fireRuinBossId: FIRE_RUIN_BOSS_ID,
       chapter4DroughtQuestId: CHAPTER_4_DROUGHT_QUEST_ID,
       chapter4DroughtFlag: CHAPTER_4_DROUGHT_FLAG,
@@ -17264,6 +17268,17 @@ function applyConfiguredEventAction(action, context = {}) {
     triggerSpiritManorFeedback(action.phase, context.eventName);
     return null;
   }
+  if (action.kind === "apply_fire_ruin_unlock_world_change") {
+    upsertWorldChange({
+      key: FIRE_RUIN_UNLOCK_FLAG,
+      dungeonId: FIRE_RUIN_AREA_ID,
+      title: "炽砂旧采路重见天日",
+      detail: "首单账页后头压着的残图被翻出来，旧采路尽头那道被风沙吞住的火门重新露了形。",
+      rewardHint: `${dungeonName(fireRuinDungeon())} · Boss ${bossName(dungeonBossId(fireRuinDungeon()))}`,
+      visualType: "embers_gate",
+    });
+    return null;
+  }
   if (action.kind === "trigger_chapter3_trade_feedback") {
     triggerChapter3TradeFeedback(action.phase, context.eventName);
     return null;
@@ -17303,6 +17318,10 @@ function applyConfiguredEventAction(action, context = {}) {
   }
   if (action.kind === "log_faction_order_chapter_start") {
     addLog("商会来客", `${context.eventName}：胡四海把门派采办首单压到柜上，外路客真正开始按“成套、稳定、像样”的标准看你的货。`);
+    return null;
+  }
+  if (action.kind === "log_fire_ruin_unlock") {
+    addLog("炽砂线索到手", `${context.eventName}：胡四海把通往炽砂遗迹的旧采路摊给了你，秘境面板已经能看到这条火线。`);
     return null;
   }
   if (action.kind === "check_quest_rewards") {
@@ -17591,7 +17610,29 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "unlock_ruin_fire" || (!actionKind && executeGroup.includes("unlock_ruin_fire"))) {
-    unlockFireRuin(eventName);
+    const fireRuinWasUnlocked = state.completed.has(FIRE_RUIN_UNLOCK_FLAG) || state.triggeredEvents.has(FIRE_RUIN_ENTRY_EVENT_ID);
+    const actionPlan = runtime?.configuredEventFireRuinUnlockActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      firstUnlock: !fireRuinWasUnlocked,
+      completedFlags: [FIRE_RUIN_UNLOCK_FLAG],
+      areaId: FIRE_RUIN_AREA_ID,
+      npcId: "npc_hu_sihai",
+      favorAmount: !fireRuinWasUnlocked ? 10 : 0,
+      favorSource: !fireRuinWasUnlocked ? "炽砂旧采路" : "",
+      cue: "成就解锁",
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: FIRE_RUIN_UNLOCK_FLAG },
+        ...(!fireRuinWasUnlocked ? [{ kind: "add_npc_favor", npcId: "npc_hu_sihai", amount: 10, source: "炽砂旧采路" }] : []),
+        { kind: "apply_fire_ruin_unlock_world_change" },
+        { kind: "trigger_chapter3_trade_feedback", phase: "unlock" },
+        { kind: "play_cue", cue: "成就解锁" },
+        { kind: "log_fire_ruin_unlock" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan, { eventName });
     return true;
   }
 

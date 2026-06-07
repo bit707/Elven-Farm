@@ -131,6 +131,10 @@ namespace XiannongCore.Quests {
     spiritManorQuestId: string;
     spiritManorBuildingId: string;
     factionOrderQuestId: string;
+    fireRuinUnlockEventId: string;
+    fireRuinEntryEventId: string;
+    fireRuinAreaId: string;
+    fireRuinUnlockFlag: string;
     fireRuinBossId: string;
     chapter4DroughtQuestId: string;
     chapter4DroughtFlag: string;
@@ -214,6 +218,7 @@ namespace XiannongCore.Quests {
     configuredEventSpiritManorStartActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSpiritManorStartActionPlan;
     configuredEventSpiritManorOverviewActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSpiritManorOverviewActionPlan;
     configuredEventFactionOrderStartActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFactionOrderStartActionPlan;
+    configuredEventFireRuinUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFireRuinUnlockActionPlan;
     configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan;
   }
 
@@ -322,8 +327,11 @@ namespace XiannongCore.Quests {
       phase: "entry" | "build";
     }
     | {
+      kind: "apply_fire_ruin_unlock_world_change";
+    }
+    | {
       kind: "trigger_chapter3_trade_feedback";
-      phase: "entry";
+      phase: "entry" | "unlock" | "entry_area" | "finish";
     }
     | {
       kind: "start_faction_order_chapter_if_needed";
@@ -348,6 +356,9 @@ namespace XiannongCore.Quests {
     }
     | {
       kind: "log_faction_order_chapter_start";
+    }
+    | {
+      kind: "log_fire_ruin_unlock";
     }
     | {
       kind: "check_quest_rewards";
@@ -468,6 +479,20 @@ namespace XiannongCore.Quests {
     favorAmount: number;
     favorSource: string;
     dialogueGroup: string;
+    cue: string;
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventFireRuinUnlockActionPlan {
+    applies: boolean;
+    eventId: string;
+    executeGroup: string;
+    firstUnlock: boolean;
+    completedFlags: string[];
+    areaId: string;
+    npcId: string;
+    favorAmount: number;
+    favorSource: string;
     cue: string;
     actions: ConfiguredEventExecutionAction[];
   }
@@ -1439,7 +1464,6 @@ namespace XiannongCore.Quests {
       const applies = plan.actionKind === "start_faction_order_chapter";
       const firstStart = applies
         && !setHas(state.completed, "chapter_3_trade_started")
-        && !setHas(state.triggeredEvents, "event_main_0302")
         && !setHas(state.missionDone, "quest_main_0302_shanghui_laike");
       const completedFlags = applies ? ["chapter_3_trade_started", "quest_unlock_quest_main_0302_shanghui_laike"] : [];
       const npcId = applies ? "npc_hu_sihai" : "";
@@ -1468,6 +1492,44 @@ namespace XiannongCore.Quests {
         favorAmount,
         favorSource,
         dialogueGroup,
+        cue,
+        actions,
+      };
+    }
+
+    function configuredEventFireRuinUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFireRuinUnlockActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "unlock_ruin_fire";
+      const alreadyUnlocked = setHas(state.completed, constants.fireRuinUnlockFlag)
+        || setHas(state.triggeredEvents, constants.fireRuinEntryEventId);
+      const firstUnlock = applies && !alreadyUnlocked;
+      const completedFlags = applies ? [constants.fireRuinUnlockFlag] : [];
+      const areaId = applies ? constants.fireRuinAreaId : "";
+      const npcId = applies ? "npc_hu_sihai" : "";
+      const favorAmount = firstUnlock ? 10 : 0;
+      const favorSource = firstUnlock ? "\u70bd\u7802\u65e7\u91c7\u8def" : "";
+      const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          ...completedFlags.map((flag) => ({ kind: "complete_flag" as const, flag })),
+          ...(favorAmount > 0 ? [{ kind: "add_npc_favor" as const, npcId, amount: favorAmount, source: favorSource }] : []),
+          { kind: "apply_fire_ruin_unlock_world_change" },
+          { kind: "trigger_chapter3_trade_feedback", phase: "unlock" },
+          { kind: "play_cue", cue },
+          { kind: "log_fire_ruin_unlock" },
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        executeGroup: plan.executeGroup,
+        firstUnlock,
+        completedFlags,
+        areaId,
+        npcId,
+        favorAmount,
+        favorSource,
         cue,
         actions,
       };
@@ -1588,6 +1650,7 @@ namespace XiannongCore.Quests {
       configuredEventSpiritManorStartActionPlan,
       configuredEventSpiritManorOverviewActionPlan,
       configuredEventFactionOrderStartActionPlan,
+      configuredEventFireRuinUnlockActionPlan,
       configuredEventGenericUnlockActionPlan,
     };
   }

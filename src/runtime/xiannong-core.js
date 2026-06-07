@@ -2368,7 +2368,6 @@ var XiannongCore;
                 const applies = plan.actionKind === "start_faction_order_chapter";
                 const firstStart = applies
                     && !setHas(state.completed, "chapter_3_trade_started")
-                    && !setHas(state.triggeredEvents, "event_main_0302")
                     && !setHas(state.missionDone, "quest_main_0302_shanghui_laike");
                 const completedFlags = applies ? ["chapter_3_trade_started", "quest_unlock_quest_main_0302_shanghui_laike"] : [];
                 const npcId = applies ? "npc_hu_sihai" : "";
@@ -2397,6 +2396,43 @@ var XiannongCore;
                     favorAmount,
                     favorSource,
                     dialogueGroup,
+                    cue,
+                    actions,
+                };
+            }
+            function configuredEventFireRuinUnlockActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "unlock_ruin_fire";
+                const alreadyUnlocked = setHas(state.completed, constants.fireRuinUnlockFlag)
+                    || setHas(state.triggeredEvents, constants.fireRuinEntryEventId);
+                const firstUnlock = applies && !alreadyUnlocked;
+                const completedFlags = applies ? [constants.fireRuinUnlockFlag] : [];
+                const areaId = applies ? constants.fireRuinAreaId : "";
+                const npcId = applies ? "npc_hu_sihai" : "";
+                const favorAmount = firstUnlock ? 10 : 0;
+                const favorSource = firstUnlock ? "\u70bd\u7802\u65e7\u91c7\u8def" : "";
+                const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        ...(favorAmount > 0 ? [{ kind: "add_npc_favor", npcId, amount: favorAmount, source: favorSource }] : []),
+                        { kind: "apply_fire_ruin_unlock_world_change" },
+                        { kind: "trigger_chapter3_trade_feedback", phase: "unlock" },
+                        { kind: "play_cue", cue },
+                        { kind: "log_fire_ruin_unlock" },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    firstUnlock,
+                    completedFlags,
+                    areaId,
+                    npcId,
+                    favorAmount,
+                    favorSource,
                     cue,
                     actions,
                 };
@@ -2514,6 +2550,7 @@ var XiannongCore;
                 configuredEventSpiritManorStartActionPlan,
                 configuredEventSpiritManorOverviewActionPlan,
                 configuredEventFactionOrderStartActionPlan,
+                configuredEventFireRuinUnlockActionPlan,
                 configuredEventGenericUnlockActionPlan,
             };
         }
