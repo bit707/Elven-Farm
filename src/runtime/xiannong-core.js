@@ -1268,6 +1268,25 @@ var XiannongCore;
                     bonus += Number(spec.tagBudgetBonus || 0);
                 return bonus;
             }
+            function shopCompendiumCustomerSupport(input = null) {
+                const displays = Array.isArray(input?.displays) ? input.displays : [];
+                if (!displays.length)
+                    return { budgetBonus: 0, matched: [] };
+                const customerArchetypeId = String(input?.customerArchetype || "");
+                const preferredTags = Array.isArray(input?.preferredTags) ? input.preferredTags : [];
+                const itemTags = Array.isArray(input?.itemTags) ? input.itemTags : [];
+                const hotTag = String(input?.hotTag || "");
+                const matched = displays.filter((display) => {
+                    const archetypes = Array.isArray(display.archetypes) ? display.archetypes : [];
+                    const tags = Array.isArray(display.tags) ? display.tags : [];
+                    const archetypeMatched = Boolean(customerArchetypeId && archetypes.includes(customerArchetypeId));
+                    return archetypeMatched || tags.some((tag) => shopTagsOverlap([tag], preferredTags) || shopTagsOverlap([tag], itemTags) || tag === hotTag);
+                });
+                return {
+                    budgetBonus: Math.min(0.16, matched.reduce((sum, display) => sum + Number(display.budgetBonus || 0), 0)),
+                    matched,
+                };
+            }
             return {
                 customerPriceRule,
                 customerProfile,
@@ -1288,6 +1307,7 @@ var XiannongCore;
                 shopFeedbackForSegment,
                 shopWordOfMouthVisitBias,
                 shopWordOfMouthBudgetBonus,
+                shopCompendiumCustomerSupport,
             };
         }
         Shop.createShopRuntime = createShopRuntime;

@@ -34,6 +34,7 @@ namespace XiannongCore.Shop {
     shopFeedbackForSegment(type: string, customerSegment?: string | null, tag?: string | null): ShopRow | null;
     shopWordOfMouthVisitBias(customer?: ShopRow | null, segment?: ShopRow | null, spec?: ShopWordOfMouthSpec | null): number;
     shopWordOfMouthBudgetBonus(customer?: ShopRow | null, choiceTags?: string[] | null, spec?: ShopWordOfMouthSpec | null): number;
+    shopCompendiumCustomerSupport(input?: ShopCompendiumCustomerSupportInput | null): ShopCompendiumCustomerSupportPlan;
   }
 
   export interface ShopGoodChoice {
@@ -55,6 +56,26 @@ namespace XiannongCore.Shop {
     tagVisitBias?: number | string;
     budgetBonus?: number | string;
     tagBudgetBonus?: number | string;
+  }
+
+  export interface ShopCompendiumDisplay {
+    archetypes?: string[] | null;
+    tags?: string[] | null;
+    budgetBonus?: number | string;
+    [key: string]: unknown;
+  }
+
+  export interface ShopCompendiumCustomerSupportInput {
+    displays?: ShopCompendiumDisplay[] | null;
+    customerArchetype?: string | null;
+    preferredTags?: string[] | null;
+    itemTags?: string[] | null;
+    hotTag?: string | null;
+  }
+
+  export interface ShopCompendiumCustomerSupportPlan {
+    budgetBonus: number;
+    matched: ShopCompendiumDisplay[];
   }
 
   export interface PricedGoodOptions {
@@ -386,6 +407,25 @@ namespace XiannongCore.Shop {
       return bonus;
     }
 
+    function shopCompendiumCustomerSupport(input: ShopCompendiumCustomerSupportInput | null = null): ShopCompendiumCustomerSupportPlan {
+      const displays = Array.isArray(input?.displays) ? input.displays : [];
+      if (!displays.length) return { budgetBonus: 0, matched: [] };
+      const customerArchetypeId = String(input?.customerArchetype || "");
+      const preferredTags = Array.isArray(input?.preferredTags) ? input.preferredTags : [];
+      const itemTags = Array.isArray(input?.itemTags) ? input.itemTags : [];
+      const hotTag = String(input?.hotTag || "");
+      const matched = displays.filter((display) => {
+        const archetypes = Array.isArray(display.archetypes) ? display.archetypes : [];
+        const tags = Array.isArray(display.tags) ? display.tags : [];
+        const archetypeMatched = Boolean(customerArchetypeId && archetypes.includes(customerArchetypeId));
+        return archetypeMatched || tags.some((tag) => shopTagsOverlap([tag], preferredTags) || shopTagsOverlap([tag], itemTags) || tag === hotTag);
+      });
+      return {
+        budgetBonus: Math.min(0.16, matched.reduce((sum, display) => sum + Number(display.budgetBonus || 0), 0)),
+        matched,
+      };
+    }
+
     return {
       customerPriceRule,
       customerProfile,
@@ -406,6 +446,7 @@ namespace XiannongCore.Shop {
       shopFeedbackForSegment,
       shopWordOfMouthVisitBias,
       shopWordOfMouthBudgetBonus,
+      shopCompendiumCustomerSupport,
     };
   }
 }

@@ -21191,6 +21191,24 @@ function shopCompendiumDisplayEffect(displays = [], theme = currentShelfTheme(),
 }
 
 function shopCompendiumCustomerSupport(displays = [], customerView = {}, choice = null, hotTag = "", ecologyGarden = null) {
+  const runtime = shopRuntime();
+  if (runtime) {
+    const preferred = splitTags(customerView.preferred_tags || "");
+    const itemTags = shopTagsForItem(choice?.item || choice?.itemId || "", ecologyGarden);
+    const plan = runtime.shopCompendiumCustomerSupport({
+      displays,
+      customerArchetype: customerView.archetype,
+      preferredTags: preferred,
+      itemTags,
+      hotTag,
+    });
+    const top = plan.matched[0];
+    return {
+      budgetBonus: plan.budgetBonus,
+      matched: plan.matched,
+      note: top ? shopCompendiumCustomerRemark(top, customerView, choice, hotTag, ecologyGarden) : "",
+    };
+  }
   if (!displays.length) return { budgetBonus: 0, matched: [], note: "" };
   const preferred = splitTags(customerView.preferred_tags || "");
   const itemTags = shopTagsForItem(choice?.item || choice?.itemId || "", ecologyGarden);
