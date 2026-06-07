@@ -3083,6 +3083,8 @@ for (const farmingRuntimeTerm of [
   "yieldPlan.solarYield",
   "farmingRuntime()?.plantStatePlan",
   "plantPlan.firstSeededCropId",
+  "farmingRuntime()?.waterStatePlan",
+  "waterPlan.watered",
 ]) {
   if (!game.includes(farmingRuntimeTerm)) throw new Error(`Farming TypeScript runtime bridge missing: ${farmingRuntimeTerm}`);
 }
@@ -3513,6 +3515,11 @@ for (const farmingCoreSourceTerm of [
   "watered: false",
   "mature: false",
   "firstSeededCropId",
+  "export interface WaterStatePlan",
+  "waterStatePlan(input",
+  "watered: true",
+  "wasWatered",
+  "wateredDay",
   "data.cropsById?.get",
   "data.cropsBySeed?.get",
   "hooks.unresolvedRisks()",
@@ -3545,6 +3552,10 @@ for (const farmingCoreRuntimeTerm of [
   "watered: false",
   "mature: false",
   "firstSeededCropId",
+  "function waterStatePlan",
+  "watered: true",
+  "wasWatered",
+  "wateredDay",
   "data.cropsById?.get",
   "data.cropsBySeed?.get",
   "hooks.unresolvedRisks()",

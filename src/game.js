@@ -55205,7 +55205,16 @@ function water() {
   if (plot.watered) return addLog("已经浇过", "这块灵田今天水气充足。");
   if (!spendStamina(5)) return;
 
-  plot.watered = true;
+  const waterPlan = farmingRuntime()?.waterStatePlan({
+    plot,
+    day: state.day,
+  }) || {
+    cropId: plot.cropId,
+    watered: true,
+    wasWatered: Boolean(plot.watered),
+    wateredDay: state.day,
+  };
+  plot.watered = waterPlan.watered;
   recordDailyIntentProgress("field", `${itemName(plot.cropId)} 补水`, {
     title: "浇水",
     amount: 1,

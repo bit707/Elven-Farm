@@ -928,6 +928,15 @@ var XiannongCore;
                 }
                 return plan;
             }
+            function waterStatePlan(input) {
+                const plot = input.plot || {};
+                return {
+                    cropId: String(plot.cropId || ""),
+                    watered: true,
+                    wasWatered: Boolean(plot.watered),
+                    wateredDay: Number(input.day || 1),
+                };
+            }
             return {
                 cropForHarvestTarget,
                 cropSolarAffinity,
@@ -938,6 +947,7 @@ var XiannongCore;
                 nightCropGrowthPlan,
                 harvestYieldPlan,
                 plantStatePlan,
+                waterStatePlan,
             };
         }
         Farming.createFarmingRuntime = createFarmingRuntime;
