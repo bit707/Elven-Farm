@@ -18827,13 +18827,17 @@ function questStateMatches(questId, expected) {
     if (!quest) return null;
     const progress = questProgress(quest, side);
     const done = progress.total > 0 && progress.done >= progress.total;
-    const started = progress.done > 0 || state.missionDone.has(questId) || state.completed.has(questId);
+    const started = progress.done > 0
+      || state.missionDone.has(questId)
+      || state.completed.has(questId)
+      || state.completed.has(`quest_unlock_${questId}`)
+      || (side && state.activeSideQuests.has(questId));
     return { done, started, progress };
   };
   const main = progressForQuest(data.quests.find((quest) => quest.quest_id === questId));
   const side = progressForQuest(data.sideQuests.find((quest) => quest.quest_id === questId), true);
   const live = main || side;
-  const completed = state.completed.has(questId) || state.missionDone.has(questId) || Boolean(live?.done);
+  const completed = state.claimedQuestRewards.has(questId) || state.completed.has(questId) || state.missionDone.has(questId) || Boolean(live?.done);
   if (expected === "complete") return completed;
   if (expected === "ready_submit") return completed || Boolean(live && live.progress.done >= Math.max(1, live.progress.total - 1));
   if (expected === "active") return completed || Boolean(live?.started) || hasCoreLoop();

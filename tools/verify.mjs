@@ -3924,6 +3924,17 @@ const oldShopBuilding = buildings.find((entry) => entry.building_id === "build_s
 const eventMain0202 = eventTriggers.find((entry) => entry.event_id === "event_main_0202");
 const eventMain0203 = eventTriggers.find((entry) => entry.event_id === "event_main_0203");
 const mainQuest0201Step2Condition = conditionGroups.find((entry) => entry.condition_group_id === "quest_main_0201_step_2_done");
+const mainQuest0202 = quests.find((entry) => entry.quest_id === "quest_main_0202_baizhi_zhiqiu");
+const mainQuestSteps0202 = questSteps.filter((entry) => entry.quest_id === "quest_main_0202_baizhi_zhiqiu");
+const mainQuest0202Rewards = rewardPools.filter((entry) => entry.reward_pool_id === mainQuest0202?.complete_reward_group);
+const herbValleyDungeon = dungeons.find((entry) => entry.area_id === "area_herb_valley");
+const herbValleyBoss = bosses.find((entry) => entry.boss_id === "boss_shixiang_tengmu");
+const eventMain0205 = eventTriggers.find((entry) => entry.event_id === "event_main_0205");
+const eventMain0207 = eventTriggers.find((entry) => entry.event_id === "event_main_0207");
+const eventMain0301 = eventTriggers.find((entry) => entry.event_id === "event_main_0301");
+const mainQuest0202Condition = conditionGroups.find((entry) => entry.condition_group_id === "quest_main_0202_active");
+const chapter3EntryCondition = conditionGroups.find((entry) => entry.condition_group_id === "chapter_3_entry_ready");
+const baizhiFavor2Reward = favorRewards.find((entry) => entry.reward_id === "favor_reward_baizhi_2");
 const sideQuest0101Rewards = rewardPools.filter((entry) => entry.reward_pool_id === sideQuest0101?.complete_reward_group);
 const reliefSideQuest = sideQuests.find((entry) => entry.quest_id === "quest_side_0401_relief_supply");
 const reliefSideRewards = rewardPools.filter((entry) => entry.reward_pool_id === reliefSideQuest?.complete_reward_group);
@@ -4554,6 +4565,50 @@ if (!game.includes('executeGroup.includes("shop_tutorial_complete")')
   || !game.includes('state.completed.add("npc_hu_sihai_arrived")')
   || !game.includes('queueDialogueGroup("dialogue_hu_default")')) {
   throw new Error("Shop sales events must complete the tutorial step and spawn Hu Sihai through configured runtime handlers");
+}
+if (!baizhiFavor2Reward || baizhiFavor2Reward.reward_type !== "quest" || baizhiFavor2Reward.reward_param !== "quest_main_0202_baizhi_zhiqiu") {
+  throw new Error("Baizhi favor level 2 must unlock the chapter-two herb request main quest");
+}
+if (!mainQuest0202 || mainQuest0202.chapter !== "2" || mainQuestSteps0202.length < 4) {
+  throw new Error("Main quest 0202 must exist as a chapter-two Baizhi herb request with data-driven steps");
+}
+if (!mainQuestSteps0202.some((step) => step.objective_type === "harvest" && step.target_id === "crop_tiepi_shihu" && step.target_count === "5")
+  || !mainQuestSteps0202.some((step) => step.objective_type === "favor" && step.target_id === "npc_baizhi" && step.target_count === "2")
+  || !mainQuestSteps0202.some((step) => step.objective_type === "collect" && step.target_id === "item_crop_quality_2plus_shihu" && step.target_count === "5")
+  || !mainQuestSteps0202.some((step) => step.objective_type === "defeat" && step.target_id === "boss_shixiang_tengmu")) {
+  throw new Error("Main quest 0202 must require Shihu harvest, Baizhi favor, quality Shihu, and Herb Valley boss defeat");
+}
+if (!mainQuest0202Rewards.some((entry) => entry.reward_type === "recipe" && entry.reward_param === "recipe_garden_herb_advanced")) {
+  throw new Error("Main quest 0202 must reward the advanced herb garden recipe after the Herb Valley closure");
+}
+if (!mainQuest0202Condition || mainQuest0202Condition.expression !== "quest_state(quest_main_0202_baizhi_zhiqiu)==active") {
+  throw new Error("Baizhi herb request condition group must watch quest_main_0202 active state");
+}
+if (!eventMain0205 || eventMain0205.trigger_type !== "on_item_collected" || eventMain0205.trigger_param !== "item_crop_quality_2plus_shihu" || eventMain0205.condition_group !== "quest_main_0202_active" || eventMain0205.execute_group !== "exec_unlock_herb_valley") {
+  throw new Error("Quality Shihu collection must unlock Herb Valley through configured event_main_0205");
+}
+if (!herbValleyDungeon || herbValleyDungeon.boss_id !== "boss_shixiang_tengmu" || herbValleyDungeon.unlock_condition_group !== "quest_main_0202_complete") {
+  throw new Error("Herb Valley dungeon must remain connected to the Baizhi quest and Shixiang Tengmu boss data");
+}
+if (!herbValleyBoss || herbValleyBoss.defeat_event_id !== "event_main_0207") {
+  throw new Error("Shixiang Tengmu boss must resolve through event_main_0207");
+}
+if (!eventMain0207 || eventMain0207.trigger_type !== "on_boss_defeat" || eventMain0207.trigger_param !== "boss_shixiang_tengmu" || eventMain0207.condition_group !== "quest_main_0202_active" || eventMain0207.execute_group !== "exec_finish_herb_valley_baizhi") {
+  throw new Error("Herb Valley boss defeat must finish the Baizhi chapter-two line through configured event_main_0207");
+}
+if (!chapter3EntryCondition || chapter3EntryCondition.expression !== "flag(baizhi_chapter_2_finish)==true") {
+  throw new Error("Chapter three entry condition must depend on Baizhi chapter-two finish flag");
+}
+if (!eventMain0301 || eventMain0301.trigger_type !== "on_world_state" || eventMain0301.trigger_param !== "baizhi_chapter_2_finish" || eventMain0301.condition_group !== "chapter_3_entry_ready" || eventMain0301.execute_group !== "exec_start_quest_main_0301") {
+  throw new Error("Chapter three spirit manor quest must start from the Baizhi chapter-two finish event chain");
+}
+if (!game.includes("state.completed.has(`quest_unlock_${questId}`)")
+  || !game.includes('const BAIZHI_QUALITY_ITEM_ID = "item_crop_quality_2plus_shihu"')
+  || !game.includes('function harvestQualitySpec')
+  || !game.includes('executeGroup.includes("unlock_herb_valley")')
+  || !game.includes('function finishHerbValleyBaizhiLine')
+  || !game.includes('startSpiritManorChapter(localize("event_name_main_0301"')) {
+  throw new Error("Runtime must treat favor-unlocked main quests as active and connect Baizhi quality crop, Herb Valley, and chapter-three start handlers");
 }
 if (!sideQuest0101 || sideQuestSteps0101.length < 2 || !sideQuestTrigger0101) {
   throw new Error("Side quest 0101 must include base, steps, and trigger rows");
