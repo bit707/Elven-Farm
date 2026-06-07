@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="462" height="174" viewBox="0 0 462 174" role="img">
+    <defs>
+      <linearGradient id="steamSky" x1="0" x2="1" y1="0" y2="1">
+        <stop offset="0" stop-color="#d6f1e2"/>
+        <stop offset="0.45" stop-color="#f7f0d8"/>
+        <stop offset="1" stop-color="#8fb173"/>
+      </linearGradient>
+      <linearGradient id="steamGold" x1="0" x2="1">
+        <stop offset="0" stop-color="#b9792f"/>
+        <stop offset="1" stop-color="#e7c36f"/>
+      </linearGradient>
+      <filter id="softShadow">
+        <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#17231d" flood-opacity="0.25"/>
+      </filter>
+      <pattern id="ricePattern" width="28" height="28" patternUnits="userSpaceOnUse">
+        <path d="M4 18 Q14 4 26 18" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="2"/>
+      </pattern>
+    </defs>
+    <rect width="462" height="174" fill="url(#steamSky)"/>
+    <rect width="462" height="174" fill="url(#ricePattern)" opacity="0.65"/>
+    <circle cx="383.46" cy="34.800000000000004" r="31.32" fill="#e7c36f" opacity="0.35"/>
+    <circle cx="360.36" cy="46.980000000000004" r="22.62" fill="none" stroke="url(#steamGold)" stroke-width="6.468"/>
+    <circle cx="360.36" cy="46.980000000000004" r="13.049999999999999" fill="none" stroke="#286f58" stroke-width="4"/>
+    <path d="M0 121.8 C83.16 90.48 147.84 149.64 226.38 118.32000000000001 C304.92 85.26 360.36 113.10000000000001 462 90.48 L462 174 L0 174Z" fill="#668a52"/>
+    <path d="M41.58 97.44000000000001 L106.26 85.26 L170.94 97.44000000000001 L170.94 133.98000000000002 L41.58 133.98000000000002Z" fill="#8b6a48" filter="url(#softShadow)"/>
+    <path d="M57.1032 98.9016 L106.26 90.132 L155.41680000000002 98.9016" fill="none" stroke="#583f30" stroke-width="8" stroke-linecap="round"/>
+    <rect x="64.8648" y="105.72240000000001" width="29.752800000000004" height="20.462400000000002" fill="#fff6d8"/>
+    <rect x="115.3152" y="105.72240000000001" width="29.752800000000004" height="20.462400000000002" fill="#286f58"/>
+    <g filter="url(#softShadow)">
+      <ellipse cx="318.78" cy="114.84" rx="55.44" ry="31.32" fill="#fff0c8" stroke="#7a583e" stroke-width="6"/>
+      <path d="M297.71279999999996 90.41040000000001 C306.5832 68.4864 336.52079999999995 70.3656 342.0648 90.41040000000001" fill="none" stroke="#286f58" stroke-width="10" stroke-linecap="round"/>
+      <path d="M319.88879999999995 89.1576 C335.412 70.3656 360.9144 81.0144 347.6088 97.30080000000001" fill="none" stroke="#48a868" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="303.2568" cy="113.58720000000001" r="5" fill="#17231d"/>
+      <circle cx="333.1944" cy="113.58720000000001" r="5" fill="#17231d"/>
+      <path d="M308.8008 124.86240000000001 Q318.78 130.5 330.97679999999997 124.86240000000001" fill="none" stroke="#8b4c37" stroke-width="5" stroke-linecap="round"/>
+    </g>
+    <g fill="#704c36" opacity="0.92">
+      <rect x="157.08" y="128.76" width="19.8198" height="9.134999999999998" rx="3"/><rect x="182.49" y="128.76" width="19.8198" height="9.134999999999998" rx="3"/><rect x="207.9" y="128.76" width="19.8198" height="9.134999999999998" rx="3"/><rect x="233.31" y="128.76" width="19.8198" height="9.134999999999998" rx="3"/><rect x="258.72" y="128.76" width="19.8198" height="9.134999999999998" rx="3"/><rect x="284.13" y="128.76" width="19.8198" height="9.134999999999998" rx="3"/><rect x="309.54" y="128.76" width="19.8198" height="9.134999999999998" rx="3"/><rect x="334.95000000000005" y="128.76" width="19.8198" height="9.134999999999998" rx="3"/><rect x="360.36" y="128.76" width="19.8198" height="9.134999999999998" rx="3"/><rect x="385.77" y="128.76" width="19.8198" height="9.134999999999998" rx="3"/><rect x="157.08" y="141.81" width="19.8198" height="9.134999999999998" rx="3"/><rect x="182.49" y="141.81" width="19.8198" height="9.134999999999998" rx="3"/><rect x="207.9" y="141.81" width="19.8198" height="9.134999999999998" rx="3"/><rect x="233.31" y="141.81" width="19.8198" height="9.134999999999998" rx="3"/><rect x="258.72" y="141.81" width="19.8198" height="9.134999999999998" rx="3"/><rect x="284.13" y="141.81" width="19.8198" height="9.134999999999998" rx="3"/><rect x="309.54" y="141.81" width="19.8198" height="9.134999999999998" rx="3"/><rect x="334.95000000000005" y="141.81" width="19.8198" height="9.134999999999998" rx="3"/><rect x="360.36" y="141.81" width="19.8198" height="9.134999999999998" rx="3"/><rect x="385.77" y="141.81" width="19.8198" height="9.134999999999998" rx="3"/>
+    </g>
+    <g filter="url(#softShadow)">
+      <text x="30.03" y="41.76" font-size="36.036" font-family="Microsoft YaHei, SimSun, serif" font-weight="900" fill="#17231d">仙农洞天</text>
+      <text x="30.03" y="74.19239999999999" font-size="16.631999999999998" font-family="Microsoft YaHei, SimSun, serif" font-weight="800" fill="#286f58">精怪工坊</text>
+      
+    </g>
+    <text x="30.03" y="153.12" font-size="10.626" font-family="Microsoft YaHei, SimSun, serif" fill="#f7f0d8">种田经营 · 精怪自动化</text>
+  </svg>

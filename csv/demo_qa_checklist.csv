@@ -1,0 +1,9 @@
+qa_id,area,check_item,acceptance_criteria,priority,owner,build_phase,related_doc,note
+qa_demo_001,new_player_flow,5分钟理解目标,玩家无需外部说明完成起床清理和播种,P0,qa,demo,前72天逐日节奏表,new player onboarding
+qa_demo_002,spirit,第一次成精不软锁,触发后精怪入队且可分配岗位,P0,qa,demo,10条精怪线详细设计表,first spirit gate
+qa_demo_003,shop,第一次售卖闭环,玩家能上架定价售卖并收到反馈,P0,qa,demo,顾客标签扩展与支线过场细化,shop loop
+qa_demo_004,term,节气变化可理解,节气变化有 UI 提示和至少一个玩法影响,P0,qa,demo,完整版商业化GDD,term tutorial
+qa_demo_005,save,Demo存档读写,保存读取后任务物品农田精怪状态一致,P0,qa,demo,存档字段清单,save load
+qa_demo_006,cutscene,支线过场可跳过,跳过后任务奖励和旗标不丢失,P1,qa,demo,顾客标签扩展与支线过场细化,skip safety
+qa_demo_007,audio,关键音频不缺失,新手关键操作和第一次成精有音频反馈,P1,qa,demo,存档音频与商业化运营配套,audio pass
+qa_demo_008,steamdeck,基础手柄适配,农田背包店铺任务页面均可手柄操作,P1,qa,demo,UI页面结构与交互流程,controller support

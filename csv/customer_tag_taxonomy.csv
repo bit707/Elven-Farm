@@ -1,0 +1,16 @@
+tag_id,tag_category,display_name_key,related_item_tags,positive_archetypes,negative_archetypes,phase_weight,term_bonus_tags,ui_hint_key,note
+tag_fresh_food,function,customer_tag_fresh_food,food|crop,villager|child,guest,1.00,term_lichun|term_chunfen,ui_hint_tag_fresh_food,daily fresh food demand
+tag_medicine,function,customer_tag_medicine,medicine|herb,healer|villager|faction,child,1.15,term_shuangjiang|term_dahan,ui_hint_tag_medicine,medicine and herb demand
+tag_water_relief,scenario,customer_tag_water_relief,water|drink|relief,villager|healer,luxury_guest,1.30,term_dashu|term_dahan,ui_hint_tag_water_relief,drought relief demand
+tag_portable_supply,function,customer_tag_portable_supply,portable_food|recover_sp,rogue_cultivator|trader,guest,1.05,term_guyu|term_hanlu,ui_hint_tag_portable_supply,exploration supply
+tag_festival_gift,scenario,customer_tag_festival_gift,festival|gift|dessert,guest|villager|child,faction,1.25,term_dongzhi,ui_hint_tag_festival_gift,festival gift demand
+tag_premium_luxury,price,customer_tag_premium_luxury,premium|rare_goods,guest|collector,villager|child,1.20,term_bailu|term_dongzhi,ui_hint_tag_premium_luxury,premium spending demand
+tag_batch_standard,function,customer_tag_batch_standard,batch|ritual|medicine,faction|trader,child,1.15,term_dahan,ui_hint_tag_batch_standard,batch procurement
+tag_route_rare,source,customer_tag_route_rare,route_rare|rare_goods,trader|collector|guest,villager,1.18,term_liqiu|term_bailu,ui_hint_tag_route_rare,interrealm trade goods
+tag_spirit_crafted,source,customer_tag_spirit_crafted,spirit_crafted|gift,collector|guest|pilgrim,low_budget,1.22,term_guyu|term_dongzhi,ui_hint_tag_spirit_crafted,spirit crafted goods
+tag_ecology_product,source,customer_tag_ecology_product,ecology|flower|honey,collector|pilgrim|guest,faction,1.12,term_qingming|term_bailu,ui_hint_tag_ecology_product,ecology courtyard goods
+tag_cooling,term,customer_tag_cooling,cooling_drink|summer_food,crafter|villager,healer,1.10,term_xiazhi|term_dashu,ui_hint_tag_cooling,summer cooling goods
+tag_warming,term,customer_tag_warming,warm_food|medicine,healer|villager|rogue_cultivator,child,1.10,term_shuangjiang|term_dongzhi,ui_hint_tag_warming,winter warming goods
+tag_ritual,scenario,customer_tag_ritual,ritual|tea|premium,pilgrim|faction|guest,child,1.15,term_qingming|term_dongzhi,ui_hint_tag_ritual,ritual goods
+tag_low_price,price,customer_tag_low_price,cheap|basic_food,child|villager,guest|collector,0.85,term_lichun,ui_hint_tag_low_price,low price everyday goods
+tag_low_quality,price,customer_tag_low_quality,low_quality,none,guest|faction|collector,0.50,none,ui_hint_tag_low_quality,negative quality tag

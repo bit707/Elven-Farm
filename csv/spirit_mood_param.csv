@@ -1,0 +1,15 @@
+param_id,scope_type,scope_target,mood_max,hunger_max,stamina_max,mood_decay_day,hunger_decay_day,stamina_recover_sleep,strike_threshold,runaway_threshold,favorite_food_bonus,disliked_food_penalty,gift_bonus,work_success_bonus,overwork_penalty,recover_item_tag,recover_value,note
+spirit_mood_global_stage1,stage,1,100,100,100,8,10,24,20,5,10,-12,6,4,-8,item_tag_spirit_snack,18,一阶精怪基础参数
+spirit_mood_global_stage2,stage,2,120,115,110,7,9,26,18,4,12,-14,8,5,-10,item_tag_spirit_snack,20,二阶精怪基础参数
+spirit_mood_global_stage3,stage,3,145,130,120,6,8,28,16,3,14,-15,10,6,-12,item_tag_spirit_feast,24,三阶精怪基础参数
+spirit_mood_role_farm,role,farm,0,0,0,-1,0,0,0,0,0,0,0,6,-4,item_tag_fresh_crop,12,农务岗位额外加成
+spirit_mood_role_workshop,role,workshop,0,0,0,-2,0,0,0,0,0,0,0,5,-6,item_tag_hot_meal,14,工坊岗位更容易疲劳
+spirit_mood_role_shop,role,shop,0,0,0,-1,0,0,0,0,0,0,2,7,-3,item_tag_sweet_snack,10,店铺岗位受礼物和成功售卖影响更大
+spirit_mood_role_combat,role,combat,0,0,0,-3,-1,0,0,0,0,0,0,4,-10,item_tag_recovery_medicine,16,战斗岗位消耗更高
+spirit_mood_role_utility,role,utility,0,0,0,-1,0,0,0,0,0,0,1,5,-4,item_tag_light_meal,10,搬运与巡逻等通用岗位
+spirit_mood_line_luobo,spirit_line,spirit_line_luobo,110,105,100,7,9,26,18,4,16,-10,8,7,-6,item_tag_root_food,16,萝卜精偏好根茎类食物
+spirit_mood_line_lajiao,spirit_line,spirit_line_lajiao,105,95,110,6,10,24,17,4,12,-8,7,8,-9,item_tag_spicy_food,14,辣椒精工作收益高但易躁动
+spirit_mood_line_suan,spirit_line,spirit_line_suan,115,105,115,6,9,25,16,3,10,-9,6,6,-7,item_tag_guard_food,15,大蒜精更适合巡逻与护院
+spirit_mood_line_shui,spirit_line,spirit_line_shui,118,102,108,7,8,27,18,4,14,-12,7,8,-5,item_tag_water_fresh,15,水运精在引水作业中心情稳定
+spirit_mood_line_yunshu,spirit_line,spirit_line_yunshu,108,112,112,7,9,24,19,4,11,-11,6,5,-6,item_tag_hearty_meal,15,搬运精耐饿但需要稳定休息
+spirit_mood_line_bucao,spirit_line,spirit_line_bucao,122,100,102,8,9,25,20,5,15,-13,9,7,-4,item_tag_festival_food,14,布草精在装饰与宴席环境下额外稳定

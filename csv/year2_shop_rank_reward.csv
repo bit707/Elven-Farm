@@ -1,0 +1,16 @@
+season_id,rank_tier,score_min,reward_type,reward_param,reward_count,bonus_buff,bonus_value,note
+season_shop_001,s,920,item,item_deco_spring_banner,1,buff_shop_fresh_bonus,0.10,春市新芽榜 S 档
+season_shop_001,a,820,reputation,town_rebuild,18,buff_shop_visit_bonus,0.06,春市新芽榜 A 档
+season_shop_001,b,700,item,item_seed_bundle_spring,1,buff_shop_visit_bonus,0.03,春市新芽榜 B 档
+season_shop_002,s,980,recipe,recipe_guyu_feast_set,1,buff_term_profit_bonus,0.12,谷雨灵膳榜 S 档
+season_shop_002,a,860,item,item_tea_set_refined,1,buff_term_profit_bonus,0.06,谷雨灵膳榜 A 档
+season_shop_002,b,740,reputation,town_relief,12,buff_term_profit_bonus,0.03,谷雨灵膳榜 B 档
+season_shop_003,s,1020,building,build_workshop_signboard,1,buff_machine_speed_year2,0.10,盛夏工坊榜 S 档
+season_shop_003,a,900,item,item_material_pack_mid,2,buff_machine_speed_year2,0.05,盛夏工坊榜 A 档
+season_shop_003,b,780,reputation,town_rebuild,15,buff_machine_speed_year2,0.02,盛夏工坊榜 B 档
+season_shop_004,s,1080,item,item_gift_archive_scroll,1,buff_guest_purchase_up,0.12,白露礼宴榜 S 档
+season_shop_004,a,950,item,item_gift_yunjin_lijuan,1,buff_guest_purchase_up,0.06,白露礼宴榜 A 档
+season_shop_004,b,820,reputation,town_rebuild,18,buff_guest_purchase_up,0.03,白露礼宴榜 B 档
+season_shop_005,s,1150,building,build_shop_title_plaque,1,buff_shop_master_title,0.15,冬至名铺榜 S 档
+season_shop_005,a,1000,item,item_festival_lantern_set,1,buff_shop_master_title,0.08,冬至名铺榜 A 档
+season_shop_005,b,860,reputation,town_rebuild,20,buff_shop_master_title,0.04,冬至名铺榜 B 档

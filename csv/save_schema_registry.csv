@@ -1,0 +1,16 @@
+field_id,module_path,field_name,data_type,default_value,added_version,persist_required,migration_required,qa_priority,note
+save_meta_version,meta,save_version,int,1,1,true,false,P0,save version
+save_world_year,world,current_year,int,1,1,true,false,P0,current year
+save_world_term,world,current_term_id,string,term_lichun,1,true,false,P0,current solar term
+save_player_gold,player,gold_soft,int,0,1,true,false,P0,currency
+save_inventory_bag,inventory,bag_items,array,empty,1,true,false,P0,bag items
+save_farm_tiles,farm,farm_tile_list,array,empty,1,true,false,P0,farm state
+save_spirit_owned,spirits,owned_spirit_list,array,empty,1,true,false,P0,owned spirits
+save_spirit_bond,spirits,bond_level_map,map,empty,2,true,true,P0,post story spirit bond
+save_spirit_mastery,spirits,job_mastery_map,map,empty,2,true,true,P1,spirit job mastery
+save_ecology_combo,buildings,ecology_combo_state,map,empty,2,true,true,P1,ecology combo ranking
+save_expedition_state,exploration,active_spirit_expeditions,array,empty,2,true,true,P1,active expeditions
+save_freeplay_goal,statistics,freeplay_goal_progress,map,empty,2,true,true,P1,post story goals
+save_shop_season,shop,year2_shop_season_state,map,empty,2,true,true,P1,year2 shop ranking
+save_localization_seen,events,seen_dialogue_flags,string_array,empty,1,true,false,P2,seen dialogue flags
+save_audio_settings,settings,audio_bus_volume_map,map,default_audio_bus,1,true,false,P1,audio settings

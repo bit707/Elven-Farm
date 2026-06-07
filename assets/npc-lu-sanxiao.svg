@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="陆三笑头像">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f6e5bd"/><stop offset="1" stop-color="#8f5f3f"/></linearGradient></defs>
+  <rect width="160" height="160" rx="34" fill="url(#bg)"/>
+  <circle cx="80" cy="66" r="31" fill="#ffddb8"/>
+  <path d="M45 139c5-31 22-48 35-48s30 17 35 48z" fill="#7f5570"/>
+  <path d="M49 59c16-29 50-23 62 2-20-10-41-10-62-2z" fill="#4e3b34"/>
+  <path d="M49 36h62" stroke="#fff0d4" stroke-width="8" stroke-linecap="round"/>
+  <path d="M58 107h44" stroke="#e0b66d" stroke-width="6" stroke-linecap="round"/>
+  <text x="80" y="146" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="18" font-weight="800" fill="#fffdf5">书</text>
+</svg>

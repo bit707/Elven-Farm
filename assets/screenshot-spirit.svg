@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+    <rect width="640" height="360" fill="#d8f0df"/>
+    <path d="M0 268 C130 210 220 292 360 232 C500 176 560 220 640 184 L640 360 L0 360Z" fill="#8da462"/>
+    <g fill="#577f80"><rect x="228" y="128" width="46" height="46"/><rect x="284" y="128" width="46" height="46"/><rect x="340" y="128" width="46" height="46"/><rect x="228" y="184" width="46" height="46"/><rect x="284" y="184" width="46" height="46"/><rect x="340" y="184" width="46" height="46"/><rect x="228" y="240" width="46" height="46"/><rect x="284" y="240" width="46" height="46"/><rect x="340" y="240" width="46" height="46"/></g>
+    <ellipse cx="140" cy="210" rx="54" ry="62" fill="#fff0c8" stroke="#826246" stroke-width="7"/>
+    <path d="M122 154 C126 118 164 120 170 154" fill="none" stroke="#286f58" stroke-width="14" stroke-linecap="round"/>
+    <circle cx="126" cy="204" r="6" fill="#17231d"/><circle cx="154" cy="204" r="6" fill="#17231d"/>
+    <text x="34" y="54" font-size="28" font-family="Microsoft YaHei, serif" font-weight="800" fill="#17231d">第一只精怪浇水</text>
+    </svg>

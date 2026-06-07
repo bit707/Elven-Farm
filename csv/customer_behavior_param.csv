@@ -1,0 +1,35 @@
+customer_archetype,state_name,wait_time_sec,inspect_time_sec,price_tolerance,quality_tolerance,stock_sensitivity,leave_threshold,revisit_bonus,reputation_weight,note
+villager,enter_shop,8,10,0.90,0.20,0.80,0.65,0.05,0.80,basic daily shopping
+villager,browse_shelf,10,12,0.88,0.22,0.82,0.60,0.06,0.82,looks at staples first
+villager,evaluate_price,6,0,0.65,0.20,0.85,0.58,0.05,0.75,price sensitive
+villager,queue_purchase,4,0,0.70,0.25,0.90,0.45,0.04,0.80,short queue acceptable
+rogue_cultivator,enter_shop,8,12,0.78,0.45,0.70,0.60,0.06,0.70,practical buyer
+rogue_cultivator,browse_medicine,12,14,0.75,0.50,0.72,0.55,0.05,0.72,looks at recovery goods
+rogue_cultivator,evaluate_stock,6,0,0.68,0.48,0.80,0.50,0.04,0.70,stock matters
+healer,enter_shop,10,14,0.55,0.85,0.60,0.72,0.08,0.90,quality first
+healer,browse_quality,12,16,0.50,0.88,0.62,0.68,0.08,0.92,inspects herb quality
+healer,evaluate_cleanliness,8,0,0.48,0.90,0.65,0.62,0.07,0.95,cleanliness gate
+crafter,enter_shop,10,12,0.65,0.65,0.70,0.65,0.06,0.78,material buyer
+crafter,browse_material,12,14,0.60,0.68,0.72,0.60,0.06,0.80,checks materials
+crafter,evaluate_price,8,0,0.60,0.66,0.75,0.58,0.05,0.76,balanced buyer
+trader,enter_shop,12,12,0.70,0.72,0.60,0.70,0.07,0.85,profit oriented
+trader,browse_bulk,14,14,0.68,0.70,0.62,0.68,0.06,0.88,bulk comparison
+trader,evaluate_resell,8,0,0.58,0.72,0.80,0.55,0.05,0.90,margin evaluation
+guest,enter_shop,12,16,0.40,0.92,0.45,0.82,0.10,0.98,premium guest
+guest,browse_premium,16,18,0.38,0.95,0.48,0.78,0.10,1.00,presentation matters
+guest,evaluate_presentation,8,0,0.36,0.96,0.50,0.75,0.09,1.00,gift suitability
+faction,enter_shop,14,18,0.30,0.98,0.40,0.88,0.12,1.10,highest standards
+faction,inspect_batch,18,20,0.28,0.99,0.42,0.85,0.12,1.12,batch review
+faction,evaluate_standard,10,0,0.25,1.00,0.45,0.82,0.10,1.15,strict gate
+child,enter_shop,6,8,0.88,0.15,0.70,0.55,0.07,0.55,quick curious buyer
+child,browse_sweets,8,10,0.86,0.18,0.72,0.52,0.08,0.58,looks for sweets and small goods
+child,evaluate_allowance,4,0,0.78,0.20,0.80,0.48,0.06,0.55,small budget check
+pilgrim,enter_shop,10,14,0.55,0.72,0.58,0.74,0.08,0.90,ritual minded buyer
+pilgrim,browse_ritual,14,16,0.52,0.75,0.60,0.70,0.09,0.92,checks ritual and ecology goods
+pilgrim,evaluate_story,8,0,0.50,0.78,0.62,0.66,0.08,0.95,likes goods with story value
+collector,enter_shop,12,18,0.30,0.96,0.45,0.88,0.10,1.05,rare goods hunter
+collector,browse_rare,18,20,0.24,0.98,0.48,0.84,0.11,1.12,checks rarity and origin
+collector,evaluate_authenticity,10,0,0.20,1.00,0.50,0.80,0.10,1.15,requires authentic rare goods
+waterway_broker,enter_shop,10,14,0.58,0.78,0.55,0.72,0.08,0.92,waterway buyer enters after Lianze familiar route
+waterway_broker,browse_waterway,14,16,0.54,0.80,0.58,0.68,0.09,0.96,checks water-fresh route goods
+waterway_broker,evaluate_price,8,0,0.48,0.82,0.62,0.62,0.08,0.98,accepts higher price for familiar-route water goods

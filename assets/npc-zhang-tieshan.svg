@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="张铁山头像">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#583329"/><stop offset="1" stop-color="#be4f37"/></linearGradient></defs>
+  <rect width="160" height="160" rx="34" fill="url(#bg)"/>
+  <circle cx="80" cy="66" r="32" fill="#f1c79d"/>
+  <path d="M46 139c5-31 21-48 34-48s29 17 34 48z" fill="#425f66"/>
+  <path d="M51 58c13-25 46-26 60 0-20-7-40-7-60 0z" fill="#2b2624"/>
+  <path d="M57 105h46" stroke="#e0b66d" stroke-width="9" stroke-linecap="round"/>
+  <path d="M112 35l25 25M134 58l-23-23" stroke="#f0d38a" stroke-width="7" stroke-linecap="round"/>
+  <text x="80" y="146" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="18" font-weight="800" fill="#fffdf5">锻</text>
+</svg>

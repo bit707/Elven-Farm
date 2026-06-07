@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="阿檀头像">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e6d0a6"/><stop offset="1" stop-color="#9a7042"/></linearGradient></defs>
+  <rect width="160" height="160" rx="34" fill="url(#bg)"/>
+  <circle cx="80" cy="65" r="31" fill="#ffd9b5"/>
+  <path d="M43 139c7-31 23-48 37-48s30 17 37 48z" fill="#6f7f4e"/>
+  <path d="M50 57c10-25 50-25 60 0-20-10-40-10-60 0z" fill="#4e3b2c"/>
+  <path d="M39 109h34M56 92v34" stroke="#fff0d4" stroke-width="7" stroke-linecap="round"/>
+  <path d="M107 96l18 18" stroke="#5d3f2d" stroke-width="7" stroke-linecap="round"/>
+  <text x="80" y="146" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="18" font-weight="800" fill="#fffdf5">木</text>
+</svg>

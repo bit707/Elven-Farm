@@ -1,0 +1,8 @@
+theme_bonus_id,theme_tag,required_item_tags,min_theme_ratio,customer_archetype,bonus_type,bonus_value,condition_group,ui_hint_key,note
+theme_bonus_fresh_morning,fresh_market,"staple|fresh_food|vegetable",0.55,villager,purchase_rate,0.10,always_true,customer_flow_hint_browse,早市鲜货陈列
+theme_bonus_field_to_clinic,clean_herb,"herb|medicine|clean_food",0.60,healer,quality_accept,0.12,always_true,customer_flow_hint_clean,医馆风格柜台
+theme_bonus_forge_supply,forge_supply,"metal|material|wood",0.58,crafter,basket_size,0.14,always_true,customer_flow_hint_material,工坊材料成套陈列
+theme_bonus_wander_pack,road_pack,"portable_food|drink|recover_hp",0.52,rogue_cultivator,revisit_rate,0.08,always_true,customer_flow_hint_rogue_check,散修路餐陈列
+theme_bonus_gift_banquet,gift_banquet,"premium|gift|dessert|festival",0.65,guest,purchase_rate,0.18,festival_winter_active,customer_flow_hint_gift,节庆礼盒主题
+theme_bonus_faction_ritual,ritual_batch,"ritual|premium|medicine|batch",0.70,faction,order_weight,0.20,chapter_3_or_more,customer_flow_hint_standard,门派采办标准柜
+theme_bonus_relief_counter,relief_support,"relief|medicine|staple",0.50,villager,reputation_gain,0.25,chapter_3_complete,customer_flow_hint_finish,大旱救援专柜

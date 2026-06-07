@@ -1,0 +1,11 @@
+machine_id,machine_name_key,machine_type,input_slots,output_slots,queue_limit,fuel_support,spirit_slot_count,speed_base_multiplier,quality_base_bonus,building_unlock_id
+machine_mill_001,machine_name_mill_001,mill,2,2,1,false,1,1.00,0.00,build_mill_001
+machine_alchemy_001,machine_name_alchemy_001,alchemy,3,2,1,true,1,1.00,0.02,build_alchemy_001
+machine_furnace_001,machine_name_furnace_001,furnace,2,2,1,true,1,1.00,0.00,build_furnace_001
+machine_loom_001,machine_name_loom_001,loom,2,2,1,false,1,1.00,0.03,build_loom_001
+machine_vat_001,machine_name_vat_001,vat,3,2,1,false,1,1.00,0.02,build_vat_001
+machine_kitchen_001,machine_name_kitchen_001,kitchen,3,2,1,true,1,1.00,0.01,build_kitchen_001
+machine_alchemy_002,machine_name_alchemy_002,alchemy,4,2,2,true,1,1.15,0.05,build_alchemy_002
+machine_vat_002,machine_name_vat_002,vat,4,2,2,false,1,1.12,0.04,build_vat_002
+machine_kitchen_002,machine_name_kitchen_002,kitchen,4,2,2,true,1,1.10,0.03,build_kitchen_002
+machine_array_final,machine_name_array_final,special,5,1,1,false,2,1.00,0.10,build_solar_array_final

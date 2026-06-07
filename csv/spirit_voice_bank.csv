@@ -1,0 +1,19 @@
+voice_id,spirit_id,voice_type,condition_group,text_key,weight,note
+voice_luobo_idle_01,spirit_luobo_01,idle,always_true,voice_luobo_idle_01,10,idle sound
+voice_luobo_work_01,spirit_luobo_01,work,always_true,voice_luobo_work_01,8,watering sound
+voice_luobo_happy_01,spirit_luobo_02,happy,always_true,voice_luobo_happy_01,8,evolve happy
+voice_lajiao_idle_01,spirit_lajiao_01,idle,always_true,voice_lajiao_idle_01,10,idle spark
+voice_lajiao_work_01,spirit_lajiao_02,work,always_true,voice_lajiao_work_01,8,forge assist
+voice_lajiao_battle_01,spirit_lajiao_03,battle,always_true,voice_lajiao_battle_01,8,fire burst
+voice_suan_idle_01,spirit_suan_01,idle,always_true,voice_suan_idle_01,10,guard mutter
+voice_suan_battle_01,spirit_suan_02,battle,always_true,voice_suan_battle_01,8,taunt bark
+voice_suan_final_01,spirit_suan_03,final,chapter_3_complete,voice_suan_final_01,6,night guard
+voice_shui_idle_01,spirit_shui_01,idle,always_true,voice_shui_idle_01,10,water ripple
+voice_shui_work_01,spirit_shui_02,work,always_true,voice_shui_work_01,8,canal tune
+voice_shui_final_01,spirit_shui_03,final,quest_main_0402_active,voice_shui_final_01,6,final waterline
+voice_yunshu_idle_01,spirit_yunshu_01,idle,always_true,voice_yunshu_idle_01,10,storage grunt
+voice_yunshu_work_01,spirit_yunshu_02,work,always_true,voice_yunshu_work_01,8,sorting cheer
+voice_yunshu_final_01,spirit_yunshu_03,final,has_faction_order_active,voice_yunshu_final_01,6,batch carry
+voice_bucao_idle_01,spirit_bucao_01,idle,always_true,voice_bucao_idle_01,10,needle hum
+voice_bucao_work_01,spirit_bucao_02,work,always_true,voice_bucao_work_01,8,cloth wrap
+voice_bucao_final_01,spirit_bucao_03,final,quest_main_0403_active,voice_bucao_final_01,6,banquet finish

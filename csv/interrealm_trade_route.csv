@@ -1,0 +1,7 @@
+route_id,route_name,unlock_condition_group,route_tier,travel_days,base_risk,required_supply_tag,preferred_goods_tags,rare_reward_pool,profit_rate,faction_link,note
+route_cloudmarket_01,云桥集短线,npc_hu_sihai_favor_3,1,3,0.12,portable_food,drink|gift|portable_food,pool_reward_trade_cloud,1.18,faction_wander_traders,第二章后期到第三章的入门商路
+route_redsand_02,赤砂遗行,npc_hu_sihai_favor_5,2,5,0.20,water|medicine,metal|rare_goods|heat_resist,pool_reward_trade_redsand,1.32,faction_fire_frontier,终章后开放的高风险高利润火域商路
+route_lotus_basin_03,莲泽水航,qinghe_lotus_basin_route_ready,2,4,0.16,cooling_drink,fish|water_crop|dessert,pool_reward_trade_lotus,1.26,faction_river_alliance,水系路线，完成青禾第二年水航鲜货单后开启
+route_skyferry_04,飞舟跨界主航,npc_hu_sihai_favor_5,3,7,0.24,trade_pack,premium|ritual|medicine,pool_reward_trade_skyferry,1.48,faction_interrealm_guild,第二年核心跨界商路
+route_starlit_archive_05,星阁书契线,npc_lu_sanxiao_favor_4,3,6,0.18,refined_gift,book|tea|ritual,pool_reward_trade_archive,1.36,faction_archive_hall,世界观与高价值礼品路线
+route_thunder_old_06,旧雷道线,rare_spirit_thunder_route_open,3,5,0.15,medicine,metal|tea|medicine,pool_reward_trade_thunder,1.42,faction_wander_traders,雷竹满羁绊后开放的隐藏旧雷道，沿雷痕与旧木桩押运高价值货物

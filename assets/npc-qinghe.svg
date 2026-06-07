@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="青禾头像">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b9e2e5"/><stop offset="1" stop-color="#4d91a6"/></linearGradient></defs>
+  <rect width="160" height="160" rx="34" fill="url(#bg)"/>
+  <circle cx="80" cy="65" r="31" fill="#ffe0bd"/>
+  <path d="M44 139c6-31 22-48 36-48s30 17 36 48z" fill="#286f58"/>
+  <path d="M49 58c14-26 48-26 62 0-20-9-42-9-62 0z" fill="#314c55"/>
+  <path d="M42 114c19-14 35 14 55 0s29 6 36 0" stroke="#fffdf5" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <text x="80" y="146" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="18" font-weight="800" fill="#fffdf5">水</text>
+</svg>

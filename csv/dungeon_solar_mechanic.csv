@@ -1,0 +1,9 @@
+dungeon_id,dungeon_name,solar_term,field_rule,recommended_spirits,puzzle_core,main_reward,external_change,failure_compensation,owner,note
+dsm_001,dungeon_thunder_root,惊蛰,每30秒雷声震动一次并唤醒机关,雷竹精|灯影精,同一次雷声后激活3根雷木柱,雷纹竹材|雷竹线索,解锁雷竹商路短线,保留雷落点记录,level,雷声既是风险也是钥匙
+dsm_002,dungeon_rain_channel,谷雨,水位每45秒涨落,月莲精|水运精怪,调整3个水闸接回主脉,回渠灵砂|水系种子,洞天灵渠恢复一段,下次显示水位预告,level,水位变化是核心
+dsm_003,dungeon_insect_forest,立夏,虫鸣强弱改变道路,花铃精|蜂蜜精,按声音节奏选择林道,百花蜜蜡|蜂蜜精线索,店铺出现花蜜游客峰值,保留虫鸣节奏线索,level,声音解谜
+dsm_004,dungeon_overflow_valley,小满,采集会增加满溢风险,书契精|采集精怪,在收益和撤离之间取舍,满溢土壤|高产种子,解锁高产庭院土壤,下次初始满溢降低,system,风险收益玩法
+dsm_005,dungeon_mirror_lake,白露,倒影显示真实道路,月莲精|灯影精,根据倒影找到镜莲,镜莲瓣|月莲线索,解锁月莲静池,保留已验证路径,level,视觉反转
+dsm_006,dungeon_frost_cellar,寒露,停留越久行动越慢,火候精怪|雷竹精,在保暖有限时选择路线,寒露冰晶|暖身配方,冬季暖身商品解锁,保留部分冰晶,level,时间压力
+dsm_007,dungeon_fallen_leaf,霜降,风向吹开或覆盖道路,花铃精|书契精,根据落叶判断旧路,旧镇木牌|NPC旧物,解锁NPC旧物支线,记录已走路线,narrative,支线回收
+dsm_008,dungeon_long_lantern,冬至,灯灭后道路重组,灯影精|月莲精,点亮7盏灯形成影路,长明灯芯|灯影线索,镇口灯路常亮,下次初始灯火加1,level,冬至核心秘境

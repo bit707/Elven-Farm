@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="白芷头像">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#dfead5"/><stop offset="1" stop-color="#78a878"/></linearGradient></defs>
+  <rect width="160" height="160" rx="34" fill="url(#bg)"/>
+  <circle cx="80" cy="65" r="32" fill="#ffe2c3"/>
+  <path d="M44 139c6-32 23-49 36-49s30 17 36 49z" fill="#286f58"/>
+  <path d="M50 58c12-26 48-27 60 0-14-12-42-12-60 0z" fill="#313b36"/>
+  <path d="M117 42c14 2 19 15 8 24-12-4-17-14-8-24z" fill="#fffdf5" opacity=".85"/>
+  <path d="M55 111c19-12 31-12 50 0" stroke="#fffdf5" stroke-width="7" stroke-linecap="round"/>
+  <text x="80" y="146" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="18" font-weight="800" fill="#fffdf5">药</text>
+</svg>

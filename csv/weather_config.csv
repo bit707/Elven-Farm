@@ -1,0 +1,14 @@
+weather_id,weather_name_key,water_bonus,crop_growth_modifier,disaster_tag,mood_modifier,visual_fx_id,audio_id
+weather_clear,weather_name_clear,0.00,1.00,none,0.02,fx_weather_clear,audio_amb_clear_day
+weather_cloudy,weather_name_cloudy,0.00,1.00,none,0.00,fx_weather_cloudy,audio_amb_cloudy
+weather_light_rain,weather_name_light_rain,0.35,1.05,none,0.01,fx_weather_light_rain,audio_amb_light_rain
+weather_heavy_rain,weather_name_heavy_rain,0.80,0.95,waterlog,-0.03,fx_weather_heavy_rain,audio_amb_heavy_rain
+weather_mist,weather_name_mist,0.10,1.02,mist,0.00,fx_weather_mist,audio_amb_mist
+weather_hot_wind,weather_name_hot_wind,-0.20,0.92,heat,-0.04,fx_weather_hot_wind,audio_amb_hot_wind
+weather_dry_heat,weather_name_dry_heat,-0.35,0.88,drought,-0.06,fx_weather_dry_heat,audio_amb_dry_heat
+weather_dew,weather_name_dew,0.20,1.03,none,0.01,fx_weather_dew,audio_amb_dew_morning
+weather_cold_wind,weather_name_cold_wind,-0.05,0.94,cold,-0.03,fx_weather_cold_wind,audio_amb_cold_wind
+weather_frost,weather_name_frost,-0.10,0.86,frost,-0.05,fx_weather_frost,audio_amb_frost
+weather_light_snow,weather_name_light_snow,0.05,0.90,snow,-0.02,fx_weather_light_snow,audio_amb_light_snow
+weather_heavy_snow,weather_name_heavy_snow,0.10,0.82,snow_heavy,-0.06,fx_weather_heavy_snow,audio_amb_heavy_snow
+weather_extreme_cold,weather_name_extreme_cold,-0.15,0.78,freeze,-0.08,fx_weather_extreme_cold,audio_amb_extreme_cold

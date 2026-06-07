@@ -1,0 +1,8 @@
+bus_id,bus_name,default_volume,ducking_rule,sidechain_target,platform_note,qa_check_key,note
+bus_master,Master,1.00,none,,all,qa_audio_master,master output
+bus_bgm,BGM,0.80,duck_on_dialogue,bus_dialogue,all,qa_audio_bgm,bgm music
+bus_ambience,Ambience,0.70,duck_on_cutscene,bus_dialogue,all,qa_audio_ambience,environment sounds
+bus_sfx,SFX,0.85,duck_none,,all,qa_audio_sfx,gameplay effects
+bus_ui,UI,0.80,duck_none,,all,qa_audio_ui,ui sounds
+bus_dialogue,Dialogue,1.00,priority_duck,bus_bgm|bus_ambience,all,qa_audio_dialogue,dialogue and voice
+bus_spirit,Spirit,0.90,duck_none,,all,qa_audio_spirit,spirit vocal sounds

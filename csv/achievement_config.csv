@@ -1,0 +1,10 @@
+achievement_id,steam_api_name,title,description,trigger_type,trigger_value,icon_key,release_gate,priority
+ach_first_seed,ACH_FIRST_SEED,第一锄灵土,播下第一枚灵气白萝卜，核心循环开始。,completed,plant,seed,rrg_012,P0
+ach_luobo_spirit,ACH_LUOBO_SPIRIT,萝卜开口了,见证第一只萝卜精入队。,completed,spirit,spirit,rrg_012,P0
+ach_factory_helper,ACH_FACTORY_HELPER,小小岗位制,让精怪完成一次 3x3 自动浇水。,completed,assist,spirit,rrg_012,P0
+ach_first_recipe,ACH_FIRST_RECIPE,灶火初成,加工第一份白萝卜汤。,completed,craft,recipe,rrg_012,P0
+ach_shop_first_sale,ACH_SHOP_FIRST_SALE,旧铺开张,完成第一笔店铺成交。,completed,shop,shop,rrg_012,P0
+ach_canal_reflow,ACH_CANAL_REFLOW,灵渠复流,修复第一段灵渠。,completed,repair,canal,rrg_012,P0
+ach_cloud_ready,ACH_CLOUD_READY,云端留痕,完成一次本地存档并生成 Steam Cloud 镜像。,saved,lastSavedAt,cloud,rrg_012,P0
+ach_demo_foundation,ACH_DEMO_FOUNDATION,洞天有了起色,完成 Demo 核心闭环的七个目标。,all_completed,plant|harvest|spirit|assist|craft|shop|repair,demo,rrg_012,P0
+ach_first_dungeon,ACH_FIRST_DUNGEON,矿洞第一盏灯,通关青云矿洞，证明精怪可以随行作战。,dungeon_clear,area_mine_qingyun,dungeon,rrg_012,P0

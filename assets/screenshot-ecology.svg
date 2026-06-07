@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+    <rect width="640" height="360" fill="#dfead3"/>
+    <path d="M0 260 C90 212 190 278 310 224 C438 166 540 204 640 168 L640 360 L0 360Z" fill="#7fab79"/>
+    <circle cx="118" cy="206" r="44" fill="#fff0c8" stroke="#826246" stroke-width="6"/>
+    <path d="M96 164 C104 122 142 124 150 164" fill="none" stroke="#286f58" stroke-width="12" stroke-linecap="round"/>
+    <circle cx="276" cy="194" r="38" fill="#d9f0c4" stroke="#5d8c5a" stroke-width="6"/>
+    <path d="M246 158 C238 126 276 116 286 154" fill="none" stroke="#48a868" stroke-width="11" stroke-linecap="round"/>
+    <circle cx="430" cy="210" r="46" fill="#c9e7de" stroke="#4d91a6" stroke-width="6"/>
+    <path d="M398 172 C424 134 464 146 458 184" fill="none" stroke="#286f58" stroke-width="11" stroke-linecap="round"/>
+    <rect x="70" y="266" width="500" height="32" rx="16" fill="#e7c36f" opacity="0.75"/>
+    <text x="34" y="54" font-size="28" font-family="Microsoft YaHei, serif" font-weight="800" fill="#17231d">精怪生态庭院</text>
+    <text x="36" y="318" font-size="20" font-family="Microsoft YaHei, serif" fill="#286f58">多精怪组合触发生态共鸣与长期养成</text>
+    </svg>

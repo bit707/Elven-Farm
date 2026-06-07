@@ -1,0 +1,13 @@
+segment_rule_id,customer_archetype,phase_tag,term_tag,weather_tag,reputation_min,fame_min,preferred_tags_extra,disliked_tags_extra,budget_rate,visit_rate,order_weight_bonus,note
+segment_villager_spring,villager,early,term_lichun,weather_clear,0,0,seedling|fresh_food,stale,1.00,1.10,0.08,春季镇民更看重新鲜蔬菜与种子
+segment_villager_drought,villager,chapter4,,weather_hot_wind,180,0,relief|water|medicine,luxury,0.85,1.25,0.18,大旱期镇民以生存物资为主
+segment_rogue_term_guyu,rogue_cultivator,mid,term_guyu,weather_light_rain,100,1,recover_sp|drink,decor,1.05,1.08,0.10,谷雨时散修偏好补气茶饮
+segment_healer_shuangjiang,healer,late,term_shuangjiang,weather_frost,220,2,warm_food|medicine,spoiled,1.12,1.00,0.12,霜降后医修更偏好温补与稳定药材
+segment_crafter_dashu,crafter,mid,term_dashu,weather_hot_wind,150,1,cooling_drink|material,dessert,1.08,0.95,0.10,大暑匠师兼顾降温消耗品
+segment_trader_market_peak,trader,mid_late,,weather_clear,260,2,rare_goods|portable_food,cheap_crop,1.18,1.05,0.15,商路通畅时商贩预算提升
+segment_guest_festival,guest,late,term_dongzhi,,320,3,festival|gift|dessert,common_crop,1.30,1.20,0.22,冬至贵客高峰
+segment_faction_prewar,faction,chapter4,,weather_clear,400,4,ritual|batch|medicine,low_quality,1.25,0.92,0.18,终章前门派采办更重视批次标准
+segment_child_daily,child,early,,weather_clear,0,0,dessert|low_price|fresh_food,medicine,0.70,1.10,0.04,小童日常带来生活感和低价甜品需求
+segment_pilgrim_ecology,pilgrim,year2,term_qingming,weather_mist,420,4,ritual|ecology_product|spirit_crafted,low_quality,1.10,1.08,0.12,第二年生态庭院吸引朝圣客
+segment_collector_rare,collector,year2,term_bailu,weather_clear,520,5,route_rare|spirit_crafted|ecology_product,common_crop,1.35,0.75,0.20,通关后稀有货和精怪产物吸引收藏客
+segment_waterway_lianze,waterway_broker,year2,,,500,6,water_food|drink|route_rare|cooling,stale|low_quality,1.22,1.18,0.18,莲泽熟路成型后水航客更愿意进店看水鲜长单

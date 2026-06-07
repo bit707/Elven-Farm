@@ -1,0 +1,6 @@
+season_id,season_name,cycle_days,unlock_condition_group,score_focus_tags,entry_requirement,reward_group,rank_tiers,ui_theme,reset_rule,note
+season_shop_001,春市新芽榜,30,quest_main_0403_complete,fresh_market|staple|seedling,shop_reputation>=220,pool_reward_year2_shop,"s|a|b|c",theme_spring_market,monthly_reset,第二年开局赛季，强调新鲜蔬果与基础经营
+season_shop_002,谷雨灵膳榜,30,quest_main_0403_complete,drink|herb|dessert,shop_reputation>=260,pool_reward_year2_term,"s|a|b|c",theme_guyu_feast,monthly_reset,强调节气茶饮与药膳搭配
+season_shop_003,盛夏工坊榜,30,chapter_3_complete,material|portable_food|cooling_drink,shop_reputation>=300,pool_reward_year2_build,"s|a|b|c",theme_summer_workshop,monthly_reset,强调工坊产出与消暑商品
+season_shop_004,白露礼宴榜,30,npc_lu_sanxiao_favor_4,gift|premium|festival,shop_reputation>=340,pool_reward_year2_trade,"s|a|b|c",theme_autumn_banquet,monthly_reset,强调礼盒和高端陈列
+season_shop_005,冬至名铺榜,30,festival_winter_active,festival|ritual|premium,shop_reputation>=380,pool_reward_year2_cohab,"s|a|b|c",theme_winter_lantern,monthly_reset,第二年终极店铺荣誉赛季

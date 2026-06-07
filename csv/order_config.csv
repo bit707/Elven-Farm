@@ -1,0 +1,16 @@
+order_id,order_name_key,order_type,issuer_type,issuer_id,need_item_ids,need_item_counts,min_quality,reward_gold,reward_favor_npc,reward_favor_value,reward_fame,reward_item_group,appear_condition_group,duration_day,weight
+order_demo_0001,order_name_demo_0001,normal,npc,npc_xubo,"item_food_bailuobo_tang","1",0,120,npc_xubo,4,2,,first_bailuobo_tang_crafted,3,120
+order_demo_0002,order_name_demo_0002,normal,npc,npc_qinghe,"item_food_liangban_lingqin","1",0,168,npc_qinghe,4,2,,first_lingqin_dish_crafted,3,110
+order_normal_0001,order_name_normal_0001,normal,npc,npc_xubo,"crop_lingqi_bailuobo","5",0,105,npc_xubo,5,2,,day_2_or_more,3,100
+order_normal_0002,order_name_normal_0002,normal,npc,npc_zhang_tieshan,"item_food_mianbing","2",0,175,npc_zhang_tieshan,6,2,,recipe_mianbing_unlocked,3,85
+order_normal_0003,order_name_normal_0003,quality,npc,npc_baizhi,"crop_tiepi_shihu","3",2,360,npc_baizhi,8,3,,chapter_1_mid,4,80
+order_term_0001,order_name_term_0001,timed,npc,npc_hu_sihai,"item_drink_lingcha","3",1,420,npc_hu_sihai,8,4,pool_order_mid,term_guyu_active,2,70
+order_term_0002,order_name_term_0002,timed,npc,npc_hu_sihai,"crop_qingshui_hulu|item_drink_helu_tangshui","3|2",1,330,npc_hu_sihai,8,4,,term_xiaoshu_active,2,70
+order_story_0001,order_name_story_0001,story,npc,npc_baizhi,"item_med_zhixue_san","5",1,620,npc_baizhi,15,8,pool_med_story,quest_main_0202_active,5,60
+order_shop_0001,order_name_shop_0001,combo,shop_customer,customer_villager,"crop_jinsui_yumi|crop_hanyu_baicai","4|2",0,310,,0,3,,shop_reputation_100,2,90
+order_shop_0002,order_name_shop_0002,quality,shop_customer,customer_healer,"item_med_huiyuan_san|crop_bailu_yiner","2|2",2,760,,0,5,pool_healer_bonus,shop_reputation_200,3,75
+order_faction_0001,order_name_faction_0001,faction,npc,npc_hu_sihai,"item_drink_xuanxiang_lingniang|item_gift_yunjin_lijuan","4|2",3,3400,npc_hu_sihai,15,20,pool_faction_mid,chapter_3_trade_started,5,40
+order_faction_0002,order_name_faction_0002,faction,npc,npc_baizhi,"item_med_ningshen_yulu|crop_dongcang_yaoshen","4|3",3,3900,npc_baizhi,18,24,pool_faction_high,chapter_4_active,5,35
+order_disaster_0001,order_name_disaster_0001,disaster,npc,npc_xubo,"crop_qingshui_hulu|item_med_zhixue_san|crop_jinsui_yumi","6|4|8",1,5200,npc_xubo,20,30,pool_disaster_relief,world_state_drought,4,30
+order_guest_0001,order_name_guest_0001,combo,shop_customer,customer_guest,"item_gift_yunjin_lijuan|item_drink_xuanxiang_lingniang|item_food_bazhen_lingshan","1|1|1",3,1880,,0,10,pool_guest_bonus,festival_winter_active,2,45
+order_qinghe_water_fresh_return_0001,order_name_qinghe_water_fresh_return_0001,quality,npc,npc_qinghe,"item_food_qingbo_yukuai|item_food_lingchi_sanxian_geng","2|1",1,720,npc_qinghe,8,5,,lingchi_water_fresh_regulars,3,95

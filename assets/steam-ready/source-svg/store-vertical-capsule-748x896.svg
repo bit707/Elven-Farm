@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="748" height="896" viewBox="0 0 748 896" role="img">
+    <defs>
+      <linearGradient id="steamSky" x1="0" x2="1" y1="0" y2="1">
+        <stop offset="0" stop-color="#d6f1e2"/>
+        <stop offset="0.45" stop-color="#f7f0d8"/>
+        <stop offset="1" stop-color="#8fb173"/>
+      </linearGradient>
+      <linearGradient id="steamGold" x1="0" x2="1">
+        <stop offset="0" stop-color="#b9792f"/>
+        <stop offset="1" stop-color="#e7c36f"/>
+      </linearGradient>
+      <filter id="softShadow">
+        <feDropShadow dx="0" dy="8.96" stdDeviation="16.128" flood-color="#17231d" flood-opacity="0.25"/>
+      </filter>
+      <pattern id="ricePattern" width="28" height="28" patternUnits="userSpaceOnUse">
+        <path d="M4 18 Q14 4 26 18" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="2"/>
+      </pattern>
+    </defs>
+    <rect width="748" height="896" fill="url(#steamSky)"/>
+    <rect width="748" height="896" fill="url(#ricePattern)" opacity="0.65"/>
+    <circle cx="620.8399999999999" cy="179.20000000000002" r="134.64" fill="#e7c36f" opacity="0.35"/>
+    <circle cx="508.64000000000004" cy="170.24" r="97.24000000000001" fill="none" stroke="url(#steamGold)" stroke-width="10.472"/>
+    <circle cx="508.64000000000004" cy="170.24" r="56.1" fill="none" stroke="#286f58" stroke-width="5.236"/>
+    <path d="M0 654.0799999999999 C134.64 465.92 239.36 770.56 366.52 609.2800000000001 C493.68 439.03999999999996 583.44 582.4 748 465.92 L748 896 L0 896Z" fill="#668a52"/>
+    <path d="M74.8 418.88 L213.18 376.32 L351.56 418.88 L351.56 546.56 L74.8 546.56Z" fill="#8b6a48" filter="url(#softShadow)"/>
+    <path d="M108.0112 423.98720000000003 L213.18 393.344 L318.3488 423.98720000000003" fill="none" stroke="#583f30" stroke-width="10.472" stroke-linecap="round"/>
+    <rect x="124.61679999999998" y="447.82079999999996" width="63.6548" height="71.5008" fill="#fff6d8"/>
+    <rect x="232.5532" y="447.82079999999996" width="63.6548" height="71.5008" fill="#286f58"/>
+    <g filter="url(#softShadow)">
+      <ellipse cx="374" cy="555.52" rx="157.07999999999998" ry="116.48" fill="#fff0c8" stroke="#7a583e" stroke-width="8.976"/>
+      <path d="M314.3096 464.6656 C339.4424 383.1296 424.2656 390.11839999999995 439.9736 464.6656" fill="none" stroke="#286f58" stroke-width="13.463999999999999" stroke-linecap="round"/>
+      <path d="M377.1416 460.0064 C421.124 390.11839999999995 493.3808 429.72159999999997 455.6816 490.2912" fill="none" stroke="#48a868" stroke-width="10.472" stroke-linecap="round"/>
+      <circle cx="330.0176" cy="550.8607999999999" r="7.48" fill="#17231d"/>
+      <circle cx="414.8408" cy="550.8607999999999" r="7.48" fill="#17231d"/>
+      <path d="M345.7256 592.7936 Q374 613.76 408.5576 592.7936" fill="none" stroke="#8b4c37" stroke-width="6.731999999999999" stroke-linecap="round"/>
+    </g>
+    <g fill="#704c36" opacity="0.92">
+      <rect x="119.68" y="680.96" width="93.35040000000001" height="28.223999999999997" rx="3"/><rect x="239.36" y="680.96" width="93.35040000000001" height="28.223999999999997" rx="3"/><rect x="359.04" y="680.96" width="93.35040000000001" height="28.223999999999997" rx="3"/><rect x="478.72" y="680.96" width="93.35040000000001" height="28.223999999999997" rx="3"/><rect x="119.68" y="721.2800000000001" width="93.35040000000001" height="28.223999999999997" rx="3"/><rect x="239.36" y="721.2800000000001" width="93.35040000000001" height="28.223999999999997" rx="3"/><rect x="359.04" y="721.2800000000001" width="93.35040000000001" height="28.223999999999997" rx="3"/><rect x="478.72" y="721.2800000000001" width="93.35040000000001" height="28.223999999999997" rx="3"/><rect x="119.68" y="761.6" width="93.35040000000001" height="28.223999999999997" rx="3"/><rect x="239.36" y="761.6" width="93.35040000000001" height="28.223999999999997" rx="3"/><rect x="359.04" y="761.6" width="93.35040000000001" height="28.223999999999997" rx="3"/><rect x="478.72" y="761.6" width="93.35040000000001" height="28.223999999999997" rx="3"/>
+    </g>
+    <g filter="url(#softShadow)">
+      <text x="74.8" y="152.32000000000002" font-size="82.28" font-family="Microsoft YaHei, SimSun, serif" font-weight="900" fill="#17231d">仙农洞天</text>
+      <text x="74.8" y="226.372" font-size="41.14" font-family="Microsoft YaHei, SimSun, serif" font-weight="800" fill="#286f58">精怪工坊</text>
+      <text x="74.8" y="279.85400000000004" font-size="26.180000000000003" font-family="Microsoft YaHei, SimSun, serif" fill="#5d6f65">修复洞天，振兴凡仙镇</text>
+    </g>
+    
+  </svg>

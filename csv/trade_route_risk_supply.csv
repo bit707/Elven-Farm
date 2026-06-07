@@ -1,0 +1,10 @@
+risk_supply_id,route_id,risk_type,required_supply_tag,min_supply_count,risk_check_day,fail_penalty_type,fail_penalty_value,success_bonus_type,success_bonus_value,note
+trade_risk_cloud_01,route_cloudmarket_01,delay,portable_food,4,2,profit_loss,0.12,reputation_gain,4,云桥集缺补给会延误但风险较低
+trade_risk_redsand_01,route_redsand_02,heat_storm,water,6,2,cargo_loss,0.18,rare_loot_chance,0.10,赤砂路线需要足量水与药品
+trade_risk_redsand_02,route_redsand_02,bandit,medicine,3,4,route_damage,0.22,profit_rate,0.08,高利润对应更强掠夺风险
+trade_risk_lotus_01,route_lotus_basin_03,flood,trade_pack,2,2,travel_delay,1,reputation_gain,5,水航易遇涨潮与改道
+trade_risk_skyferry_01,route_skyferry_04,customs_check,trade_pack,5,3,profit_loss,0.20,faction_favor,6,飞舟主航线更依赖成套贸易包
+trade_risk_skyferry_02,route_skyferry_04,spirit_instability,medicine,4,5,cargo_quality_down,1,rare_loot_chance,0.12,跨界航行灵压不稳
+trade_risk_archive_01,route_starlit_archive_05,document_mismatch,refined_gift,2,3,reputation_loss,6,unlock_story_hint,1,书契线需要体面礼品与书卷证明
+trade_risk_thunder_01,route_thunder_old_06,lightning_mire,medicine,4,2,profit_loss,0.14,rare_loot_chance,0.12,旧雷道遇雷痕回跳时需要药品稳住队伍
+trade_risk_thunder_02,route_thunder_old_06,marker_washout,trade_pack,2,4,travel_delay,1,profit_rate,0.10,暴雨冲掉部分旧木桩时需要成套货封和绑扎工具

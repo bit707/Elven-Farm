@@ -1,0 +1,10 @@
+enemy_id,enemy_name_key,hp,atk,def,move_speed,ai_type,weakness_tags,drop_pool_id
+enemy_mine_rock_bug,enemy_name_mine_rock_bug,90,18,8,1.10,charge,"blunt|water",loot_pool_mine_common
+enemy_mine_moss_slime,enemy_name_mine_moss_slime,110,15,12,0.85,split,"fire|slash",loot_pool_mine_common
+enemy_mine_bat,enemy_name_mine_bat,75,20,6,1.45,dive,"sound|light",loot_pool_mine_rare
+enemy_herb_pollen_moth,enemy_name_herb_pollen_moth,120,24,10,1.20,swarm,"wind|fire",loot_pool_herb_common
+enemy_herb_spore_beast,enemy_name_herb_spore_beast,160,28,14,0.90,spore_cloud,"fire|cleanse",loot_pool_herb_common
+enemy_fire_sand_lizard,enemy_name_fire_sand_lizard,220,38,18,1.15,burrow,"water|ice",loot_pool_fire_common
+enemy_fire_ember_wisp,enemy_name_fire_ember_wisp,140,42,10,1.35,orbit,"water|earth",loot_pool_fire_common
+enemy_final_parasite_drone,enemy_name_final_parasite_drone,260,46,20,1.25,drain,"light|purify",loot_pool_final_common
+enemy_final_shell_guard,enemy_name_final_shell_guard,340,40,28,0.80,guard,"pierce|thunder",loot_pool_final_common

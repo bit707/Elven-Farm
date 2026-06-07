@@ -1,0 +1,16 @@
+feedback_id,customer_archetype,feedback_type,condition_group,text_key,mood_delta,reputation_delta,note
+shop_feedback_villager_good_price,villager,price_good,always_true,shop_feedback_villager_good_price,2,1,good value
+shop_feedback_villager_too_expensive,villager,price_bad,always_true,shop_feedback_villager_too_expensive,-2,-1,too expensive
+shop_feedback_villager_stale,villager,freshness_bad,always_true,shop_feedback_villager_stale,-3,-2,stale produce
+shop_feedback_rogue_quality_ok,rogue_cultivator,quality_good,always_true,shop_feedback_rogue_quality_ok,2,1,practical combat goods
+shop_feedback_rogue_low_stock,rogue_cultivator,stock_bad,always_true,shop_feedback_rogue_low_stock,-1,0,wanted more stock
+shop_feedback_healer_clean,healer,quality_good,always_true,shop_feedback_healer_clean,3,2,clean herb praise
+shop_feedback_healer_mixed,healer,quality_bad,always_true,shop_feedback_healer_mixed,-2,-1,quality inconsistency
+shop_feedback_crafter_material,crafter,quality_good,always_true,shop_feedback_crafter_material,2,1,material trust
+shop_feedback_trader_margin,trader,price_good,always_true,shop_feedback_trader_margin,1,2,good margin perception
+shop_feedback_trader_overpriced,trader,price_bad,always_true,shop_feedback_trader_overpriced,-2,-2,won't resell
+shop_feedback_guest_premium,guest,quality_good,always_true,shop_feedback_guest_premium,3,3,premium delight
+shop_feedback_guest_common,guest,quality_bad,always_true,shop_feedback_guest_common,-2,-1,too ordinary
+shop_feedback_faction_batch,faction,bulk_good,always_true,shop_feedback_faction_batch,2,3,batch standard pass
+shop_feedback_faction_fail,faction,bulk_bad,always_true,shop_feedback_faction_fail,-3,-3,batch rejected
+shop_feedback_drought_relief,villager,story_good,chapter_3_complete,shop_feedback_drought_relief,3,2,relief goods appreciated

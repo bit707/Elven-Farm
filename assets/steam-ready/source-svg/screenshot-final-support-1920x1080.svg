@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img">
+    <defs>
+      <linearGradient id="shotSky" x1="0" x2="1" y1="0" y2="1">
+        <stop offset="0" stop-color="#202b35"/>
+        <stop offset="1" stop-color="#18242b"/>
+      </linearGradient>
+      <filter id="shotShadow">
+        <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#17231d" flood-opacity="0.28"/>
+      </filter>
+    </defs>
+    <rect width="1920" height="1080" fill="url(#shotSky)"/>
+    <circle cx="1574.3999999999999" cy="194.4" r="140.4" fill="#e7c36f" opacity="0.28"/>
+    <path d="M0 756 C345.59999999999997 594 652.8000000000001 896.4 960 712.8000000000001 C1305.6000000000001 507.59999999999997 1497.6000000000001 691.2 1920 561.6 L1920 1080 L0 1080Z" fill="#30414a"/>
+    
+    
+    
+    <circle cx="960" cy="507.59999999999997" r="248.4" fill="none" stroke="#e7c36f" stroke-width="19.2"/><circle cx="960" cy="507.59999999999997" r="151.20000000000002" fill="none" stroke="#48a868" stroke-width="11.52"/>
+    
+    <g filter="url(#shotShadow)">
+      <ellipse cx="1305.6000000000001" cy="626.4" rx="153.6" ry="140.4" fill="#fff0c8" stroke="#826246" stroke-width="15.36"/>
+      <path d="M1248 507.59999999999997 C1267.2 410.4 1363.1999999999998 421.2 1382.3999999999999 507.59999999999997" fill="none" stroke="#286f58" stroke-width="26.88" stroke-linecap="round"/>
+      <circle cx="1267.2" cy="604.8000000000001" r="11.52" fill="#17231d"/>
+      <circle cx="1344" cy="604.8000000000001" r="11.52" fill="#17231d"/>
+    </g>
+    <rect x="48" y="59.4" width="921.5999999999999" height="183.60000000000002" rx="34.559999999999995" fill="#17231d" opacity="0.82"/>
+    <text x="86.39999999999999" y="129.6" font-size="72.96" font-family="Microsoft YaHei, SimSun, serif" font-weight="900" fill="#f7f0d8">终章支援建阵</text>
+    <text x="86.39999999999999" y="192.23999999999998" font-size="40.32" font-family="Microsoft YaHei, SimSun, serif" fill="#e7c36f">NPC 支援和二十四节气大阵收束主线</text>
+  </svg>

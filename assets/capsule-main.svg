@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="430" viewBox="0 0 920 430" role="img">
+    <defs>
+      <linearGradient id="sky" x1="0" x2="1" y1="0" y2="1">
+        <stop offset="0" stop-color="#d8f0df"/>
+        <stop offset="0.55" stop-color="#f6f0cf"/>
+        <stop offset="1" stop-color="#9ab874"/>
+      </linearGradient>
+      <linearGradient id="ring" x1="0" x2="1">
+        <stop offset="0" stop-color="#c88b37"/>
+        <stop offset="1" stop-color="#e7c36f"/>
+      </linearGradient>
+    </defs>
+    <rect width="920" height="430" fill="url(#sky)"/>
+    <path d="M0 320 C160 260 230 360 370 300 C530 230 670 260 920 210 L920 430 L0 430Z" fill="#6f965b"/>
+    <path d="M55 260 L210 210 L355 260 L355 390 L55 390Z" fill="#8b6a48"/>
+    <path d="M80 274 L210 232 L332 274" fill="none" stroke="#583f30" stroke-width="18"/>
+    <rect x="118" y="294" width="74" height="96" fill="#f6f0cf"/>
+    <rect x="230" y="294" width="68" height="96" fill="#2b6f5b"/>
+    <ellipse cx="612" cy="306" rx="108" ry="92" fill="#fff0c8" stroke="#7a583e" stroke-width="10"/>
+    <path d="M564 232 C576 170 640 172 656 230" fill="none" stroke="#2f7d57" stroke-width="18" stroke-linecap="round"/>
+    <circle cx="582" cy="294" r="11" fill="#18342d"/>
+    <circle cx="642" cy="294" r="11" fill="#18342d"/>
+    <path d="M590 334 Q612 352 638 334" fill="none" stroke="#8b4c37" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="760" cy="168" r="84" fill="none" stroke="url(#ring)" stroke-width="18"/>
+    <circle cx="760" cy="168" r="46" fill="none" stroke="#286f58" stroke-width="8"/>
+    <text x="52" y="92" font-size="54" font-family="Microsoft YaHei, serif" font-weight="800" fill="#17231d">仙农洞天</text>
+    <text x="58" y="146" font-size="28" font-family="Microsoft YaHei, serif" fill="#286f58">精怪工坊</text>
+    <text x="58" y="186" font-size="20" font-family="Microsoft YaHei, serif" fill="#5d6f65">种下灵植，唤醒精怪，经营你的修仙小镇</text>
+    </svg>

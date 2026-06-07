@@ -1,0 +1,103 @@
+reward_pool_id,entry_index,reward_type,reward_param,reward_count,condition_group,weight,note
+pool_reward_main_0001,1,item,item_seed_bailuobo,6,always_true,100,starter seeds
+pool_reward_main_0001,2,item,item_gold_generic,80,always_true,100,starter gold
+pool_reward_main_0002,1,item,item_food_plain_ration,2,always_true,100,town visit ration
+pool_reward_main_0101,1,building,build_lingjing_001,1,always_true,100,well unlock
+pool_reward_main_0102,1,recipe,recipe_tool_copper_set,1,always_true,100,copper tool recipe
+pool_reward_main_0103,1,item,item_special_lingmai_shuishi_1,1,always_true,100,first array stone
+pool_reward_main_0201,1,building,build_shop_lv1,1,always_true,100,shop opening
+pool_reward_main_0202,1,recipe,recipe_garden_herb_advanced,1,always_true,100,advanced herb garden
+pool_reward_main_0301,1,building,build_spirit_manor,1,always_true,100,spirit manor unlock
+pool_reward_main_0302,1,reputation,shop_reputation,40,always_true,100,fire ruin faction reputation
+pool_reward_main_0401,1,reputation,town_relief,30,always_true,100,town relief trust
+pool_reward_main_0401,2,item,seed_qingshui_hulu,3,always_true,80,drought recovery crop seed
+pool_reward_main_0401,3,item,seed_jinsui_yumi,3,always_true,80,drought recovery grain seed
+pool_disaster_relief,1,item,item_water_supply_relief,5,always_true,100,drought order converts supplies into relief water bundles
+pool_disaster_relief,2,reputation,town_relief,20,always_true,80,town remembers emergency delivery
+pool_reward_main_0402,1,ui,ui_final_array_blueprint,1,always_true,100,final array blueprint unlocked
+pool_reward_main_0403,1,item,item_seed_wannian_pantao,1,always_true,100,final seed reward
+pool_reward_side_0101,1,favor,npc_xubo,1,always_true,100,xubo favor
+pool_reward_side_0101,2,item,item_story_old_bridge_tablet,1,always_true,100,history record
+pool_reward_side_0102,1,discount,tool_repair_discount,5,always_true,100,repair discount
+pool_reward_side_0103,1,discount,clinic_goods_discount,3,always_true,100,clinic discount
+pool_reward_side_0104,1,item,item_codex_term_jingzhe,1,always_true,100,term codex
+pool_reward_side_0105,1,buff,buff_spirit_mood_cap_small,1,always_true,100,luobo affinity
+pool_reward_side_0201,1,exp,skill_business,120,always_true,100,business exp
+pool_reward_side_0201,2,ui,ui_shop_feedback_panel,1,always_true,100,feedback panel unlock
+pool_reward_side_0202,1,building,build_workbench_shed_discount,1,always_true,100,shed discount
+pool_reward_side_0202,2,item,item_recipe_deco_basic,1,always_true,100,deco plan
+pool_reward_side_0203,1,favor,npc_baizhi,1,always_true,100,baizhi favor
+pool_reward_side_0203,2,recipe,recipe_medicine_support_set,1,always_true,100,medicine set
+pool_reward_side_0204,1,buff,buff_market_news_refresh_up,1,always_true,100,market refresh
+pool_reward_side_0205,1,building,build_fishpond_lv1,1,always_true,100,fishpond support
+pool_reward_side_0205,2,recipe,recipe_water_crop_intro,1,always_true,100,water crop intro
+pool_reward_side_0206,1,buff,buff_fire_machine_safety_small,1,always_true,100,lajiao machine safety
+pool_reward_side_0301,1,recipe,recipe_patrol_command_basic,1,always_true,100,patrol unlock
+pool_reward_side_0302,1,buff,buff_faction_order_weight_up,1,always_true,100,faction chance up
+pool_reward_side_0303,1,buff,buff_irrigation_efficiency_small,1,always_true,100,water saving
+pool_reward_side_0304,1,buff,buff_spirit_dorm_synergy,1,always_true,100,dorm synergy
+pool_reward_side_0305,1,recipe,recipe_machine_wind_furnace_upgrade,1,always_true,100,masterwork furnace
+pool_reward_side_0306,1,buff,buff_night_guard_small,1,always_true,100,night defense
+pool_reward_side_0401,1,reputation,town_relief,30,always_true,100,town reputation
+pool_reward_side_0402,1,item,item_route_rare_material,2,always_true,100,rare route material
+pool_reward_side_0403,1,recipe,recipe_medicine_night_emergency,1,always_true,100,emergency medicine
+pool_reward_side_0404,1,item,item_stela_truth_record,1,always_true,100,stela lore
+pool_reward_side_0405,1,buff,buff_final_waterline_up,1,always_true,100,waterline final buff
+pool_reward_side_0406,1,buff,buff_final_banquet_style,1,always_true,100,banquet style buff
+pool_reward_exp_short_market,1,item,item_gold_generic,350,always_true,100,short market gold
+pool_reward_exp_short_market,2,item,item_food_plain_ration,2,always_true,80,short market supply
+pool_reward_exp_cloudbridge,1,item,item_route_rare_material,2,always_true,100,cloud bridge rare material
+pool_reward_exp_cloudbridge,2,reputation,shop_reputation,20,always_true,100,cloud bridge reputation
+pool_reward_exp_stormbamboo,1,item,item_metal_xuantie,4,always_true,100,storm bamboo metal
+pool_reward_exp_stormbamboo,2,buff,buff_trade_risk_down_next,1,always_true,60,storm route knowledge
+pool_reward_year2_dungeon,1,item,item_special_dinghai_shenzhu_fragment,1,always_true,100,hidden waterlayer fragment
+pool_reward_year2_dungeon,2,item,seed_luzhu_qin,2,always_true,80,hidden waterlayer crop seed
+pool_reward_year2_build,1,item,item_metal_xuantie,2,always_true,100,vein bloom rare metal
+pool_reward_year2_build,2,item,item_stone_spirit_shard,3,always_true,80,vein bloom spirit shard
+pool_reward_year2_shop,1,item,item_yearwheel_memory_shard,1,always_true,100,first year-two shop memory
+pool_reward_year2_shop,2,reputation,shop_reputation,80,always_true,90,shop reputation after final banquet
+pool_reward_year2_cohab,1,bond_exp,selected_spirits,80,always_true,100,cohab bond keepsake
+pool_reward_year2_cohab,2,item,item_deco_spirit_codex_wall,1,always_true,50,relationship keepsake decor
+pool_reward_year2_trade,1,item,item_route_rare_material,3,always_true,100,cloud bridge trade salvage
+pool_reward_year2_trade,2,reputation,shop_reputation,50,always_true,80,trade route reputation
+pool_reward_year2_town,1,item,item_build_beam_hardwood,3,always_true,100,town rebuilding material return
+pool_reward_year2_town,2,reputation,town_reputation,35,always_true,100,town rebuilding trust
+pool_reward_year2_term,1,item,item_special_dinghai_shenzhu_fragment,1,always_true,100,water term shard
+pool_reward_year2_term,2,item,crop_water_lotus_seed,2,always_true,80,water route fresh crop
+pool_reward_exp_hidden_canal,1,item,item_special_dinghai_shenzhu_fragment,1,always_true,80,hidden canal fragment
+pool_reward_exp_hidden_canal,2,item,item_drink_helu_tangshui,3,always_true,100,hidden canal drink
+pool_reward_exp_town_lantern,1,item,item_gift_yunjin_lijuan,1,always_true,100,lantern festival gift
+pool_reward_exp_town_lantern,2,reputation,town_reputation,25,always_true,100,town lantern reputation
+pool_reward_exp_yearwheel,1,item,item_yearwheel_memory_shard,1,always_true,100,year wheel memory shard
+pool_reward_exp_yearwheel,2,bond_exp,selected_spirits,60,always_true,100,year wheel bond exp
+pool_reward_trade_cloud,1,item,item_route_rare_material,1,always_true,100,cloud market route rare goods
+pool_reward_trade_cloud,2,reputation,shop_reputation,18,always_true,100,cloud market shop reputation
+pool_reward_trade_redsand,1,item,item_special_huojing_fragment,1,always_true,100,redsand fire route fragment
+pool_reward_trade_redsand,2,item,item_metal_xuantie,2,always_true,80,redsand rare metal
+pool_reward_trade_lotus,1,item,item_special_dinghai_shenzhu_fragment,1,always_true,100,lotus water route fragment
+pool_reward_trade_lotus,2,item,item_drink_helu_tangshui,2,always_true,80,lotus basin drink goods
+pool_reward_trade_skyferry,1,item,item_route_rare_material,3,always_true,100,skyferry interrealm material
+pool_reward_trade_skyferry,2,reputation,town_reputation,30,always_true,100,skyferry town reputation
+pool_reward_trade_archive,1,item,item_yearwheel_memory_shard,1,always_true,100,archive contract memory
+pool_reward_trade_archive,2,bond_exp,selected_spirits,50,always_true,80,archive route spirit insight
+pool_reward_trade_thunder,1,item,item_route_rare_material,2,always_true,100,old thunder route rare caravan salvage
+pool_reward_trade_thunder,2,item,item_metal_xuantie,2,always_true,90,old thunder route black metal
+pool_reward_trade_thunder,3,reputation,town_reputation,24,always_true,70,old thunder route storm escort reputation
+pool_reward_trial_guyu,1,item,item_med_ningshen_yulu,2,always_true,100,guyu medicine reward
+pool_reward_trial_guyu,2,bond_exp,selected_spirits,80,always_true,100,guyu bond reward
+pool_reward_trial_dashu,1,item,item_special_huojing_fragment,1,always_true,100,dashu fire reward
+pool_reward_trial_dashu,2,bond_exp,selected_spirits,80,always_true,100,dashu bond reward
+pool_reward_trial_bailu,1,item,item_gift_yunjin_lijuan,2,always_true,100,bailu gift reward
+pool_reward_trial_bailu,2,bond_exp,selected_spirits,80,always_true,100,bailu bond reward
+pool_reward_trial_dongzhi,1,item,item_drink_xuanxiang_lingniang,2,always_true,100,dongzhi feast reward
+pool_reward_trial_dongzhi,2,bond_exp,selected_spirits,80,always_true,100,dongzhi bond reward
+pool_reward_trial_dahan,1,buff,buff_winter_guard_memory,1,always_true,100,dahan guard reward
+pool_reward_trial_dahan,2,bond_exp,selected_spirits,100,always_true,100,dahan bond reward
+pool_reward_goal_daily_spirit,1,bond_exp,selected_spirits,20,always_true,100,daily spirit care
+pool_reward_goal_weekly_exp,1,item,item_route_rare_material,1,always_true,100,weekly expedition reward
+pool_reward_goal_monthly_shop,1,reputation,shop_reputation,60,always_true,100,monthly shop reward
+pool_reward_goal_ecology,1,item,item_deco_ecology_monument,1,always_true,100,ecology collection reward
+pool_reward_goal_trial_all,1,title,title_yearwheel_keeper,1,always_true,100,all trials reward
+pool_reward_goal_rare_spirit,1,item,item_deco_spirit_codex_wall,1,always_true,100,rare spirit collection reward
+pool_reward_goal_bond_first,1,cosmetic,skin_player_spirit_keeper,1,always_true,100,first max bond reward
+pool_reward_goal_bond_all,1,title,title_all_spirit_family,1,always_true,100,all core spirits bond reward

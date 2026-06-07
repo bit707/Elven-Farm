@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img">
+    <rect width="640" height="360" fill="#d9efdf"/>
+    <path d="M0 260 C120 210 210 300 340 245 C470 190 540 220 640 178 L640 360 L0 360Z" fill="#8da462"/>
+    <g fill="#826246"><rect x="120" y="118" width="46" height="46"/><rect x="178" y="118" width="46" height="46"/><rect x="236" y="118" width="46" height="46"/><rect x="294" y="118" width="46" height="46"/><rect x="352" y="118" width="46" height="46"/><rect x="410" y="118" width="46" height="46"/><rect x="120" y="176" width="46" height="46"/><rect x="178" y="176" width="46" height="46"/><rect x="236" y="176" width="46" height="46"/><rect x="294" y="176" width="46" height="46"/><rect x="352" y="176" width="46" height="46"/><rect x="410" y="176" width="46" height="46"/><rect x="120" y="234" width="46" height="46"/><rect x="178" y="234" width="46" height="46"/><rect x="236" y="234" width="46" height="46"/><rect x="294" y="234" width="46" height="46"/><rect x="352" y="234" width="46" height="46"/><rect x="410" y="234" width="46" height="46"/></g>
+    <path d="M48 196 L118 156 L190 196 V278 H48Z" fill="#8b6a48"/>
+    <text x="34" y="54" font-size="28" font-family="Microsoft YaHei, serif" font-weight="800" fill="#17231d">荒废洞天初始</text>
+    </svg>

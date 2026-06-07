@@ -1,0 +1,13 @@
+gate_id,phase,requirement,evidence_source,pass_condition,owner,priority,note
+rrg_001,立项,产品定位和商业模式明确,完整版商业化GDD|Steam商店页文案草案,团队能用一句话说明产品,producer,P0,Steam买断制单机
+rrg_002,立项,核心差异化明确,最终交付总览|玩法丰富度与正反馈审计,能清楚说明作物成精到精怪工坊链条,designer,P0,营销和研发共用
+rrg_003,原型,最小核心循环跑通,开发实现路线与验收门禁,种植收获加工售卖修复可闭环,program,P0,0到8周目标
+rrg_004,原型,成精卖点可玩,前3小时体验正反馈表,30分钟内触发萝卜精入队,design,P0,Demo留存关键
+rrg_005,垂直切片,前3小时体验完整,early_reward_pacing.csv,关键节点30 60 120 180分钟全部出现,producer,P0,切片主验收
+rrg_006,垂直切片,店铺反馈可读,店铺顾客反馈文案与诊断表,玩家能复述顾客买或不买原因,ui_design,P0,避免经营黑箱
+rrg_007,Demo,公开试玩稳定,Demo QA checklist,2小时试玩无阻断崩溃,qa,P0,进入商店页转化前
+rrg_008,Alpha,四章主线可通关,主线对白稿|任务触发器与剧情事件表,新开档到终章可完整通关,narrative,P0,内容完整性
+rrg_009,Alpha,主线后目标可追,第二年目标册UI与规则设计|year2_goal_book_rule.csv|freeplay_goal.csv|rare_spirit_event_action.csv,通关后至少10小时有明确目标,system_design,P1,后期留存
+rrg_010,Beta,首发内容无占位,最终交付总览|全量配置表结构总册,首发范围内无TODO占位,producer,P0,上线前门禁
+rrg_011,Release,商店素材实机化,Steam素材生产计划,截图和PV均来自实机,marketing,P0,发行硬门槛
+rrg_012,Release,平台和法务确认,Steam首发发行交付清单,成就云存档授权本地化均确认,producer,P0,最终发布门槛

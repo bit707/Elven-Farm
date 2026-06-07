@@ -1,0 +1,32 @@
+{
+  "name": "xiannong-dongtian-steam-slice",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Playable Steam vertical-slice prototype for 仙农洞天：精怪工坊.",
+  "type": "module",
+  "scripts": {
+    "start": "node tools/dev-server.mjs",
+    "verify": "node tools/verify.mjs",
+    "qa:smoke": "node tools/smoke-longrun.mjs",
+    "qa:manual-template": "node tools/generate-manual-qa-evidence.mjs",
+    "capture:final-template": "node tools/generate-final-capture-evidence.mjs",
+    "release:legal-template": "node tools/generate-platform-legal-evidence.mjs",
+    "assets:generate": "node tools/generate-assets.mjs",
+    "evidence:qa": "node tools/generate-qa-evidence.mjs",
+    "steam:preflight": "node tools/steam-preflight.mjs",
+    "windows:preflight": "node tools/windows-preflight.mjs",
+    "package:demo": "node tools/package-demo.mjs",
+    "package:standalone": "node tools/package-standalone.mjs",
+    "package:desktop-shell": "node tools/package-desktop-shell.mjs",
+    "package:windows": "node tools/package-windows-staging.mjs",
+    "package:steam-rc": "node tools/package-steam-rc.mjs",
+    "package:steam-depot": "node tools/package-steam-depot.mjs"
+  },
+  "keywords": [
+    "farming",
+    "life-sim",
+    "steam",
+    "vertical-slice"
+  ],
+  "license": "UNLICENSED"
+}

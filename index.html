@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>仙农洞天：精怪工坊</title>
+    <link rel="stylesheet" href="src/styles.css" />
+  </head>
+  <body>
+    <main id="app" class="game-shell">
+      <section class="stage" aria-label="洞天农场">
+        <div class="skyline">
+          <div>
+            <p class="eyebrow">Steam Vertical Slice · P0</p>
+            <h1>仙农洞天：精怪工坊</h1>
+          </div>
+          <img class="capsule-art" src="assets/capsule-main.svg" alt="仙农洞天主胶囊图" />
+            <div class="calendar">
+              <span id="dayLabel">第 1 天</span>
+              <strong id="termLabel">立春</strong>
+              <em id="weatherLabel">晴</em>
+            </div>
+        </div>
+
+        <section id="demoGuidePanel" class="demo-guide-panel" aria-label="试玩导演提示">
+          <div>
+            <p class="eyebrow">Demo Director</p>
+            <h2 id="demoGuideTitle">先把第一块灵田点亮</h2>
+            <p id="demoGuideText">点击灵田后，从右侧按钮开始播种、浇水、入夜，先跑通第一天的收获节奏。</p>
+            <div id="demoGuideFirstSteps" class="demo-guide-first-steps" aria-label="新手前三步理解卡"></div>
+            <div id="demoGuideRevival" class="demo-guide-revival" aria-label="洞天复苏总览"></div>
+          </div>
+          <div class="demo-guide-actions">
+            <strong id="demoGuideProgress" class="demo-guide-progress">核心循环 0/7</strong>
+            <button id="demoGuideActionButton" type="button">执行下一步</button>
+          </div>
+        </section>
+
+        <div class="world-layout">
+          <canvas id="world" width="960" height="640" aria-label="可操作洞天场景"></canvas>
+          <aside class="side-panel" aria-label="经营面板">
+            <div class="resource-strip">
+              <span>灵石 <strong id="goldValue">80</strong></span>
+              <span>体力 <strong id="staminaValue">100</strong></span>
+              <span>声望 <strong id="fameValue">0</strong></span>
+            </div>
+
+            <div class="meta-actions">
+              <button id="saveButton" type="button">存档</button>
+              <button id="loadButton" type="button">读档</button>
+              <button id="newGameButton" type="button">新开档</button>
+            </div>
+
+            <div class="settings-panel">
+              <div class="setting-row">
+                <label for="masterVolume">音量</label>
+                <input id="masterVolume" type="range" min="0" max="100" value="70" />
+              </div>
+              <div id="audioBusControls" class="audio-bus-controls" aria-label="音频总线混音"></div>
+              <label class="toggle-row">
+                <input id="reducedMotionToggle" type="checkbox" />
+                <span>减少动态</span>
+              </label>
+              <label class="toggle-row">
+                <input id="controllerHintsToggle" type="checkbox" checked />
+                <span>手柄提示</span>
+              </label>
+            </div>
+
+            <div class="shop-control-panel">
+              <label class="setting-row" for="seedSelect">
+                <span>当前种子</span>
+                <select id="seedSelect"></select>
+              </label>
+              <div class="seed-restock-row">
+                <button id="buySeedButton" type="button">补种子</button>
+                <small id="seedRestockHint">库存 -- · 单价 --</small>
+              </div>
+              <div id="selectedPlotCard" class="selected-plot-card" aria-live="polite"></div>
+              <label class="setting-row" for="recipeSelect">
+                <span>当前配方</span>
+                <select id="recipeSelect"></select>
+              </label>
+              <div id="recipeCraftPreview" class="recipe-craft-preview" aria-live="polite"></div>
+              <div class="setting-row">
+                <label for="shopPriceMultiplier">店铺倍率</label>
+                <input id="shopPriceMultiplier" type="range" min="70" max="140" value="100" />
+              </div>
+              <label class="setting-row" for="shopShelfTheme">
+                <span>货架主题</span>
+                <select id="shopShelfTheme"></select>
+              </label>
+              <div id="shopTrialPreview" class="shop-trial-preview" aria-live="polite"></div>
+            </div>
+
+            <div class="action-grid">
+              <button id="clearButton" type="button">清理</button>
+              <button id="plantButton" type="button">播种</button>
+              <button id="waterButton" type="button">浇水</button>
+              <button id="harvestButton" type="button">收获</button>
+              <button id="spiritButton" type="button">精怪协助</button>
+              <button id="craftButton" type="button">加工</button>
+              <button id="shopButton" type="button">开铺</button>
+              <button id="repairButton" type="button">修复灵渠</button>
+              <button id="sleepButton" type="button">入夜结算</button>
+            </div>
+
+            <div class="capture-actions">
+              <button id="captureStartButton" type="button">截图：荒废洞天</button>
+              <button id="captureSpiritButton" type="button">截图：精怪浇水</button>
+              <button id="captureShopButton" type="button">截图：旧铺经营</button>
+              <button id="captureTermButton" type="button">截图：节气影响</button>
+              <button id="exportPngButton" type="button">导出当前 PNG</button>
+            </div>
+
+            <section class="panel-section">
+              <h2>背包</h2>
+              <div id="inventoryList" class="inventory-list"></div>
+            </section>
+
+            <section class="panel-section">
+              <h2>精怪</h2>
+              <div id="spiritList" class="spirit-list"></div>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <nav id="panelGroupTabs" class="panel-group-tabs" aria-label="底部信息面板分组"></nav>
+
+      <section class="lower-band">
+        <div class="story-column">
+          <h2>主线片段</h2>
+          <div id="storyPanel" class="story-panel"></div>
+        </div>
+        <div class="mission-column">
+          <h2>Demo 主线</h2>
+          <div id="missionPanel" class="mission-panel"></div>
+        </div>
+        <div class="quest-column">
+          <h2>当前目标</h2>
+          <ol id="questList" class="quest-list"></ol>
+        </div>
+        <div class="day-summary-column">
+          <h2>日终总结</h2>
+          <div id="daySummaryPanel" class="day-summary-panel"></div>
+        </div>
+        <div class="goal-column">
+          <h2>目标册与留存钩子</h2>
+          <div id="goalBookPanel" class="goal-book-panel"></div>
+        </div>
+        <div class="order-column">
+          <h2>订单板</h2>
+          <div id="orderPanel" class="order-panel"></div>
+        </div>
+        <div class="log-column">
+          <h2>洞天日志</h2>
+          <div id="eventLog" class="event-log"></div>
+        </div>
+        <div class="shop-column">
+          <h2>旧铺反馈</h2>
+          <div id="shopReport" class="shop-report"></div>
+        </div>
+        <div class="dialogue-column">
+          <h2>NPC 对话</h2>
+          <div id="dialoguePanel" class="dialogue-panel"></div>
+        </div>
+        <div class="cutscene-column">
+          <h2>剧情演出</h2>
+          <div id="cutscenePanel" class="cutscene-panel"></div>
+        </div>
+        <div class="relationship-column">
+          <h2>凡仙镇关系</h2>
+          <div id="relationshipPanel" class="relationship-panel"></div>
+        </div>
+        <div class="final-support-column">
+          <h2>终章支援</h2>
+          <div id="finalSupportPanel" class="final-support-panel"></div>
+        </div>
+        <div class="release-column">
+          <h2>发布检查</h2>
+          <div id="releasePanel" class="release-panel"></div>
+        </div>
+        <div class="platform-column">
+          <h2>Steamworks 平台</h2>
+          <div id="platformPanel" class="platform-panel"></div>
+        </div>
+        <div class="achievement-column">
+          <h2>Steam 成就</h2>
+          <div id="achievementPanel" class="achievement-panel"></div>
+        </div>
+        <div class="acceptance-column">
+          <h2>验收中心</h2>
+          <div id="acceptancePanel" class="acceptance-panel"></div>
+        </div>
+        <div class="save-schema-column">
+          <h2>存档管线</h2>
+          <div id="saveSchemaPanel" class="save-schema-panel"></div>
+        </div>
+        <div class="localization-column">
+          <h2>本地化 QA</h2>
+          <div id="localizationPanel" class="localization-panel"></div>
+        </div>
+        <div class="community-column">
+          <h2>社区宣发</h2>
+          <div id="communityPanel" class="community-panel"></div>
+        </div>
+        <div class="condition-column">
+          <h2>条件系统</h2>
+          <div id="conditionPanel" class="condition-panel"></div>
+        </div>
+        <div class="term-column">
+          <h2>节气影响</h2>
+          <div id="termPanel" class="term-panel"></div>
+        </div>
+        <div class="solar-trial-column">
+          <h2>第二年节气试炼</h2>
+          <div id="solarTrialPanel" class="solar-trial-panel"></div>
+        </div>
+        <div class="risk-column">
+          <h2>节气风险</h2>
+          <div id="riskPanel" class="risk-panel"></div>
+        </div>
+        <div class="dungeon-column">
+          <h2>秘境探索</h2>
+          <div id="dungeonPanel" class="dungeon-panel"></div>
+        </div>
+        <div class="build-column">
+          <h2>洞天建设</h2>
+          <div id="buildPanel" class="build-panel"></div>
+        </div>
+        <div class="asset-column">
+          <h2>Steam 素材预览</h2>
+          <div id="assetPanel" class="asset-panel"></div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="src/game.js"></script>
+  </body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "name": "xiannong-dongtian-desktop-shell",
+  "version": "0.8.0-desktop-shell",
+  "private": true,
+  "description": "Electron desktop shell staging for 仙农洞天：精怪工坊.",
+  "type": "module",
+  "main": "desktop-shell/main.mjs",
+  "scripts": {
+    "start": "electron desktop-shell/main.mjs",
+    "package:win": "electron-builder --win --x64"
+  },
+  "devDependencies": {
+    "electron": "REPLACE_WITH_APPROVED_VERSION",
+    "electron-builder": "REPLACE_WITH_APPROVED_VERSION"
+  },
+  "build": {
+    "appId": "com.xiannong.dongtian",
+    "productName": "仙农洞天：精怪工坊",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "desktop-shell/**",
+      "standalone-offline/**",
+      "PROJECT_CONTEXT.md",
+      "README_GAME.md"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "artifactName": "XiannongDongtian-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

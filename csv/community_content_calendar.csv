@@ -1,0 +1,9 @@
+calendar_id,phase,week_offset,content_theme,format,source_doc,target_channel,primary_asset,cta,owner,note
+comm_preannounce_w1,pre_announce,-12,节气种田差异化,devlog,完整版商业化GDD,steam_news|bilibili,term_system_gif,add_wishlist,publishing,first systems reveal
+comm_preannounce_w3,pre_announce,-10,第一只精怪成精,short_video,10条精怪线详细设计表,douyin|bilibili,spirit_birth_clip,add_wishlist,publishing,spirit hook
+comm_demo_w1,demo_ramp,-6,前店后厂循环,feature_clip,核心玩法PV分镜脚本,steam|youtube,shop_workshop_clip,download_demo,publishing,demo leadup
+comm_demo_w3,demo_ramp,-4,顾客标签与名铺经营,devlog,顾客标签扩展与支线过场细化,steam_news,customer_tag_infographic,download_demo,publishing,shop depth
+comm_demo_w5,demo_ramp,-2,Demo怎么玩,guide_post,Steam首发发行交付清单,steam_news|discord,demo_route_card,download_demo,publishing,demo guide
+comm_festival_w1,festival,0,冬至宴灯试,short_video,精怪长期养成与后主线自由游玩设计,douyin|bilibili,year2_trial_clip,add_wishlist,publishing,festival content
+comm_launch_w1,launch,0,完整首发内容,launch_trailer,Steam商店页文案草案,steam|youtube,feature_trailer_v1,buy_now,publishing,launch beat
+comm_postlaunch_w2,post_launch,2,第二年自由游玩,devlog,第二年与后日谈内容设计,steam_news,year2_freeplay_graph,review_prompt,publishing,post launch retention

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="256" viewBox="0 0 512 256" role="img">
+    <rect width="512" height="256" rx="24" fill="#f7f0d8"/>
+    <path d="M56 66 H456 V196 H56Z" fill="#8b6a48" stroke="#583f30" stroke-width="12"/>
+    <path d="M88 98 H424 V164 H88Z" fill="#fff8e8"/>
+    <text x="142" y="144" font-size="44" font-family="Microsoft YaHei, serif" font-weight="800" fill="#286f58">洞天旧铺</text>
+    <circle cx="92" cy="68" r="18" fill="#c88b37"/>
+    <circle cx="420" cy="68" r="18" fill="#c88b37"/>
+    </svg>

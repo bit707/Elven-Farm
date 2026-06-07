@@ -1,0 +1,12 @@
+archetype_id,display_name_key,unlock_condition_group,base_budget,patience_sec,bargain_rate,preferred_tags,avoided_tags,price_sensitivity,service_expectation,arrival_windows,note
+villager,customer_arch_villager,always_true,120,55,0.35,fresh_food|medicine|low_price,luxury|low_quality,0.85,0.45,morning|noon,stable daily customer
+child,customer_arch_child,always_true,70,40,0.15,dessert|low_price|fresh_food,medicine|ritual,0.90,0.35,noon|evening,life flavor customer
+rogue_cultivator,customer_arch_rogue,chapter_1_bridge_complete,260,45,0.25,portable_supply|recover_sp|medicine,decor|low_quality,0.60,0.55,noon|night,exploration customer
+healer,customer_arch_healer,npc_baizhi_favor_2,340,60,0.10,medicine|herb|warming,spoiled|low_quality,0.45,0.70,morning|evening,clinic linked customer
+crafter,customer_arch_crafter,chapter_2_or_more,320,50,0.20,material|cooling|workshop_supply,dessert,0.55,0.55,noon,workshop linked customer
+trader,customer_arch_trader,shop_reputation_200,520,45,0.40,route_rare|portable_supply|premium_luxury,cheap|low_quality,0.40,0.65,noon|evening,trade route customer
+guest,customer_arch_guest,chapter_3_or_more,720,65,0.05,festival_gift|premium_luxury|dessert,low_quality|cheap,0.25,0.85,evening,high value guest
+faction,customer_arch_faction,chapter_3_or_more,980,70,0.05,batch_standard|ritual|medicine,low_quality|unstable_supply,0.20,0.90,morning|noon,bulk procurement
+pilgrim,customer_arch_pilgrim,quest_main_0403_complete,420,70,0.10,ritual|ecology_product|spirit_crafted,low_quality,0.45,0.75,morning|evening,post story cultural customer
+collector,customer_arch_collector,quest_main_0403_complete,880,80,0.00,route_rare|spirit_crafted|ecology_product,common_crop|low_quality,0.18,0.95,evening|night,post story rare goods customer
+waterway_broker,customer_arch_waterway_broker,qinghe_lotus_basin_followup_order_done,560,58,0.18,water_food|drink|route_rare|clean_food|cooling,stale|unstable_supply,0.42,0.78,noon|evening,Lianze waterway buyer unlocked by Qinghe familiar route

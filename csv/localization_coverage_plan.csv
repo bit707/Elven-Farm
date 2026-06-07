@@ -1,0 +1,13 @@
+coverage_id,content_area,source_table,key_pattern,language,priority,owner,coverage_target,qa_method,note
+loc_ui_core,ui,localization_text,ui_*,zh_cn,P0,ui_writer,100,key_scan|overflow_check,core ui text
+loc_item_names,system,item_base,item_name_*,zh_cn,P0,system_writer,100,key_scan,all item names
+loc_item_desc,system,item_base,desc_*,zh_cn,P0,system_writer,95,key_scan,all item descriptions
+loc_spirit_names,system,spirit_base,spirit_name_*,zh_cn,P0,narrative,100,key_scan,all spirit names
+loc_skill_names,system,spirit_skill,skill_name_*,zh_cn,P1,system_writer,90,key_scan,spirit skill names
+loc_main_dialogue,narrative,dialogue_group|localization_text,dialogue_main_*,zh_cn,P0,narrative,100,playthrough_check,main story dialogue
+loc_side_subtitle,narrative,side_quest_cutscene_beat,subtitle_side_*,zh_cn,P1,narrative,95,cutscene_check,side quest subtitles
+loc_final_support,narrative,final_support_stage,toast_support_*,zh_cn,P0,narrative,100,finale_check,final support toasts
+loc_cutscene_audio,narrative,cutscene_asset_manifest,subtitle_*|ui_ending_*,zh_cn,P0,narrative,100,cutscene_check,cutscene subtitle keys
+loc_steam_store,marketing,steam_asset_production_plan,steam_*,zh_cn,P0,publishing,100,store_copy_review,steam store copy
+loc_en_store,marketing,steam_asset_production_plan,steam_*,en_us,P1,publishing,80,native_review,english store copy
+loc_jp_store,marketing,steam_asset_production_plan,steam_*,ja_jp,P2,publishing,50,native_review,japanese store prep

@@ -1,0 +1,10 @@
+npc_id,npc_name_key,npc_role,favor_max_level,unlock_chapter,home_area_id,gift_like_tags,gift_dislike_tags,portrait_id,model_id,dialogue_group_default
+npc_xubo,npc_name_xubo,mayor,5,0,area_town_hall,"staple|tea|practical","waste|luxury",portrait_xubo,model_npc_xubo,dialogue_xubo_default
+npc_zhang_tieshan,npc_name_zhang_tieshan,blacksmith,5,0,area_blacksmith,"metal|food_hot|ore","flowers|sweet",portrait_zhang,model_npc_zhang,dialogue_zhang_default
+npc_baizhi,npc_name_baizhi,healer,5,0,area_clinic,"herb|tea|clean_food","greasy|spoiled",portrait_baizhi,model_npc_baizhi,dialogue_baizhi_default
+npc_lu_sanxiao,npc_name_lu_sanxiao,storyteller,5,1,area_teahouse,"tea|book|gift_refined","ore|raw_meat",portrait_lu,model_npc_lu,dialogue_lu_default
+npc_hu_sihai,npc_name_hu_sihai,merchant,5,2,area_market_guest,"drink|rare_goods|portable_food","cheap_junk|spoiled",portrait_hu,model_npc_hu,dialogue_hu_default
+npc_atan,npc_name_atan,carpenter,5,2,area_carpenter,"wood|cloth|warm_food","raw_ore|bitter",portrait_atan,model_npc_atan,dialogue_atan_default
+npc_qinghe,npc_name_qinghe,fisher,5,2,area_riverbank,"fish|water_food|cool_drink","dry_food|smoke",portrait_qinghe,model_npc_qinghe,dialogue_qinghe_default
+npc_shen_gudeng,npc_name_shen_gudeng,swordsman,5,2,area_guest_inn,"battle_food|strong_drink|medicines","sweet|decor",portrait_shen,model_npc_shen,dialogue_shen_default
+npc_system,npc_name_system,system,0,0,area_none,"","",portrait_none,model_none,dialogue_system_default

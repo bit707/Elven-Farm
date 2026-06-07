@@ -1,0 +1,11 @@
+backlog_id,priority,area,issue,improvement,deliverable,success_metric,owner,note
+improve_001,P0,early_retention,前30分钟最大卖点出现略晚,压缩第一次成精预告和正式入队节奏,前3小时体验正反馈表,30分钟内看到作物成精,design,Demo留存关键
+improve_002,P0,reward_pacing,正反馈种类足但节奏未独立校验,建立每1/5/15/30/60分钟奖励检查表,前3小时体验正反馈表,每15分钟至少1个明确反馈,design,避免前期平淡
+improve_003,P0,automation_feedback,中期自动化可能只表现为后台数值,补精怪岗位动作和工坊流水线视觉反馈,中期自动化表现清单,玩家能看见精怪实际工作,art_design,核心爽点显性化
+improve_004,P1,year2_clarity,第二年系统丰富但目标可能分散,新增第二年目标册UI和推荐目标规则,第二年目标册UI与规则设计,玩家每天能看到3到5个推荐目标,ui_design,通关后留存
+improve_005,P1,rare_spirit_identity,稀有精怪系统定位强但个体表现不足,补初见/进化/满羁绊事件和专属动作,稀有精怪事件与动作清单,每条稀有线至少3事件1动作,narrative,增强情感绑定
+improve_006,P1,shop_readability,顾客标签逻辑较深但玩家可能看不懂,补顾客想法泡泡和日结诊断文案,店铺顾客反馈文案与诊断表,玩家能解释热卖/差评原因,system_design,提升经营学习
+improve_007,P1,failure_feedback,失败反馈需要更温和更有学习性,订单/远征/店铺/Boss失败给原因和补偿,失败补偿与学习反馈表,失败后仍获得线索或部分收益,design,降低挫败
+improve_008,P2,dungeon_identity,秘境相比种田店铺辨识度偏弱,每个秘境绑定节气机制和精怪解法,秘境节气机制差异化设计,每个秘境至少1个节气机制1个精怪解法,level_design,提升探索记忆点
+improve_009,P2,ui_pressure,后期系统多可能造成UI压力,按推荐目标/异常状态/自然语言诊断整理界面,后期UI信息减压方案,关键页面首屏不超过5个强提示,ui_design,避免信息过载
+improve_010,P2,market_validation,商店页卖点需要实机验证,用截图脚本验证愿望单素材表达,实机素材验证清单,每张截图对应一个可读卖点,publishing,发行转化

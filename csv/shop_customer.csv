@@ -1,0 +1,12 @@
+customer_id,customer_name_key,archetype,budget_min,budget_max,price_sensitive,quality_sensitive,preferred_tags,disliked_tags,revisit_base,fame_requirement,portrait_pool
+customer_villager,customer_name_villager,villager,20,180,0.90,0.20,"staple|food|cheap","luxury|overpriced",0.55,0,portrait_pool_villager
+customer_rogue,customer_name_rogue,rogue_cultivator,40,260,0.70,0.35,"medicine|recover_sp|recover_hp","decor|cloth",0.45,0,portrait_pool_rogue
+customer_healer,customer_name_healer,healer,80,420,0.40,0.75,"medicine|herb|clean_food","spoiled|junk",0.42,1,portrait_pool_healer
+customer_crafter,customer_name_crafter,crafter,60,360,0.55,0.45,"metal|material|wood","dessert|flowers",0.40,1,portrait_pool_crafter
+customer_trader,customer_name_trader,trader,120,650,0.60,0.60,"portable_food|rare_goods|drink","cheap_crop",0.35,2,portrait_pool_trader
+customer_guest,customer_name_guest,guest,180,900,0.25,0.90,"premium|gift|festival|dessert","stale|cheap",0.30,3,portrait_pool_guest
+customer_faction,customer_name_faction,faction,300,2000,0.20,0.95,"premium|ritual|medicine|batch","common_crop|low_quality",0.20,4,portrait_pool_faction
+customer_child,customer_name_child,child,10,90,0.92,0.15,"dessert|low_price|fresh_food","medicine|ritual",0.60,0,portrait_pool_child
+customer_pilgrim,customer_name_pilgrim,pilgrim,90,520,0.45,0.70,"ritual|ecology_product|spirit_crafted","low_quality",0.38,4,portrait_pool_pilgrim
+customer_collector,customer_name_collector,collector,260,1200,0.18,0.95,"route_rare|spirit_crafted|ecology_product","common_crop|low_quality",0.22,5,portrait_pool_collector
+customer_waterway_broker,customer_name_waterway_broker,waterway_broker,160,760,0.48,0.72,"water_food|drink|route_rare|fresh_food|portable_food","stale|low_quality",0.44,6,portrait_pool_trader

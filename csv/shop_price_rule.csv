@@ -1,0 +1,9 @@
+price_rule_id,customer_archetype,order_type,base_markup_min,base_markup_max,quality_markup_rate,freshness_markup_rate,bundle_bonus_rate,festival_bonus_rate,term_bonus_tag,penalty_overprice_threshold,penalty_rate,recommended_stage,note
+price_rule_villager_daily,villager,normal,-0.05,0.12,0.04,0.05,0.03,0.00,staple,0.15,0.35,early,镇民适合薄利多销
+price_rule_rogue_recovery,rogue_cultivator,normal,0.00,0.18,0.06,0.03,0.04,0.00,recover,0.18,0.28,early_mid,散修接受适度溢价但重视实用
+price_rule_healer_clean,healer,quality,0.08,0.24,0.12,0.02,0.00,0.00,herb,0.12,0.40,mid,医修愿为高品质与洁净度付费
+price_rule_crafter_material,crafter,combo,0.02,0.20,0.08,0.01,0.05,0.00,material,0.16,0.30,mid,匠师更在意材料稳定和成套
+price_rule_trader_margin,trader,faction,0.05,0.22,0.10,0.02,0.06,0.00,portable,0.14,0.45,mid_late,商贩会按转卖利润反向压价
+price_rule_guest_premium,guest,combo,0.12,0.35,0.16,0.04,0.08,0.10,gift,0.20,0.22,late,贵客可接受高溢价但要求 presentation
+price_rule_faction_batch,faction,faction,0.18,0.30,0.18,0.01,0.10,0.00,ritual,0.10,0.55,late,门派订单高客单但对溢价容忍低
+price_rule_relief_disaster,villager,disaster,-0.10,0.05,0.00,0.00,0.00,0.00,relief,0.08,0.60,chapter4,灾时不鼓励高价，超阈值重罚口碑

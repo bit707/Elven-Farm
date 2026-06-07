@@ -1,0 +1,16 @@
+audio_id,audio_type,bus_id,asset_name,usage_context,loop,priority,trigger_ref,subtitle_key,owner,note
+audio_farm_morning_bgm,bgm,bus_bgm,bgm_farm_morning,daily_farm,true,P0,on_day_start,,audio,core daily bgm
+audio_town_shop_bgm,bgm,bus_bgm,bgm_town_shop,shop_open,true,P0,on_shop_open,,audio,shop bgm
+audio_spirit_birth,stinger,bus_sfx,stinger_spirit_birth,first_spirit_birth,false,P0,first_spirit_birth,dialogue_main_0003_spirit,audio,first spirit birth
+audio_term_change,stinger,bus_sfx,stinger_term_change,solar_term_change,false,P0,on_term_change,ui_hint_term_change,audio,term change cue
+audio_water_rise,sfx,bus_sfx,sfx_water_rise,waterline_cutscene,false,P0,cutscene_final_array_build,,audio,water rise
+audio_boss_mingmu_ambience,ambience,bus_ambience,amb_boss_mingmu_nest,boss_intro,true,P0,cutscene_boss_mingmu_intro,,audio,boss ambience
+audio_boss_mingmu_reveal,stinger,bus_sfx,stinger_boss_reveal,boss_intro,false,P0,cutscene_boss_mingmu_intro,dialogue_boss_hint_mingmu,audio,boss reveal
+audio_banquet_open,bgm,bus_bgm,bgm_final_banquet,final_banquet,true,P1,cutscene_final_banquet,,audio,banquet bgm
+audio_pantao_glow,stinger,bus_sfx,stinger_pantao_glow,final_banquet,false,P1,cutscene_final_banquet,subtitle_final_banquet_02,audio,pantao glow
+audio_npc_theme_mix,bgm,bus_bgm,bgm_npc_theme_mix,final_banquet,true,P1,cutscene_final_banquet,subtitle_final_banquet_03,audio,npc ensemble theme
+audio_spirit_cheer,sfx,bus_sfx,sfx_spirit_group_cheer,final_banquet,false,P1,cutscene_final_banquet,,audio,spirit cheer
+audio_water_return,sfx,bus_ambience,sfx_water_return,final_banquet,false,P1,cutscene_final_banquet,subtitle_final_banquet_05,audio,water return
+audio_coin_soft,sfx,bus_sfx,sfx_coin_soft,pricing_tutorial,false,P0,side_map_0201_01,subtitle_side_0201_beat_01,audio,pricing sfx
+audio_clinic_bell_low,sfx,bus_sfx,sfx_clinic_bell_low,clinic_sidequest,false,P1,side_map_0103_01,subtitle_side_0103_beat_01,audio,clinic bell
+audio_ui_unlock,ui,bus_ui,ui_unlock_chime,unlock_panel,false,P0,open_ending_menu,ui_ending_unlocks,audio,unlock ui

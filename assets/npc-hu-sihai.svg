@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="胡四海头像">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f0c36e"/><stop offset="1" stop-color="#b47d2f"/></linearGradient></defs>
+  <rect width="160" height="160" rx="34" fill="url(#bg)"/>
+  <circle cx="80" cy="65" r="31" fill="#ffd6a5"/>
+  <path d="M43 139c7-31 23-48 37-48s30 17 37 48z" fill="#8f5f3f"/>
+  <path d="M50 56c13-23 47-24 60 0-18-8-40-8-60 0z" fill="#433027"/>
+  <circle cx="120" cy="103" r="16" fill="#fff0d4"/>
+  <path d="M113 103h14M120 96v14" stroke="#b47d2f" stroke-width="4" stroke-linecap="round"/>
+  <text x="80" y="146" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="18" font-weight="800" fill="#fffdf5">商</text>
+</svg>

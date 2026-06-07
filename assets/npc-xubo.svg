@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="许伯头像">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ede3c7"/><stop offset="1" stop-color="#caa56b"/></linearGradient></defs>
+  <rect width="160" height="160" rx="34" fill="url(#bg)"/>
+  <circle cx="80" cy="66" r="34" fill="#fff0d4"/>
+  <path d="M44 138c5-31 22-47 36-47s31 16 36 47z" fill="#5d6f65"/>
+  <path d="M51 62c9-28 50-33 61 0-18-9-39-9-61 0z" fill="#6f6049"/>
+  <path d="M63 79c10 9 24 9 34 0" fill="none" stroke="#8f5f3f" stroke-width="4" stroke-linecap="round"/>
+  <path d="M45 118h70" stroke="#e0b66d" stroke-width="7" stroke-linecap="round"/>
+  <text x="80" y="146" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="18" font-weight="800" fill="#fffdf5">许</text>
+</svg>

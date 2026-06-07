@@ -1,0 +1,90 @@
+condition_group_id,expression,usage_hint,priority,note
+always_true,true,global_default,0,always valid
+weed_count_6,count(item_weed)>=6,quest_step_main_0001,100,prologue cleanup
+first_bailuobo_harvest,first_harvest(crop_lingqi_bailuobo),event_main_0003,100,first crop harvest cutscene
+day_2_or_more,player_day>=2,event_main_0004,90,town unlock
+has_first_harvest,"has_item(item_crop_lingqi_bailuobo,1)",event_main_0005,95,first spirit birth prerequisite
+first_bailuobo_tang_crafted,"has_item(item_food_bailuobo_tang,1)",order_demo_0001,96,first processed food unlocks Xubo demo order
+first_lingqin_dish_crafted,flag(first_lingqin_dish_crafted)==true,order_demo_0002,96,first canal dish unlocks Qinghe demo order
+qingbo_water_fresh_signature_line,flag(qingbo_water_fresh_signature_line)==true,recipe_lingchi_sanxian_geng,82,Qingbo water-fresh signature unlocks the second pond menu dish
+lingchi_water_fresh_regulars,flag(lingchi_water_fresh_regulars)==true,order_qinghe_water_fresh_return_0001,84,Lingchi water-fresh regulars unlock Qinghe's return order
+qinghe_water_fresh_return_order_done,flag(qinghe_water_fresh_return_order_done)==true,year2_qinghe_waterway_ready,83,Qinghe return order finishes the water-fresh bridge toward year-two waterway orders
+year2_qinghe_waterway_ready,"all_of(npc_qinghe_favor_5,qinghe_water_fresh_return_order_done)",order_year2_water_0001,78,Qinghe year-two waterway order requires favor and the water-fresh return-order payoff
+qinghe_lotus_basin_route_ready,"all_of(npc_qinghe_favor_5,qinghe_year2_waterway_order_done)",route_lotus_basin_03,76,Lianze waterway trade route opens after Qinghe's year-two waterway order is delivered
+qinghe_lotus_basin_trade_return,flag(qinghe_lotus_basin_trade_return)==true,dialogue_qinghe_lotus_basin_return,74,Qinghe comments when the Lianze waterway route returns for the first time
+qinghe_lotus_basin_followup_order_ready,flag(qinghe_lotus_basin_trade_return)==true,order_year2_water_0002,73,Lianze familiar-route return unlocks Qinghe's follow-up waterway order
+quest_main_0101_active,quest_state(quest_main_0101_lingjing_huisheng)==active,event_main_0102,100,well repair line
+quest_main_0102_active,quest_state(quest_main_0102_tonghuo_chuming)==active,event_main_0103,100,jingzhe pest line
+quest_main_0102_step_1_done,quest_step_done(step_main_0102_01),event_main_0104,100,copper tool unlock
+quest_main_0103_ready_submit,quest_state(quest_main_0103_duanqiao_jiumu)==ready_submit,event_main_0106,100,bridge completion
+quest_main_0201_active,quest_state(quest_main_0201_jiupu_kaimen)==active,event_main_0202,100,shop tutorial
+quest_main_0201_step_2_done,quest_step_done(step_main_0201_02),event_main_0203,100,hu sihai arrival
+quest_main_0202_active,quest_state(quest_main_0202_baizhi_zhiqiu)==active,event_main_0205,100,baizhi herb request
+chapter_3_entry_ready,flag(baizhi_chapter_2_finish)==true,event_main_0301,100,spirit manor chapter entry
+quest_main_0301_active,quest_state(quest_main_0301_baiguai_youyuan)==active,event_main_0303,100,spirit manor build
+spirit_manor_overview_unlocked,flag(spirit_manor_overview_unlocked)==true,event_main_0302,100,spirit manor built and overview unlocked
+chapter_3_trade_started,flag(chapter_3_trade_started)==true,order_faction_0001,100,first faction order visible
+faction_order_first_delivered,flag(order_faction_0001_delivered)==true,event_main_0305,100,first faction order delivered
+fire_ruin_unlocked,flag(fire_ruin_unlocked)==true,dungeon_area_fire_ruin,100,fire ruin unlocked from faction order
+quest_main_0302_active,quest_state(quest_main_0302_shanghui_laike)==active,event_main_0306,100,fire ruin access
+chapter_3_complete,boss_defeated(boss_chiyan_xiehou),event_main_0401,100,drought starts after fire ruin closure
+world_state_drought,flag(world_state_drought)==true,order_disaster_0001,100,drought relief order visible
+drought_relief_order_delivered,flag(order_disaster_0001_delivered)==true,event_main_0402,100,drought relief order delivered
+quest_main_0401_complete,quest_state(quest_main_0401_jiuyao_dahan)==complete,event_main_0402,100,drought relief supplies ready
+quest_main_0402_active,quest_state(quest_main_0402_ershisi_shu)==active,event_main_0404,100,final nest unlock
+quest_main_0403_active,quest_state(quest_main_0403_pantao_dayan)==active,event_main_0405,100,final boss line
+quest_main_0403_step_1_done,quest_step_done(step_main_0403_01),event_main_0406,100,final array build
+shop_reputation_200,shop_reputation>=200,event_shop_0003,80,shop lv2 unlock
+current_term_jingzhe,current_term==term_jingzhe,dialogue_term_jingzhe,70,term dialogue
+current_term_bailu,current_term==term_bailu,loot_pool_herb_common,65,dew reward window
+npc_xubo_favor_2,npc_favor_level(npc_xubo)>=2,dialogue_xubo_favor_2,60,old bridge story
+npc_xubo_favor_4,npc_favor_level(npc_xubo)>=4,dialogue_xubo_favor_4,60,public works trust
+npc_zhang_tieshan_favor_3,npc_favor_level(npc_zhang_tieshan)>=3,dialogue_zhang_favor_3,60,wind furnace gift
+npc_baizhi_favor_2,npc_favor_level(npc_baizhi)>=2,dialogue_baizhi_favor_2,60,herb request line
+npc_baizhi_favor_3,npc_favor_level(npc_baizhi)>=3,loot_pool_final_common,60,purify material support
+chapter_1_bridge_complete,quest_state(quest_main_0103_duanqiao_jiumu)==complete,dungeon_area_mine,80,mine open
+chapter_2_or_more,chapter_reached>=2,loot_pool_mid,50,midgame material gate
+chapter_3_or_more,chapter_reached>=3,loot_pool_fire_common,50,late material gate
+boss_chiyan_xiehou_defeated,boss_defeated(boss_chiyan_xiehou),loot_pool_fire_common,55,fire essence bonus
+fire_ruin_boss_defeated,boss_defeated(boss_chiyan_xiehou),event_main_0307,100,fire ruin chapter closure
+quest_main_0402_ready,"all_of(quest_main_0402_active,has_item(item_special_huojing,1),has_item(item_special_dinghai_shenzhu,1))",dungeon_area_final,100,final nest access after pivots and dinghai pearl
+first_spirit_birth,flag(first_spirit_birth)==true,dialogue_main_0003,80,first spirit born
+quest_main_0001_active,quest_state(quest_main_0001_luojiao_zhidi)==active,dialogue_main_0001,80,prologue active
+quest_main_0001_step_1_active,quest_step_state(step_main_0001_01)==active,dialogue_main_0002,80,prologue cottage active
+quest_main_0002_active,quest_state(quest_main_0002_fanxian_zhenlulai)==active,dialogue_xubo_quest_0002,80,town route active
+quest_main_0403_complete,quest_state(quest_main_0403_pantao_dayan)==complete,dialogue_final_banquet,80,final banquet complete
+npc_hu_sihai_favor_3,npc_favor_level(npc_hu_sihai)>=3,dialogue_hu_favor_3,60,faction sample reward
+npc_hu_sihai_favor_5,npc_favor_level(npc_hu_sihai)>=5,dialogue_hu_favor_5,60,final route support
+npc_atan_favor_4,npc_favor_level(npc_atan)>=4,dialogue_atan_favor_4,60,workbench completion
+npc_atan_favor_5,npc_favor_level(npc_atan)>=5,dialogue_atan_favor_5,60,spirit room and banquet prep
+npc_baizhi_favor_4,npc_favor_level(npc_baizhi)>=4,dialogue_baizhi_favor_4,60,night treatment line
+npc_baizhi_favor_5,npc_favor_level(npc_baizhi)>=5,dialogue_baizhi_favor_5,60,final clinic support
+npc_lu_sanxiao_favor_2,npc_favor_level(npc_lu_sanxiao)>=2,dialogue_lu_favor_2,60,market rumor payoff
+npc_lu_sanxiao_favor_4,npc_favor_level(npc_lu_sanxiao)>=4,dialogue_lu_favor_4,60,stela reveal
+npc_qinghe_favor_1,npc_favor_level(npc_qinghe)>=1,dialogue_qinghe_favor_1,60,pond intro
+npc_qinghe_favor_2,npc_favor_level(npc_qinghe)>=2,dialogue_qinghe_favor_2,60,canal restore
+npc_qinghe_favor_3,npc_favor_level(npc_qinghe)>=3,dialogue_qinghe_favor_3,60,water planting
+npc_qinghe_favor_4,npc_favor_level(npc_qinghe)>=4,dialogue_qinghe_favor_4,60,pond release
+npc_qinghe_favor_5,npc_favor_level(npc_qinghe)>=5,dialogue_qinghe_favor_5,60,final waterline
+npc_shen_gudeng_favor_4,npc_favor_level(npc_shen_gudeng)>=4,dialogue_shen_favor_4,60,training resolve
+npc_shen_gudeng_favor_5,npc_favor_level(npc_shen_gudeng)>=5,dialogue_shen_favor_5,60,final patrol support
+npc_xubo_favor_5,npc_favor_level(npc_xubo)>=5,dialogue_xubo_favor_5,60,final town mobilization
+npc_zhang_tieshan_favor_5,npc_favor_level(npc_zhang_tieshan)>=5,dialogue_zhang_favor_5,60,masterwork and final forge
+festival_summer_market,quest_state(quest_side_0205_qinghe_pond)==complete,festival_runtime,70,pond line permanently unlocks lotus market drink
+festival_winter_ritual,quest_state(quest_main_0403_pantao_dayan)==complete,festival_runtime,70,final banquet permanently unlocks winter feast recipes
+chapter_4,flag(world_state_drought)==true,recipe_runtime,85,chapter four recipes unlock once the drought chapter begins
+festival_winter_active,current_term==term_dongzhi,festival_runtime,70,winter festival window
+term_bailu_active,current_term==term_bailu,year2_term_runtime,65,bailu yearly event
+term_dongzhi_active,current_term==term_dongzhi,year2_term_runtime,65,dongzhi yearly event
+year2_start_unlocked,quest_state(quest_main_0403_pantao_dayan)==complete,year2_runtime,90,post story freeplay unlocked
+has_line_spirit_hualing,has_spirit_line(spirit_line_hualing),spirit_runtime,65,flower bell spirit unlocked
+has_line_spirit_leizhu,has_spirit_line(spirit_line_leizhu),spirit_runtime,65,thunder bamboo spirit unlocked
+has_line_spirit_yuelian,has_spirit_line(spirit_line_yuelian),spirit_runtime,65,moon lotus spirit unlocked
+has_line_spirit_dengying,has_spirit_line(spirit_line_dengying),spirit_runtime,65,lamp shadow spirit unlocked
+has_line_spirit_shuqi,has_spirit_line(spirit_line_shuqi),spirit_runtime,65,book contract spirit unlocked
+has_line_spirit_fengmi,has_spirit_line(spirit_line_fengmi),spirit_runtime,65,honey spirit unlocked
+rare_spirit_thunder_route_ready,"all_of(dungeon_clear(area_mine_qingyun),flag(trade_route_complete)==true)",rare_spirit_event,70,leizhu bond finale requires mine thunder path memory and a real trade return
+rare_spirit_thunder_route_open,flag(thunder_old_route_open)==true,interrealm_trade_route,72,old thunder route unlocked after leizhu bond finale
+team_bond_avg_5,avg_selected_spirit_bond_level>=5,expedition_runtime,60,high bond expedition check
+ecology_combo_rank_a_1,ecology_combo_rank_count(A)>=1,ecology_runtime,60,first rank a ecology combo
+qinghe_lotus_basin_followup_order_done,flag(qinghe_lotus_basin_followup_order_done)==true,customer_waterway_broker,72,Lianze follow-up order brings waterway buyers to the shop

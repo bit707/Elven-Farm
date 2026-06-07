@@ -1,0 +1,14 @@
+asset_plan_id,asset_type,asset_name,content_source,required_capture,copy_key,owner,priority,due_phase,acceptance_criteria,note
+steam_capsule_main,capsule,主胶囊图,完整版商业化GDD,洞天精怪店铺同屏,steam_copy_capsule_main,art,P0,store_page,主体清晰且小尺寸可读,main capsule
+steam_screenshot_01,screenshot,荒废洞天初始,前72天逐日节奏表,第1天荒田与草庐,steam_caption_screenshot_01,capture,P0,store_page,展示从零开始,early screenshot
+steam_screenshot_02,screenshot,第一只精怪浇水,10条精怪线详细设计表,萝卜精自动浇水,steam_caption_screenshot_02,capture,P0,store_page,展示自动化卖点,spirit screenshot
+steam_screenshot_03,screenshot,旧铺开门经营,顾客标签扩展与支线过场细化,顾客浏览货架和反馈,steam_caption_screenshot_03,capture,P0,store_page,展示店铺经营,shop screenshot
+steam_screenshot_04,screenshot,节气影响农田,完整版商业化GDD,谷雨或大暑天气影响,steam_caption_screenshot_04,capture,P0,store_page,展示节气系统,term screenshot
+steam_screenshot_05,screenshot,精怪生态庭院,精怪长期养成与后主线自由游玩设计,多精怪庭院组合,steam_caption_screenshot_05,capture,P0,store_page,展示后期可玩性,ecology screenshot
+steam_screenshot_06,screenshot,青云矿洞战斗,Boss战斗平衡回合表,精怪随行挑战裂甲木卫,steam_caption_screenshot_06,capture,P0,store_page,展示秘境战斗和精怪协同,dungeon screenshot
+steam_screenshot_07,screenshot,跨界商路启航,精怪长期养成与后主线自由游玩设计,飞舟商队和隐藏秘境轮换,steam_caption_screenshot_07,capture,P0,store_page,展示商路和长期经营,trade route screenshot
+steam_screenshot_08,screenshot,终章支援建阵,终章支援演出与本地化补强,NPC支援与二十四节气大阵,steam_caption_screenshot_08,capture,P0,store_page,展示终局目标和情感收束,final support screenshot
+steam_trailer_01,trailer,核心玩法PV,核心玩法PV分镜脚本,前中后期循环实机,steam_copy_trailer_01,video,P0,demo_ramp,75秒内讲清卖点,trailer
+steam_vertical_01,short_video,第一次成精切片,短视频切片执行单,作物成精前后对比,steam_copy_vertical_01,video,P1,demo_ramp,15秒内有记忆点,short video
+steam_devlog_01,devlog,节气不是背景,完整版商业化GDD,节气系统说明图,steam_copy_devlog_01,publishing,P1,pre_announce,图文解释玩法差异,devlog
+steam_devlog_02,devlog,通关后还能玩什么,精怪长期养成与后主线自由游玩设计,第二年目标网,steam_copy_devlog_02,publishing,P1,post_launch,明确长线内容,post story devlog
