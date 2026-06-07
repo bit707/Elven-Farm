@@ -3003,6 +3003,7 @@ for (const questRuntimeTerm of [
   "runtime?.configuredEventHuSihaiArrivalActionPlan(event)",
   "runtime?.configuredEventHerbValleyUnlockActionPlan(event)",
   "runtime?.configuredEventHerbValleyFinishActionPlan(event)",
+  "runtime?.configuredEventSpiritManorStartActionPlan(event)",
   "runtime?.configuredEventGenericUnlockActionPlan(event)",
   "applyConfiguredEventActionPlan(actionPlan)",
   "applyConfiguredEventAction(action",
@@ -3268,6 +3269,7 @@ for (const questCoreSourceTerm of [
   "export interface ConfiguredEventHuSihaiArrivalActionPlan",
   "export interface ConfiguredEventHerbValleyUnlockActionPlan",
   "export interface ConfiguredEventHerbValleyFinishActionPlan",
+  "export interface ConfiguredEventSpiritManorStartActionPlan",
   "export interface ConfiguredEventGenericUnlockActionPlan",
   "configuredEventSideQuestActionPlan(event",
   "configuredEventMainQuestActionPlan(event",
@@ -3276,6 +3278,7 @@ for (const questCoreSourceTerm of [
   "configuredEventHuSihaiArrivalActionPlan(event",
   "configuredEventHerbValleyUnlockActionPlan(event",
   "configuredEventHerbValleyFinishActionPlan(event",
+  "configuredEventSpiritManorStartActionPlan(event",
   "configuredEventGenericUnlockActionPlan(event",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -3291,9 +3294,11 @@ for (const questCoreSourceTerm of [
   "kind: \"apply_baizhi_chapter_finish_world_change\"",
   "kind: \"trigger_baizhi_chapter_finish_feedback\"",
   "kind: \"start_spirit_manor_chapter_if_needed\"",
+  "kind: \"trigger_spirit_manor_feedback\"",
   "kind: \"update_missions\"",
   "kind: \"play_cue\"",
   "kind: \"log_baizhi_chapter_finish\"",
+  "kind: \"log_spirit_manor_chapter_start\"",
   "kind: \"check_quest_rewards\"",
   "kind: \"scan_configured_events\"",
   "configuredEventReadyQueue()",
@@ -3362,6 +3367,7 @@ for (const questCoreRuntimeTerm of [
   "function configuredEventHuSihaiArrivalActionPlan",
   "function configuredEventHerbValleyUnlockActionPlan",
   "function configuredEventHerbValleyFinishActionPlan",
+  "function configuredEventSpiritManorStartActionPlan",
   "function configuredEventGenericUnlockActionPlan",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -3377,9 +3383,11 @@ for (const questCoreRuntimeTerm of [
   "kind: \"apply_baizhi_chapter_finish_world_change\"",
   "kind: \"trigger_baizhi_chapter_finish_feedback\"",
   "kind: \"start_spirit_manor_chapter_if_needed\"",
+  "kind: \"trigger_spirit_manor_feedback\"",
   "kind: \"update_missions\"",
   "kind: \"play_cue\"",
   "kind: \"log_baizhi_chapter_finish\"",
+  "kind: \"log_spirit_manor_chapter_start\"",
   "kind: \"check_quest_rewards\"",
   "kind: \"scan_configured_events\"",
   "function dialogueGroupForExecuteGroup",
@@ -5734,6 +5742,9 @@ if (!game.includes("state.completed.has(`quest_unlock_${questId}`)")
   || !game.includes("runtime?.configuredEventHerbValleyFinishActionPlan(event)")
   || !game.includes('kind: "grant_item_if_missing"')
   || !game.includes('kind: "start_spirit_manor_chapter_if_needed"')
+  || !game.includes("runtime?.configuredEventSpiritManorStartActionPlan(event)")
+  || !game.includes('kind: "trigger_spirit_manor_feedback"')
+  || !game.includes('kind: "log_spirit_manor_chapter_start"')
   || !game.includes('startSpiritManorChapter(localize("event_name_main_0301"')) {
   throw new Error("Runtime must treat favor-unlocked main quests as active and connect Baizhi quality crop, Herb Valley, and chapter-three start handlers");
 }

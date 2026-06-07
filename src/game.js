@@ -17245,8 +17245,19 @@ function applyConfiguredEventAction(action, context = {}) {
   }
   if (action.kind === "start_spirit_manor_chapter_if_needed") {
     if (!state.triggeredEvents.has(SPIRIT_MANOR_ENTRY_EVENT_ID)) {
-      startSpiritManorChapter(localize(action.eventNameKey, action.fallbackName));
+      const plan = questRuntime()?.configuredEventSpiritManorStartActionPlan({
+        event_id: SPIRIT_MANOR_ENTRY_EVENT_ID,
+        trigger_type: "on_world_state",
+        trigger_param: "baizhi_chapter_2_finish",
+        execute_group: "exec_start_quest_main_0301",
+      });
+      if (plan?.applies) applyConfiguredEventActionPlan(plan, { eventName: localize(action.eventNameKey, action.fallbackName) });
+      else startSpiritManorChapter(localize(action.eventNameKey, action.fallbackName));
     }
+    return null;
+  }
+  if (action.kind === "trigger_spirit_manor_feedback") {
+    triggerSpiritManorFeedback(action.phase, context.eventName);
     return null;
   }
   if (action.kind === "update_missions") {
@@ -17259,6 +17270,10 @@ function applyConfiguredEventAction(action, context = {}) {
   }
   if (action.kind === "log_baizhi_chapter_finish") {
     addLog("第二章收束", `${context.eventName}：${itemName(BAIZHI_MOTHER_DEW_ITEM_ID)} 已交到白芷手里，医馆试药线完成，百怪大院线开始抬头。`);
+    return null;
+  }
+  if (action.kind === "log_spirit_manor_chapter_start") {
+    addLog("第三章开启", `${context.eventName}：阿檀已经把百怪大院蓝图摊开，精怪宿舍、岗位总览与情绪管理进入建设目标。`);
     return null;
   }
   if (action.kind === "check_quest_rewards") {
@@ -17310,7 +17325,29 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "start_spirit_manor_chapter" || (!actionKind && executeGroup.includes("start_quest_main_0301"))) {
-    startSpiritManorChapter(eventName);
+    const actionPlan = runtime?.configuredEventSpiritManorStartActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      firstStart: !state.completed.has(SPIRIT_MANOR_ENTRY_FLAG),
+      completedFlags: [SPIRIT_MANOR_ENTRY_FLAG, `quest_unlock_${SPIRIT_MANOR_QUEST_ID}`],
+      npcId: "npc_atan",
+      favorAmount: !state.completed.has(SPIRIT_MANOR_ENTRY_FLAG) ? 8 : 0,
+      favorSource: !state.completed.has(SPIRIT_MANOR_ENTRY_FLAG) ? "百怪大院蓝图" : "",
+      dialogueGroup: "dialogue_main_0301_spirit_manor",
+      cue: "成就解锁",
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: SPIRIT_MANOR_ENTRY_FLAG },
+        { kind: "complete_flag", flag: `quest_unlock_${SPIRIT_MANOR_QUEST_ID}` },
+        ...(!state.completed.has(SPIRIT_MANOR_ENTRY_FLAG) ? [{ kind: "add_npc_favor", npcId: "npc_atan", amount: 8, source: "百怪大院蓝图" }] : []),
+        { kind: "trigger_spirit_manor_feedback", phase: "entry" },
+        { kind: "queue_dialogue_group", groupId: "dialogue_main_0301_spirit_manor" },
+        { kind: "play_cue", cue: "成就解锁" },
+        { kind: "log_spirit_manor_chapter_start" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan, { eventName });
     return true;
   }
 

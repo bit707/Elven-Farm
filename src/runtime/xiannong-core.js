@@ -2285,6 +2285,41 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventSpiritManorStartActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "start_spirit_manor_chapter";
+                const firstStart = applies && !setHas(state.completed, "spirit_manor_blueprint_revealed");
+                const completedFlags = applies ? ["spirit_manor_blueprint_revealed", "quest_unlock_quest_main_0301_baiguai_youyuan"] : [];
+                const npcId = applies ? "npc_atan" : "";
+                const favorAmount = firstStart ? 8 : 0;
+                const favorSource = firstStart ? "百怪大院蓝图" : "";
+                const dialogueGroup = applies ? "dialogue_main_0301_spirit_manor" : "";
+                const cue = applies ? "成就解锁" : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        ...(favorAmount > 0 ? [{ kind: "add_npc_favor", npcId, amount: favorAmount, source: favorSource }] : []),
+                        { kind: "trigger_spirit_manor_feedback", phase: "entry" },
+                        { kind: "queue_dialogue_group", groupId: dialogueGroup },
+                        { kind: "play_cue", cue },
+                        { kind: "log_spirit_manor_chapter_start" },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    firstStart,
+                    completedFlags,
+                    npcId,
+                    favorAmount,
+                    favorSource,
+                    dialogueGroup,
+                    cue,
+                    actions,
+                };
+            }
             function configuredEventGenericUnlockActionPlan(event) {
                 const plan = configuredEventExecutionPlan(event);
                 const applies = plan.actionKind === "generic_unlock";
@@ -2395,6 +2430,7 @@ var XiannongCore;
                 configuredEventHuSihaiArrivalActionPlan,
                 configuredEventHerbValleyUnlockActionPlan,
                 configuredEventHerbValleyFinishActionPlan,
+                configuredEventSpiritManorStartActionPlan,
                 configuredEventGenericUnlockActionPlan,
             };
         }

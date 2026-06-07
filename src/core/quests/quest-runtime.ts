@@ -211,6 +211,7 @@ namespace XiannongCore.Quests {
     configuredEventHuSihaiArrivalActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHuSihaiArrivalActionPlan;
     configuredEventHerbValleyUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHerbValleyUnlockActionPlan;
     configuredEventHerbValleyFinishActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHerbValleyFinishActionPlan;
+    configuredEventSpiritManorStartActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSpiritManorStartActionPlan;
     configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan;
   }
 
@@ -311,6 +312,10 @@ namespace XiannongCore.Quests {
       fallbackName: string;
     }
     | {
+      kind: "trigger_spirit_manor_feedback";
+      phase: "entry";
+    }
+    | {
       kind: "update_missions";
     }
     | {
@@ -319,6 +324,9 @@ namespace XiannongCore.Quests {
     }
     | {
       kind: "log_baizhi_chapter_finish";
+    }
+    | {
+      kind: "log_spirit_manor_chapter_start";
     }
     | {
       kind: "check_quest_rewards";
@@ -396,6 +404,20 @@ namespace XiannongCore.Quests {
     dialogueGroup: string;
     cue: string;
     scanSource: string;
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventSpiritManorStartActionPlan {
+    applies: boolean;
+    eventId: string;
+    executeGroup: string;
+    firstStart: boolean;
+    completedFlags: string[];
+    npcId: string;
+    favorAmount: number;
+    favorSource: string;
+    dialogueGroup: string;
+    cue: string;
     actions: ConfiguredEventExecutionAction[];
   }
 
@@ -1281,6 +1303,42 @@ namespace XiannongCore.Quests {
       };
     }
 
+    function configuredEventSpiritManorStartActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSpiritManorStartActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "start_spirit_manor_chapter";
+      const firstStart = applies && !setHas(state.completed, "spirit_manor_blueprint_revealed");
+      const completedFlags = applies ? ["spirit_manor_blueprint_revealed", "quest_unlock_quest_main_0301_baiguai_youyuan"] : [];
+      const npcId = applies ? "npc_atan" : "";
+      const favorAmount = firstStart ? 8 : 0;
+      const favorSource = firstStart ? "百怪大院蓝图" : "";
+      const dialogueGroup = applies ? "dialogue_main_0301_spirit_manor" : "";
+      const cue = applies ? "成就解锁" : "";
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          ...completedFlags.map((flag) => ({ kind: "complete_flag" as const, flag })),
+          ...(favorAmount > 0 ? [{ kind: "add_npc_favor" as const, npcId, amount: favorAmount, source: favorSource }] : []),
+          { kind: "trigger_spirit_manor_feedback", phase: "entry" },
+          { kind: "queue_dialogue_group", groupId: dialogueGroup },
+          { kind: "play_cue", cue },
+          { kind: "log_spirit_manor_chapter_start" },
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        executeGroup: plan.executeGroup,
+        firstStart,
+        completedFlags,
+        npcId,
+        favorAmount,
+        favorSource,
+        dialogueGroup,
+        cue,
+        actions,
+      };
+    }
+
     function configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan {
       const plan = configuredEventExecutionPlan(event);
       const applies = plan.actionKind === "generic_unlock";
@@ -1393,6 +1451,7 @@ namespace XiannongCore.Quests {
       configuredEventHuSihaiArrivalActionPlan,
       configuredEventHerbValleyUnlockActionPlan,
       configuredEventHerbValleyFinishActionPlan,
+      configuredEventSpiritManorStartActionPlan,
       configuredEventGenericUnlockActionPlan,
     };
   }
