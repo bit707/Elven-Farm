@@ -9,6 +9,7 @@ const requiredFiles = [
   "src/styles.css",
   "src/core/data/runtime-data.ts",
   "src/core/persistence/save-runtime.ts",
+  "src/core/quests/quest-runtime.ts",
   "src/runtime/xiannong-core.js",
   "runtime-data/runtime-data.json",
   "tools/build-runtime-data.mjs",
@@ -2940,7 +2941,7 @@ if (!runtimeDataManifest.contentHash || Object.keys(runtimeDataManifest.files ||
   throw new Error("Runtime JSON manifest must include a content hash and all gameplay CSV tables");
 }
 
-for (const coreTerm of ["XiannongCore.Data", "createRuntimeDataLoader", "XiannongCore.Persistence", "createSaveRuntime", "XiannongStorage"]) {
+for (const coreTerm of ["XiannongCore.Data", "createRuntimeDataLoader", "XiannongCore.Persistence", "createSaveRuntime", "XiannongStorage", "XiannongCore.Quests", "createQuestRuntime"]) {
   if (!coreRuntimeJs.includes(coreTerm) && !game.includes(coreTerm)) {
     throw new Error(`Generated core runtime or game bridge missing: ${coreTerm}`);
   }
@@ -2952,6 +2953,19 @@ if (!html.includes('src/runtime/xiannong-core.js') || html.indexOf('src/runtime/
 
 for (const gameBridgeTerm of ["runtimeDataLoader.loadTable", "SAVE_PROFILE_ID", "writeDesktopSaveProfile", "readDesktopSaveProfile", "saveRuntime.writeBrowserSlot", "lastLocalJsonSave", "Runtime Data"]) {
   if (!game.includes(gameBridgeTerm)) throw new Error(`Game runtime bridge missing: ${gameBridgeTerm}`);
+}
+
+for (const questRuntimeTerm of [
+  "function questRuntime()",
+  "globalThis.XiannongCore.Quests.createQuestRuntime",
+  "runtime.stepProgress(step)",
+  "runtime.questProgress(quest, side)",
+  "runtime.mainStoryQuestDone(quest)",
+  "runtime.mainStoryQuestStarted(quest)",
+  "runtime.questStateMatches(questId, expected)",
+  "runtime.questStepDone(stepId)",
+]) {
+  if (!game.includes(questRuntimeTerm)) throw new Error(`Quest TypeScript runtime bridge missing: ${questRuntimeTerm}`);
 }
 
 for (const desktopSaveTerm of ["xiannong:save-json", "registerJsonSaveIpc", "SAVE_DIR_NAME", "savePathForProfile", "XiannongStorage", "writeProfile", "readProfile", "desktop-json-save-v1"]) {
@@ -3954,6 +3968,28 @@ const fireRuinCondition = conditionGroups.find((entry) => entry.condition_group_
 const mainQuest0302Condition = conditionGroups.find((entry) => entry.condition_group_id === "quest_main_0302_active");
 const fireRuinDungeon = dungeons.find((entry) => entry.area_id === "area_ruin_fire");
 const fireRuinBoss = bosses.find((entry) => entry.boss_id === "boss_chiyan_xiehou");
+const mainQuest0401 = quests.find((entry) => entry.quest_id === "quest_main_0401_jiuyao_dahan");
+const mainQuestSteps0401 = questSteps.filter((entry) => entry.quest_id === "quest_main_0401_jiuyao_dahan");
+const mainQuest0402 = quests.find((entry) => entry.quest_id === "quest_main_0402_ershisi_shu");
+const mainQuestSteps0402 = questSteps.filter((entry) => entry.quest_id === "quest_main_0402_ershisi_shu");
+const mainQuest0403 = quests.find((entry) => entry.quest_id === "quest_main_0403_pantao_dayan");
+const mainQuestSteps0403 = questSteps.filter((entry) => entry.quest_id === "quest_main_0403_pantao_dayan");
+const disasterOrder = orders.find((entry) => entry.order_id === "order_disaster_0001");
+const disasterRewards = rewardPools.filter((entry) => entry.reward_pool_id === "pool_disaster_relief");
+const eventMain0401 = eventTriggers.find((entry) => entry.event_id === "event_main_0401");
+const eventMain0402 = eventTriggers.find((entry) => entry.event_id === "event_main_0402");
+const eventMain0404 = eventTriggers.find((entry) => entry.event_id === "event_main_0404");
+const eventMain0405 = eventTriggers.find((entry) => entry.event_id === "event_main_0405");
+const eventMain0406 = eventTriggers.find((entry) => entry.event_id === "event_main_0406");
+const eventMain0407 = eventTriggers.find((entry) => entry.event_id === "event_main_0407");
+const worldStateDroughtCondition = conditionGroups.find((entry) => entry.condition_group_id === "world_state_drought");
+const droughtReliefDoneCondition = conditionGroups.find((entry) => entry.condition_group_id === "drought_relief_order_delivered");
+const mainQuest0402Condition = conditionGroups.find((entry) => entry.condition_group_id === "quest_main_0402_active");
+const mainQuest0403Condition = conditionGroups.find((entry) => entry.condition_group_id === "quest_main_0403_active");
+const mainQuest0403Step1Condition = conditionGroups.find((entry) => entry.condition_group_id === "quest_main_0403_step_1_done");
+const finalNestDungeon = dungeons.find((entry) => entry.area_id === "area_final_nest");
+const finalBoss = bosses.find((entry) => entry.boss_id === "boss_shiling_mingmu");
+const finalArrayBuilding = buildings.find((entry) => entry.building_id === "build_solar_array_final");
 const sideQuest0101Rewards = rewardPools.filter((entry) => entry.reward_pool_id === sideQuest0101?.complete_reward_group);
 const reliefSideQuest = sideQuests.find((entry) => entry.quest_id === "quest_side_0401_relief_supply");
 const reliefSideRewards = rewardPools.filter((entry) => entry.reward_pool_id === reliefSideQuest?.complete_reward_group);
@@ -4700,6 +4736,94 @@ if (!game.includes("state.completed.add(`quest_unlock_${SPIRIT_MANOR_QUEST_ID}`)
   || !game.includes("state.triggeredEvents.add(FIRE_RUIN_ENTRY_EVENT_ID)")
   || !game.includes('function finishFireRuinLine')) {
   throw new Error("Chapter-three runtime must unlock quests without false completion and record Fire Ruin entry/finish states");
+}
+if (!mainQuest0401 || mainQuest0401.chapter !== "4" || mainQuestSteps0401.length < 2) {
+  throw new Error("Main quest 0401 must exist as the chapter-four drought relief quest");
+}
+if (!mainQuestSteps0401.some((step) => step.objective_type === "enter_area" && step.target_id === "world_state_drought")
+  || !mainQuestSteps0401.some((step) => step.objective_type === "collect" && step.target_id === "item_water_supply_relief" && step.target_count === "10")) {
+  throw new Error("Drought quest must require entering the drought world state and collecting 10 relief water bundles");
+}
+if (!eventMain0401 || eventMain0401.trigger_type !== "on_day_start" || eventMain0401.trigger_param !== "day_67" || eventMain0401.condition_group !== "chapter_3_complete" || eventMain0401.execute_group !== "exec_world_state_drought") {
+  throw new Error("Chapter four drought must start after chapter three completion through event_main_0401");
+}
+if (!worldStateDroughtCondition || worldStateDroughtCondition.expression !== "flag(world_state_drought)==true") {
+  throw new Error("Drought order visibility must depend on the world_state_drought flag");
+}
+if (!disasterOrder || disasterOrder.appear_condition_group !== "world_state_drought" || disasterOrder.reward_item_group !== "pool_disaster_relief") {
+  throw new Error("Drought relief order must appear during drought and use the disaster relief reward pool");
+}
+if (5 + disasterRewards
+  .filter((entry) => entry.reward_type === "item" && entry.reward_param === "item_water_supply_relief")
+  .reduce((sum, entry) => sum + Number(entry.reward_count || 0), 0) < 10) {
+  throw new Error("Drought start kit plus disaster order rewards must satisfy the 10 relief water objective");
+}
+if (!droughtReliefDoneCondition || droughtReliefDoneCondition.expression !== "flag(order_disaster_0001_delivered)==true") {
+  throw new Error("Lu truth quest must wait for the delivered disaster order flag");
+}
+if (!eventMain0402 || eventMain0402.trigger_type !== "on_trade_complete" || eventMain0402.trigger_param !== "order_disaster_0001" || eventMain0402.condition_group !== "drought_relief_order_delivered" || eventMain0402.execute_group !== "exec_start_quest_main_0402") {
+  throw new Error("Delivering the drought relief order must start Lu Sanxiao's chapter-four truth quest");
+}
+if (!mainQuest0402 || mainQuest0402.chapter !== "4" || mainQuestSteps0402.length < 3) {
+  throw new Error("Main quest 0402 must exist as the chapter-four pivot/final-nest quest");
+}
+if (!mainQuestSteps0402.some((step) => step.objective_type === "collect" && step.target_id === "item_spirit_core_4" && step.target_count === "4")
+  || !mainQuestSteps0402.some((step) => step.objective_type === "collect" && step.target_id === "item_special_huojing")
+  || !mainQuestSteps0402.some((step) => step.objective_type === "collect" && step.target_id === "item_special_dinghai_shenzhu")) {
+  throw new Error("Lu truth quest must require four spirit cores, Huojing, and Dinghai Shenzhu");
+}
+if (!mainQuest0402Condition || mainQuest0402Condition.expression !== "quest_state(quest_main_0402_ershisi_shu)==active") {
+  throw new Error("Final nest unlock event must watch quest_main_0402 active state");
+}
+if (!eventMain0404 || eventMain0404.trigger_type !== "on_item_collected" || eventMain0404.trigger_param !== "item_special_dinghai_shenzhu" || eventMain0404.condition_group !== "quest_main_0402_active" || eventMain0404.execute_group !== "exec_unlock_final_nest") {
+  throw new Error("Collecting Dinghai Shenzhu must unlock the final nest through event_main_0404");
+}
+if (!finalNestReadyCondition.expression.includes("all_of(quest_main_0402_active") || !finalNestReadyCondition.expression.includes("has_item(item_special_huojing,1)") || !finalNestReadyCondition.expression.includes("has_item(item_special_dinghai_shenzhu,1)")) {
+  throw new Error("Final nest condition must require the active Lu truth quest, Huojing, and Dinghai Shenzhu");
+}
+if (!finalNestDungeon || finalNestDungeon.unlock_condition_group !== "quest_main_0402_ready" || finalNestDungeon.boss_id !== "boss_shiling_mingmu") {
+  throw new Error("Final nest dungeon must be gated by quest_main_0402_ready and connect to Shiling Mingmu");
+}
+if (!mainQuest0403 || mainQuest0403.chapter !== "4" || mainQuestSteps0403.length < 4) {
+  throw new Error("Main quest 0403 must exist as the Pantao finale quest");
+}
+if (!mainQuestSteps0403.some((step) => step.objective_type === "defeat" && step.target_id === "boss_shiling_mingmu")
+  || !mainQuestSteps0403.some((step) => step.objective_type === "build" && step.target_id === "build_solar_array_final")
+  || !mainQuestSteps0403.some((step) => step.objective_type === "plant" && step.target_id === "item_seed_wannian_pantao")
+  || !mainQuestSteps0403.some((step) => step.objective_type === "harvest" && step.target_id === "item_crop_wannian_pantao")) {
+  throw new Error("Pantao finale must require final boss defeat, final array build, Pantao planting, and Pantao harvest");
+}
+if (!finalBoss || finalBoss.defeat_event_id !== "event_main_0405") {
+  throw new Error("Shiling Mingmu boss must resolve through event_main_0405");
+}
+if (!eventMain0405 || eventMain0405.trigger_type !== "on_boss_defeat" || eventMain0405.trigger_param !== "boss_shiling_mingmu" || eventMain0405.condition_group !== "quest_main_0403_active" || eventMain0405.execute_group !== "exec_start_final_array_cutscene") {
+  throw new Error("Final boss defeat must start the final array cutscene through event_main_0405");
+}
+if (!finalArrayBuilding || finalArrayBuilding.unlock_type !== "quest" || finalArrayBuilding.unlock_param !== "quest_main_0403_pantao_dayan" || finalArrayBuilding.cost_special_item !== "item_special_dinghai_shenzhu") {
+  throw new Error("Final solar array building must be quest-gated and consume Dinghai Shenzhu");
+}
+if (!mainQuest0403Step1Condition || mainQuest0403Step1Condition.expression !== "quest_step_done(step_main_0403_01)") {
+  throw new Error("Final planting unlock must depend on the real final boss step");
+}
+if (!eventMain0406 || eventMain0406.trigger_type !== "on_build_complete" || eventMain0406.trigger_param !== "build_solar_array_final" || eventMain0406.condition_group !== "quest_main_0403_step_1_done" || eventMain0406.execute_group !== "exec_unlock_final_planting") {
+  throw new Error("Building the final array must unlock final planting through event_main_0406");
+}
+if (!mainQuest0403Condition || mainQuest0403Condition.expression !== "quest_state(quest_main_0403_pantao_dayan)==active") {
+  throw new Error("Pantao harvest finale event must watch quest_main_0403 active state");
+}
+if (!eventMain0407 || eventMain0407.trigger_type !== "on_crop_harvest" || eventMain0407.trigger_param !== "item_crop_wannian_pantao" || eventMain0407.condition_group !== "quest_main_0403_active" || eventMain0407.execute_group !== "exec_final_banquet") {
+  throw new Error("Pantao harvest must finish the final banquet through event_main_0407");
+}
+if (game.includes("state.missionDone.add(CHAPTER_4_DROUGHT_QUEST_ID)")
+  || game.includes("state.missionDone.add(CHAPTER_4_LU_TRUTH_QUEST_ID)")) {
+  throw new Error("Chapter-four quest start handlers must use quest_unlock flags instead of false missionDone completion");
+}
+if (!game.includes("state.completed.add(`quest_unlock_${CHAPTER_4_DROUGHT_QUEST_ID}`)")
+  || !game.includes("state.completed.add(`quest_unlock_${CHAPTER_4_LU_TRUTH_QUEST_ID}`)")
+  || !game.includes('function finishChapter4DroughtRelief')
+  || !game.includes('function unlockFinalNest')
+  || !game.includes('function finishFinalBanquet')) {
+  throw new Error("Chapter-four runtime must unlock quests separately from drought relief, final nest, and final banquet completion");
 }
 if (!sideQuest0101 || sideQuestSteps0101.length < 2 || !sideQuestTrigger0101) {
   throw new Error("Side quest 0101 must include base, steps, and trigger rows");

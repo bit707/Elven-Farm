@@ -15552,7 +15552,57 @@ function checklistSummary(entries, evaluator) {
   };
 }
 
+let questRuntimeCache = null;
+let questRuntimeCacheState = null;
+
+function questRuntime() {
+  if (!globalThis.XiannongCore?.Quests?.createQuestRuntime) return null;
+  if (questRuntimeCache && questRuntimeCacheState === state) return questRuntimeCache;
+  questRuntimeCacheState = state;
+  questRuntimeCache = globalThis.XiannongCore.Quests.createQuestRuntime(
+    state,
+    {
+      quests: data.quests,
+      sideQuests: data.sideQuests,
+      questSteps: data.questSteps,
+      sideQuestSteps: data.sideQuestSteps,
+      questStepsByQuest: data.questStepsByQuest,
+      sideQuestStepsByQuest: data.sideQuestStepsByQuest,
+      cropsBySeed: data.cropsBySeed,
+    },
+    {
+      baizhiQuestId: BAIZHI_QUEST_ID,
+      spiritManorQuestId: SPIRIT_MANOR_QUEST_ID,
+      spiritManorBuildingId: SPIRIT_MANOR_BUILDING_ID,
+      factionOrderQuestId: FACTION_ORDER_QUEST_ID,
+      fireRuinBossId: FIRE_RUIN_BOSS_ID,
+      chapter4DroughtQuestId: CHAPTER_4_DROUGHT_QUEST_ID,
+      chapter4DroughtFlag: CHAPTER_4_DROUGHT_FLAG,
+      chapter4DroughtReliefDoneFlag: CHAPTER_4_DROUGHT_RELIEF_DONE_FLAG,
+      chapter4DroughtOrderId: CHAPTER_4_DROUGHT_ORDER_ID,
+      chapter4LuTruthQuestId: CHAPTER_4_LU_TRUTH_QUEST_ID,
+      chapter4DinghaiItemId: CHAPTER_4_DINGHAI_ITEM_ID,
+      chapter4FinalNestUnlockFlag: CHAPTER_4_FINAL_NEST_UNLOCK_FLAG,
+      chapter4PantaoQuestId: CHAPTER_4_PANTAO_QUEST_ID,
+      chapter4PantaoSeedId: CHAPTER_4_PANTAO_SEED_ID,
+      chapter4PantaoPlantedFlag: CHAPTER_4_PANTAO_PLANTED_FLAG,
+      demoMissionIds: DEMO_MISSIONS.map((mission) => mission.id),
+    },
+    {
+      favorLevel,
+      npcName,
+      chapter4DroughtActive,
+      baizhiChapterFinished,
+      year2Unlocked,
+      hasCoreLoop,
+    },
+  );
+  return questRuntimeCache;
+}
+
 function questStepsFor(quest, side = false) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.questStepsFor(quest, side);
   const map = side ? data.sideQuestStepsByQuest : data.questStepsByQuest;
   return [...(map.get(quest.quest_id) || [])].sort((a, b) => Number(a.step_index) - Number(b.step_index));
 }
@@ -15575,6 +15625,9 @@ function targetName(targetId, objectiveType) {
 }
 
 function stepProgress(step) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.stepProgress(step);
+
   const target = step.target_id;
   const count = Number(step.target_count || 1);
   if (step.objective_type === "collect") {
@@ -15655,12 +15708,18 @@ function stepLabel(step) {
 }
 
 function questProgress(quest, side = false) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.questProgress(quest, side);
+
   const steps = questStepsFor(quest, side);
   const done = steps.filter((step) => stepProgress(step) >= Number(step.target_count || 1)).length;
   return { steps, done, total: steps.length };
 }
 
 function mainStoryQuestDone(quest) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.mainStoryQuestDone(quest);
+
   if (!quest) return false;
   const progress = questProgress(quest);
   const allStepsDone = progress.total > 0 && progress.done >= progress.total;
@@ -15688,6 +15747,9 @@ function mainStoryQuestDone(quest) {
 }
 
 function mainStoryQuestStarted(quest) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.mainStoryQuestStarted(quest);
+
   if (!quest) return false;
   const progress = questProgress(quest);
   return mainStoryQuestDone(quest)
@@ -18823,6 +18885,9 @@ function splitConditionArgs(value = "") {
 }
 
 function questStateMatches(questId, expected) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.questStateMatches(questId, expected);
+
   const progressForQuest = (quest, side = false) => {
     if (!quest) return null;
     const progress = questProgress(quest, side);
@@ -18845,6 +18910,9 @@ function questStateMatches(questId, expected) {
 }
 
 function questStepDone(stepId) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.questStepDone(stepId);
+
   const step = [...data.questSteps, ...data.sideQuestSteps].find((entry) => entry.step_id === stepId);
   return Boolean(step && stepProgress(step) >= Number(step.target_count || 1));
 }
@@ -37289,8 +37357,8 @@ function startChapter4Drought(eventName = "九曜大旱降临") {
   const firstStart = !state.completed.has(CHAPTER_4_DROUGHT_FLAG) && !state.triggeredEvents.has(CHAPTER_4_DROUGHT_EVENT_ID);
   state.completed.add(CHAPTER_4_DROUGHT_FLAG);
   state.completed.add("drought");
+  state.completed.add(`quest_unlock_${CHAPTER_4_DROUGHT_QUEST_ID}`);
   state.triggeredEvents.add(CHAPTER_4_DROUGHT_EVENT_ID);
-  if (!state.missionDone.has(CHAPTER_4_DROUGHT_QUEST_ID)) state.missionDone.add(CHAPTER_4_DROUGHT_QUEST_ID);
   state.weatherId = "weather_dry_heat";
   if (firstStart) {
     addNpcFavor("npc_xubo", 10, "九曜大旱先救人");
@@ -37339,9 +37407,9 @@ function finishChapter4DroughtRelief(order, rewardTexts = []) {
 }
 
 function startChapter4LuTruth(eventName = "陆三笑揭秘") {
-  const firstStart = !state.completed.has("chapter4_lu_truth_started") && !state.missionDone.has(CHAPTER_4_LU_TRUTH_QUEST_ID);
+  const firstStart = !state.completed.has("chapter4_lu_truth_started") && !state.completed.has(`quest_unlock_${CHAPTER_4_LU_TRUTH_QUEST_ID}`);
   state.completed.add("chapter4_lu_truth_started");
-  if (!state.missionDone.has(CHAPTER_4_LU_TRUTH_QUEST_ID)) state.missionDone.add(CHAPTER_4_LU_TRUTH_QUEST_ID);
+  state.completed.add(`quest_unlock_${CHAPTER_4_LU_TRUTH_QUEST_ID}`);
   if (firstStart) {
     addNpcFavor("npc_lu_sanxiao", 10, "二十四枢真相");
     state.fame += 4;
