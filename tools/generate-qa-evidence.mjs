@@ -124,6 +124,7 @@ const finalCaptureSummary = readJsonIfExists("dist/xiannong-dongtian-final-captu
 const finalCaptureSigned = readJsonIfExists("dist/xiannong-dongtian-final-capture/FINAL_CAPTURE_APPROVAL_SIGNED.json");
 const platformLegalSummary = readJsonIfExists("dist/xiannong-dongtian-platform-legal/PLATFORM_LEGAL_SUMMARY.json");
 const platformLegalSigned = readJsonIfExists("dist/xiannong-dongtian-platform-legal/PLATFORM_LEGAL_APPROVAL_SIGNED.json");
+const desktopSaveSmokeReport = readJsonIfExists("dist/xiannong-dongtian-desktop-save-smoke/DESKTOP_JSON_SAVE_SMOKE.json");
 
 const generatedAssets = listAssets();
 const steamReady = steamReadyManifest();
@@ -144,6 +145,9 @@ if (existsSync("dist/xiannong-dongtian-final-capture")) {
 }
 if (existsSync("dist/xiannong-dongtian-platform-legal")) {
   copyEntry("dist/xiannong-dongtian-platform-legal", join(outDir, "platform-legal"));
+}
+if (existsSync("dist/xiannong-dongtian-desktop-save-smoke")) {
+  copyEntry("dist/xiannong-dongtian-desktop-save-smoke", join(outDir, "desktop-save-smoke"));
 }
 const p0Screenshots = steamAssets.filter((asset) => asset.asset_type === "screenshot" && asset.priority === "P0");
 const p0Qa = demoQa.filter((entry) => entry.priority === "P0");
@@ -166,6 +170,7 @@ const automatedEvidence = [
   { id: "package_steam_depot", status: packageEvidence.find((entry) => entry.id === "steam_depot")?.exists ? "warn" : "missing", evidence: "Steam depot staging exists but remains not_upload_ready." },
   { id: "steam_preflight", status: steamPreflightReport ? "warn" : "missing", evidence: steamPreflightReport ? `${steamPreflightReport.status}; files ${steamPreflightReport.content.file_count}; blockers ${steamPreflightReport.blockers.length}; report dist/xiannong-dongtian-steam-depot/preflight/STEAM_PREFLIGHT_REPORT.md.` : "Run npm run steam:preflight after package:steam-depot." },
   { id: "longrun_smoke", status: smokeReport?.status === "pass" || smokeReport?.status === "pass_with_warnings" ? "pass" : "missing", evidence: smokeReport ? `${smokeReport.simulated_days} simulated days; milestones ${smokeReport.completed.length}; errors ${smokeReport.errors.length}.` : "Run npm run qa:smoke before evidence generation." },
+  { id: "desktop_json_save_smoke", status: desktopSaveSmokeReport?.status === "pass" ? "pass" : "missing", evidence: desktopSaveSmokeReport ? `${desktopSaveSmokeReport.adapter} wrote ${desktopSaveSmokeReport.bytes} bytes to ${desktopSaveSmokeReport.defaultProfilePath}; path-safety checks ${desktopSaveSmokeReport.checks.length}.` : "Run npm run qa:desktop-save before evidence generation." },
   { id: "manual_qa_template", status: manualQaSummary ? "pass" : "missing", evidence: manualQaSummary ? `Manual QA runbook/template generated for ${manualQaSummary.required_duration_minutes} minutes; status ${manualQaSummary.status}.` : "Run npm run qa:manual-template to create the 2-hour QA runbook and checklist." },
   { id: "final_capture_template", status: finalCaptureSummary ? "pass" : "missing", evidence: finalCaptureSummary ? `Final capture runbook/template generated for ${finalCaptureSummary.required_screenshots} screenshots and ${finalCaptureSummary.required_trailers} trailer; status ${finalCaptureSummary.status}.` : "Run npm run capture:final-template to create final screenshot/PV approval templates." },
   { id: "platform_legal_template", status: platformLegalSummary ? "pass" : "missing", evidence: platformLegalSummary ? `Platform/legal runbook/template generated for ${platformLegalSummary.approval_items} approval items; status ${platformLegalSummary.status}.` : "Run npm run release:legal-template to create platform/legal approval templates." },
@@ -199,6 +204,7 @@ const summary = {
     save_fields: p0SaveFields.length,
     localization_coverage: p0Localization.length,
     smoke_days: smokeReport?.simulated_days || 0,
+    desktop_json_save_smoke: desktopSaveSmokeReport?.status === "pass" ? 1 : 0,
     manual_qa_template: manualQaSummary ? 1 : 0,
     manual_qa_signed: manualQaSigned?.pass_conditions?.rrg_007_passed ? 1 : 0,
     final_capture_template: finalCaptureSummary ? 1 : 0,

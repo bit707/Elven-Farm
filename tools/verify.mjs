@@ -2938,7 +2938,7 @@ for (const migrationTerm of ["src/core/**/*.ts", "outFile", "src/runtime/xiannon
   }
 }
 
-for (const packageTerm of ['"data:build": "node tools/build-runtime-data.mjs"', '"build:core": "npx --yes -p typescript@5.9.3 tsc -p tsconfig.json"', '"typecheck": "npx --yes -p typescript@5.9.3 tsc -p tsconfig.json --noEmit"', '"prestart": "npm run data:build && npm run build:core"', '"preverify": "npm run data:build && npm run build:core"', '"preqa:smoke": "npm run data:build && npm run build:core"']) {
+for (const packageTerm of ['"data:build": "node tools/build-runtime-data.mjs"', '"build:core": "npx --yes -p typescript@5.9.3 tsc -p tsconfig.json"', '"typecheck": "npx --yes -p typescript@5.9.3 tsc -p tsconfig.json --noEmit"', '"prestart": "npm run data:build && npm run build:core"', '"preverify": "npm run data:build && npm run build:core && npm run qa:desktop-save"', '"preqa:smoke": "npm run data:build && npm run build:core"', '"prepackage:desktop-shell": "npm run data:build && npm run build:core && npm run qa:desktop-save"']) {
   if (!packageJson.includes(packageTerm)) throw new Error(`TypeScript/runtime data package script missing: ${packageTerm}`);
 }
 
@@ -3492,6 +3492,12 @@ for (const desktopJsonSaveCoreTerm of ["DESKTOP_JSON_SAVE_ADAPTER", "readDesktop
 for (const desktopSaveSmokeTerm of ["readDesktopJsonProfile(userData, \"profile_1\")", "writeDesktopJsonProfile(userData, \"profile_1\"", "savePathForProfile(userData, \"../profile escape?.json\")", "DESKTOP_JSON_SAVE_SMOKE.json"]) {
   if (!desktopSaveSmokeScript.includes(desktopSaveSmokeTerm)) {
     throw new Error(`Desktop JSON save smoke missing: ${desktopSaveSmokeTerm}`);
+  }
+}
+
+for (const desktopSaveEvidenceTerm of ["desktopSaveSmokeReport", "desktop_json_save_smoke", "dist/xiannong-dongtian-desktop-save-smoke", "desktop-save-smoke"]) {
+  if (!qaEvidenceScript.includes(desktopSaveEvidenceTerm)) {
+    throw new Error(`QA evidence must include desktop JSON save smoke: ${desktopSaveEvidenceTerm}`);
   }
 }
 
