@@ -2664,6 +2664,70 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventChapter4FinalNestUnlockActionPlan(event, ready) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "unlock_final_nest";
+                const finalReady = applies && ready;
+                const firstUnlock = finalReady && !setHas(state.completed, constants.chapter4FinalNestUnlockFlag);
+                const completedFlags = finalReady
+                    ? [
+                        constants.chapter4FinalNestUnlockFlag,
+                        "quest_main_0402_ready",
+                        "building_unlock_build_solar_array_final",
+                    ]
+                    : [];
+                const itemId = applies ? constants.chapter4DinghaiItemId : "";
+                const itemCount = applies ? 1 : 0;
+                const shouldGrantItem = finalReady && !hasItem(state, itemId, itemCount);
+                const npcFavors = firstUnlock
+                    ? [
+                        { npcId: "npc_lu_sanxiao", amount: 10, source: "\u4e8c\u5341\u56db\u67a2\u5f52\u4f4d" },
+                        { npcId: "npc_qinghe", amount: 10, source: "\u5b9a\u6d77\u6c34\u7ebf" },
+                    ]
+                    : [];
+                const fameAmount = firstUnlock ? 8 : 0;
+                const dialogueGroup = finalReady ? "dialogue_final_array" : "";
+                const cue = finalReady ? "\u6210\u5c31\u89e3\u9501" : "";
+                const scanSource = finalReady ? "chapter4:final_nest_unlock" : "";
+                const actions = applies
+                    ? [
+                        { kind: "sync_chapter4_spirit_cores" },
+                        ...(finalReady ? [
+                            { kind: "trigger_event", eventId: plan.eventId },
+                            ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                            ...(shouldGrantItem ? [{ kind: "grant_item_if_missing", itemId, count: itemCount }] : []),
+                            ...npcFavors.map((favor) => ({ kind: "add_npc_favor", npcId: favor.npcId, amount: favor.amount, source: favor.source })),
+                            ...(fameAmount > 0 ? [{ kind: "add_fame", amount: fameAmount }] : []),
+                            { kind: "apply_chapter4_final_nest_world_change" },
+                            { kind: "show_chapter4_array_feedback" },
+                            { kind: "queue_dialogue_group", groupId: dialogueGroup },
+                            { kind: "play_cue", cue },
+                            { kind: "log_chapter4_final_nest_unlock" },
+                            { kind: "check_quest_rewards" },
+                            { kind: "scan_configured_events", source: scanSource },
+                        ] : [
+                            { kind: "show_chapter4_array_feedback" },
+                            { kind: "log_chapter4_array_not_ready" },
+                        ]),
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    ready: finalReady,
+                    firstUnlock,
+                    completedFlags,
+                    itemId,
+                    itemCount,
+                    npcFavors,
+                    fameAmount,
+                    dialogueGroup,
+                    cue,
+                    scanSource,
+                    actions,
+                };
+            }
             function configuredEventGenericUnlockActionPlan(event) {
                 const plan = configuredEventExecutionPlan(event);
                 const applies = plan.actionKind === "generic_unlock";
@@ -2782,6 +2846,7 @@ var XiannongCore;
                 configuredEventFireRuinFinishActionPlan,
                 configuredEventChapter4DroughtStartActionPlan,
                 configuredEventChapter4LuTruthActionPlan,
+                configuredEventChapter4FinalNestUnlockActionPlan,
                 configuredEventGenericUnlockActionPlan,
             };
         }

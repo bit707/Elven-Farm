@@ -17386,9 +17386,34 @@ function applyConfiguredEventAction(action, context = {}) {
   if (action.kind === "sync_chapter4_spirit_cores") {
     return syncChapter4SpiritCores();
   }
+  if (action.kind === "show_chapter4_array_feedback") {
+    const feedback = chapter4ArrayFeedbackSpec(context.eventName);
+    state.chapter4DroughtFeedback = feedback;
+    return feedback;
+  }
+  if (action.kind === "log_chapter4_array_not_ready") {
+    const feedback = context.lastResult || chapter4ArrayFeedbackSpec(context.eventName);
+    addLog("二十四枢未齐", `${feedback.detail} ${feedback.cta}`);
+    return null;
+  }
   if (action.kind === "log_chapter4_lu_truth_start") {
     const granted = Array.isArray(context.lastResult) ? context.lastResult : [];
     addLog("第四章推进", `${context.eventName}：陆三笑在守阵残碑前说明二十四枢，终章重建大阵的真正目标浮出水面。${granted.length ? ` ${granted.map((source) => source.label).join("、")}归位。` : ""}`);
+    return null;
+  }
+  if (action.kind === "apply_chapter4_final_nest_world_change") {
+    upsertWorldChange({
+      key: CHAPTER_4_FINAL_NEST_UNLOCK_FLAG,
+      dungeonId: CHAPTER_4_FINAL_NEST_AREA_ID,
+      title: "噬灵螟巢现形",
+      detail: "四枚灵脉枢石与炽炎火精齐鸣，青禾引水压住死潮，定海神珠从阵脚升起，终巢入口终于露出。",
+      rewardHint: `${itemName(CHAPTER_4_DINGHAI_ITEM_ID)} · ${dungeonName(data.dungeonsById.get(CHAPTER_4_FINAL_NEST_AREA_ID))}`,
+      visualType: "final_nest_gate",
+    });
+    return null;
+  }
+  if (action.kind === "log_chapter4_final_nest_unlock") {
+    addLog("终巢开启", `${context.eventName}：${itemName(CHAPTER_4_DINGHAI_ITEM_ID)}入手，${dungeonName(data.dungeonsById.get(CHAPTER_4_FINAL_NEST_AREA_ID))}已经可以进入。`);
     return null;
   }
   if (action.kind === "unlock_final_nest_if_ready") {
@@ -17874,7 +17899,11 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "unlock_final_nest" || (!actionKind && executeGroup.includes("unlock_final_nest"))) {
-    unlockFinalNest(eventName);
+    syncChapter4SpiritCores();
+    const finalNestReady = chapter4FinalNestReady();
+    const actionPlan = runtime?.configuredEventChapter4FinalNestUnlockActionPlan(event, finalNestReady);
+    if (actionPlan?.applies) applyConfiguredEventActionPlan(actionPlan, { eventName });
+    else unlockFinalNest(eventName);
     return true;
   }
 
@@ -38653,7 +38682,20 @@ function chapter4ArrayFeedbackSpec(eventName = "二十四枢") {
 
 function unlockFinalNest(eventName = "最终巢穴开启") {
   syncChapter4SpiritCores();
-  if (!chapter4FinalNestReady()) {
+  const finalNestReady = chapter4FinalNestReady();
+  const plan = questRuntime()?.configuredEventChapter4FinalNestUnlockActionPlan({
+    event_id: "event_main_0404",
+    event_name_key: "event_name_main_0404",
+    trigger_type: "on_item_collected",
+    trigger_param: CHAPTER_4_DINGHAI_ITEM_ID,
+    condition_group: "quest_main_0402_active",
+    execute_group: "exec_unlock_final_nest",
+  }, finalNestReady);
+  if (plan?.applies) {
+    applyConfiguredEventActionPlan(plan, { eventName });
+    return finalNestReady;
+  }
+  if (!finalNestReady) {
     const feedback = chapter4ArrayFeedbackSpec(eventName);
     state.chapter4DroughtFeedback = feedback;
     addLog("二十四枢未齐", `${feedback.detail} ${feedback.cta}`);
