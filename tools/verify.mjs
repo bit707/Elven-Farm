@@ -3004,6 +3004,7 @@ for (const questRuntimeTerm of [
   "runtime?.configuredEventHerbValleyUnlockActionPlan(event)",
   "runtime?.configuredEventHerbValleyFinishActionPlan(event)",
   "runtime?.configuredEventSpiritManorStartActionPlan(event)",
+  "runtime?.configuredEventSpiritManorOverviewActionPlan(event)",
   "runtime?.configuredEventGenericUnlockActionPlan(event)",
   "applyConfiguredEventActionPlan(actionPlan)",
   "applyConfiguredEventAction(action",
@@ -3270,6 +3271,7 @@ for (const questCoreSourceTerm of [
   "export interface ConfiguredEventHerbValleyUnlockActionPlan",
   "export interface ConfiguredEventHerbValleyFinishActionPlan",
   "export interface ConfiguredEventSpiritManorStartActionPlan",
+  "export interface ConfiguredEventSpiritManorOverviewActionPlan",
   "export interface ConfiguredEventGenericUnlockActionPlan",
   "configuredEventSideQuestActionPlan(event",
   "configuredEventMainQuestActionPlan(event",
@@ -3279,11 +3281,13 @@ for (const questCoreSourceTerm of [
   "configuredEventHerbValleyUnlockActionPlan(event",
   "configuredEventHerbValleyFinishActionPlan(event",
   "configuredEventSpiritManorStartActionPlan(event",
+  "configuredEventSpiritManorOverviewActionPlan(event",
   "configuredEventGenericUnlockActionPlan(event",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
   "kind: \"present_side_quest\"",
   "kind: \"start_main_quest\"",
+  "kind: \"complete_main_quest_if_needed\"",
   "kind: \"complete_flag\"",
   "kind: \"add_npc_favor\"",
   "kind: \"grant_item_if_missing\"",
@@ -3295,10 +3299,12 @@ for (const questCoreSourceTerm of [
   "kind: \"trigger_baizhi_chapter_finish_feedback\"",
   "kind: \"start_spirit_manor_chapter_if_needed\"",
   "kind: \"trigger_spirit_manor_feedback\"",
+  "kind: \"start_faction_order_chapter_if_needed\"",
   "kind: \"update_missions\"",
   "kind: \"play_cue\"",
   "kind: \"log_baizhi_chapter_finish\"",
   "kind: \"log_spirit_manor_chapter_start\"",
+  "kind: \"log_spirit_manor_overview_unlock\"",
   "kind: \"check_quest_rewards\"",
   "kind: \"scan_configured_events\"",
   "configuredEventReadyQueue()",
@@ -3368,11 +3374,13 @@ for (const questCoreRuntimeTerm of [
   "function configuredEventHerbValleyUnlockActionPlan",
   "function configuredEventHerbValleyFinishActionPlan",
   "function configuredEventSpiritManorStartActionPlan",
+  "function configuredEventSpiritManorOverviewActionPlan",
   "function configuredEventGenericUnlockActionPlan",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
   "kind: \"present_side_quest\"",
   "kind: \"start_main_quest\"",
+  "kind: \"complete_main_quest_if_needed\"",
   "kind: \"complete_flag\"",
   "kind: \"add_npc_favor\"",
   "kind: \"grant_item_if_missing\"",
@@ -3384,10 +3392,12 @@ for (const questCoreRuntimeTerm of [
   "kind: \"trigger_baizhi_chapter_finish_feedback\"",
   "kind: \"start_spirit_manor_chapter_if_needed\"",
   "kind: \"trigger_spirit_manor_feedback\"",
+  "kind: \"start_faction_order_chapter_if_needed\"",
   "kind: \"update_missions\"",
   "kind: \"play_cue\"",
   "kind: \"log_baizhi_chapter_finish\"",
   "kind: \"log_spirit_manor_chapter_start\"",
+  "kind: \"log_spirit_manor_overview_unlock\"",
   "kind: \"check_quest_rewards\"",
   "kind: \"scan_configured_events\"",
   "function dialogueGroupForExecuteGroup",
@@ -5764,6 +5774,13 @@ if (!mainQuest0301Condition || mainQuest0301Condition.expression !== "quest_stat
 }
 if (!eventMain0303 || eventMain0303.trigger_type !== "on_build_complete" || eventMain0303.trigger_param !== "build_spirit_manor" || eventMain0303.condition_group !== "quest_main_0301_active" || eventMain0303.execute_group !== "exec_unlock_spirit_overview") {
   throw new Error("Building Spirit Manor must unlock the spirit overview through configured event_main_0303");
+}
+if (!game.includes('executeGroup.includes("unlock_spirit_overview")')
+  || !game.includes("runtime?.configuredEventSpiritManorOverviewActionPlan(event)")
+  || !game.includes('kind: "complete_main_quest_if_needed"')
+  || !game.includes('kind: "start_faction_order_chapter_if_needed"')
+  || !game.includes('kind: "log_spirit_manor_overview_unlock"')) {
+  throw new Error("Spirit Manor overview unlock must run through a TypeScript configured-event action plan");
 }
 if (!spiritManorOverviewCondition || spiritManorOverviewCondition.expression !== "flag(spirit_manor_overview_unlocked)==true") {
   throw new Error("Faction order entry must depend on the real Spirit Manor overview unlock flag");

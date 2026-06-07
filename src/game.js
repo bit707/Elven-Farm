@@ -17200,6 +17200,10 @@ function applyConfiguredEventAction(action, context = {}) {
     if (!action.onlyIfNotStarted || !state.missionDone.has(action.questId)) state.missionDone.add(action.questId);
     return null;
   }
+  if (action.kind === "complete_main_quest_if_needed") {
+    if (!state.missionDone.has(action.questId)) state.missionDone.add(action.questId);
+    return null;
+  }
   if (action.kind === "complete_flag") {
     state.completed.add(action.flag);
     return null;
@@ -17260,6 +17264,12 @@ function applyConfiguredEventAction(action, context = {}) {
     triggerSpiritManorFeedback(action.phase, context.eventName);
     return null;
   }
+  if (action.kind === "start_faction_order_chapter_if_needed") {
+    if (!state.triggeredEvents.has(FACTION_ORDER_ENTRY_EVENT_ID)) {
+      startFactionOrderChapter(localize(action.eventNameKey, action.fallbackName));
+    }
+    return null;
+  }
   if (action.kind === "update_missions") {
     updateMissions();
     return null;
@@ -17274,6 +17284,10 @@ function applyConfiguredEventAction(action, context = {}) {
   }
   if (action.kind === "log_spirit_manor_chapter_start") {
     addLog("第三章开启", `${context.eventName}：阿檀已经把百怪大院蓝图摊开，精怪宿舍、岗位总览与情绪管理进入建设目标。`);
+    return null;
+  }
+  if (action.kind === "log_spirit_manor_overview_unlock") {
+    addLog("百怪大院建成", `${context.eventName}：岗位总览、宿舍分配与情绪管理已接入精怪面板，洞天自动化进入第三章。`);
     return null;
   }
   if (action.kind === "check_quest_rewards") {
@@ -17506,7 +17520,36 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "unlock_spirit_overview" || (!actionKind && executeGroup.includes("unlock_spirit_overview"))) {
-    unlockSpiritManorOverview(eventName);
+    const actionPlan = runtime?.configuredEventSpiritManorOverviewActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      firstUnlock: !state.completed.has(SPIRIT_MANOR_OVERVIEW_FLAG),
+      completedFlags: [SPIRIT_MANOR_OVERVIEW_FLAG, "spirit_housing_management"],
+      questId: SPIRIT_MANOR_QUEST_ID,
+      npcId: "npc_atan",
+      favorAmount: !state.completed.has(SPIRIT_MANOR_OVERVIEW_FLAG) ? 10 : 0,
+      favorSource: !state.completed.has(SPIRIT_MANOR_OVERVIEW_FLAG) ? "百怪大院落成" : "",
+      fameAmount: !state.completed.has(SPIRIT_MANOR_OVERVIEW_FLAG) ? 5 : 0,
+      dialogueGroup: "dialogue_main_0303_spirit_overview",
+      cue: "成就解锁",
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: SPIRIT_MANOR_OVERVIEW_FLAG },
+        { kind: "complete_flag", flag: "spirit_housing_management" },
+        { kind: "complete_main_quest_if_needed", questId: SPIRIT_MANOR_QUEST_ID },
+        ...(!state.completed.has(SPIRIT_MANOR_OVERVIEW_FLAG) ? [
+          { kind: "add_npc_favor", npcId: "npc_atan", amount: 10, source: "百怪大院落成" },
+          { kind: "add_fame", amount: 5 },
+        ] : []),
+        { kind: "trigger_spirit_manor_feedback", phase: "build" },
+        { kind: "queue_dialogue_group", groupId: "dialogue_main_0303_spirit_overview" },
+        { kind: "play_cue", cue: "成就解锁" },
+        { kind: "log_spirit_manor_overview_unlock" },
+        ...(!state.triggeredEvents.has(FACTION_ORDER_ENTRY_EVENT_ID) ? [{ kind: "start_faction_order_chapter_if_needed", eventNameKey: "event_name_main_0302", fallbackName: "商会来客" }] : []),
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan, { eventName });
     return true;
   }
 

@@ -2320,6 +2320,49 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventSpiritManorOverviewActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "unlock_spirit_overview";
+                const firstUnlock = applies && !setHas(state.completed, "spirit_manor_overview_unlocked");
+                const completedFlags = applies ? ["spirit_manor_overview_unlocked", "spirit_housing_management"] : [];
+                const questId = applies ? "quest_main_0301_baiguai_youyuan" : "";
+                const npcId = applies ? "npc_atan" : "";
+                const favorAmount = firstUnlock ? 10 : 0;
+                const favorSource = firstUnlock ? "百怪大院落成" : "";
+                const fameAmount = firstUnlock ? 5 : 0;
+                const dialogueGroup = applies ? "dialogue_main_0303_spirit_overview" : "";
+                const cue = applies ? "成就解锁" : "";
+                const shouldStartFactionOrder = applies && !setHas(state.triggeredEvents, "event_main_0302");
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        { kind: "complete_main_quest_if_needed", questId },
+                        ...(favorAmount > 0 ? [{ kind: "add_npc_favor", npcId, amount: favorAmount, source: favorSource }] : []),
+                        ...(fameAmount > 0 ? [{ kind: "add_fame", amount: fameAmount }] : []),
+                        { kind: "trigger_spirit_manor_feedback", phase: "build" },
+                        { kind: "queue_dialogue_group", groupId: dialogueGroup },
+                        { kind: "play_cue", cue },
+                        { kind: "log_spirit_manor_overview_unlock" },
+                        ...(shouldStartFactionOrder ? [{ kind: "start_faction_order_chapter_if_needed", eventNameKey: "event_name_main_0302", fallbackName: "商会来客" }] : []),
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    firstUnlock,
+                    completedFlags,
+                    questId,
+                    npcId,
+                    favorAmount,
+                    favorSource,
+                    fameAmount,
+                    dialogueGroup,
+                    cue,
+                    actions,
+                };
+            }
             function configuredEventGenericUnlockActionPlan(event) {
                 const plan = configuredEventExecutionPlan(event);
                 const applies = plan.actionKind === "generic_unlock";
@@ -2431,6 +2474,7 @@ var XiannongCore;
                 configuredEventHerbValleyUnlockActionPlan,
                 configuredEventHerbValleyFinishActionPlan,
                 configuredEventSpiritManorStartActionPlan,
+                configuredEventSpiritManorOverviewActionPlan,
                 configuredEventGenericUnlockActionPlan,
             };
         }
