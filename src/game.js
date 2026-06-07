@@ -40909,6 +40909,13 @@ function dungeonMechanicEffects(run = state.dungeon, mechanic = currentDungeonMe
     lootMultiplier: 1,
   };
   if (!mechanicState || !mechanic) return effects;
+  const runtimeEffects = dungeonRuntime()?.dungeonMechanicEffects({
+    mechanicId: mechanic.dungeon_id,
+    mechanicState,
+    support,
+    phase,
+  });
+  if (runtimeEffects) return runtimeEffects;
   switch (mechanic.dungeon_id) {
     case "dsm_001":
       if (mechanicState.resonanceTurn) {

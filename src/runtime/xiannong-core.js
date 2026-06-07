@@ -86,6 +86,113 @@ var XiannongCore;
                     return 1;
                 return clampPercent(Number(input?.bossHp ?? input?.run?.bossHp ?? maxHp) / maxHp);
             }
+            function dungeonMechanicEffects(input = null) {
+                const mechanicId = input?.mechanicId || "";
+                const mechanicState = input?.mechanicState || null;
+                const support = Number(input?.support || 0);
+                const effects = {
+                    enemyPowerDown: 0,
+                    damageUp: 0,
+                    damageDown: 0,
+                    bossGuard: 0,
+                    strikeBonus: 0,
+                    lootMultiplier: 1,
+                };
+                if (!mechanicState || !mechanicId)
+                    return effects;
+                switch (mechanicId) {
+                    case "dsm_001":
+                        if (mechanicState.resonanceTurn) {
+                            effects.enemyPowerDown += 2 + support;
+                            if (Number(mechanicState.pillarsLit || 0) >= 2)
+                                effects.strikeBonus += 16;
+                        }
+                        else {
+                            effects.damageUp += Math.max(1, 2 - support);
+                        }
+                        if (Number(mechanicState.pillarsLit || 0) >= 3)
+                            effects.bossGuard += 3 + Math.min(2, support);
+                        break;
+                    case "dsm_002":
+                        if (Number(mechanicState.waterLevel || 0) === 0) {
+                            effects.damageUp += Math.max(0, 1 - Math.min(1, support));
+                            effects.enemyPowerDown += support > 0 ? 1 : 0;
+                        }
+                        else if (Number(mechanicState.waterLevel || 0) === 1) {
+                            effects.enemyPowerDown += 2 + support;
+                            effects.strikeBonus += 10;
+                        }
+                        else {
+                            effects.damageUp += support >= 2 ? 0 : 2;
+                            effects.lootMultiplier += 0.12;
+                        }
+                        if (Number(mechanicState.sluicesAligned || 0) >= 3)
+                            effects.bossGuard += 3;
+                        break;
+                    case "dsm_003":
+                        if (Number(mechanicState.cadence || 0) === 1 || support >= 2)
+                            effects.enemyPowerDown += 2 + support;
+                        if (Number(mechanicState.cadence || 0) === 2 && support === 0)
+                            effects.damageUp += 2;
+                        if (Number(mechanicState.listened || 0) >= 3) {
+                            effects.bossGuard += 2;
+                            effects.lootMultiplier += 0.1;
+                        }
+                        break;
+                    case "dsm_004": {
+                        const overflow = Number(mechanicState.overflow || 0);
+                        const effectiveOverflow = Math.max(0, overflow - Math.min(2, support));
+                        effects.damageUp += Math.max(0, effectiveOverflow - 1);
+                        effects.lootMultiplier += overflow * 0.12;
+                        effects.strikeBonus += overflow * 6;
+                        effects.enemyPowerDown += support;
+                        break;
+                    }
+                    case "dsm_005":
+                        effects.enemyPowerDown += Number(mechanicState.verifiedPaths || 0) + support;
+                        if (support === 0 && Number(mechanicState.verifiedPaths || 0) === 0)
+                            effects.damageUp += 1;
+                        if (Number(mechanicState.verifiedPaths || 0) >= 2) {
+                            effects.bossGuard += 2;
+                            effects.strikeBonus += Number(mechanicState.verifiedPaths || 0) * 8;
+                        }
+                        break;
+                    case "dsm_006": {
+                        const coldStacks = Number(mechanicState.coldStacks || 0);
+                        const effectiveCold = Math.max(0, coldStacks - support);
+                        effects.damageUp += effectiveCold;
+                        effects.damageDown += support >= 2 ? 1 : 0;
+                        if (coldStacks <= 1 && support > 0)
+                            effects.strikeBonus += 12;
+                        break;
+                    }
+                    case "dsm_007":
+                        if (Number(mechanicState.routeMarks || 0) > 0)
+                            effects.enemyPowerDown += Number(mechanicState.routeMarks || 0) + Math.min(1, support);
+                        if (Number(mechanicState.routeMarks || 0) === 0 && Number(mechanicState.windShift || 0) === 1)
+                            effects.damageUp += 1;
+                        if (Number(mechanicState.routeMarks || 0) >= 2) {
+                            effects.lootMultiplier += 0.1;
+                            effects.bossGuard += 2;
+                        }
+                        break;
+                    case "dsm_008":
+                        effects.enemyPowerDown += Math.min(4, Math.floor(Number(mechanicState.lanternChain || 1) / 2)) + Math.min(2, support);
+                        if (Number(mechanicState.lanternChain || 1) < 3)
+                            effects.damageUp += Math.max(0, 2 - support);
+                        if (Number(mechanicState.lanternChain || 1) >= 4)
+                            effects.bossGuard += 2 + Math.floor(Number(mechanicState.lanternChain || 1) / 3);
+                        effects.strikeBonus += Number(mechanicState.lanternChain || 1) * 8;
+                        if (Number(mechanicState.lanternChain || 1) >= 7)
+                            effects.lootMultiplier += 0.15;
+                        break;
+                    default:
+                        break;
+                }
+                if (input?.phase === "boss" && mechanicId === "dsm_001" && Number(mechanicState.pillarsLit || 0) < 3)
+                    effects.damageUp += 1;
+                return effects;
+            }
             function dungeonExplorePlan(input = null) {
                 const effects = input?.mechanicEffects || null;
                 const enemyPower = Math.max(8, Number(input?.enemy?.atk || 16)
@@ -152,6 +259,7 @@ var XiannongCore;
                 spiritCombatBonus,
                 dungeonBossMaxHp,
                 bossHpPercent,
+                dungeonMechanicEffects,
                 dungeonExplorePlan,
                 dungeonBossExchangePlan,
             };
