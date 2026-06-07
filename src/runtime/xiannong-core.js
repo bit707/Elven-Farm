@@ -1223,6 +1223,27 @@ var XiannongCore;
                 const featured = available.filter((tag) => required.includes(tag) || isExpressiveShopTag(tag) || ["ecology_product", "spirit_crafted", "route_rare"].includes(tag));
                 return prioritizeShopTag(featured.length ? featured : available, counts, required[0] || fallback);
             }
+            function shopFeedbackEntryMatchesTag(entry = null, tag = "") {
+                if (!entry || !tag)
+                    return true;
+                const trigger = String(entry.trigger_condition || "");
+                const hotTag = trigger.match(/hot_tag==([a-z_]+)/)?.[1] || "";
+                if (hotTag)
+                    return hotTag === tag;
+                const tagMatches = [...trigger.matchAll(/tag_match==([a-z_]+)/g)].map((match) => match[1]);
+                if (tagMatches.length)
+                    return tagMatches.includes(tag);
+                return true;
+            }
+            function shopFeedbackForSegment(type, customerSegment = "", tag = "") {
+                if (!customerSegment)
+                    return null;
+                const exact = data.shopFeedback.filter((entry) => entry.feedback_type === type && entry.customer_segment === customerSegment);
+                if (!exact.length)
+                    return null;
+                const matched = tag ? exact.filter((entry) => shopFeedbackEntryMatchesTag(entry, tag)) : exact;
+                return matched[0] || null;
+            }
             return {
                 customerPriceRule,
                 customerProfile,
@@ -1239,6 +1260,8 @@ var XiannongCore;
                 shopTagPriority,
                 prioritizeShopTag,
                 shopHotTag,
+                shopFeedbackEntryMatchesTag,
+                shopFeedbackForSegment,
             };
         }
         Shop.createShopRuntime = createShopRuntime;

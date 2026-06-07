@@ -15607,6 +15607,7 @@ function shopRuntime() {
     {
       shopPriceRules: data.shopPriceRules,
       customerProfiles: data.customerProfiles,
+      shopFeedback: data.shopFeedback,
       priceRulesByArchetype: data.priceRulesByArchetype,
       customerProfilesBy: data.customerProfilesBy,
     },
@@ -20436,6 +20437,8 @@ function shopFeedbackBy(type, fallbackIndex = 0) {
 }
 
 function shopFeedbackEntryMatchesTag(entry, tag = "") {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.shopFeedbackEntryMatchesTag(entry, tag);
   if (!entry || !tag) return true;
   const trigger = String(entry.trigger_condition || "");
   const hotTag = trigger.match(/hot_tag==([a-z_]+)/)?.[1] || "";
@@ -20446,6 +20449,8 @@ function shopFeedbackEntryMatchesTag(entry, tag = "") {
 }
 
 function shopFeedbackForSegment(type, customerSegment = "", tag = "") {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.shopFeedbackForSegment(type, customerSegment, tag);
   if (!customerSegment) return null;
   const exact = data.shopFeedback.filter((entry) => entry.feedback_type === type && entry.customer_segment === customerSegment);
   if (!exact.length) return null;

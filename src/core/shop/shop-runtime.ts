@@ -9,6 +9,7 @@ namespace XiannongCore.Shop {
   export interface ShopRuntimeData {
     shopPriceRules: ShopRow[];
     customerProfiles: ShopRow[];
+    shopFeedback: ShopRow[];
     priceRulesByArchetype?: Map<string, ShopRow>;
     customerProfilesBy?: Map<string, ShopRow>;
   }
@@ -29,6 +30,8 @@ namespace XiannongCore.Shop {
     shopTagPriority(tag?: string | null): number;
     prioritizeShopTag(tags?: string[] | null, counts?: ShopTagCounts | null, fallback?: string): string;
     shopHotTag(goods?: ShopTaggedGoodChoice[] | null, theme?: ShopRow | null, fallback?: string): string;
+    shopFeedbackEntryMatchesTag(entry?: ShopRow | null, tag?: string | null): boolean;
+    shopFeedbackForSegment(type: string, customerSegment?: string | null, tag?: string | null): ShopRow | null;
   }
 
   export interface ShopGoodChoice {
@@ -334,6 +337,24 @@ namespace XiannongCore.Shop {
       return prioritizeShopTag(featured.length ? featured : available, counts, required[0] || fallback);
     }
 
+    function shopFeedbackEntryMatchesTag(entry: ShopRow | null = null, tag: string | null = ""): boolean {
+      if (!entry || !tag) return true;
+      const trigger = String(entry.trigger_condition || "");
+      const hotTag = trigger.match(/hot_tag==([a-z_]+)/)?.[1] || "";
+      if (hotTag) return hotTag === tag;
+      const tagMatches = [...trigger.matchAll(/tag_match==([a-z_]+)/g)].map((match) => match[1]);
+      if (tagMatches.length) return tagMatches.includes(tag);
+      return true;
+    }
+
+    function shopFeedbackForSegment(type: string, customerSegment: string | null = "", tag: string | null = ""): ShopRow | null {
+      if (!customerSegment) return null;
+      const exact = data.shopFeedback.filter((entry) => entry.feedback_type === type && entry.customer_segment === customerSegment);
+      if (!exact.length) return null;
+      const matched = tag ? exact.filter((entry) => shopFeedbackEntryMatchesTag(entry, tag)) : exact;
+      return matched[0] || null;
+    }
+
     return {
       customerPriceRule,
       customerProfile,
@@ -350,6 +371,8 @@ namespace XiannongCore.Shop {
       shopTagPriority,
       prioritizeShopTag,
       shopHotTag,
+      shopFeedbackEntryMatchesTag,
+      shopFeedbackForSegment,
     };
   }
 }
