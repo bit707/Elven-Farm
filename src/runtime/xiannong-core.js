@@ -14,6 +14,26 @@ var XiannongCore;
         function effectValue(effects, key) {
             return Number(effects?.[key] || 0);
         }
+        function mechanicValue(state, key, fallback = 0) {
+            return Number(state?.[key] ?? fallback);
+        }
+        function changedKeys(before, after) {
+            const keys = [
+                "pillarsLit",
+                "resonanceTurn",
+                "waterLevel",
+                "sluicesAligned",
+                "cadence",
+                "listened",
+                "overflow",
+                "verifiedPaths",
+                "coldStacks",
+                "windShift",
+                "routeMarks",
+                "lanternChain",
+            ];
+            return keys.filter((key) => before[key] !== after[key]);
+        }
         function createDungeonRuntime(data) {
             function bossForId(bossId) {
                 if (!bossId)
@@ -193,6 +213,58 @@ var XiannongCore;
                     effects.damageUp += 1;
                 return effects;
             }
+            function dungeonMechanicAdvancePlan(input = null) {
+                const mechanicId = input?.mechanicId || "";
+                const support = Number(input?.support || 0);
+                const hiddenRevealStart = Number(input?.hiddenRevealPressureDown || 0) > 0 ? 1 : 0;
+                const nextState = {
+                    ...(input?.mechanicState || {}),
+                };
+                switch (mechanicId) {
+                    case "dsm_001":
+                        if (nextState.resonanceTurn) {
+                            nextState.pillarsLit = Math.min(3, mechanicValue(nextState, "pillarsLit") + (support >= 2 ? 2 : 1));
+                        }
+                        nextState.resonanceTurn = !nextState.resonanceTurn;
+                        break;
+                    case "dsm_002":
+                        if (mechanicValue(nextState, "waterLevel", 1) === 1 || support >= 2) {
+                            nextState.sluicesAligned = Math.min(3, mechanicValue(nextState, "sluicesAligned") + 1);
+                        }
+                        nextState.waterLevel = (mechanicValue(nextState, "waterLevel", 1) + 1) % 3;
+                        break;
+                    case "dsm_003":
+                        if (mechanicValue(nextState, "cadence", 1) === 1 || support >= 2) {
+                            nextState.listened = Math.min(3, mechanicValue(nextState, "listened") + 1);
+                        }
+                        nextState.cadence = (mechanicValue(nextState, "cadence", 1) + 1) % 3;
+                        break;
+                    case "dsm_004":
+                        nextState.overflow = Math.min(5, mechanicValue(nextState, "overflow") + (support >= 2 ? 1 : 2));
+                        break;
+                    case "dsm_005":
+                        if (support > 0)
+                            nextState.verifiedPaths = Math.min(3, mechanicValue(nextState, "verifiedPaths") + 1);
+                        break;
+                    case "dsm_006":
+                        nextState.coldStacks = Math.max(0, Math.min(4, mechanicValue(nextState, "coldStacks") + (support >= 2 ? 0 : 1) - (input?.phase === "boss" && support >= 3 ? 1 : 0)));
+                        break;
+                    case "dsm_007":
+                        if (support > 0)
+                            nextState.routeMarks = Math.min(3, mechanicValue(nextState, "routeMarks") + 1);
+                        nextState.windShift = mechanicValue(nextState, "windShift") ? 0 : 1;
+                        break;
+                    case "dsm_008":
+                        nextState.lanternChain = Math.min(7, mechanicValue(nextState, "lanternChain", 1 + hiddenRevealStart) + 1 + (support >= 2 ? 1 : 0));
+                        break;
+                    default:
+                        break;
+                }
+                return {
+                    nextState,
+                    changed: changedKeys(input?.mechanicState || {}, nextState),
+                };
+            }
             function dungeonExplorePlan(input = null) {
                 const effects = input?.mechanicEffects || null;
                 const enemyPower = Math.max(8, Number(input?.enemy?.atk || 16)
@@ -260,6 +332,7 @@ var XiannongCore;
                 dungeonBossMaxHp,
                 bossHpPercent,
                 dungeonMechanicEffects,
+                dungeonMechanicAdvancePlan,
                 dungeonExplorePlan,
                 dungeonBossExchangePlan,
             };

@@ -40996,50 +40996,59 @@ function advanceDungeonMechanicState(run = state.dungeon, mechanic = currentDung
   const mechanicState = syncDungeonMechanicState(run, mechanic, dungeon);
   const support = dungeonMechanicSupportLevel(mechanic);
   if (!mechanicState || !mechanic) return "";
+  const advancePlan = dungeonRuntime()?.dungeonMechanicAdvancePlan({
+    mechanicId: mechanic.dungeon_id,
+    mechanicState,
+    support,
+    phase,
+    hiddenRevealPressureDown: run?.hiddenRevealPressureDown,
+  });
+  const nextMechanicState = advancePlan?.nextState || null;
+  const advancedValue = (key, fallback) => nextMechanicState?.[key] ?? fallback;
   let note = mechanicState.lastNote || "";
   switch (mechanic.dungeon_id) {
     case "dsm_001":
       if (mechanicState.resonanceTurn) {
-        mechanicState.pillarsLit = Math.min(3, mechanicState.pillarsLit + (support >= 2 ? 2 : 1));
+        mechanicState.pillarsLit = Number(advancedValue("pillarsLit", Math.min(3, mechanicState.pillarsLit + (support >= 2 ? 2 : 1))));
         note = `雷声共振，雷木柱已点亮 ${mechanicState.pillarsLit}/3。`;
       } else {
         note = support > 0 ? "余震还在抖，但你已经借着灵纹看清了下一处雷木柱。" : "余震没散，机关暂时还压着路。";
       }
-      mechanicState.resonanceTurn = !mechanicState.resonanceTurn;
+      mechanicState.resonanceTurn = Boolean(advancedValue("resonanceTurn", !mechanicState.resonanceTurn));
       break;
     case "dsm_002":
-      if (mechanicState.waterLevel === 1 || support >= 2) mechanicState.sluicesAligned = Math.min(3, mechanicState.sluicesAligned + 1);
+      if (mechanicState.waterLevel === 1 || support >= 2) mechanicState.sluicesAligned = Number(advancedValue("sluicesAligned", Math.min(3, mechanicState.sluicesAligned + 1)));
       note = `${["浅水", "平水", "丰水"][mechanicState.waterLevel] || "平水"}阶段走完，回渠闸口已接上 ${mechanicState.sluicesAligned}/3。`;
-      mechanicState.waterLevel = (mechanicState.waterLevel + 1) % 3;
+      mechanicState.waterLevel = Number(advancedValue("waterLevel", (mechanicState.waterLevel + 1) % 3));
       break;
     case "dsm_003":
-      if (mechanicState.cadence === 1 || support >= 2) mechanicState.listened = Math.min(3, mechanicState.listened + 1);
+      if (mechanicState.cadence === 1 || support >= 2) mechanicState.listened = Number(advancedValue("listened", Math.min(3, mechanicState.listened + 1)));
       note = `${["前拍", "正拍", "回拍"][mechanicState.cadence] || "正拍"}虫鸣掠过，已听准 ${mechanicState.listened}/3 段林道节拍。`;
-      mechanicState.cadence = (mechanicState.cadence + 1) % 3;
+      mechanicState.cadence = Number(advancedValue("cadence", (mechanicState.cadence + 1) % 3));
       break;
     case "dsm_004":
-      mechanicState.overflow = Math.min(5, mechanicState.overflow + (support >= 2 ? 1 : 2));
+      mechanicState.overflow = Number(advancedValue("overflow", Math.min(5, mechanicState.overflow + (support >= 2 ? 1 : 2))));
       note = `谷底满溢涨到 ${mechanicState.overflow}/5，收益在抬，但灵压也跟着更躁。`;
       break;
     case "dsm_005":
-      if (support > 0) mechanicState.verifiedPaths = Math.min(3, mechanicState.verifiedPaths + 1);
+      if (support > 0) mechanicState.verifiedPaths = Number(advancedValue("verifiedPaths", Math.min(3, mechanicState.verifiedPaths + 1)));
       note = support > 0
         ? `倒影里又确认了一段真路，已验证 ${mechanicState.verifiedPaths}/3 段。`
         : "倒影晃得厉害，你只勉强记住了大致方向。";
       break;
     case "dsm_006":
-      mechanicState.coldStacks = Math.max(0, Math.min(4, mechanicState.coldStacks + (support >= 2 ? 0 : 1) - (phase === "boss" && support >= 3 ? 1 : 0)));
+      mechanicState.coldStacks = Number(advancedValue("coldStacks", Math.max(0, Math.min(4, mechanicState.coldStacks + (support >= 2 ? 0 : 1) - (phase === "boss" && support >= 3 ? 1 : 0)))));
       note = support > 0
         ? `保暖还撑得住，但霜气已经压到 ${mechanicState.coldStacks}/4 层。`
         : `寒气继续往骨头里钻，霜寒已累到 ${mechanicState.coldStacks}/4 层。`;
       break;
     case "dsm_007":
-      if (support > 0) mechanicState.routeMarks = Math.min(3, mechanicState.routeMarks + 1);
-      mechanicState.windShift = mechanicState.windShift ? 0 : 1;
+      if (support > 0) mechanicState.routeMarks = Number(advancedValue("routeMarks", Math.min(3, mechanicState.routeMarks + 1)));
+      mechanicState.windShift = Number(advancedValue("windShift", mechanicState.windShift ? 0 : 1));
       note = `${mechanicState.windShift ? "逆风" : "顺风"}一翻，落叶又露出 ${mechanicState.routeMarks}/3 段旧路痕。`;
       break;
     case "dsm_008":
-      mechanicState.lanternChain = Math.min(7, mechanicState.lanternChain + 1 + (support >= 2 ? 1 : 0));
+      mechanicState.lanternChain = Number(advancedValue("lanternChain", Math.min(7, mechanicState.lanternChain + 1 + (support >= 2 ? 1 : 0))));
       note = `长灯链已接到 ${mechanicState.lanternChain}/7 盏，${mechanicState.lanternChain >= 4 ? "影路开始成形。": "还得继续把灯火接稳。"} `;
       break;
     default:
