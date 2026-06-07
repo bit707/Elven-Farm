@@ -17061,8 +17061,10 @@ function executeConfiguredEvent(event, source = "runtime") {
   state.triggeredEvents.add(event.event_id);
   const executeGroup = event.execute_group || "";
   const eventName = localize(event.event_name_key, event.event_id);
+  const runtime = questRuntime();
+  const actionKind = runtime ? runtime.configuredEventActionKind(event) : "";
 
-  if (event.quest_id) {
+  if (actionKind === "side_quest_accept" || (!actionKind && event.quest_id)) {
     state.activeSideQuests.add(event.quest_id);
     const quest = data.sideQuests.find((entry) => entry.quest_id === event.quest_id);
     addLog("支线开启", `${questTitle(quest || { quest_id: event.quest_id })}：${event.note || eventName}`);
@@ -17073,22 +17075,22 @@ function executeConfiguredEvent(event, source = "runtime") {
     return true;
   }
 
-  if (executeGroup.includes("start_quest_main_0301")) {
+  if (actionKind === "start_spirit_manor_chapter" || (!actionKind && executeGroup.includes("start_quest_main_0301"))) {
     startSpiritManorChapter(eventName);
     return true;
   }
 
-  if (executeGroup.includes("start_quest_main_0302")) {
+  if (actionKind === "start_faction_order_chapter" || (!actionKind && executeGroup.includes("start_quest_main_0302"))) {
     startFactionOrderChapter(eventName);
     return true;
   }
 
-  if (executeGroup.includes("start_quest_main_0402")) {
+  if (actionKind === "start_chapter4_lu_truth" || (!actionKind && executeGroup.includes("start_quest_main_0402"))) {
     startChapter4LuTruth(eventName);
     return true;
   }
 
-  if (executeGroup.includes("start_quest_main")) {
+  if (actionKind === "start_main_quest" || (!actionKind && executeGroup.includes("start_quest_main"))) {
     const quest = questForExecuteGroup(executeGroup);
     if (quest && !state.missionDone.has(quest.quest_id)) {
       state.missionDone.add(quest.quest_id);
@@ -17099,20 +17101,20 @@ function executeConfiguredEvent(event, source = "runtime") {
     return true;
   }
 
-  if (executeGroup.includes("birth_first_spirit") && state.spirits.length === 0) {
+  if ((actionKind === "birth_first_spirit" || (!actionKind && executeGroup.includes("birth_first_spirit"))) && state.spirits.length === 0) {
     unlockSpirit();
     addLog("配置事件", `${eventName}：第一只精怪已按事件表入队。`);
     return true;
   }
 
-  if (executeGroup.includes("cutscene")) {
+  if (actionKind === "cutscene" || (!actionKind && executeGroup.includes("cutscene"))) {
     const dialogueGroup = dialogueGroupForExecuteGroup(executeGroup);
     if (dialogueGroup) showDialogue(dialogueGroup);
     addLog("配置演出", `${eventName}：${executeGroup}`);
     return true;
   }
 
-  if (executeGroup.includes("unlock_herb_valley")) {
+  if (actionKind === "unlock_herb_valley" || (!actionKind && executeGroup.includes("unlock_herb_valley"))) {
     state.completed.add(HERB_VALLEY_UNLOCK_FLAG);
     state.completed.add("baizhi_herb_valley_revealed");
     herbValleyWorldChange();
@@ -17123,12 +17125,12 @@ function executeConfiguredEvent(event, source = "runtime") {
     return true;
   }
 
-  if (executeGroup.includes("finish_herb_valley_baizhi")) {
+  if (actionKind === "finish_herb_valley_baizhi" || (!actionKind && executeGroup.includes("finish_herb_valley_baizhi"))) {
     finishHerbValleyBaizhiLine(eventName);
     return true;
   }
 
-  if (executeGroup.includes("shop_tutorial_complete")) {
+  if (actionKind === "shop_tutorial_complete" || (!actionKind && executeGroup.includes("shop_tutorial_complete"))) {
     state.completed.add("shop_tutorial_complete");
     state.completed.add("quest_main_0201_step_2_done");
     addLog("Shop tutorial complete", `${eventName}: real shop sales reached ${Number(state.shopStats?.soldCount || 0)} sold items; next target is 800 total sales.`);
@@ -17136,7 +17138,7 @@ function executeConfiguredEvent(event, source = "runtime") {
     return true;
   }
 
-  if (executeGroup.includes("spawn_hu_sihai")) {
+  if (actionKind === "spawn_hu_sihai" || (!actionKind && executeGroup.includes("spawn_hu_sihai"))) {
     state.completed.add("npc_hu_sihai_arrived");
     state.completed.add("quest_main_0201_sales_800_done");
     addNpcFavor("npc_hu_sihai", 8, "旧铺开门");
@@ -17146,52 +17148,52 @@ function executeConfiguredEvent(event, source = "runtime") {
     return true;
   }
 
-  if (executeGroup.includes("unlock_spirit_overview")) {
+  if (actionKind === "unlock_spirit_overview" || (!actionKind && executeGroup.includes("unlock_spirit_overview"))) {
     unlockSpiritManorOverview(eventName);
     return true;
   }
 
-  if (executeGroup.includes("unlock_ruin_fire")) {
+  if (actionKind === "unlock_ruin_fire" || (!actionKind && executeGroup.includes("unlock_ruin_fire"))) {
     unlockFireRuin(eventName);
     return true;
   }
 
-  if (executeGroup.includes("start_ruin_fire")) {
+  if (actionKind === "start_ruin_fire" || (!actionKind && executeGroup.includes("start_ruin_fire"))) {
     startFireRuinExpedition(eventName);
     return true;
   }
 
-  if (executeGroup.includes("finish_fire_ruin")) {
+  if (actionKind === "finish_fire_ruin" || (!actionKind && executeGroup.includes("finish_fire_ruin"))) {
     finishFireRuinLine(eventName);
     return true;
   }
 
-  if (executeGroup.includes("world_state_drought")) {
+  if (actionKind === "world_state_drought" || (!actionKind && executeGroup.includes("world_state_drought"))) {
     startChapter4Drought(eventName);
     return true;
   }
 
-  if (executeGroup.includes("unlock_final_nest")) {
+  if (actionKind === "unlock_final_nest" || (!actionKind && executeGroup.includes("unlock_final_nest"))) {
     unlockFinalNest(eventName);
     return true;
   }
 
-  if (executeGroup.includes("start_final_array_cutscene")) {
+  if (actionKind === "start_final_array_cutscene" || (!actionKind && executeGroup.includes("start_final_array_cutscene"))) {
     startChapter4PantaoFinale(eventName);
     return true;
   }
 
-  if (executeGroup.includes("unlock_final_planting")) {
+  if (actionKind === "unlock_final_planting" || (!actionKind && executeGroup.includes("unlock_final_planting"))) {
     unlockFinalPlanting(eventName);
     return true;
   }
 
-  if (executeGroup.includes("final_banquet")) {
+  if (actionKind === "final_banquet" || (!actionKind && executeGroup.includes("final_banquet"))) {
     finishFinalBanquet(eventName);
     return true;
   }
 
-  if (executeGroup.includes("unlock") || executeGroup.includes("spawn") || executeGroup.includes("open")) {
+  if (actionKind === "generic_unlock" || (!actionKind && (executeGroup.includes("unlock") || executeGroup.includes("spawn") || executeGroup.includes("open")))) {
     addLog("配置解锁", `${eventName}：${executeGroup}`);
     return true;
   }

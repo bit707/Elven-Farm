@@ -13,7 +13,7 @@ This project keeps the current Web Canvas game instead of switching to Unity or 
 
 - `src/core/data/runtime-data.ts` defines a typed runtime data loader.
 - `src/core/persistence/save-runtime.ts` defines a typed save adapter for browser storage and desktop JSON save bridges.
-- `src/core/quests/quest-runtime.ts` moves quest step progress, quest state checks, story quest start/done checks, quest reward claiming, configured event trigger readiness/ready-queue scanning, side-quest route/action readiness, and side-quest clue visibility into TypeScript.
+- `src/core/quests/quest-runtime.ts` moves quest step progress, quest state checks, story quest start/done checks, quest reward claiming, configured event trigger readiness/ready-queue scanning/action classification, side-quest route/action readiness, and side-quest clue visibility into TypeScript.
 - `tools/build-runtime-data.mjs` converts gameplay CSV tables into `runtime-data/runtime-data.json`.
 - `src/runtime/xiannong-core.js` is the generated TypeScript runtime loaded before `src/game.js`.
 - `desktop-shell/main.mjs` and `desktop-shell/preload.cjs` expose `XiannongStorage`, writing the main profile to `Electron userData/saves/profile_1.json`.

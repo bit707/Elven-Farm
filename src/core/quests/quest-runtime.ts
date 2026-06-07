@@ -147,6 +147,7 @@ namespace XiannongCore.Quests {
     sideQuestVisible(quest: QuestRow | null | undefined): boolean;
     sideQuestClueForNpc(npcId?: string, questId?: string): SideQuestClue | null;
     configuredEventReadyQueue(): ConfiguredEventCandidate[];
+    configuredEventActionKind(event: ConfiguredTriggerRow): ConfiguredEventActionKind;
   }
 
   export interface QuestRewardClaimResult {
@@ -168,6 +169,30 @@ namespace XiannongCore.Quests {
     event: ConfiguredTriggerRow;
     status: TriggerReadyStatus;
   }
+
+  export type ConfiguredEventActionKind =
+    | "side_quest_accept"
+    | "start_spirit_manor_chapter"
+    | "start_faction_order_chapter"
+    | "start_chapter4_lu_truth"
+    | "start_main_quest"
+    | "birth_first_spirit"
+    | "cutscene"
+    | "unlock_herb_valley"
+    | "finish_herb_valley_baizhi"
+    | "shop_tutorial_complete"
+    | "spawn_hu_sihai"
+    | "unlock_spirit_overview"
+    | "unlock_ruin_fire"
+    | "start_ruin_fire"
+    | "finish_fire_ruin"
+    | "world_state_drought"
+    | "unlock_final_nest"
+    | "start_final_array_cutscene"
+    | "unlock_final_planting"
+    | "final_banquet"
+    | "generic_unlock"
+    | "generic_event";
 
   export interface SideQuestActionState {
     kind: "missing" | "claimed" | "reward" | "accept" | "done" | "step";
@@ -569,6 +594,32 @@ namespace XiannongCore.Quests {
       return candidates;
     }
 
+    function configuredEventActionKind(event: ConfiguredTriggerRow): ConfiguredEventActionKind {
+      const executeGroup = event.execute_group || "";
+      if (event.quest_id) return "side_quest_accept";
+      if (executeGroup.includes("start_quest_main_0301")) return "start_spirit_manor_chapter";
+      if (executeGroup.includes("start_quest_main_0302")) return "start_faction_order_chapter";
+      if (executeGroup.includes("start_quest_main_0402")) return "start_chapter4_lu_truth";
+      if (executeGroup.includes("start_quest_main")) return "start_main_quest";
+      if (executeGroup.includes("birth_first_spirit")) return "birth_first_spirit";
+      if (executeGroup.includes("cutscene")) return "cutscene";
+      if (executeGroup.includes("unlock_herb_valley")) return "unlock_herb_valley";
+      if (executeGroup.includes("finish_herb_valley_baizhi")) return "finish_herb_valley_baizhi";
+      if (executeGroup.includes("shop_tutorial_complete")) return "shop_tutorial_complete";
+      if (executeGroup.includes("spawn_hu_sihai")) return "spawn_hu_sihai";
+      if (executeGroup.includes("unlock_spirit_overview")) return "unlock_spirit_overview";
+      if (executeGroup.includes("unlock_ruin_fire")) return "unlock_ruin_fire";
+      if (executeGroup.includes("start_ruin_fire")) return "start_ruin_fire";
+      if (executeGroup.includes("finish_fire_ruin")) return "finish_fire_ruin";
+      if (executeGroup.includes("world_state_drought")) return "world_state_drought";
+      if (executeGroup.includes("unlock_final_nest")) return "unlock_final_nest";
+      if (executeGroup.includes("start_final_array_cutscene")) return "start_final_array_cutscene";
+      if (executeGroup.includes("unlock_final_planting")) return "unlock_final_planting";
+      if (executeGroup.includes("final_banquet")) return "final_banquet";
+      if (executeGroup.includes("unlock") || executeGroup.includes("spawn") || executeGroup.includes("open")) return "generic_unlock";
+      return "generic_event";
+    }
+
     function rewardPoolEntries(poolId: string): RewardPoolRow[] {
       return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
     }
@@ -649,6 +700,7 @@ namespace XiannongCore.Quests {
       sideQuestVisible,
       sideQuestClueForNpc,
       configuredEventReadyQueue,
+      configuredEventActionKind,
     };
   }
 }

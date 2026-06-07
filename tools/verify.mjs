@@ -2978,6 +2978,7 @@ for (const questRuntimeTerm of [
   "runtime.sideQuestVisible(quest)",
   "runtime.sideQuestClueForNpc(npcId, questId)",
   "runtime.configuredEventReadyQueue()",
+  "runtime.configuredEventActionKind(event)",
   "finishClaimedQuestReward",
 ]) {
   if (!game.includes(questRuntimeTerm)) throw new Error(`Quest TypeScript runtime bridge missing: ${questRuntimeTerm}`);
@@ -3009,7 +3010,12 @@ for (const questCoreSourceTerm of [
   "export interface SideQuestClue",
   "export type SideQuestClueStatus",
   "export interface ConfiguredEventCandidate",
+  "export type ConfiguredEventActionKind",
   "configuredEventReadyQueue()",
+  "configuredEventActionKind(event",
+  "start_spirit_manor_chapter",
+  "finish_herb_valley_baizhi",
+  "generic_unlock",
   "data.eventTriggers",
   "data.sideQuestTriggers",
   "data.sideQuestTriggersByQuest",
@@ -3043,6 +3049,10 @@ for (const questCoreRuntimeTerm of [
   "function sideQuestVisible",
   "function sideQuestClueForNpc",
   "function configuredEventReadyQueue",
+  "function configuredEventActionKind",
+  "start_spirit_manor_chapter",
+  "finish_herb_valley_baizhi",
+  "generic_unlock",
   "data.eventTriggers",
   "data.sideQuestTriggers",
   "data.sideQuestTriggersByQuest",
@@ -3328,7 +3338,7 @@ for (const questRewardTerm of ["claimedQuestRewards", "questRewardReady", "claim
   if (!game.includes(questRewardTerm)) throw new Error(`Quest reward runtime path missing: ${questRewardTerm}`);
 }
 
-for (const configuredEventTerm of ["triggerParamMet", "configuredTriggerReady", "configuredEventReadyQueue", "executeConfiguredEvent", "scanConfiguredEvents", "activeSideQuests", "conditionMet(event.condition_group)", "state.activeSideQuests.add", "source !== \"term-risk\""]) {
+for (const configuredEventTerm of ["triggerParamMet", "configuredTriggerReady", "configuredEventReadyQueue", "configuredEventActionKind", "actionKind === \"start_main_quest\"", "actionKind === \"generic_unlock\"", "executeConfiguredEvent", "scanConfiguredEvents", "activeSideQuests", "conditionMet(event.condition_group)", "state.activeSideQuests.add", "source !== \"term-risk\""]) {
   if (!game.includes(configuredEventTerm)) throw new Error(`Configured event runtime path missing: ${configuredEventTerm}`);
 }
 
