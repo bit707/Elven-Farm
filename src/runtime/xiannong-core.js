@@ -596,20 +596,30 @@ var XiannongCore;
                     storyHooks.push("fire_ruin_finish");
                 if (bossId === "boss_shiling_mingmu")
                     storyHooks.push("chapter4_pantao_finale");
+                const completionKeys = ["dungeon"];
+                const seasonalGoal = input?.termId === "term_dongzhi"
+                    ? {
+                        category: "seasonal",
+                        key: "lanternDungeonClears",
+                        amount: 1,
+                    }
+                    : null;
+                const cohabEvent = {
+                    trigger: "on_dungeon_return",
+                    areaId: input?.areaId || "",
+                };
+                const actions = [
+                    ...(seasonalGoal ? [{ kind: "seasonal_goal", ...seasonalGoal }] : []),
+                    ...storyHooks.map((hook) => ({ kind: "story_hook", hook })),
+                    ...completionKeys.map((key) => ({ kind: "completion", key })),
+                    { kind: "cohab_event", ...cohabEvent },
+                ];
                 return {
-                    completionKeys: ["dungeon"],
-                    seasonalGoal: input?.termId === "term_dongzhi"
-                        ? {
-                            category: "seasonal",
-                            key: "lanternDungeonClears",
-                            amount: 1,
-                        }
-                        : null,
+                    completionKeys,
+                    seasonalGoal,
                     storyHooks,
-                    cohabEvent: {
-                        trigger: "on_dungeon_return",
-                        areaId: input?.areaId || "",
-                    },
+                    cohabEvent,
+                    actions,
                 };
             }
             return {

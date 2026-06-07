@@ -318,6 +318,27 @@ namespace XiannongCore.Combat {
     termId?: string | null;
   }
 
+  export type DungeonPostBattleSideEffectAction =
+    | {
+      kind: "seasonal_goal";
+      category: string;
+      key: string;
+      amount: number;
+    }
+    | {
+      kind: "story_hook";
+      hook: string;
+    }
+    | {
+      kind: "completion";
+      key: string;
+    }
+    | {
+      kind: "cohab_event";
+      trigger: string;
+      areaId: string;
+    };
+
   export interface DungeonPostBattleSideEffectPlan {
     completionKeys: string[];
     seasonalGoal: {
@@ -330,6 +351,7 @@ namespace XiannongCore.Combat {
       trigger: string;
       areaId: string;
     } | null;
+    actions: DungeonPostBattleSideEffectAction[];
   }
 
   export interface CombatRuntime {
@@ -965,20 +987,30 @@ namespace XiannongCore.Combat {
       if (bossId === "boss_shixiang_tengmu") storyHooks.push("herb_valley_baizhi_finish");
       if (bossId === "boss_chiyan_xiehou") storyHooks.push("fire_ruin_finish");
       if (bossId === "boss_shiling_mingmu") storyHooks.push("chapter4_pantao_finale");
+      const completionKeys = ["dungeon"];
+      const seasonalGoal = input?.termId === "term_dongzhi"
+        ? {
+          category: "seasonal",
+          key: "lanternDungeonClears",
+          amount: 1,
+        }
+        : null;
+      const cohabEvent = {
+        trigger: "on_dungeon_return",
+        areaId: input?.areaId || "",
+      };
+      const actions: DungeonPostBattleSideEffectAction[] = [
+        ...(seasonalGoal ? [{ kind: "seasonal_goal" as const, ...seasonalGoal }] : []),
+        ...storyHooks.map((hook) => ({ kind: "story_hook" as const, hook })),
+        ...completionKeys.map((key) => ({ kind: "completion" as const, key })),
+        { kind: "cohab_event", ...cohabEvent },
+      ];
       return {
-        completionKeys: ["dungeon"],
-        seasonalGoal: input?.termId === "term_dongzhi"
-          ? {
-            category: "seasonal",
-            key: "lanternDungeonClears",
-            amount: 1,
-          }
-          : null,
+        completionKeys,
+        seasonalGoal,
         storyHooks,
-        cohabEvent: {
-          trigger: "on_dungeon_return",
-          areaId: input?.areaId || "",
-        },
+        cohabEvent,
+        actions,
       };
     }
 
