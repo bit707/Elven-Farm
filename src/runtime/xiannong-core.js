@@ -2059,6 +2059,12 @@ var XiannongCore;
                     queuedGroups: !immediate && !duplicate ? [...queuedGroups, normalizedGroupId] : queuedGroups,
                 };
             }
+            function clearQueuedDialoguePlan(queuedGroups) {
+                return {
+                    queuedGroups: [],
+                    clearedGroups: normalizedQueue(queuedGroups),
+                };
+            }
             function flushQueuedDialoguePlan(queuedGroups) {
                 const normalized = normalizedQueue(queuedGroups);
                 const nextGroupId = normalized[0] || "";
@@ -2066,6 +2072,12 @@ var XiannongCore;
                     nextGroupId,
                     remainingGroups: normalized.slice(nextGroupId ? 1 : 0),
                     skippedGroups: [],
+                };
+            }
+            function applyDialogueFlushPlan(plan) {
+                return {
+                    queuedGroups: normalizedQueue(plan?.remainingGroups),
+                    clearedGroups: normalizedQueue(plan?.skippedGroups),
                 };
             }
             function questForExecuteGroup(executeGroup, side = false) {
@@ -2177,6 +2189,8 @@ var XiannongCore;
                 dialogueGroupForExecuteGroup,
                 dialogueLinesForGroup,
                 queueDialogueGroupPlan,
+                clearQueuedDialoguePlan,
+                applyDialogueFlushPlan,
                 flushQueuedDialoguePlan,
                 questForExecuteGroup,
                 configuredEventExecutionPlan,

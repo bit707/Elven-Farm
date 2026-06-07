@@ -75,6 +75,11 @@ namespace XiannongCore.Quests {
     skippedGroups: string[];
   }
 
+  export interface DialogueQueueApplyPlan {
+    queuedGroups: string[];
+    clearedGroups: string[];
+  }
+
   export interface QuestRuntimeState {
     day?: number;
     gold?: number;
@@ -194,6 +199,8 @@ namespace XiannongCore.Quests {
     dialogueGroupForExecuteGroup(executeGroup: string): string;
     dialogueLinesForGroup(groupId: string): ActiveDialogueLine[];
     queueDialogueGroupPlan(groupId: string, context: DialogueQueueContext): DialogueQueuePlan;
+    clearQueuedDialoguePlan(queuedGroups: string[]): DialogueQueueApplyPlan;
+    applyDialogueFlushPlan(plan: DialogueFlushPlan | null | undefined): DialogueQueueApplyPlan;
     flushQueuedDialoguePlan(queuedGroups: string[]): DialogueFlushPlan;
     questForExecuteGroup(executeGroup: string, side?: boolean): QuestRow | null;
     configuredEventExecutionPlan(event: ConfiguredTriggerRow): ConfiguredEventExecutionPlan;
@@ -868,6 +875,13 @@ namespace XiannongCore.Quests {
       };
     }
 
+    function clearQueuedDialoguePlan(queuedGroups: string[]): DialogueQueueApplyPlan {
+      return {
+        queuedGroups: [],
+        clearedGroups: normalizedQueue(queuedGroups),
+      };
+    }
+
     function flushQueuedDialoguePlan(queuedGroups: string[]): DialogueFlushPlan {
       const normalized = normalizedQueue(queuedGroups);
       const nextGroupId = normalized[0] || "";
@@ -875,6 +889,13 @@ namespace XiannongCore.Quests {
         nextGroupId,
         remainingGroups: normalized.slice(nextGroupId ? 1 : 0),
         skippedGroups: [],
+      };
+    }
+
+    function applyDialogueFlushPlan(plan: DialogueFlushPlan | null | undefined): DialogueQueueApplyPlan {
+      return {
+        queuedGroups: normalizedQueue(plan?.remainingGroups),
+        clearedGroups: normalizedQueue(plan?.skippedGroups),
       };
     }
 
@@ -989,6 +1010,8 @@ namespace XiannongCore.Quests {
       dialogueGroupForExecuteGroup,
       dialogueLinesForGroup,
       queueDialogueGroupPlan,
+      clearQueuedDialoguePlan,
+      applyDialogueFlushPlan,
       flushQueuedDialoguePlan,
       questForExecuteGroup,
       configuredEventExecutionPlan,

@@ -18169,7 +18169,8 @@ function showDialogue(groupId) {
 }
 
 function clearQueuedDialogues() {
-  queuedDialogueGroups = [];
+  const clearPlan = questRuntime()?.clearQueuedDialoguePlan(queuedDialogueGroups);
+  queuedDialogueGroups = clearPlan?.queuedGroups || [];
 }
 
 function queueDialogueGroup(groupId) {
@@ -18194,7 +18195,10 @@ function flushQueuedDialogueGroup() {
   while (queuedDialogueGroups.length > 0) {
     const flushPlan = questRuntime()?.flushQueuedDialoguePlan(queuedDialogueGroups);
     const nextGroupId = flushPlan?.nextGroupId || queuedDialogueGroups.shift();
-    if (flushPlan) queuedDialogueGroups = flushPlan.remainingGroups;
+    if (flushPlan) {
+      const applyPlan = questRuntime()?.applyDialogueFlushPlan(flushPlan);
+      queuedDialogueGroups = applyPlan?.queuedGroups || flushPlan.remainingGroups;
+    }
     if (showDialogue(nextGroupId)) return true;
   }
   return false;
