@@ -3513,7 +3513,16 @@ function unlockTownLifeMemory(npcId = "", memory = null) {
   const townState = syncTownLifeInteractionState();
   const remembered = townLifeRememberedIds(npcId);
   if (remembered[memory.id]) return null;
-  const entry = {
+  const interactions = townLifeInteractionCounts(npcId).total;
+  const writePlan = npcRuntime()?.relationshipMemoryWritePlan({
+    npcId,
+    npcName: npcName(npcId),
+    memory,
+    day: state.day,
+    interactions,
+    createdAt: Date.now(),
+  }) || null;
+  const entry = writePlan?.entry || {
     day: state.day,
     npcId,
     npcName: npcName(npcId),
@@ -3522,13 +3531,13 @@ function unlockTownLifeMemory(npcId = "", memory = null) {
     title: memory.title,
     summary: memory.summary,
     line: memory.line,
-    interactions: townLifeInteractionCounts(npcId).total,
+    interactions,
   };
   remembered[memory.id] = entry;
   townState.lastMemory = entry;
   townState.memoryHistory.unshift(entry);
   townState.memoryHistory = townState.memoryHistory.slice(0, 16);
-  townLifeMemoryNewPageWorldFocus = {
+  townLifeMemoryNewPageWorldFocus = writePlan?.focus || {
     key: `${state.day}:${npcId}:${entry.memoryId}:memory_new_page`,
     day: state.day,
     npcId,
@@ -3539,7 +3548,7 @@ function unlockTownLifeMemory(npcId = "", memory = null) {
   };
   state.activeDialogue = [
     ...state.activeDialogue.slice(-3),
-    {
+    writePlan?.dialogue || {
       speakerId: npcId,
       speaker: entry.npcName,
       text: entry.line,

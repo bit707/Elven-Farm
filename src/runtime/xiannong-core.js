@@ -1162,6 +1162,56 @@ var XiannongCore;
                     memoryIds: memories.map((memory) => memoryId(memory)).filter(Boolean),
                 };
             }
+            function relationshipMemoryWritePlan(input) {
+                const npcId = String(input.npcId || "");
+                const memory = input.memory || null;
+                const id = memoryId(memory);
+                if (!npcId || !memory || !id) {
+                    return {
+                        canWrite: false,
+                        memoryId: id,
+                        entry: null,
+                        focus: null,
+                        dialogue: null,
+                    };
+                }
+                const day = Number(input.day || 0);
+                const npcName = String(input.npcName || npcId);
+                const interactions = Math.max(0, Number(input.interactions || 0));
+                const createdAt = Number(input.createdAt || 0);
+                const entry = {
+                    day,
+                    npcId,
+                    npcName,
+                    memoryId: id,
+                    level: memory.level,
+                    title: memory.title,
+                    summary: memory.summary,
+                    line: memory.line,
+                    interactions,
+                };
+                return {
+                    canWrite: true,
+                    memoryId: id,
+                    entry,
+                    focus: {
+                        key: `${day}:${npcId}:${id}:memory_new_page`,
+                        day,
+                        npcId,
+                        memoryId: id,
+                        nodeKey: "memory",
+                        source: "unlock",
+                        createdAt,
+                    },
+                    dialogue: {
+                        speakerId: npcId,
+                        speaker: npcName,
+                        text: entry.line,
+                        groupId: `town_life_memory_${id}`,
+                        lineOrder: 0,
+                    },
+                };
+            }
             function schedulePriority(schedule = null, context = {}) {
                 const termMatch = Boolean(schedule?.solar_term && schedule.solar_term === context.termId);
                 const weatherMatch = Boolean(schedule?.weather_tag && (schedule.weather_tag === context.weatherId || schedule.weather_tag === context.disasterTag));
@@ -1209,6 +1259,7 @@ var XiannongCore;
                 nextRelationshipMemory,
                 relationshipMemoryProgress,
                 claimableRelationshipMemories,
+                relationshipMemoryWritePlan,
                 schedulePriority,
                 scheduleMatchesNow,
             };

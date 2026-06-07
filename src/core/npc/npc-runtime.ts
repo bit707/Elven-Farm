@@ -79,12 +79,60 @@ namespace XiannongCore.Npc {
     memoryIds: string[];
   }
 
+  export interface RelationshipMemoryWritePlanInput {
+    npcId?: string;
+    npcName?: string;
+    memory?: NpcMemory | null;
+    day?: number;
+    interactions?: number;
+    createdAt?: number;
+  }
+
+  export interface RelationshipMemoryEntry {
+    day: number;
+    npcId: string;
+    npcName: string;
+    memoryId: string;
+    level: string | number | undefined;
+    title: string | number | undefined;
+    summary: string | number | undefined;
+    line: string | number | undefined;
+    interactions: number;
+  }
+
+  export interface RelationshipMemoryFocusPlan {
+    key: string;
+    day: number;
+    npcId: string;
+    memoryId: string;
+    nodeKey: "memory";
+    source: "unlock";
+    createdAt: number;
+  }
+
+  export interface RelationshipMemoryDialogueLine {
+    speakerId: string;
+    speaker: string;
+    text: string | number | undefined;
+    groupId: string;
+    lineOrder: number;
+  }
+
+  export interface RelationshipMemoryWritePlan {
+    canWrite: boolean;
+    memoryId: string;
+    entry: RelationshipMemoryEntry | null;
+    focus: RelationshipMemoryFocusPlan | null;
+    dialogue: RelationshipMemoryDialogueLine | null;
+  }
+
   export interface NpcRuntime {
     favorLevel(value?: number): number;
     claimableFavorRewards(input: FavorRewardPlanInput): FavorRewardPlan;
     nextRelationshipMemory(input: RelationshipMemoryPlanInput): RelationshipMemoryNextPlan;
     relationshipMemoryProgress(input: RelationshipMemoryPlanInput): RelationshipMemoryProgressPlan;
     claimableRelationshipMemories(input: RelationshipMemoryPlanInput): RelationshipMemoryUnlockPlan;
+    relationshipMemoryWritePlan(input: RelationshipMemoryWritePlanInput): RelationshipMemoryWritePlan;
     schedulePriority(schedule?: NpcRow | null, context?: ScheduleContext): SchedulePriorityPlan;
     scheduleMatchesNow(schedule?: NpcRow | null, context?: ScheduleContext): ScheduleMatchPlan;
   }
@@ -189,6 +237,58 @@ namespace XiannongCore.Npc {
       };
     }
 
+    function relationshipMemoryWritePlan(input: RelationshipMemoryWritePlanInput): RelationshipMemoryWritePlan {
+      const npcId = String(input.npcId || "");
+      const memory = input.memory || null;
+      const id = memoryId(memory);
+      if (!npcId || !memory || !id) {
+        return {
+          canWrite: false,
+          memoryId: id,
+          entry: null,
+          focus: null,
+          dialogue: null,
+        };
+      }
+
+      const day = Number(input.day || 0);
+      const npcName = String(input.npcName || npcId);
+      const interactions = Math.max(0, Number(input.interactions || 0));
+      const createdAt = Number(input.createdAt || 0);
+      const entry: RelationshipMemoryEntry = {
+        day,
+        npcId,
+        npcName,
+        memoryId: id,
+        level: memory.level,
+        title: memory.title,
+        summary: memory.summary,
+        line: memory.line,
+        interactions,
+      };
+      return {
+        canWrite: true,
+        memoryId: id,
+        entry,
+        focus: {
+          key: `${day}:${npcId}:${id}:memory_new_page`,
+          day,
+          npcId,
+          memoryId: id,
+          nodeKey: "memory",
+          source: "unlock",
+          createdAt,
+        },
+        dialogue: {
+          speakerId: npcId,
+          speaker: npcName,
+          text: entry.line,
+          groupId: `town_life_memory_${id}`,
+          lineOrder: 0,
+        },
+      };
+    }
+
     function schedulePriority(schedule: NpcRow | null = null, context: ScheduleContext = {}): SchedulePriorityPlan {
       const termMatch = Boolean(schedule?.solar_term && schedule.solar_term === context.termId);
       const weatherMatch = Boolean(schedule?.weather_tag && (schedule.weather_tag === context.weatherId || schedule.weather_tag === context.disasterTag));
@@ -238,6 +338,7 @@ namespace XiannongCore.Npc {
       nextRelationshipMemory,
       relationshipMemoryProgress,
       claimableRelationshipMemories,
+      relationshipMemoryWritePlan,
       schedulePriority,
       scheduleMatchesNow,
     };
