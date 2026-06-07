@@ -15644,6 +15644,15 @@ function farmingRuntime() {
   return farmingRuntimeCache;
 }
 
+let npcRuntimeCache = null;
+
+function npcRuntime() {
+  if (!globalThis.XiannongCore?.Npc?.createNpcRuntime) return null;
+  if (npcRuntimeCache) return npcRuntimeCache;
+  npcRuntimeCache = globalThis.XiannongCore.Npc.createNpcRuntime();
+  return npcRuntimeCache;
+}
+
 let questRuntimeCache = null;
 let questRuntimeCacheState = null;
 
@@ -43039,6 +43048,14 @@ function scheduleActionLabel(schedule) {
 }
 
 function schedulePriority(schedule, termId = currentTermId(), weather = currentWeatherConfig()) {
+  const runtimePlan = npcRuntime()?.schedulePriority(schedule, {
+    termId,
+    season: currentTermConfig()?.season,
+    weatherId: weather?.weather_id,
+    disasterTag: weather?.disaster_tag,
+    droughtActive: chapter4DroughtActive(),
+  });
+  if (runtimePlan) return runtimePlan.score;
   let score = 0;
   if (schedule?.solar_term === termId) score += 8;
   if (schedule?.weather_tag === weather.weather_id || schedule?.weather_tag === weather.disaster_tag) score += 6;
@@ -43049,6 +43066,14 @@ function schedulePriority(schedule, termId = currentTermId(), weather = currentW
 }
 
 function scheduleMatchesNow(schedule, minute = townDailyClockMinute(), term = currentTermConfig(), weather = currentWeatherConfig()) {
+  const runtimePlan = npcRuntime()?.scheduleMatchesNow(schedule, {
+    minute,
+    termId: term?.term_id,
+    season: term?.season,
+    weatherId: weather?.weather_id,
+    disasterTag: weather?.disaster_tag,
+  });
+  if (runtimePlan) return runtimePlan.matches;
   if (!schedule) return false;
   if (schedule.season !== "all" && schedule.season !== term?.season) return false;
   if (schedule.solar_term !== "all" && schedule.solar_term !== term?.term_id) return false;

@@ -1057,6 +1057,60 @@ var XiannongCore;
 })(XiannongCore || (XiannongCore = {}));
 var XiannongCore;
 (function (XiannongCore) {
+    var Npc;
+    (function (Npc) {
+        function createNpcRuntime() {
+            function schedulePriority(schedule = null, context = {}) {
+                const termMatch = Boolean(schedule?.solar_term && schedule.solar_term === context.termId);
+                const weatherMatch = Boolean(schedule?.weather_tag && (schedule.weather_tag === context.weatherId || schedule.weather_tag === context.disasterTag));
+                const seasonMatch = Boolean(schedule?.season && schedule.season === context.season);
+                const droughtMatch = Boolean(context.droughtActive && String(schedule?.action_param || "").includes("drought"));
+                const festival = schedule?.action_type === "festival";
+                return {
+                    score: (termMatch ? 8 : 0) + (weatherMatch ? 6 : 0) + (seasonMatch ? 3 : 0) + (droughtMatch ? 12 : 0) + (festival ? 4 : 0),
+                    termMatch,
+                    weatherMatch,
+                    seasonMatch,
+                    droughtMatch,
+                    festival,
+                };
+            }
+            function scheduleMatchesNow(schedule = null, context = {}) {
+                if (!schedule) {
+                    return {
+                        matches: false,
+                        seasonMatch: false,
+                        termMatch: false,
+                        weatherMatch: false,
+                        timeMatch: false,
+                    };
+                }
+                const season = schedule.season || "all";
+                const solarTerm = schedule.solar_term || "all";
+                const weatherTag = schedule.weather_tag || "all";
+                const minute = Number(context.minute || 0);
+                const seasonMatch = season === "all" || season === context.season;
+                const termMatch = solarTerm === "all" || solarTerm === context.termId;
+                const weatherMatch = weatherTag === "all" || weatherTag === context.weatherId || weatherTag === context.disasterTag;
+                const timeMatch = minute >= Number(schedule.time_start || 0) && minute < Number(schedule.time_end || 1440);
+                return {
+                    matches: seasonMatch && termMatch && weatherMatch && timeMatch,
+                    seasonMatch,
+                    termMatch,
+                    weatherMatch,
+                    timeMatch,
+                };
+            }
+            return {
+                schedulePriority,
+                scheduleMatchesNow,
+            };
+        }
+        Npc.createNpcRuntime = createNpcRuntime;
+    })(Npc = XiannongCore.Npc || (XiannongCore.Npc = {}));
+})(XiannongCore || (XiannongCore = {}));
+var XiannongCore;
+(function (XiannongCore) {
     var Persistence;
     (function (Persistence) {
         function globalValue(name) {

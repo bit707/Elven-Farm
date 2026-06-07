@@ -10,6 +10,7 @@ const requiredFiles = [
   "src/core/combat/dungeon-runtime.ts",
   "src/core/data/runtime-data.ts",
   "src/core/farming/farming-runtime.ts",
+  "src/core/npc/npc-runtime.ts",
   "src/core/persistence/save-runtime.ts",
   "src/core/quests/quest-runtime.ts",
   "src/core/shop/shop-runtime.ts",
@@ -2902,6 +2903,7 @@ const desktopSaveSmokeScript = readFileSync("tools/smoke-desktop-json-save.mjs",
 const runtimeDataScript = readFileSync("tools/build-runtime-data.mjs", "utf8");
 const combatRuntimeTs = readFileSync("src/core/combat/dungeon-runtime.ts", "utf8");
 const farmingRuntimeTs = readFileSync("src/core/farming/farming-runtime.ts", "utf8");
+const npcRuntimeTs = readFileSync("src/core/npc/npc-runtime.ts", "utf8");
 const questRuntimeTs = readFileSync("src/core/quests/quest-runtime.ts", "utf8");
 const shopRuntimeTs = readFileSync("src/core/shop/shop-runtime.ts", "utf8");
 const coreRuntimeJs = readFileSync("src/runtime/xiannong-core.js", "utf8");
@@ -3103,6 +3105,17 @@ for (const farmingRuntimeTerm of [
   "waterPlan.watered",
 ]) {
   if (!game.includes(farmingRuntimeTerm)) throw new Error(`Farming TypeScript runtime bridge missing: ${farmingRuntimeTerm}`);
+}
+
+for (const npcRuntimeTerm of [
+  "function npcRuntime()",
+  "globalThis.XiannongCore.Npc.createNpcRuntime",
+  "npcRuntime()?.schedulePriority",
+  "runtimePlan.score",
+  "npcRuntime()?.scheduleMatchesNow",
+  "runtimePlan.matches",
+]) {
+  if (!game.includes(npcRuntimeTerm)) throw new Error(`NPC TypeScript runtime bridge missing: ${npcRuntimeTerm}`);
 }
 
 for (const combatRuntimeTerm of [
@@ -3628,6 +3641,30 @@ for (const farmingCoreRuntimeTerm of [
   "yieldBonus: Math.min(2, boostCount)",
 ]) {
   if (!coreRuntimeJs.includes(farmingCoreRuntimeTerm)) throw new Error(`Generated farming runtime missing farming term: ${farmingCoreRuntimeTerm}`);
+}
+
+for (const npcCoreSourceTerm of [
+  "namespace XiannongCore.Npc",
+  "export interface NpcRuntime",
+  "schedulePriority(schedule",
+  "scheduleMatchesNow(schedule",
+  "droughtMatch",
+  "festival",
+  "timeMatch",
+]) {
+  if (!npcRuntimeTs.includes(npcCoreSourceTerm)) throw new Error(`NPC TypeScript source missing NPC runtime term: ${npcCoreSourceTerm}`);
+}
+
+for (const npcCoreRuntimeTerm of [
+  "XiannongCore.Npc",
+  "function createNpcRuntime",
+  "function schedulePriority",
+  "function scheduleMatchesNow",
+  "droughtMatch",
+  "festival",
+  "timeMatch",
+]) {
+  if (!coreRuntimeJs.includes(npcCoreRuntimeTerm)) throw new Error(`Generated NPC runtime missing NPC term: ${npcCoreRuntimeTerm}`);
 }
 
 for (const combatCoreSourceTerm of [
