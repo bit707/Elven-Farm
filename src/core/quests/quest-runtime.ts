@@ -225,6 +225,7 @@ namespace XiannongCore.Quests {
     configuredEventFireRuinStartActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFireRuinStartActionPlan;
     configuredEventFireRuinFinishActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFireRuinFinishActionPlan;
     configuredEventChapter4DroughtStartActionPlan(event: ConfiguredTriggerRow): ConfiguredEventChapter4DroughtStartActionPlan;
+    configuredEventChapter4LuTruthActionPlan(event: ConfiguredTriggerRow): ConfiguredEventChapter4LuTruthActionPlan;
     configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan;
   }
 
@@ -354,6 +355,9 @@ namespace XiannongCore.Quests {
       kind: "trigger_chapter4_drought_feedback";
     }
     | {
+      kind: "apply_chapter4_lu_truth_world_change";
+    }
+    | {
       kind: "trigger_chapter3_trade_feedback";
       phase: "entry" | "unlock" | "entry_area" | "finish";
       eventNameKey?: string;
@@ -396,6 +400,17 @@ namespace XiannongCore.Quests {
     }
     | {
       kind: "log_chapter4_drought_start";
+    }
+    | {
+      kind: "log_chapter4_lu_truth_start";
+    }
+    | {
+      kind: "sync_chapter4_spirit_cores";
+    }
+    | {
+      kind: "unlock_final_nest_if_ready";
+      eventNameKey: string;
+      fallbackName: string;
     }
     | {
       kind: "check_quest_rewards";
@@ -587,6 +602,25 @@ namespace XiannongCore.Quests {
     dialogueGroup: string;
     cue: string;
     scanSource: string;
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventChapter4LuTruthActionPlan {
+    applies: boolean;
+    eventId: string;
+    executeGroup: string;
+    firstStart: boolean;
+    completedFlags: string[];
+    questId: string;
+    npcId: string;
+    favorAmount: number;
+    favorSource: string;
+    fameAmount: number;
+    dialogueGroup: string;
+    cue: string;
+    scanSource: string;
+    finalNestEventNameKey: string;
+    finalNestFallbackName: string;
     actions: ConfiguredEventExecutionAction[];
   }
 
@@ -1805,6 +1839,60 @@ namespace XiannongCore.Quests {
       };
     }
 
+    function configuredEventChapter4LuTruthActionPlan(event: ConfiguredTriggerRow): ConfiguredEventChapter4LuTruthActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "start_chapter4_lu_truth";
+      const questUnlockFlag = `quest_unlock_${constants.chapter4LuTruthQuestId}`;
+      const firstStart = applies
+        && !setHas(state.completed, "chapter4_lu_truth_started")
+        && !setHas(state.completed, questUnlockFlag);
+      const completedFlags = applies ? ["chapter4_lu_truth_started", questUnlockFlag] : [];
+      const questId = applies ? constants.chapter4LuTruthQuestId : "";
+      const npcId = applies ? "npc_lu_sanxiao" : "";
+      const favorAmount = firstStart ? 10 : 0;
+      const favorSource = firstStart ? "\u4e8c\u5341\u56db\u67a2\u771f\u76f8" : "";
+      const fameAmount = firstStart ? 4 : 0;
+      const dialogueGroup = applies ? "dialogue_main_0402_lu_truth" : "";
+      const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+      const scanSource = applies ? "chapter4:lu_truth" : "";
+      const finalNestEventNameKey = applies ? "event_name_main_0404" : "";
+      const finalNestFallbackName = applies ? "\u6700\u7ec8\u5de2\u7a74\u5f00\u542f" : "";
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          ...completedFlags.map((flag) => ({ kind: "complete_flag" as const, flag })),
+          ...(favorAmount > 0 ? [{ kind: "add_npc_favor" as const, npcId, amount: favorAmount, source: favorSource }] : []),
+          ...(fameAmount > 0 ? [{ kind: "add_fame" as const, amount: fameAmount }] : []),
+          { kind: "apply_chapter4_lu_truth_world_change" },
+          { kind: "queue_dialogue_group", groupId: dialogueGroup },
+          { kind: "play_cue", cue },
+          { kind: "sync_chapter4_spirit_cores" },
+          { kind: "log_chapter4_lu_truth_start" },
+          { kind: "update_missions" },
+          { kind: "unlock_final_nest_if_ready", eventNameKey: finalNestEventNameKey, fallbackName: finalNestFallbackName },
+          { kind: "scan_configured_events", source: scanSource },
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        executeGroup: plan.executeGroup,
+        firstStart,
+        completedFlags,
+        questId,
+        npcId,
+        favorAmount,
+        favorSource,
+        fameAmount,
+        dialogueGroup,
+        cue,
+        scanSource,
+        finalNestEventNameKey,
+        finalNestFallbackName,
+        actions,
+      };
+    }
+
     function configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan {
       const plan = configuredEventExecutionPlan(event);
       const applies = plan.actionKind === "generic_unlock";
@@ -1924,6 +2012,7 @@ namespace XiannongCore.Quests {
       configuredEventFireRuinStartActionPlan,
       configuredEventFireRuinFinishActionPlan,
       configuredEventChapter4DroughtStartActionPlan,
+      configuredEventChapter4LuTruthActionPlan,
       configuredEventGenericUnlockActionPlan,
     };
   }

@@ -3010,6 +3010,7 @@ for (const questRuntimeTerm of [
   "runtime?.configuredEventFireRuinStartActionPlan(event)",
   "runtime?.configuredEventFireRuinFinishActionPlan(event)",
   "runtime?.configuredEventChapter4DroughtStartActionPlan(event)",
+  "runtime?.configuredEventChapter4LuTruthActionPlan(event)",
   "runtime?.configuredEventGenericUnlockActionPlan(event)",
   "applyConfiguredEventActionPlan(actionPlan)",
   "applyConfiguredEventAction(action",
@@ -3282,6 +3283,7 @@ for (const questCoreSourceTerm of [
   "export interface ConfiguredEventFireRuinStartActionPlan",
   "export interface ConfiguredEventFireRuinFinishActionPlan",
   "export interface ConfiguredEventChapter4DroughtStartActionPlan",
+  "export interface ConfiguredEventChapter4LuTruthActionPlan",
   "export interface ConfiguredEventGenericUnlockActionPlan",
   "configuredEventSideQuestActionPlan(event",
   "configuredEventMainQuestActionPlan(event",
@@ -3297,6 +3299,7 @@ for (const questCoreSourceTerm of [
   "configuredEventFireRuinStartActionPlan(event",
   "configuredEventFireRuinFinishActionPlan(event",
   "configuredEventChapter4DroughtStartActionPlan(event",
+  "configuredEventChapter4LuTruthActionPlan(event",
   "configuredEventGenericUnlockActionPlan(event",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -3397,6 +3400,7 @@ for (const questCoreRuntimeTerm of [
   "function configuredEventFireRuinStartActionPlan",
   "function configuredEventFireRuinFinishActionPlan",
   "function configuredEventChapter4DroughtStartActionPlan",
+  "function configuredEventChapter4LuTruthActionPlan",
   "function configuredEventGenericUnlockActionPlan",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -5925,6 +5929,18 @@ if (!droughtReliefDoneCondition || droughtReliefDoneCondition.expression !== "fl
 }
 if (!eventMain0402 || eventMain0402.trigger_type !== "on_trade_complete" || eventMain0402.trigger_param !== "order_disaster_0001" || eventMain0402.condition_group !== "drought_relief_order_delivered" || eventMain0402.execute_group !== "exec_start_quest_main_0402") {
   throw new Error("Delivering the drought relief order must start Lu Sanxiao's chapter-four truth quest");
+}
+if (!game.includes('executeGroup.includes("start_quest_main_0402")')
+  || !game.includes("runtime?.configuredEventChapter4LuTruthActionPlan(event)")
+  || !game.includes("questRuntime()?.configuredEventChapter4LuTruthActionPlan({")
+  || !game.includes('kind: "apply_chapter4_lu_truth_world_change"')
+  || !game.includes('kind: "sync_chapter4_spirit_cores"')
+  || !game.includes('kind: "unlock_final_nest_if_ready"')
+  || !game.includes("lastResult")
+  || !questRuntimeTs.includes("function configuredEventChapter4LuTruthActionPlan")
+  || !questRuntimeTs.includes("constants.chapter4LuTruthQuestId")
+  || !questRuntimeTs.includes('source: scanSource')) {
+  throw new Error("Lu Sanxiao truth event must run through a TypeScript configured-event action plan with pivot reveal, spirit-core sync, final-nest readiness, and follow-up scan");
 }
 if (!mainQuest0402 || mainQuest0402.chapter !== "4" || mainQuestSteps0402.length < 3) {
   throw new Error("Main quest 0402 must exist as the chapter-four pivot/final-nest quest");

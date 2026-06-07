@@ -17315,6 +17315,16 @@ function applyConfiguredEventAction(action, context = {}) {
     triggerChapter4DroughtFeedback(context.eventName);
     return null;
   }
+  if (action.kind === "apply_chapter4_lu_truth_world_change") {
+    upsertWorldChange({
+      key: "chapter4_twenty_four_pivots_revealed",
+      title: "残碑显出二十四枢",
+      detail: "陆三笑收起笑意，把守时一脉的后半句话交给你：节气大阵不是藏宝图，是责任书。",
+      rewardHint: "二十四枢主线 · 终阵口诀",
+      visualType: "solar_array_stela",
+    });
+    return null;
+  }
   if (action.kind === "trigger_chapter3_trade_feedback") {
     triggerChapter3TradeFeedback(action.phase, action.eventNameKey ? localize(action.eventNameKey, action.fallbackName || context.eventName) : context.eventName);
     return null;
@@ -17373,6 +17383,18 @@ function applyConfiguredEventAction(action, context = {}) {
     addLog("第四章开启", `${context.eventName}：九曜大旱压到凡仙镇，${droughtReliefOrder() ? orderTitle(droughtReliefOrder()) : "应急救援订单"}已刷新，洞天灵泉先封出 5 份${itemName(CHAPTER_4_DROUGHT_RELIEF_ITEM_ID)}，清水葫芦和金穗玉米种子已上架救援。`);
     return null;
   }
+  if (action.kind === "sync_chapter4_spirit_cores") {
+    return syncChapter4SpiritCores();
+  }
+  if (action.kind === "log_chapter4_lu_truth_start") {
+    const granted = Array.isArray(context.lastResult) ? context.lastResult : [];
+    addLog("第四章推进", `${context.eventName}：陆三笑在守阵残碑前说明二十四枢，终章重建大阵的真正目标浮出水面。${granted.length ? ` ${granted.map((source) => source.label).join("、")}归位。` : ""}`);
+    return null;
+  }
+  if (action.kind === "unlock_final_nest_if_ready") {
+    if (chapter4FinalNestReady()) unlockFinalNest(localize(action.eventNameKey, action.fallbackName));
+    return null;
+  }
   if (action.kind === "check_quest_rewards") {
     checkQuestRewards();
     return null;
@@ -17386,9 +17408,11 @@ function applyConfiguredEventAction(action, context = {}) {
 
 function applyConfiguredEventActionPlan(actionPlan, context = {}) {
   let presented = 0;
+  let lastResult = null;
   for (const action of actionPlan?.actions || []) {
-    const result = applyConfiguredEventAction(action, { ...context, presented });
+    const result = applyConfiguredEventAction(action, { ...context, presented, lastResult });
     if (typeof result === "number") presented = result;
+    if (result !== null && result !== undefined) lastResult = result;
   }
   return presented;
 }
@@ -17476,7 +17500,43 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "start_chapter4_lu_truth" || (!actionKind && executeGroup.includes("start_quest_main_0402"))) {
-    startChapter4LuTruth(eventName);
+    const questUnlockFlag = `quest_unlock_${CHAPTER_4_LU_TRUTH_QUEST_ID}`;
+    const firstStart = !state.completed.has("chapter4_lu_truth_started") && !state.completed.has(questUnlockFlag);
+    const actionPlan = runtime?.configuredEventChapter4LuTruthActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      firstStart,
+      completedFlags: ["chapter4_lu_truth_started", questUnlockFlag],
+      questId: CHAPTER_4_LU_TRUTH_QUEST_ID,
+      npcId: "npc_lu_sanxiao",
+      favorAmount: firstStart ? 10 : 0,
+      favorSource: firstStart ? "二十四枢真相" : "",
+      fameAmount: firstStart ? 4 : 0,
+      dialogueGroup: "dialogue_main_0402_lu_truth",
+      cue: "成就解锁",
+      scanSource: "chapter4:lu_truth",
+      finalNestEventNameKey: "event_name_main_0404",
+      finalNestFallbackName: "最终巢穴开启",
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: "chapter4_lu_truth_started" },
+        { kind: "complete_flag", flag: questUnlockFlag },
+        ...(firstStart ? [
+          { kind: "add_npc_favor", npcId: "npc_lu_sanxiao", amount: 10, source: "二十四枢真相" },
+          { kind: "add_fame", amount: 4 },
+        ] : []),
+        { kind: "apply_chapter4_lu_truth_world_change" },
+        { kind: "queue_dialogue_group", groupId: "dialogue_main_0402_lu_truth" },
+        { kind: "play_cue", cue: "成就解锁" },
+        { kind: "sync_chapter4_spirit_cores" },
+        { kind: "log_chapter4_lu_truth_start" },
+        { kind: "update_missions" },
+        { kind: "unlock_final_nest_if_ready", eventNameKey: "event_name_main_0404", fallbackName: "最终巢穴开启" },
+        { kind: "scan_configured_events", source: "chapter4:lu_truth" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan, { eventName });
     return true;
   }
 
@@ -38464,6 +38524,16 @@ function finishChapter4DroughtRelief(order, rewardTexts = []) {
 }
 
 function startChapter4LuTruth(eventName = "陆三笑揭秘") {
+  const plan = questRuntime()?.configuredEventChapter4LuTruthActionPlan({
+    event_id: "event_main_0402",
+    trigger_type: "on_trade_complete",
+    trigger_param: CHAPTER_4_DROUGHT_ORDER_ID,
+    execute_group: "exec_start_quest_main_0402",
+  });
+  if (plan?.applies) {
+    applyConfiguredEventActionPlan(plan, { eventName });
+    return true;
+  }
   const firstStart = !state.completed.has("chapter4_lu_truth_started") && !state.completed.has(`quest_unlock_${CHAPTER_4_LU_TRUTH_QUEST_ID}`);
   state.completed.add("chapter4_lu_truth_started");
   state.completed.add(`quest_unlock_${CHAPTER_4_LU_TRUTH_QUEST_ID}`);
