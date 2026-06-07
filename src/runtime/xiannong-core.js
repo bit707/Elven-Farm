@@ -2178,6 +2178,35 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventHuSihaiArrivalActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "spawn_hu_sihai";
+                const completedFlags = applies ? ["npc_hu_sihai_arrived", "quest_main_0201_sales_800_done"] : [];
+                const npcId = applies ? "npc_hu_sihai" : "";
+                const favorAmount = applies ? 8 : 0;
+                const favorSource = applies ? "旧铺开门" : "";
+                const dialogueGroup = applies ? "dialogue_hu_default" : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        { kind: "add_npc_favor", npcId, amount: favorAmount, source: favorSource },
+                        { kind: "queue_dialogue_group", groupId: dialogueGroup },
+                        { kind: "check_quest_rewards" },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    completedFlags,
+                    npcId,
+                    favorAmount,
+                    favorSource,
+                    dialogueGroup,
+                    actions,
+                };
+            }
             function configuredEventGenericUnlockActionPlan(event) {
                 const plan = configuredEventExecutionPlan(event);
                 const applies = plan.actionKind === "generic_unlock";
@@ -2285,6 +2314,7 @@ var XiannongCore;
                 configuredEventMainQuestActionPlan,
                 configuredEventCutsceneActionPlan,
                 configuredEventShopTutorialActionPlan,
+                configuredEventHuSihaiArrivalActionPlan,
                 configuredEventGenericUnlockActionPlan,
             };
         }

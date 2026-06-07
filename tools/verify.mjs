@@ -3000,6 +3000,7 @@ for (const questRuntimeTerm of [
   "runtime?.configuredEventMainQuestActionPlan(event)",
   "runtime?.configuredEventCutsceneActionPlan(event)",
   "runtime?.configuredEventShopTutorialActionPlan(event)",
+  "runtime?.configuredEventHuSihaiArrivalActionPlan(event)",
   "runtime?.configuredEventGenericUnlockActionPlan(event)",
   "applyConfiguredEventActionPlan(actionPlan)",
   "applyConfiguredEventAction(action",
@@ -3262,17 +3263,21 @@ for (const questCoreSourceTerm of [
   "export interface ConfiguredEventMainQuestActionPlan",
   "export interface ConfiguredEventCutsceneActionPlan",
   "export interface ConfiguredEventShopTutorialActionPlan",
+  "export interface ConfiguredEventHuSihaiArrivalActionPlan",
   "export interface ConfiguredEventGenericUnlockActionPlan",
   "configuredEventSideQuestActionPlan(event",
   "configuredEventMainQuestActionPlan(event",
   "configuredEventCutsceneActionPlan(event",
   "configuredEventShopTutorialActionPlan(event",
+  "configuredEventHuSihaiArrivalActionPlan(event",
   "configuredEventGenericUnlockActionPlan(event",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
   "kind: \"present_side_quest\"",
   "kind: \"start_main_quest\"",
   "kind: \"complete_flag\"",
+  "kind: \"add_npc_favor\"",
+  "kind: \"queue_dialogue_group\"",
   "kind: \"check_quest_rewards\"",
   "configuredEventReadyQueue()",
   "configuredEventActionKind(event",
@@ -3337,12 +3342,15 @@ for (const questCoreRuntimeTerm of [
   "function configuredEventMainQuestActionPlan",
   "function configuredEventCutsceneActionPlan",
   "function configuredEventShopTutorialActionPlan",
+  "function configuredEventHuSihaiArrivalActionPlan",
   "function configuredEventGenericUnlockActionPlan",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
   "kind: \"present_side_quest\"",
   "kind: \"start_main_quest\"",
   "kind: \"complete_flag\"",
+  "kind: \"add_npc_favor\"",
+  "kind: \"queue_dialogue_group\"",
   "kind: \"check_quest_rewards\"",
   "function dialogueGroupForExecuteGroup",
   "function dialogueLinesForGroup",
@@ -5644,8 +5652,9 @@ if (!game.includes('executeGroup.includes("shop_tutorial_complete")')
   || !game.includes("runtime?.configuredEventShopTutorialActionPlan(event)")
   || !game.includes('flag: "quest_main_0201_step_2_done"')
   || !game.includes('executeGroup.includes("spawn_hu_sihai")')
-  || !game.includes('state.completed.add("npc_hu_sihai_arrived")')
-  || !game.includes('queueDialogueGroup("dialogue_hu_default")')) {
+  || !game.includes("runtime?.configuredEventHuSihaiArrivalActionPlan(event)")
+  || !game.includes('flag: "npc_hu_sihai_arrived"')
+  || !game.includes('groupId: "dialogue_hu_default"')) {
   throw new Error("Shop sales events must complete the tutorial step and spawn Hu Sihai through configured runtime handlers");
 }
 if (!baizhiFavor2Reward || baizhiFavor2Reward.reward_type !== "quest" || baizhiFavor2Reward.reward_param !== "quest_main_0202_baizhi_zhiqiu") {

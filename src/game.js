@@ -17204,6 +17204,14 @@ function applyConfiguredEventAction(action, context = {}) {
     state.completed.add(action.flag);
     return null;
   }
+  if (action.kind === "add_npc_favor") {
+    addNpcFavor(action.npcId, action.amount, action.source);
+    return null;
+  }
+  if (action.kind === "queue_dialogue_group") {
+    queueDialogueGroup(action.groupId);
+    return null;
+  }
   if (action.kind === "check_quest_rewards") {
     checkQuestRewards();
     return null;
@@ -17337,12 +17345,26 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "spawn_hu_sihai" || (!actionKind && executeGroup.includes("spawn_hu_sihai"))) {
-    state.completed.add("npc_hu_sihai_arrived");
-    state.completed.add("quest_main_0201_sales_800_done");
-    addNpcFavor("npc_hu_sihai", 8, "旧铺开门");
-    queueDialogueGroup("dialogue_hu_default");
+    const actionPlan = runtime?.configuredEventHuSihaiArrivalActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      completedFlags: ["npc_hu_sihai_arrived", "quest_main_0201_sales_800_done"],
+      npcId: "npc_hu_sihai",
+      favorAmount: 8,
+      favorSource: "旧铺开门",
+      dialogueGroup: "dialogue_hu_default",
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: "npc_hu_sihai_arrived" },
+        { kind: "complete_flag", flag: "quest_main_0201_sales_800_done" },
+        { kind: "add_npc_favor", npcId: "npc_hu_sihai", amount: 8, source: "旧铺开门" },
+        { kind: "queue_dialogue_group", groupId: "dialogue_hu_default" },
+        { kind: "check_quest_rewards" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan);
     addLog("Hu Sihai arrived", `${eventName}: old shop total sales reached ${Number(state.shopStats?.sales || 0)}; the merchant visitor is now in town.`);
-    checkQuestRewards();
     return true;
   }
 

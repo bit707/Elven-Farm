@@ -208,6 +208,7 @@ namespace XiannongCore.Quests {
     configuredEventMainQuestActionPlan(event: ConfiguredTriggerRow): ConfiguredEventMainQuestActionPlan;
     configuredEventCutsceneActionPlan(event: ConfiguredTriggerRow): ConfiguredEventCutsceneActionPlan;
     configuredEventShopTutorialActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopTutorialActionPlan;
+    configuredEventHuSihaiArrivalActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHuSihaiArrivalActionPlan;
     configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan;
   }
 
@@ -272,6 +273,16 @@ namespace XiannongCore.Quests {
       flag: string;
     }
     | {
+      kind: "add_npc_favor";
+      npcId: string;
+      amount: number;
+      source: string;
+    }
+    | {
+      kind: "queue_dialogue_group";
+      groupId: string;
+    }
+    | {
       kind: "check_quest_rewards";
     };
 
@@ -303,6 +314,18 @@ namespace XiannongCore.Quests {
     eventId: string;
     executeGroup: string;
     completedFlags: string[];
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventHuSihaiArrivalActionPlan {
+    applies: boolean;
+    eventId: string;
+    executeGroup: string;
+    completedFlags: string[];
+    npcId: string;
+    favorAmount: number;
+    favorSource: string;
+    dialogueGroup: string;
     actions: ConfiguredEventExecutionAction[];
   }
 
@@ -1078,6 +1101,36 @@ namespace XiannongCore.Quests {
       };
     }
 
+    function configuredEventHuSihaiArrivalActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHuSihaiArrivalActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "spawn_hu_sihai";
+      const completedFlags = applies ? ["npc_hu_sihai_arrived", "quest_main_0201_sales_800_done"] : [];
+      const npcId = applies ? "npc_hu_sihai" : "";
+      const favorAmount = applies ? 8 : 0;
+      const favorSource = applies ? "旧铺开门" : "";
+      const dialogueGroup = applies ? "dialogue_hu_default" : "";
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          ...completedFlags.map((flag) => ({ kind: "complete_flag" as const, flag })),
+          { kind: "add_npc_favor", npcId, amount: favorAmount, source: favorSource },
+          { kind: "queue_dialogue_group", groupId: dialogueGroup },
+          { kind: "check_quest_rewards" },
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        executeGroup: plan.executeGroup,
+        completedFlags,
+        npcId,
+        favorAmount,
+        favorSource,
+        dialogueGroup,
+        actions,
+      };
+    }
+
     function configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan {
       const plan = configuredEventExecutionPlan(event);
       const applies = plan.actionKind === "generic_unlock";
@@ -1187,6 +1240,7 @@ namespace XiannongCore.Quests {
       configuredEventMainQuestActionPlan,
       configuredEventCutsceneActionPlan,
       configuredEventShopTutorialActionPlan,
+      configuredEventHuSihaiArrivalActionPlan,
       configuredEventGenericUnlockActionPlan,
     };
   }
