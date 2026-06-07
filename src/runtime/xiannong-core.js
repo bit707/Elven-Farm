@@ -1988,6 +1988,8 @@ var XiannongCore;
                     return "finish_herb_valley_baizhi";
                 if (executeGroup.includes("shop_open_tutorial"))
                     return "shop_open_tutorial";
+                if (executeGroup.includes("unlock_shop_lv2"))
+                    return "unlock_shop_lv2";
                 if (executeGroup.includes("shop_tutorial_complete"))
                     return "shop_tutorial_complete";
                 if (executeGroup.includes("spawn_hu_sihai"))
@@ -2248,6 +2250,42 @@ var XiannongCore;
                     executeGroup: plan.executeGroup,
                     firstUnlock,
                     completedFlags,
+                    cue,
+                    actions,
+                };
+            }
+            function configuredEventShopLv2UnlockActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "unlock_shop_lv2";
+                const buildingId = applies ? "build_shop_lv2" : "";
+                const buildingUnlockFlag = buildingId ? `building_unlock_${buildingId}` : "";
+                const targetScore = applies ? Number((event.condition_group || event.trigger_param || "").match(/(\d+)/)?.[1] || 200) : 0;
+                const reputationScore = applies ? hooks.shopReputationScore() : 0;
+                const completedFlags = applies ? ["shop_lv2_unlocked", "shop_reputation_200_reached", buildingUnlockFlag] : [];
+                const firstUnlock = applies
+                    && !setHas(state.completed, "shop_lv2_unlocked")
+                    && !setHas(state.completed, buildingUnlockFlag)
+                    && !setHas(state.builtBuildings, buildingId);
+                const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        { kind: "play_cue", cue },
+                        { kind: "log_shop_lv2_unlock", buildingId, reputationScore, targetScore },
+                        { kind: "update_missions" },
+                        { kind: "check_quest_rewards" },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    firstUnlock,
+                    completedFlags,
+                    buildingId,
+                    reputationScore,
+                    targetScore,
                     cue,
                     actions,
                 };
@@ -3134,6 +3172,7 @@ var XiannongCore;
                 configuredEventSpiritUiUnlockActionPlan,
                 configuredEventCutsceneActionPlan,
                 configuredEventShopOpenTutorialActionPlan,
+                configuredEventShopLv2UnlockActionPlan,
                 configuredEventShopTutorialActionPlan,
                 configuredEventHuSihaiArrivalActionPlan,
                 configuredEventMineEntranceUnlockActionPlan,

@@ -17249,6 +17249,14 @@ function applyConfiguredEventAction(action, context = {}) {
     addLog("旧铺可开门", `${context.eventName || "旧铺建成"}：货架、开铺按钮和顾客需求预览已经解锁。先放 3 件可售作物或加工品，再点开铺试营业；这里不会自动开店或产生销售。`);
     return null;
   }
+  if (action.kind === "log_shop_lv2_unlock") {
+    const building = data.buildingsById.get(action.buildingId) || action.buildingId;
+    addLog(
+      "名铺升级许可",
+      `${context.eventName || "旧铺口碑达标"}：旧铺口碑 ${Math.round(Number(action.reputationScore || 0))}/${Number(action.targetScore || 200)}，${buildingName(building)} 已出现在建设面板。准备好灵石、木材和石材后再手动升级；这里不会自动建成名铺。`,
+    );
+    return null;
+  }
   if (action.kind === "mark_boss_defeated") {
     state.defeatedBosses.add(action.bossId);
     return null;
@@ -17810,6 +17818,39 @@ function executeConfiguredEvent(event, source = "runtime") {
         { kind: "complete_flag", flag: "shop_building_ready" },
         { kind: "play_cue", cue: "成就解锁" },
         { kind: "log_shop_open_tutorial" },
+        { kind: "update_missions" },
+        { kind: "check_quest_rewards" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan, { eventName });
+    return true;
+  }
+
+  if (actionKind === "unlock_shop_lv2" || (!actionKind && executeGroup.includes("unlock_shop_lv2"))) {
+    const buildingId = "build_shop_lv2";
+    const buildingUnlockFlag = `building_unlock_${buildingId}`;
+    const targetScore = Number((event.condition_group || event.trigger_param || "").match(/(\d+)/)?.[1] || 200);
+    const reputationScore = shopReputationScore();
+    const firstUnlock = !state.completed.has("shop_lv2_unlocked")
+      && !state.completed.has(buildingUnlockFlag)
+      && !state.builtBuildings.has(buildingId);
+    const actionPlan = runtime?.configuredEventShopLv2UnlockActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      firstUnlock,
+      completedFlags: ["shop_lv2_unlocked", "shop_reputation_200_reached", buildingUnlockFlag],
+      buildingId,
+      reputationScore,
+      targetScore,
+      cue: "成就解锁",
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: "shop_lv2_unlocked" },
+        { kind: "complete_flag", flag: "shop_reputation_200_reached" },
+        { kind: "complete_flag", flag: buildingUnlockFlag },
+        { kind: "play_cue", cue: "成就解锁" },
+        { kind: "log_shop_lv2_unlock", buildingId, reputationScore, targetScore },
         { kind: "update_missions" },
         { kind: "check_quest_rewards" },
       ],

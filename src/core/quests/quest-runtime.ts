@@ -223,6 +223,7 @@ namespace XiannongCore.Quests {
     configuredEventSpiritUiUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSpiritUiUnlockActionPlan;
     configuredEventCutsceneActionPlan(event: ConfiguredTriggerRow): ConfiguredEventCutsceneActionPlan;
     configuredEventShopOpenTutorialActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopOpenTutorialActionPlan;
+    configuredEventShopLv2UnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopLv2UnlockActionPlan;
     configuredEventShopTutorialActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopTutorialActionPlan;
     configuredEventHuSihaiArrivalActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHuSihaiArrivalActionPlan;
     configuredEventMineEntranceUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventMineEntranceUnlockActionPlan;
@@ -331,6 +332,12 @@ namespace XiannongCore.Quests {
     }
     | {
       kind: "log_shop_open_tutorial";
+    }
+    | {
+      kind: "log_shop_lv2_unlock";
+      buildingId: string;
+      reputationScore: number;
+      targetScore: number;
     }
     | {
       kind: "mark_boss_defeated";
@@ -561,6 +568,19 @@ namespace XiannongCore.Quests {
     executeGroup: string;
     firstUnlock: boolean;
     completedFlags: string[];
+    cue: string;
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventShopLv2UnlockActionPlan {
+    applies: boolean;
+    eventId: string;
+    executeGroup: string;
+    firstUnlock: boolean;
+    completedFlags: string[];
+    buildingId: string;
+    reputationScore: number;
+    targetScore: number;
     cue: string;
     actions: ConfiguredEventExecutionAction[];
   }
@@ -857,6 +877,7 @@ namespace XiannongCore.Quests {
     | "unlock_herb_valley"
     | "finish_herb_valley_baizhi"
     | "shop_open_tutorial"
+    | "unlock_shop_lv2"
     | "shop_tutorial_complete"
     | "spawn_hu_sihai"
     | "unlock_mine_entrance"
@@ -1421,6 +1442,7 @@ namespace XiannongCore.Quests {
       if (executeGroup.includes("unlock_herb_valley")) return "unlock_herb_valley";
       if (executeGroup.includes("finish_herb_valley_baizhi")) return "finish_herb_valley_baizhi";
       if (executeGroup.includes("shop_open_tutorial")) return "shop_open_tutorial";
+      if (executeGroup.includes("unlock_shop_lv2")) return "unlock_shop_lv2";
       if (executeGroup.includes("shop_tutorial_complete")) return "shop_tutorial_complete";
       if (executeGroup.includes("spawn_hu_sihai")) return "spawn_hu_sihai";
       if (executeGroup.includes("unlock_mine_entrance")) return "unlock_mine_entrance";
@@ -1681,6 +1703,43 @@ namespace XiannongCore.Quests {
         executeGroup: plan.executeGroup,
         firstUnlock,
         completedFlags,
+        cue,
+        actions,
+      };
+    }
+
+    function configuredEventShopLv2UnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopLv2UnlockActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "unlock_shop_lv2";
+      const buildingId = applies ? "build_shop_lv2" : "";
+      const buildingUnlockFlag = buildingId ? `building_unlock_${buildingId}` : "";
+      const targetScore = applies ? Number((event.condition_group || event.trigger_param || "").match(/(\d+)/)?.[1] || 200) : 0;
+      const reputationScore = applies ? hooks.shopReputationScore() : 0;
+      const completedFlags = applies ? ["shop_lv2_unlocked", "shop_reputation_200_reached", buildingUnlockFlag] : [];
+      const firstUnlock = applies
+        && !setHas(state.completed, "shop_lv2_unlocked")
+        && !setHas(state.completed, buildingUnlockFlag)
+        && !setHas(state.builtBuildings, buildingId);
+      const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          ...completedFlags.map((flag) => ({ kind: "complete_flag" as const, flag })),
+          { kind: "play_cue", cue },
+          { kind: "log_shop_lv2_unlock", buildingId, reputationScore, targetScore },
+          { kind: "update_missions" },
+          { kind: "check_quest_rewards" },
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        executeGroup: plan.executeGroup,
+        firstUnlock,
+        completedFlags,
+        buildingId,
+        reputationScore,
+        targetScore,
         cue,
         actions,
       };
@@ -2591,6 +2650,7 @@ namespace XiannongCore.Quests {
       configuredEventSpiritUiUnlockActionPlan,
       configuredEventCutsceneActionPlan,
       configuredEventShopOpenTutorialActionPlan,
+      configuredEventShopLv2UnlockActionPlan,
       configuredEventShopTutorialActionPlan,
       configuredEventHuSihaiArrivalActionPlan,
       configuredEventMineEntranceUnlockActionPlan,
