@@ -1558,6 +1558,8 @@ var XiannongCore;
                 if (step.objective_type === "defeat") {
                     if (target.startsWith("boss_"))
                         return setHas(state.defeatedBosses, target) ? count : 0;
+                    if (target === "event_pest_basic" && (setHas(state.completed, "risk_pest") || setHas(state.resolvedRisks, target)))
+                        return count;
                     return Math.min(count, (state.resolvedRisks?.size || 0) + (state.dungeonClears?.size || 0));
                 }
                 return 0;
@@ -1992,6 +1994,8 @@ var XiannongCore;
                     return "unlock_shop_lv2";
                 if (executeGroup.includes("shop_tutorial_complete"))
                     return "shop_tutorial_complete";
+                if (executeGroup.includes("spawn_first_pest"))
+                    return "spawn_first_pest";
                 if (executeGroup.includes("spawn_hu_sihai"))
                     return "spawn_hu_sihai";
                 if (executeGroup.includes("unlock_mine_entrance"))
@@ -2306,6 +2310,33 @@ var XiannongCore;
                     eventId: plan.eventId,
                     executeGroup: plan.executeGroup,
                     completedFlags,
+                    actions,
+                };
+            }
+            function configuredEventFirstPestRiskActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "spawn_first_pest";
+                const termId = applies ? event.trigger_param || "term_jingzhe" : "";
+                const severity = applies ? 3 : 0;
+                const completedFlags = applies ? ["first_pest_spawned", "jingzhe_pest_spawned"] : [];
+                const cue = applies ? "\u8282\u6c14\u949f\u58f0" : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        { kind: "spawn_first_pest_risk", termId, severity },
+                        { kind: "play_cue", cue },
+                        { kind: "update_missions" },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    termId,
+                    severity,
+                    completedFlags,
+                    cue,
                     actions,
                 };
             }
@@ -3174,6 +3205,7 @@ var XiannongCore;
                 configuredEventShopOpenTutorialActionPlan,
                 configuredEventShopLv2UnlockActionPlan,
                 configuredEventShopTutorialActionPlan,
+                configuredEventFirstPestRiskActionPlan,
                 configuredEventHuSihaiArrivalActionPlan,
                 configuredEventMineEntranceUnlockActionPlan,
                 configuredEventHerbValleyUnlockActionPlan,

@@ -15862,6 +15862,7 @@ function stepProgress(step) {
   }
   if (step.objective_type === "defeat") {
     if (target.startsWith("boss_")) return state.defeatedBosses.has(target) ? count : 0;
+    if (target === "event_pest_basic" && (state.completed.has("risk_pest") || state.resolvedRisks.has(target))) return count;
     return Math.min(count, state.resolvedRisks.size + state.dungeonClears.size);
   }
   return 0;
@@ -17221,6 +17222,15 @@ function applyConfiguredEventAction(action, context = {}) {
     state.completed.add(action.flag);
     return null;
   }
+  if (action.kind === "spawn_first_pest_risk") {
+    const result = spawnConfiguredRiskFromEvent(context.event, {
+      termId: action.termId || currentTermId(),
+      kind: "pest",
+      severity: action.severity || 3,
+      dedupeByKind: true,
+    });
+    return result.risk;
+  }
   if (action.kind === "summon_first_spirit") {
     if (state.spirits.length > 0) return state.spirits[0];
     const spirit = data.spirits.find((entry) => entry.spirit_id === action.spiritId);
@@ -17874,6 +17884,28 @@ function executeConfiguredEvent(event, source = "runtime") {
     };
     applyConfiguredEventActionPlan(actionPlan);
     addLog("Shop tutorial complete", `${eventName}: real shop sales reached ${Number(state.shopStats?.soldCount || 0)} sold items; next target is 800 total sales.`);
+    return true;
+  }
+
+  if (actionKind === "spawn_first_pest" || (!actionKind && executeGroup.includes("spawn_first_pest"))) {
+    const actionPlan = runtime?.configuredEventFirstPestRiskActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      termId: event.trigger_param || "term_jingzhe",
+      severity: 3,
+      completedFlags: ["first_pest_spawned", "jingzhe_pest_spawned"],
+      cue: "节气钟声",
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: "first_pest_spawned" },
+        { kind: "complete_flag", flag: "jingzhe_pest_spawned" },
+        { kind: "spawn_first_pest_risk", termId: event.trigger_param || "term_jingzhe", severity: 3 },
+        { kind: "play_cue", cue: "节气钟声" },
+        { kind: "update_missions" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan, { event, eventName });
     return true;
   }
 
@@ -19581,6 +19613,38 @@ function patrolRiskGuardSpec(risk = unresolvedRisks()[0]) {
   };
 }
 
+function spawnConfiguredRiskFromEvent(event, options = {}) {
+  if (!event) return { risk: null, created: false };
+  const termId = options.termId || event.trigger_param || currentTermId();
+  const kind = options.kind || riskKindFromEvent(event);
+  const existingRisk = state.activeRisks.find((risk) => !risk.resolved && (
+    risk.eventId === event.event_id
+      || (options.dedupeByKind && risk.kind === kind && risk.termId === termId)
+  ));
+  if (existingRisk) return { risk: existingRisk, created: false };
+
+  const title = riskTitle(kind);
+  const risk = {
+    id: `${event.event_id}_${state.day}`,
+    eventId: event.event_id,
+    termId,
+    kind,
+    title,
+    actionLabel: riskActionLabel(kind),
+    severity: Number(options.severity || (kind === "pest" ? 3 : 2)),
+    spawnedDay: state.day,
+    expiresDay: state.day + Number(options.expiresInDays || 1),
+    resolved: false,
+    guide: options.guide || guideTextForTerm(termId, `${title} 已出现，请在入夜前处理。`),
+  };
+
+  state.activeRisks.unshift(risk);
+  state.activeRisks = state.activeRisks.slice(0, 6);
+  state.triggeredEvents.add(event.event_id);
+  addLog("节气风险", `${risk.title}：${risk.guide}`);
+  return { risk, created: true };
+}
+
 function spawnTermRisks(term) {
   if (!term) return;
   const events = data.eventTriggers
@@ -19591,32 +19655,28 @@ function spawnTermRisks(term) {
 
   for (const event of events) {
     if (event.repeatable !== "true" && state.triggeredEvents.has(event.event_id)) continue;
-    if (state.activeRisks.some((risk) => risk.eventId === event.event_id && !risk.resolved)) continue;
-
-    const kind = riskKindFromEvent(event);
-    const risk = {
-      id: `${event.event_id}_${state.day}`,
-      eventId: event.event_id,
+    const result = spawnConfiguredRiskFromEvent(event, {
       termId: term.term_id,
-      kind,
-      title: riskTitle(kind),
-      actionLabel: riskActionLabel(kind),
-      severity: kind === "pest" ? 3 : 2,
-      spawnedDay: state.day,
-      expiresDay: state.day + 1,
-      resolved: false,
-      guide: guideTextForTerm(term.term_id, `${riskTitle(kind)} 已出现，请在入夜前处理。`),
-    };
-
-    state.activeRisks.unshift(risk);
-    state.triggeredEvents.add(event.event_id);
+      dedupeByKind: riskKindFromEvent(event) === "pest",
+    });
+    if (!result.created) continue;
     executeConfiguredEvent(event, "term-risk");
-    addLog("节气风险", `${risk.title}：${risk.guide}`);
   }
 }
 
 function unresolvedRisks() {
   return state.activeRisks.filter((risk) => !risk.resolved);
+}
+
+function recordResolvedRisk(risk) {
+  if (!risk) return;
+  state.resolvedRisks.add(risk.eventId);
+  if (risk.kind === "pest") {
+    state.resolvedRisks.add("event_pest_basic");
+    complete("risk_pest");
+    return;
+  }
+  complete("risk_term");
 }
 
 function resolveRisk(riskId) {
@@ -19627,9 +19687,8 @@ function resolveRisk(riskId) {
 
   risk.resolved = true;
   risk.resolvedDay = state.day;
-  state.resolvedRisks.add(risk.eventId);
+  recordResolvedRisk(risk);
   state.fame += risk.kind === "pest" ? 1 : 0;
-  complete(risk.kind === "pest" ? "risk_pest" : "risk_term");
   recordDailyIntentProgress("field", `处理 ${risk.title}`, {
     amount: 2 + Number(risk.severity || 1),
     rewardText: risk.kind === "pest" ? "稳住田垄 · 声望 +1" : "稳住田垄 · 避免入夜惩罚",
@@ -48243,10 +48302,9 @@ function settlePatrolSpiritJob(spirit, report, power) {
   const risk = unresolvedRisks()[0];
   if (risk && power >= 0.72) {
     risk.resolved = true;
-    state.resolvedRisks.add(risk.eventId);
+    recordResolvedRisk(risk);
     report.push({ spirit: spirit.name, job: "patrol", text: `巡夜化解${risk.title}`, impact: risk.severity || 1 });
     addJobExp(spirit, "patrol", 3, "夜间巡逻化险");
-    complete("risk_pest");
     complete("spirit_job_settlement");
     return;
   }

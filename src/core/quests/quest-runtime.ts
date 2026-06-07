@@ -225,6 +225,7 @@ namespace XiannongCore.Quests {
     configuredEventShopOpenTutorialActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopOpenTutorialActionPlan;
     configuredEventShopLv2UnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopLv2UnlockActionPlan;
     configuredEventShopTutorialActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopTutorialActionPlan;
+    configuredEventFirstPestRiskActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFirstPestRiskActionPlan;
     configuredEventHuSihaiArrivalActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHuSihaiArrivalActionPlan;
     configuredEventMineEntranceUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventMineEntranceUnlockActionPlan;
     configuredEventHerbValleyUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHerbValleyUnlockActionPlan;
@@ -307,6 +308,11 @@ namespace XiannongCore.Quests {
     | {
       kind: "complete_flag";
       flag: string;
+    }
+    | {
+      kind: "spawn_first_pest_risk";
+      termId: string;
+      severity: number;
     }
     | {
       kind: "summon_first_spirit";
@@ -590,6 +596,17 @@ namespace XiannongCore.Quests {
     eventId: string;
     executeGroup: string;
     completedFlags: string[];
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventFirstPestRiskActionPlan {
+    applies: boolean;
+    eventId: string;
+    executeGroup: string;
+    termId: string;
+    severity: number;
+    completedFlags: string[];
+    cue: string;
     actions: ConfiguredEventExecutionAction[];
   }
 
@@ -879,6 +896,7 @@ namespace XiannongCore.Quests {
     | "shop_open_tutorial"
     | "unlock_shop_lv2"
     | "shop_tutorial_complete"
+    | "spawn_first_pest"
     | "spawn_hu_sihai"
     | "unlock_mine_entrance"
     | "unlock_spirit_overview"
@@ -1039,6 +1057,7 @@ namespace XiannongCore.Quests {
 
       if (step.objective_type === "defeat") {
         if (target.startsWith("boss_")) return setHas(state.defeatedBosses, target) ? count : 0;
+        if (target === "event_pest_basic" && (setHas(state.completed, "risk_pest") || setHas(state.resolvedRisks, target))) return count;
         return Math.min(count, (state.resolvedRisks?.size || 0) + (state.dungeonClears?.size || 0));
       }
 
@@ -1444,6 +1463,7 @@ namespace XiannongCore.Quests {
       if (executeGroup.includes("shop_open_tutorial")) return "shop_open_tutorial";
       if (executeGroup.includes("unlock_shop_lv2")) return "unlock_shop_lv2";
       if (executeGroup.includes("shop_tutorial_complete")) return "shop_tutorial_complete";
+      if (executeGroup.includes("spawn_first_pest")) return "spawn_first_pest";
       if (executeGroup.includes("spawn_hu_sihai")) return "spawn_hu_sihai";
       if (executeGroup.includes("unlock_mine_entrance")) return "unlock_mine_entrance";
       if (executeGroup.includes("unlock_spirit_overview")) return "unlock_spirit_overview";
@@ -1761,6 +1781,34 @@ namespace XiannongCore.Quests {
         eventId: plan.eventId,
         executeGroup: plan.executeGroup,
         completedFlags,
+        actions,
+      };
+    }
+
+    function configuredEventFirstPestRiskActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFirstPestRiskActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "spawn_first_pest";
+      const termId = applies ? event.trigger_param || "term_jingzhe" : "";
+      const severity = applies ? 3 : 0;
+      const completedFlags = applies ? ["first_pest_spawned", "jingzhe_pest_spawned"] : [];
+      const cue = applies ? "\u8282\u6c14\u949f\u58f0" : "";
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          ...completedFlags.map((flag) => ({ kind: "complete_flag" as const, flag })),
+          { kind: "spawn_first_pest_risk", termId, severity },
+          { kind: "play_cue", cue },
+          { kind: "update_missions" },
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        executeGroup: plan.executeGroup,
+        termId,
+        severity,
+        completedFlags,
+        cue,
         actions,
       };
     }
@@ -2652,6 +2700,7 @@ namespace XiannongCore.Quests {
       configuredEventShopOpenTutorialActionPlan,
       configuredEventShopLv2UnlockActionPlan,
       configuredEventShopTutorialActionPlan,
+      configuredEventFirstPestRiskActionPlan,
       configuredEventHuSihaiArrivalActionPlan,
       configuredEventMineEntranceUnlockActionPlan,
       configuredEventHerbValleyUnlockActionPlan,
