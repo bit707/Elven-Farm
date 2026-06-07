@@ -26764,6 +26764,23 @@ function shopSeasonRewards(season = currentShopSeason()) {
 }
 
 function shopMetricValue(part, stats = currentShopSeasonStats(), seasonDay = state.day) {
+  syncFengmiTeaPartyState();
+  const runtimeValue = shopRuntime()?.shopSeasonMetricValue(part, {
+    stats,
+    seasonDay,
+    activeBuffs: state.shopStats.activeBuffs,
+    marketBonusTags: currentTermConfig()?.market_bonus_tags || "",
+    workshopMultiplier: workshopMultiplier(),
+    builtBuildingsCount: state.builtBuildings.size,
+    unlockedMachinesCount: state.unlockedMachines.size,
+    fame: state.fame,
+    shopShelfTheme: state.shopShelfTheme,
+    missionDoneCount: state.missionDone.size,
+    currentTermId: currentTermId(),
+    resolvedRisksCount: state.resolvedRisks.size,
+    dungeonClearsCount: state.dungeonClears.size,
+  });
+  if (Number.isFinite(runtimeValue)) return runtimeValue;
   const avgTheme = stats.sessions ? Number(stats.themeTotal || 0) / stats.sessions : 0;
   const positiveRate = stats.visitors ? Number(stats.positive || 0) / stats.visitors : 0;
   const buyerRate = stats.visitors ? Number(stats.buyers || 0) / stats.visitors : 0;

@@ -1458,6 +1458,46 @@ var XiannongCore;
                 return Object.entries(counts || {})
                     .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))[0]?.[0] || "";
             }
+            function shopSeasonMetricBuffValue(activeBuffs, buffId) {
+                return Number(activeBuffs?.[buffId] || 0);
+            }
+            function shopSeasonMetricValue(part = "", input = null) {
+                const stats = input?.stats || {};
+                const sessions = Number(stats.sessions || 0);
+                const visitors = Number(stats.visitors || 0);
+                const avgTheme = sessions ? Number(stats.themeTotal || 0) / sessions : 0;
+                const positiveRate = visitors ? Number(stats.positive || 0) / visitors : 0;
+                const buyerRate = visitors ? Number(stats.buyers || 0) / visitors : 0;
+                const guestVisits = Number(stats.customerVisits?.guest || 0) + Number(stats.customerVisits?.faction || 0);
+                const guestBuys = Number(stats.customerBuys?.guest || 0) + Number(stats.customerBuys?.faction || 0);
+                const guestRate = guestVisits ? guestBuys / guestVisits : buyerRate;
+                const activeBuffs = input?.activeBuffs || {};
+                const freshBuff = shopSeasonMetricBuffValue(activeBuffs, "buff_shop_fresh_bonus");
+                const visitBuff = shopSeasonMetricBuffValue(activeBuffs, "buff_shop_visit_bonus");
+                const profitBuff = shopSeasonMetricBuffValue(activeBuffs, "buff_term_profit_bonus");
+                const machineBuff = shopSeasonMetricBuffValue(activeBuffs, "buff_machine_speed_year2");
+                const guestBuff = shopSeasonMetricBuffValue(activeBuffs, "buff_guest_purchase_up");
+                const masterBuff = shopSeasonMetricBuffValue(activeBuffs, "buff_shop_master_title");
+                const values = {
+                    freshness_score: Math.min(100, 56 + avgTheme * 44 + freshBuff * 100),
+                    theme_score: Math.min(100, avgTheme * 100 + freshBuff * 30),
+                    sales_score: Math.min(100, Number(stats.sales || 0) / 3.2 * (1 + profitBuff + masterBuff * 0.5)),
+                    customer_score: positiveRate * 100,
+                    term_match_score: Math.min(100, avgTheme * 70 + (input?.marketBonusTags ? 20 : 0) + profitBuff * 100),
+                    quality_score: Math.min(100, 45 + Number(input?.workshopMultiplier || 0) * 25 + machineBuff * 100),
+                    guest_score: Math.min(100, guestRate * 100 + guestBuff * 100),
+                    material_score: Number(input?.builtBuildingsCount || 0) * 16,
+                    machine_score: Math.min(100, Number(input?.unlockedMachinesCount || 0) * 28 + machineBuff * 120),
+                    reputation_score: Math.min(100, Number(input?.fame || 0) * 8 + masterBuff * 100),
+                    gift_score: String(input?.shopShelfTheme || "").includes("gift") ? 100 : avgTheme * 60,
+                    premium_score: Math.min(100, Number(input?.fame || 0) * 10 + Number(stats.sales || 0) / 8 + guestBuff * 80),
+                    story_score: Number(input?.missionDoneCount || 0) * 18,
+                    festival_score: input?.currentTermId === "term_dongzhi" ? 100 : Number(input?.seasonDay || 0) % 6 * 12,
+                    ritual_score: Number(input?.resolvedRisksCount || 0) * 20 + Number(input?.dungeonClearsCount || 0) * 30,
+                    town_score: Math.min(100, Number(input?.builtBuildingsCount || 0) * 12 + Number(input?.fame || 0) * 6 + visitBuff * 50),
+                };
+                return Math.max(0, Math.min(100, values[String(part || "")] || 0));
+            }
             function shopSeasonScorePlan(input = null) {
                 const parts = (Array.isArray(input?.parts) ? input.parts : []).map((part) => {
                     const raw = Math.max(0, Math.min(100, Number(part.raw || 0)));
@@ -1604,6 +1644,7 @@ var XiannongCore;
                 shopSeasonCycleKey,
                 shopSeasonRules,
                 shopSeasonLeadKey,
+                shopSeasonMetricValue,
                 shopSeasonScorePlan,
                 shopSeasonSettlementPlan,
                 shopSeasonRewards,
