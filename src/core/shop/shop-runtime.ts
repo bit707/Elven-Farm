@@ -12,6 +12,7 @@ namespace XiannongCore.Shop {
     customerProfiles: ShopRow[];
     shopFeedback: ShopRow[];
     shopSeasons?: ShopRow[];
+    shopRankRewards?: ShopRow[];
     priceRulesByArchetype?: Map<string, ShopRow>;
     customerProfilesBy?: Map<string, ShopRow>;
   }
@@ -43,6 +44,8 @@ namespace XiannongCore.Shop {
     shopSalesStatsDelta(input?: ShopSalesStatsDeltaInput | null): ShopSalesStatsDelta;
     shopSeasonCycleInfo(day?: number | string | null): ShopSeasonCycleInfo;
     shopSeasonCycleKey(input?: ShopSeasonCycleKeyInput | null): string;
+    shopSeasonRewards(season?: ShopRow | null): ShopRow[];
+    shopSeasonRank(score?: number | string | null, season?: ShopRow | null): ShopRow;
   }
 
   export interface ShopGoodChoice {
@@ -720,6 +723,25 @@ namespace XiannongCore.Shop {
       return `${seasonId}:${Number((input?.cycleIndex ?? info.cycleIndex) || 0)}`;
     }
 
+    function shopSeasonRewards(season: ShopRow | null = shopSeasonCycleInfo().season): ShopRow[] {
+      const seasonId = season?.season_id || "";
+      return (Array.isArray(data.shopRankRewards) ? data.shopRankRewards : [])
+        .filter((reward) => reward.season_id === seasonId)
+        .sort((a, b) => Number(b.score_min || 0) - Number(a.score_min || 0));
+    }
+
+    function shopSeasonRank(score: number | string | null = 0, season: ShopRow | null = shopSeasonCycleInfo().season): ShopRow {
+      return shopSeasonRewards(season).find((reward) => Number(score || 0) >= Number(reward.score_min || 0)) || {
+        rank_tier: "c",
+        score_min: "0",
+        reward_type: "preview",
+        reward_param: "continue_shop",
+        reward_count: "0",
+        bonus_buff: "none",
+        bonus_value: "0",
+      };
+    }
+
     return {
       customerPriceRule,
       customerProfile,
@@ -747,6 +769,8 @@ namespace XiannongCore.Shop {
       shopSalesStatsDelta,
       shopSeasonCycleInfo,
       shopSeasonCycleKey,
+      shopSeasonRewards,
+      shopSeasonRank,
     };
   }
 }

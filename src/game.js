@@ -15611,6 +15611,7 @@ function shopRuntime() {
       customerProfiles: data.customerProfiles,
       shopFeedback: data.shopFeedback,
       shopSeasons: data.shopSeasons,
+      shopRankRewards: data.shopRankRewards,
       priceRulesByArchetype: data.priceRulesByArchetype,
       customerProfilesBy: data.customerProfilesBy,
     },
@@ -26752,6 +26753,8 @@ function shopSeasonRules(season = currentShopSeason()) {
 }
 
 function shopSeasonRewards(season = currentShopSeason()) {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.shopSeasonRewards(season);
   return data.shopRankRewards
     .filter((reward) => reward.season_id === season?.season_id)
     .sort((a, b) => Number(b.score_min) - Number(a.score_min));
@@ -26806,6 +26809,12 @@ function shopSeasonScore(season = currentShopSeason(), stats = currentShopSeason
 }
 
 function shopSeasonRank(score, season = currentShopSeason()) {
+  const runtime = shopRuntime();
+  if (runtime) {
+    const rank = runtime.shopSeasonRank(score, season);
+    if (rank?.reward_param === "continue_shop") return { ...rank, reward_param: "继续经营" };
+    return rank;
+  }
   return shopSeasonRewards(season).find((reward) => score >= Number(reward.score_min)) || { rank_tier: "c", score_min: 0, reward_type: "preview", reward_param: "继续经营", reward_count: 0, bonus_buff: "none", bonus_value: 0 };
 }
 

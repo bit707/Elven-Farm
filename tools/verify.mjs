@@ -3034,6 +3034,10 @@ for (const shopRuntimeTerm of [
   "shopSeasons: data.shopSeasons",
   "runtime.shopSeasonCycleInfo(day)",
   "runtime.shopSeasonCycleKey({ season, cycleIndex })",
+  "shopRankRewards: data.shopRankRewards",
+  "runtime.shopSeasonRewards(season)",
+  "runtime.shopSeasonRank(score, season)",
+  "reward_param === \"continue_shop\"",
 ]) {
   if (!game.includes(shopRuntimeTerm)) throw new Error(`Shop TypeScript runtime bridge missing: ${shopRuntimeTerm}`);
 }
@@ -3234,6 +3238,11 @@ for (const shopCoreSourceTerm of [
   "shopSeasonCycleInfo(day",
   "cycleIndex < 9999",
   "shopSeasonCycleKey(input",
+  "shopRankRewards?: ShopRow[]",
+  "shopSeasonRewards(season",
+  "data.shopRankRewards",
+  "shopSeasonRank(score",
+  "reward_param: \"continue_shop\"",
   "ecology_product: 20",
   "route_rare: 18",
   "recover_sp: 13",
@@ -3314,6 +3323,10 @@ for (const shopCoreRuntimeTerm of [
   "cycleIndex < 9999",
   "function shopSeasonCycleKey",
   "season_shop_001",
+  "function shopSeasonRewards",
+  "data.shopRankRewards",
+  "function shopSeasonRank",
+  "reward_param: \"continue_shop\"",
   "ecology_product: 20",
   "route_rare: 18",
   "recover_sp: 13",

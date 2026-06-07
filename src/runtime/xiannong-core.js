@@ -1449,6 +1449,23 @@ var XiannongCore;
                 const seasonId = season?.season_id || info.season?.season_id || "season_shop_001";
                 return `${seasonId}:${Number((input?.cycleIndex ?? info.cycleIndex) || 0)}`;
             }
+            function shopSeasonRewards(season = shopSeasonCycleInfo().season) {
+                const seasonId = season?.season_id || "";
+                return (Array.isArray(data.shopRankRewards) ? data.shopRankRewards : [])
+                    .filter((reward) => reward.season_id === seasonId)
+                    .sort((a, b) => Number(b.score_min || 0) - Number(a.score_min || 0));
+            }
+            function shopSeasonRank(score = 0, season = shopSeasonCycleInfo().season) {
+                return shopSeasonRewards(season).find((reward) => Number(score || 0) >= Number(reward.score_min || 0)) || {
+                    rank_tier: "c",
+                    score_min: "0",
+                    reward_type: "preview",
+                    reward_param: "continue_shop",
+                    reward_count: "0",
+                    bonus_buff: "none",
+                    bonus_value: "0",
+                };
+            }
             return {
                 customerPriceRule,
                 customerProfile,
@@ -1476,6 +1493,8 @@ var XiannongCore;
                 shopSalesStatsDelta,
                 shopSeasonCycleInfo,
                 shopSeasonCycleKey,
+                shopSeasonRewards,
+                shopSeasonRank,
             };
         }
         Shop.createShopRuntime = createShopRuntime;
