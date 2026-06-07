@@ -2826,8 +2826,8 @@
           "cost_metal": "10",
           "cost_special_item": "",
           "cost_special_count": "0",
-          "unlock_type": "quest",
-          "unlock_param": "quest_main_0201_jiupu_kaimen",
+          "unlock_type": "completed",
+          "unlock_param": "chapter_1_bridge_repaired",
           "function_tags": "shop|shelf_basic",
           "placement_rule": "town_shop_only",
           "model_id": "model_build_shop_lv1"
@@ -11572,12 +11572,12 @@
         {
           "reward_pool_id": "pool_reward_main_0201",
           "entry_index": "1",
-          "reward_type": "building",
-          "reward_param": "build_shop_lv1",
+          "reward_type": "recipe",
+          "reward_param": "recipe_liuyun_niang",
           "reward_count": "1",
           "condition_group": "always_true",
           "weight": "100",
-          "note": "shop opening"
+          "note": "old shop brewing follow-up"
         },
         {
           "reward_pool_id": "pool_reward_main_0202",
@@ -29018,5 +29018,5 @@
       ]
     }
   },
-  "contentHash": "91b45ce04523fa655935f745c30dc06230ee36edeed9bf72370d950bdc1fc640"
+  "contentHash": "6e77a62aac98ac77045657855e85485546a65268a268238ac7c1acb4f8467a08"
 }

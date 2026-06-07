@@ -3917,6 +3917,13 @@ const mainQuest0103 = quests.find((entry) => entry.quest_id === "quest_main_0103
 const mainQuestSteps0103 = questSteps.filter((entry) => entry.quest_id === "quest_main_0103_duanqiao_jiumu");
 const mainQuest0103Rewards = rewardPools.filter((entry) => entry.reward_pool_id === mainQuest0103?.complete_reward_group);
 const bridgeRepairBuilding = buildings.find((entry) => entry.building_id === "build_broken_bridge_repair");
+const mainQuest0201 = quests.find((entry) => entry.quest_id === "quest_main_0201_jiupu_kaimen");
+const mainQuestSteps0201 = questSteps.filter((entry) => entry.quest_id === "quest_main_0201_jiupu_kaimen");
+const mainQuest0201Rewards = rewardPools.filter((entry) => entry.reward_pool_id === mainQuest0201?.complete_reward_group);
+const oldShopBuilding = buildings.find((entry) => entry.building_id === "build_shop_lv1");
+const eventMain0202 = eventTriggers.find((entry) => entry.event_id === "event_main_0202");
+const eventMain0203 = eventTriggers.find((entry) => entry.event_id === "event_main_0203");
+const mainQuest0201Step2Condition = conditionGroups.find((entry) => entry.condition_group_id === "quest_main_0201_step_2_done");
 const sideQuest0101Rewards = rewardPools.filter((entry) => entry.reward_pool_id === sideQuest0101?.complete_reward_group);
 const reliefSideQuest = sideQuests.find((entry) => entry.quest_id === "quest_side_0401_relief_supply");
 const reliefSideRewards = rewardPools.filter((entry) => entry.reward_pool_id === reliefSideQuest?.complete_reward_group);
@@ -4508,6 +4515,45 @@ if (!mainQuest0103Rewards.some((entry) => entry.reward_type === "item" && entry.
 }
 if (!game.includes("completeCanalRepairFromBridge") || !game.includes('grantMainQuestReward("quest_main_0103_duanqiao_jiumu")')) {
   throw new Error("Broken bridge repair must grant quest reward and reuse the canal restoration runtime");
+}
+if (!mainQuest0201 || mainQuest0201.chapter !== "2" || mainQuestSteps0201.length < 3) {
+  throw new Error("Main quest 0201 must exist as a chapter-two shop-opening quest with data-driven steps");
+}
+if (!oldShopBuilding || oldShopBuilding.unlock_type !== "completed" || oldShopBuilding.unlock_param !== "chapter_1_bridge_repaired") {
+  throw new Error("Old shop lv1 must unlock after the chapter-one bridge repair, not behind its own shop-opening quest");
+}
+if (!mainQuestSteps0201.some((step) => step.objective_type === "build" && step.target_id === "build_shop_lv1")
+  || !mainQuestSteps0201.some((step) => step.objective_type === "sell" && step.target_id === "item_shop_category_3" && step.target_count === "3")
+  || !mainQuestSteps0201.some((step) => step.objective_type === "sell" && step.target_id === "item_shop_sales_total" && step.target_count === "800")) {
+  throw new Error("Main quest 0201 must build the old shop, then require real category sales and total shop revenue");
+}
+if (mainQuest0201Rewards.some((entry) => entry.reward_type === "building" && entry.reward_param === "build_shop_lv1")
+  || !mainQuest0201Rewards.some((entry) => entry.reward_type === "recipe" && entry.reward_param === "recipe_liuyun_niang")) {
+  throw new Error("Main quest 0201 reward must be a follow-up recipe and must not re-award the already-built shop");
+}
+if (!eventMain0202 || eventMain0202.trigger_type !== "on_shop_sales_reach" || eventMain0202.trigger_param !== "sales_category_3" || eventMain0202.execute_group !== "exec_shop_tutorial_complete") {
+  throw new Error("Shop tutorial completion event must trigger from real three-item shop sales");
+}
+if (!eventMain0203 || eventMain0203.trigger_type !== "on_shop_sales_reach" || eventMain0203.trigger_param !== "sales_total_800" || eventMain0203.condition_group !== "quest_main_0201_step_2_done" || eventMain0203.execute_group !== "exec_spawn_hu_sihai") {
+  throw new Error("Hu Sihai arrival event must trigger from real 800 total shop sales after the shop tutorial step");
+}
+if (!mainQuest0201Step2Condition || !String(mainQuest0201Step2Condition.expression || "").includes("quest_step_done(step_main_0201_02)")) {
+  throw new Error("Hu Sihai gate must depend on the real completion of quest step 0201-02");
+}
+if (!game.includes('if (building.unlock_type === "completed") return state.completed.has(building.unlock_param);')
+  || !game.includes('target === "item_shop_category_3"')
+  || !game.includes("state.shopStats?.soldCount")
+  || !game.includes('target === "item_shop_sales_total"')
+  || !game.includes("state.shopStats?.sales")
+  || !game.includes('scanConfiguredEvents("shop:sales")')) {
+  throw new Error("Shop-opening runtime must unlock completed-gated buildings and advance sell steps from real shop stats");
+}
+if (!game.includes('executeGroup.includes("shop_tutorial_complete")')
+  || !game.includes('state.completed.add("quest_main_0201_step_2_done")')
+  || !game.includes('executeGroup.includes("spawn_hu_sihai")')
+  || !game.includes('state.completed.add("npc_hu_sihai_arrived")')
+  || !game.includes('queueDialogueGroup("dialogue_hu_default")')) {
+  throw new Error("Shop sales events must complete the tutorial step and spawn Hu Sihai through configured runtime handlers");
 }
 if (!sideQuest0101 || sideQuestSteps0101.length < 2 || !sideQuestTrigger0101) {
   throw new Error("Side quest 0101 must include base, steps, and trigger rows");

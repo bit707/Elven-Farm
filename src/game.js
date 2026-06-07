@@ -15620,7 +15620,10 @@ function stepProgress(step) {
   }
   if (step.objective_type === "sell") {
     if (target.startsWith("order_")) return state.completedOrders.has(target) ? count : 0;
-    return state.completed.has("shop") ? count : 0;
+    if (target === "item_shop_category_3") return Math.min(count, Number(state.shopStats?.soldCount || 0));
+    if (target === "item_shop_sales_total") return Math.min(count, Number(state.shopStats?.sales || 0));
+    if (target.startsWith("item_shop_sales_total_")) return Math.min(count, Number(state.shopStats?.sales || 0));
+    return Math.min(count, Number(state.shopStats?.itemSales?.[target] || 0));
   }
   if (step.objective_type === "defeat") {
     if (target.startsWith("boss_")) return state.defeatedBosses.has(target) ? count : 0;
@@ -16884,7 +16887,7 @@ function triggerParamMet(trigger) {
   if (type === "on_shop_sales_reach") {
     const target = Number(param.match(/(\d+)/)?.[1] || 1);
     const value = param.includes("total") ? state.shopStats.sales : state.shopStats.soldCount;
-    return value >= target || state.completed.has("shop");
+    return value >= target;
   }
   if (type === "on_shop_reputation_reach") {
     const target = Number(param.match(/(\d+)/)?.[1] || 0);
@@ -17000,6 +17003,24 @@ function executeConfiguredEvent(event, source = "runtime") {
 
   if (executeGroup.includes("finish_herb_valley_baizhi")) {
     finishHerbValleyBaizhiLine(eventName);
+    return true;
+  }
+
+  if (executeGroup.includes("shop_tutorial_complete")) {
+    state.completed.add("shop_tutorial_complete");
+    state.completed.add("quest_main_0201_step_2_done");
+    addLog("Shop tutorial complete", `${eventName}: real shop sales reached ${Number(state.shopStats?.soldCount || 0)} sold items; next target is 800 total sales.`);
+    checkQuestRewards();
+    return true;
+  }
+
+  if (executeGroup.includes("spawn_hu_sihai")) {
+    state.completed.add("npc_hu_sihai_arrived");
+    state.completed.add("quest_main_0201_sales_800_done");
+    addNpcFavor("npc_hu_sihai", 8, "旧铺开门");
+    queueDialogueGroup("dialogue_hu_default");
+    addLog("Hu Sihai arrived", `${eventName}: old shop total sales reached ${Number(state.shopStats?.sales || 0)}; the merchant visitor is now in town.`);
+    checkQuestRewards();
     return true;
   }
 
@@ -37858,6 +37879,7 @@ function buildingVisible(building) {
     if (chapter <= 4) return fireRuinUnlocked() || state.defeatedBosses.has("boss_chiyan_xiehou") || state.missionDone.size >= 7;
     return state.missionDone.size >= chapter;
   }
+  if (building.unlock_type === "completed") return state.completed.has(building.unlock_param);
   if (building.unlock_type === "quest") {
     return state.activeSideQuests.has(building.unlock_param)
       || state.missionDone.has(building.unlock_param)
@@ -57945,6 +57967,8 @@ function openShop() {
   for (const entry of diagnosis) {
     state.shopStats.diagnosisCounts[entry.text] = Number(state.shopStats.diagnosisCounts[entry.text] || 0) + 1;
   }
+  const shopSalesTriggered = scanConfiguredEvents("shop:sales");
+  if (shopSalesTriggered > 0) checkQuestRewards();
   state.shopReport = report;
   const waterwayReorderRestock = createWaterwayBrokerRestockTarget(report, goods, theme);
   if (waterwayReorderRestock?.target) {

@@ -7,7 +7,7 @@ build_alchemy_001,building_name_alchemy_001,workshop,2,2,650,15,12,4,,0,default,
 build_furnace_001,building_name_furnace_001,workshop,2,2,900,12,16,8,,0,quest,quest_main_0102_tonghuo_chuming,"machine|furnace",farm_only,model_build_furnace_001
 build_loom_001,building_name_loom_001,workshop,2,2,1200,16,10,6,,0,chapter,2,"machine|loom",farm_only,model_build_loom_001
 build_vat_001,building_name_vat_001,workshop,2,2,1400,20,8,6,,0,chapter,2,"machine|vat",farm_only,model_build_vat_001
-build_shop_lv1,building_name_shop_lv1,shop,4,4,4000,40,25,10,,0,quest,quest_main_0201_jiupu_kaimen,"shop|shelf_basic",town_shop_only,model_build_shop_lv1
+build_shop_lv1,building_name_shop_lv1,shop,4,4,4000,40,25,10,,0,completed,chapter_1_bridge_repaired,"shop|shelf_basic",town_shop_only,model_build_shop_lv1
 build_shop_lv2,building_name_shop_lv2,shop,5,4,8500,60,35,20,,0,shop_reputation,shop_reputation_200,"shop|shelf_premium",town_shop_only,model_build_shop_lv2
 build_spirit_manor,building_name_spirit_manor,spirit,4,4,12000,80,40,20,item_cloth_liuyunsi,30,quest,quest_main_0301_baiguai_youyuan,"spirit|housing",farm_only,model_build_spirit_manor
 build_kitchen_001,building_name_kitchen_001,workshop,2,2,1800,22,12,8,,0,chapter,2,"machine|kitchen",farm_only,model_build_kitchen_001

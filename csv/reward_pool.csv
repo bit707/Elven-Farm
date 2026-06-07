@@ -5,7 +5,7 @@ pool_reward_main_0002,1,item,item_food_plain_ration,2,always_true,100,town visit
 pool_reward_main_0101,1,building,build_lingjing_001,1,always_true,100,well unlock
 pool_reward_main_0102,1,recipe,recipe_tool_copper_set,1,always_true,100,copper tool recipe
 pool_reward_main_0103,1,item,item_special_lingmai_shuishi_1,1,always_true,100,first array stone
-pool_reward_main_0201,1,building,build_shop_lv1,1,always_true,100,shop opening
+pool_reward_main_0201,1,recipe,recipe_liuyun_niang,1,always_true,100,old shop brewing follow-up
 pool_reward_main_0202,1,recipe,recipe_garden_herb_advanced,1,always_true,100,advanced herb garden
 pool_reward_main_0301,1,building,build_spirit_manor,1,always_true,100,spirit manor unlock
 pool_reward_main_0302,1,reputation,shop_reputation,40,always_true,100,fire ruin faction reputation
