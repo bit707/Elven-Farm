@@ -15613,6 +15613,7 @@ function questRuntime() {
       questStepsByQuest: data.questStepsByQuest,
       sideQuestStepsByQuest: data.sideQuestStepsByQuest,
       sideQuestTriggersByQuest: data.sideQuestTriggersByQuest,
+      dialoguesByGroup: data.dialoguesByGroup,
       cropsBySeed: data.cropsBySeed,
     },
     {
@@ -17039,6 +17040,8 @@ function configuredTriggerReady(trigger) {
 }
 
 function dialogueGroupForExecuteGroup(executeGroup) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.dialogueGroupForExecuteGroup(executeGroup);
   const raw = String(executeGroup || "");
   const questMatch = raw.match(/quest_(main|side)_\d+/);
   const sideMatch = raw.match(/side_\d+/);
@@ -17048,6 +17051,8 @@ function dialogueGroupForExecuteGroup(executeGroup) {
 }
 
 function questForExecuteGroup(executeGroup, side = false) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.questForExecuteGroup(executeGroup, side);
   const raw = String(executeGroup || "");
   const match = raw.match(side ? /side_\d+/ : /quest_main_\d+/);
   if (!match) return null;

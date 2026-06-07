@@ -625,6 +625,23 @@ var XiannongCore;
                     return "generic_unlock";
                 return "generic_event";
             }
+            function dialogueGroupForExecuteGroup(executeGroup) {
+                const raw = String(executeGroup || "");
+                const questMatch = raw.match(/quest_(main|side)_\d+/);
+                const sideMatch = raw.match(/side_\d+/);
+                const prefix = questMatch ? questMatch[0].replace("quest_", "dialogue_") : sideMatch ? `dialogue_${sideMatch[0]}` : "";
+                if (!prefix)
+                    return "";
+                return [...data.dialoguesByGroup.keys()].find((groupId) => groupId.startsWith(prefix)) || "";
+            }
+            function questForExecuteGroup(executeGroup, side = false) {
+                const raw = String(executeGroup || "");
+                const match = raw.match(side ? /side_\d+/ : /quest_main_\d+/);
+                if (!match)
+                    return null;
+                const rows = side ? data.sideQuests : data.quests;
+                return rows.find((quest) => quest.quest_id.startsWith(match[0])) || null;
+            }
             function rewardPoolEntries(poolId) {
                 return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
             }
@@ -705,6 +722,8 @@ var XiannongCore;
                 sideQuestClueForNpc,
                 configuredEventReadyQueue,
                 configuredEventActionKind,
+                dialogueGroupForExecuteGroup,
+                questForExecuteGroup,
             };
         }
         Quests.createQuestRuntime = createQuestRuntime;

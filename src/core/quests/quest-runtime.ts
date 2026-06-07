@@ -78,6 +78,7 @@ namespace XiannongCore.Quests {
     questStepsByQuest: Map<string, QuestStepRow[]>;
     sideQuestStepsByQuest: Map<string, QuestStepRow[]>;
     sideQuestTriggersByQuest: Map<string, ConfiguredTriggerRow[]>;
+    dialoguesByGroup: Map<string, unknown[]>;
     cropsBySeed: Map<string, { crop_id?: string }>;
   }
 
@@ -148,6 +149,8 @@ namespace XiannongCore.Quests {
     sideQuestClueForNpc(npcId?: string, questId?: string): SideQuestClue | null;
     configuredEventReadyQueue(): ConfiguredEventCandidate[];
     configuredEventActionKind(event: ConfiguredTriggerRow): ConfiguredEventActionKind;
+    dialogueGroupForExecuteGroup(executeGroup: string): string;
+    questForExecuteGroup(executeGroup: string, side?: boolean): QuestRow | null;
   }
 
   export interface QuestRewardClaimResult {
@@ -620,6 +623,23 @@ namespace XiannongCore.Quests {
       return "generic_event";
     }
 
+    function dialogueGroupForExecuteGroup(executeGroup: string): string {
+      const raw = String(executeGroup || "");
+      const questMatch = raw.match(/quest_(main|side)_\d+/);
+      const sideMatch = raw.match(/side_\d+/);
+      const prefix = questMatch ? questMatch[0].replace("quest_", "dialogue_") : sideMatch ? `dialogue_${sideMatch[0]}` : "";
+      if (!prefix) return "";
+      return [...data.dialoguesByGroup.keys()].find((groupId) => groupId.startsWith(prefix)) || "";
+    }
+
+    function questForExecuteGroup(executeGroup: string, side = false): QuestRow | null {
+      const raw = String(executeGroup || "");
+      const match = raw.match(side ? /side_\d+/ : /quest_main_\d+/);
+      if (!match) return null;
+      const rows = side ? data.sideQuests : data.quests;
+      return rows.find((quest) => quest.quest_id.startsWith(match[0])) || null;
+    }
+
     function rewardPoolEntries(poolId: string): RewardPoolRow[] {
       return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
     }
@@ -701,6 +721,8 @@ namespace XiannongCore.Quests {
       sideQuestClueForNpc,
       configuredEventReadyQueue,
       configuredEventActionKind,
+      dialogueGroupForExecuteGroup,
+      questForExecuteGroup,
     };
   }
 }
