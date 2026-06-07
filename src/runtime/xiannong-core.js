@@ -1418,6 +1418,37 @@ var XiannongCore;
                     themeUsage,
                 };
             }
+            function shopSeasonCycleInfo(day = state.day || 1) {
+                const seasons = Array.isArray(data.shopSeasons) ? data.shopSeasons : [];
+                if (seasons.length === 0)
+                    return { season: null, cycleIndex: 0, dayInSeason: 1, startDay: 1, cycleDays: 30 };
+                const safeDay = Math.max(1, Number(day || 1));
+                let remaining = safeDay - 1;
+                let cycleIndex = 0;
+                while (cycleIndex < 9999) {
+                    const season = seasons[cycleIndex % seasons.length];
+                    const cycleDays = Math.max(1, Number(season?.cycle_days || 30));
+                    if (remaining < cycleDays) {
+                        return {
+                            season,
+                            cycleIndex,
+                            dayInSeason: remaining + 1,
+                            startDay: safeDay - remaining,
+                            cycleDays,
+                        };
+                    }
+                    remaining -= cycleDays;
+                    cycleIndex += 1;
+                }
+                const fallback = seasons[0];
+                return { season: fallback, cycleIndex: 0, dayInSeason: 1, startDay: 1, cycleDays: Math.max(1, Number(fallback?.cycle_days || 30)) };
+            }
+            function shopSeasonCycleKey(input = null) {
+                const info = shopSeasonCycleInfo(input?.day ?? state.day ?? 1);
+                const season = input?.season || info.season;
+                const seasonId = season?.season_id || info.season?.season_id || "season_shop_001";
+                return `${seasonId}:${Number((input?.cycleIndex ?? info.cycleIndex) || 0)}`;
+            }
             return {
                 customerPriceRule,
                 customerProfile,
@@ -1443,6 +1474,8 @@ var XiannongCore;
                 shopWeatherShelfChoiceWeight,
                 matchCustomerGood,
                 shopSalesStatsDelta,
+                shopSeasonCycleInfo,
+                shopSeasonCycleKey,
             };
         }
         Shop.createShopRuntime = createShopRuntime;

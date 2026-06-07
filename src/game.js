@@ -9122,6 +9122,8 @@ function shuqiLegacyLedgerActive() {
 }
 
 function shopSeasonCycleKey(season = currentShopSeason(), cycleIndex = shopSeasonCycleInfo().cycleIndex) {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.shopSeasonCycleKey({ season, cycleIndex });
   const seasonId = season?.season_id || currentShopSeason()?.season_id || "season_shop_001";
   return `${seasonId}:${Number(cycleIndex || 0)}`;
 }
@@ -15608,6 +15610,7 @@ function shopRuntime() {
       shopPriceRules: data.shopPriceRules,
       customerProfiles: data.customerProfiles,
       shopFeedback: data.shopFeedback,
+      shopSeasons: data.shopSeasons,
       priceRulesByArchetype: data.priceRulesByArchetype,
       customerProfilesBy: data.customerProfilesBy,
     },
@@ -26665,6 +26668,8 @@ function recordShopOpeningFeedback({ customers, report, goods, theme, themeScore
 }
 
 function shopSeasonCycleInfo(day = state.day) {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.shopSeasonCycleInfo(day);
   const seasons = data.shopSeasons || [];
   if (seasons.length === 0) return { season: null, cycleIndex: 0, dayInSeason: 1, startDay: 1, cycleDays: 30 };
   const safeDay = Math.max(1, Number(day || 1));

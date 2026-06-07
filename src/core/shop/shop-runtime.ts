@@ -2,6 +2,7 @@ namespace XiannongCore.Shop {
   export type ShopRow = Record<string, string | undefined>;
 
   export interface ShopRuntimeState {
+    day?: number;
     fame?: number;
     shopPriceMultiplier?: number;
   }
@@ -10,6 +11,7 @@ namespace XiannongCore.Shop {
     shopPriceRules: ShopRow[];
     customerProfiles: ShopRow[];
     shopFeedback: ShopRow[];
+    shopSeasons?: ShopRow[];
     priceRulesByArchetype?: Map<string, ShopRow>;
     customerProfilesBy?: Map<string, ShopRow>;
   }
@@ -39,6 +41,8 @@ namespace XiannongCore.Shop {
     shopWeatherShelfChoiceWeight(input?: ShopWeatherShelfChoiceWeightInput | null): ShopWeatherShelfChoiceWeightPlan;
     matchCustomerGood(input?: ShopCustomerGoodMatchInput | null): ShopCustomerGoodMatchPlan;
     shopSalesStatsDelta(input?: ShopSalesStatsDeltaInput | null): ShopSalesStatsDelta;
+    shopSeasonCycleInfo(day?: number | string | null): ShopSeasonCycleInfo;
+    shopSeasonCycleKey(input?: ShopSeasonCycleKeyInput | null): string;
   }
 
   export interface ShopGoodChoice {
@@ -188,6 +192,20 @@ namespace XiannongCore.Shop {
     customerVisits: Record<string, number>;
     customerBuys: Record<string, number>;
     themeUsage: Record<string, number>;
+  }
+
+  export interface ShopSeasonCycleInfo {
+    season: ShopRow | null;
+    cycleIndex: number;
+    dayInSeason: number;
+    startDay: number;
+    cycleDays: number;
+  }
+
+  export interface ShopSeasonCycleKeyInput {
+    season?: ShopRow | null;
+    cycleIndex?: number | string | null;
+    day?: number | string | null;
   }
 
   export interface PricedGoodOptions {
@@ -670,6 +688,38 @@ namespace XiannongCore.Shop {
       };
     }
 
+    function shopSeasonCycleInfo(day: number | string | null = state.day || 1): ShopSeasonCycleInfo {
+      const seasons = Array.isArray(data.shopSeasons) ? data.shopSeasons : [];
+      if (seasons.length === 0) return { season: null, cycleIndex: 0, dayInSeason: 1, startDay: 1, cycleDays: 30 };
+      const safeDay = Math.max(1, Number(day || 1));
+      let remaining = safeDay - 1;
+      let cycleIndex = 0;
+      while (cycleIndex < 9999) {
+        const season = seasons[cycleIndex % seasons.length];
+        const cycleDays = Math.max(1, Number(season?.cycle_days || 30));
+        if (remaining < cycleDays) {
+          return {
+            season,
+            cycleIndex,
+            dayInSeason: remaining + 1,
+            startDay: safeDay - remaining,
+            cycleDays,
+          };
+        }
+        remaining -= cycleDays;
+        cycleIndex += 1;
+      }
+      const fallback = seasons[0];
+      return { season: fallback, cycleIndex: 0, dayInSeason: 1, startDay: 1, cycleDays: Math.max(1, Number(fallback?.cycle_days || 30)) };
+    }
+
+    function shopSeasonCycleKey(input: ShopSeasonCycleKeyInput | null = null): string {
+      const info = shopSeasonCycleInfo(input?.day ?? state.day ?? 1);
+      const season = input?.season || info.season;
+      const seasonId = season?.season_id || info.season?.season_id || "season_shop_001";
+      return `${seasonId}:${Number((input?.cycleIndex ?? info.cycleIndex) || 0)}`;
+    }
+
     return {
       customerPriceRule,
       customerProfile,
@@ -695,6 +745,8 @@ namespace XiannongCore.Shop {
       shopWeatherShelfChoiceWeight,
       matchCustomerGood,
       shopSalesStatsDelta,
+      shopSeasonCycleInfo,
+      shopSeasonCycleKey,
     };
   }
 }

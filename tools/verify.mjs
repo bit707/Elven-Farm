@@ -3031,6 +3031,9 @@ for (const shopRuntimeTerm of [
   "lowStockCount: lowStockBeforeOpen.length",
   "applyShopSalesStatsDelta(state.shopStats, shopStatsDelta)",
   "if (trackSeason) applyShopSalesStatsDelta(seasonStats, shopStatsDelta)",
+  "shopSeasons: data.shopSeasons",
+  "runtime.shopSeasonCycleInfo(day)",
+  "runtime.shopSeasonCycleKey({ season, cycleIndex })",
 ]) {
   if (!game.includes(shopRuntimeTerm)) throw new Error(`Shop TypeScript runtime bridge missing: ${shopRuntimeTerm}`);
 }
@@ -3225,6 +3228,12 @@ for (const shopCoreSourceTerm of [
   "shopSalesStatsDelta(input",
   "boughtRows = report.filter",
   "stockSafeSessions: lowStock ? 0 : 1",
+  "shopSeasons?: ShopRow[]",
+  "export interface ShopSeasonCycleInfo",
+  "export interface ShopSeasonCycleKeyInput",
+  "shopSeasonCycleInfo(day",
+  "cycleIndex < 9999",
+  "shopSeasonCycleKey(input",
   "ecology_product: 20",
   "route_rare: 18",
   "recover_sp: 13",
@@ -3301,6 +3310,10 @@ for (const shopCoreRuntimeTerm of [
   "function shopSalesStatsDelta",
   "boughtRows = report.filter",
   "stockSafeSessions: lowStock ? 0 : 1",
+  "function shopSeasonCycleInfo",
+  "cycleIndex < 9999",
+  "function shopSeasonCycleKey",
+  "season_shop_001",
   "ecology_product: 20",
   "route_rare: 18",
   "recover_sp: 13",
