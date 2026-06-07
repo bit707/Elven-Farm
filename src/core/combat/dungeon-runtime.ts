@@ -134,6 +134,22 @@ namespace XiannongCore.Combat {
     combatMoment: "danger" | "loot" | "steady";
   }
 
+  export interface DungeonExploreOutcomePlanInput {
+    hp?: number | string | null;
+    floor?: number | string | null;
+    maxFloor?: number | string | null;
+    stamina?: number | string | null;
+  }
+
+  export interface DungeonExploreOutcomePlan {
+    outcome: "failed" | "boss_ready" | "advance";
+    finished: boolean;
+    bossReady: boolean;
+    floorAfter: number;
+    staminaAfter: number | null;
+    combatMoment: "failed" | "boss_ready" | null;
+  }
+
   export interface DungeonLootPlanInput {
     pool?: CombatRow[] | null;
     floor?: number | string | null;
@@ -212,6 +228,7 @@ namespace XiannongCore.Combat {
     dungeonMechanicActionPlan(input?: DungeonMechanicActionPlanInput | null): DungeonMechanicActionPlan;
     dungeonExplorePlan(input?: DungeonExplorePlanInput | null): DungeonExplorePlan;
     dungeonExploreStatePlan(input?: DungeonExploreStatePlanInput | null): DungeonExploreStatePlan;
+    dungeonExploreOutcomePlan(input?: DungeonExploreOutcomePlanInput | null): DungeonExploreOutcomePlan;
     dungeonLootPlan(input?: DungeonLootPlanInput | null): DungeonLootPlanEntry[];
     dungeonBossExchangePlan(input?: DungeonBossExchangePlanInput | null): DungeonBossExchangePlan;
     dungeonBossExchangeStatePlan(input?: DungeonBossExchangeStatePlanInput | null): DungeonBossExchangeStatePlan;
@@ -558,6 +575,40 @@ namespace XiannongCore.Combat {
       };
     }
 
+    function dungeonExploreOutcomePlan(input: DungeonExploreOutcomePlanInput | null = null): DungeonExploreOutcomePlan {
+      const hp = finiteNumber(input?.hp, 0);
+      const floor = finiteNumber(input?.floor, 1);
+      const maxFloor = finiteNumber(input?.maxFloor, 1);
+      if (hp <= 0) {
+        return {
+          outcome: "failed",
+          finished: true,
+          bossReady: false,
+          floorAfter: floor,
+          staminaAfter: Math.max(25, finiteNumber(input?.stamina, 0) - 12),
+          combatMoment: "failed",
+        };
+      }
+      if (floor >= maxFloor) {
+        return {
+          outcome: "boss_ready",
+          finished: false,
+          bossReady: true,
+          floorAfter: floor,
+          staminaAfter: null,
+          combatMoment: "boss_ready",
+        };
+      }
+      return {
+        outcome: "advance",
+        finished: false,
+        bossReady: false,
+        floorAfter: floor + 1,
+        staminaAfter: null,
+        combatMoment: null,
+      };
+    }
+
     function dungeonLootPlan(input: DungeonLootPlanInput | null = null): DungeonLootPlanEntry[] {
       const pool = input?.pool || [];
       if (pool.length === 0) return [];
@@ -668,6 +719,7 @@ namespace XiannongCore.Combat {
       dungeonMechanicActionPlan,
       dungeonExplorePlan,
       dungeonExploreStatePlan,
+      dungeonExploreOutcomePlan,
       dungeonLootPlan,
       dungeonBossExchangePlan,
       dungeonBossExchangeStatePlan,

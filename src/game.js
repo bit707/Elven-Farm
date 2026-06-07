@@ -42566,10 +42566,17 @@ function exploreDungeon() {
     addJobExp(state.spirits[0], "expedition", 2, "秘境随行");
   }
 
-  if (run.hp <= 0) {
-    run.finished = true;
-    run.combatMoment = "failed";
-    state.stamina = Math.max(25, state.stamina - 12);
+  const exploreOutcomePlan = dungeonRuntime()?.dungeonExploreOutcomePlan({
+    hp: run.hp,
+    floor: run.floor,
+    maxFloor: run.maxFloor,
+    stamina: state.stamina,
+  }) || null;
+
+  if (exploreOutcomePlan?.outcome === "failed" || run.hp <= 0) {
+    run.finished = Boolean(exploreOutcomePlan?.finished ?? true);
+    run.combatMoment = exploreOutcomePlan?.combatMoment || "failed";
+    state.stamina = Number(exploreOutcomePlan?.staminaAfter ?? Math.max(25, state.stamina - 12));
     const failureReason = mechanic?.dungeon_id === "dsm_004" && Number(run.mechanicState?.overflow || 0) >= 4 ? "overflow" : "battle";
     const failureInsight = recordDungeonFailureInsight(failureReason, run, dungeon, mechanic);
     const stampGain = grantDungeonCompendiumProgress("shard", failureReason === "overflow" ? 2 : run.floor >= 3 ? 2 : 1, run, dungeon, mechanic);
@@ -42580,10 +42587,10 @@ function exploreDungeon() {
       failureInsight,
       stampGain,
     });
-  } else if (run.floor >= run.maxFloor) {
-    run.bossReady = true;
+  } else if (exploreOutcomePlan?.outcome === "boss_ready" || run.floor >= run.maxFloor) {
+    run.bossReady = Boolean(exploreOutcomePlan?.bossReady ?? true);
     run.hazards = dungeonHazards(mechanic, run, dungeon);
-    run.combatMoment = "boss_ready";
+    run.combatMoment = exploreOutcomePlan?.combatMoment || "boss_ready";
     const bossId = dungeonBossId(dungeon, run);
     const nextSkill = bossSkillForTurn(bossId, run.turn, bossHpPercent(run, dungeon));
     const telegraph = dungeonBossTelegraphSpec(nextSkill, bossId, run);
@@ -42605,7 +42612,7 @@ function exploreDungeon() {
       bossId,
     });
   } else {
-    run.floor += 1;
+    run.floor = Number(exploreOutcomePlan?.floorAfter ?? run.floor + 1);
     triggerDungeonFeedback(run.combatMoment === "danger" ? "hazard" : "explore", {
       mechanic,
       label: run.combatMoment === "danger" ? `险象 · ${hazards[0]?.label || "灵雾压场"}` : `推进至第 ${run.floor} 层`,

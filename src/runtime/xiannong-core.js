@@ -353,6 +353,39 @@ var XiannongCore;
                     combatMoment: damage >= 16 ? "danger" : lootCount > 0 ? "loot" : "steady",
                 };
             }
+            function dungeonExploreOutcomePlan(input = null) {
+                const hp = finiteNumber(input?.hp, 0);
+                const floor = finiteNumber(input?.floor, 1);
+                const maxFloor = finiteNumber(input?.maxFloor, 1);
+                if (hp <= 0) {
+                    return {
+                        outcome: "failed",
+                        finished: true,
+                        bossReady: false,
+                        floorAfter: floor,
+                        staminaAfter: Math.max(25, finiteNumber(input?.stamina, 0) - 12),
+                        combatMoment: "failed",
+                    };
+                }
+                if (floor >= maxFloor) {
+                    return {
+                        outcome: "boss_ready",
+                        finished: false,
+                        bossReady: true,
+                        floorAfter: floor,
+                        staminaAfter: null,
+                        combatMoment: "boss_ready",
+                    };
+                }
+                return {
+                    outcome: "advance",
+                    finished: false,
+                    bossReady: false,
+                    floorAfter: floor + 1,
+                    staminaAfter: null,
+                    combatMoment: null,
+                };
+            }
             function dungeonLootPlan(input = null) {
                 const pool = input?.pool || [];
                 if (pool.length === 0)
@@ -461,6 +494,7 @@ var XiannongCore;
                 dungeonMechanicActionPlan,
                 dungeonExplorePlan,
                 dungeonExploreStatePlan,
+                dungeonExploreOutcomePlan,
                 dungeonLootPlan,
                 dungeonBossExchangePlan,
                 dungeonBossExchangeStatePlan,
