@@ -119,6 +119,25 @@ namespace XiannongCore.Farming {
     affinity: CropSolarAffinity | null;
   }
 
+  export interface PlantStatePlanInput {
+    crop?: FarmingRow | null;
+    seedItemId?: string;
+    day: number;
+    firstSeeded?: boolean;
+  }
+
+  export interface PlantStatePlan {
+    cropId: string;
+    seedItemId: string;
+    plantedDay: number;
+    watered: false;
+    mature: false;
+    firstSeeded: boolean;
+    firstSeededDay?: number;
+    firstSeededSeedId?: string;
+    firstSeededCropId?: string;
+  }
+
   export interface FarmingRuntime {
     cropForHarvestTarget(targetId?: string): FarmingRow | null;
     cropSolarAffinity(
@@ -133,6 +152,7 @@ namespace XiannongCore.Farming {
     cropWorldGrowthVisualSpec(crop?: FarmingRow | null, plot?: FarmingPlot | null, plotIndex?: number, day?: number): CropWorldGrowthVisualSpec | null;
     nightCropGrowthPlan(input: NightCropGrowthInput): NightCropGrowthPlan;
     harvestYieldPlan(input: HarvestYieldPlanInput): HarvestYieldPlan;
+    plantStatePlan(input: PlantStatePlanInput): PlantStatePlan;
   }
 
   export function createFarmingRuntime(data: FarmingRuntimeData, hooks: FarmingRuntimeHooks): FarmingRuntime {
@@ -374,6 +394,28 @@ namespace XiannongCore.Farming {
       };
     }
 
+    function plantStatePlan(input: PlantStatePlanInput): PlantStatePlan {
+      const crop = input.crop || {};
+      const cropId = String(crop.crop_id || "");
+      const seedItemId = String(crop.seed_item_id || input.seedItemId || "");
+      const plantedDay = Number(input.day || 1);
+      const firstSeeded = Boolean(input.firstSeeded);
+      const plan: PlantStatePlan = {
+        cropId,
+        seedItemId,
+        plantedDay,
+        watered: false,
+        mature: false,
+        firstSeeded,
+      };
+      if (firstSeeded) {
+        plan.firstSeededDay = plantedDay;
+        plan.firstSeededSeedId = seedItemId;
+        plan.firstSeededCropId = cropId;
+      }
+      return plan;
+    }
+
     return {
       cropForHarvestTarget,
       cropSolarAffinity,
@@ -383,6 +425,7 @@ namespace XiannongCore.Farming {
       cropWorldGrowthVisualSpec,
       nightCropGrowthPlan,
       harvestYieldPlan,
+      plantStatePlan,
     };
   }
 }

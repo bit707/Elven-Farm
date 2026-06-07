@@ -907,6 +907,27 @@ var XiannongCore;
                     affinity,
                 };
             }
+            function plantStatePlan(input) {
+                const crop = input.crop || {};
+                const cropId = String(crop.crop_id || "");
+                const seedItemId = String(crop.seed_item_id || input.seedItemId || "");
+                const plantedDay = Number(input.day || 1);
+                const firstSeeded = Boolean(input.firstSeeded);
+                const plan = {
+                    cropId,
+                    seedItemId,
+                    plantedDay,
+                    watered: false,
+                    mature: false,
+                    firstSeeded,
+                };
+                if (firstSeeded) {
+                    plan.firstSeededDay = plantedDay;
+                    plan.firstSeededSeedId = seedItemId;
+                    plan.firstSeededCropId = cropId;
+                }
+                return plan;
+            }
             return {
                 cropForHarvestTarget,
                 cropSolarAffinity,
@@ -916,6 +937,7 @@ var XiannongCore;
                 cropWorldGrowthVisualSpec,
                 nightCropGrowthPlan,
                 harvestYieldPlan,
+                plantStatePlan,
             };
         }
         Farming.createFarmingRuntime = createFarmingRuntime;

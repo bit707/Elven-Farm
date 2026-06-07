@@ -55127,18 +55127,34 @@ function plant() {
   const seedRoute = seedUseRouteSpec(crop, plot);
   addItem(state.selectedSeedId, -1);
   const firstSeeded = !state.plots.some((entry) => entry.firstSeeded || entry.cropId || entry.seedItemId);
-  Object.assign(plot, {
+  const plantPlan = farmingRuntime()?.plantStatePlan({
+    crop,
+    seedItemId: state.selectedSeedId,
+    day: state.day,
+    firstSeeded,
+  }) || {
     cropId: crop.crop_id,
     seedItemId: crop.seed_item_id,
     plantedDay: state.day,
     watered: false,
     mature: false,
+    firstSeeded,
+    firstSeededDay: firstSeeded ? state.day : undefined,
+    firstSeededSeedId: firstSeeded ? crop.seed_item_id : undefined,
+    firstSeededCropId: firstSeeded ? crop.crop_id : undefined,
+  };
+  Object.assign(plot, {
+    cropId: plantPlan.cropId,
+    seedItemId: plantPlan.seedItemId,
+    plantedDay: plantPlan.plantedDay,
+    watered: plantPlan.watered,
+    mature: plantPlan.mature,
   });
   if (firstSeeded) {
-    plot.firstSeeded = true;
-    plot.firstSeededDay = state.day;
-    plot.firstSeededSeedId = crop.seed_item_id;
-    plot.firstSeededCropId = crop.crop_id;
+    plot.firstSeeded = plantPlan.firstSeeded;
+    plot.firstSeededDay = plantPlan.firstSeededDay;
+    plot.firstSeededSeedId = plantPlan.firstSeededSeedId;
+    plot.firstSeededCropId = plantPlan.firstSeededCropId;
   }
   if (!state.spiritGuaranteed && crop.crop_id === "crop_lingqi_bailuobo") {
     syncSpiritSproutState();
