@@ -135,7 +135,9 @@ namespace XiannongCore.Quests {
     fireRuinEntryEventId: string;
     fireRuinAreaId: string;
     fireRuinUnlockFlag: string;
+    fireRuinFinishFlag: string;
     fireRuinBossId: string;
+    fireCoreItemId: string;
     chapter4DroughtQuestId: string;
     chapter4DroughtFlag: string;
     chapter4DroughtReliefDoneFlag: string;
@@ -220,6 +222,7 @@ namespace XiannongCore.Quests {
     configuredEventFactionOrderStartActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFactionOrderStartActionPlan;
     configuredEventFireRuinUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFireRuinUnlockActionPlan;
     configuredEventFireRuinStartActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFireRuinStartActionPlan;
+    configuredEventFireRuinFinishActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFireRuinFinishActionPlan;
     configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan;
   }
 
@@ -331,6 +334,9 @@ namespace XiannongCore.Quests {
       kind: "apply_fire_ruin_unlock_world_change";
     }
     | {
+      kind: "apply_fire_ruin_finish_world_change";
+    }
+    | {
       kind: "trigger_chapter3_trade_feedback";
       phase: "entry" | "unlock" | "entry_area" | "finish";
       eventNameKey?: string;
@@ -367,6 +373,9 @@ namespace XiannongCore.Quests {
     }
     | {
       kind: "log_fire_ruin_start";
+    }
+    | {
+      kind: "log_fire_ruin_finish";
     }
     | {
       kind: "check_quest_rewards";
@@ -515,6 +524,26 @@ namespace XiannongCore.Quests {
     areaId: string;
     dialogueGroup: string;
     cue: string;
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventFireRuinFinishActionPlan {
+    applies: boolean;
+    eventId: string;
+    executeGroup: string;
+    firstFinish: boolean;
+    completedFlags: string[];
+    itemId: string;
+    itemCount: number;
+    npcFavors: Array<{
+      npcId: string;
+      amount: number;
+      source: string;
+    }>;
+    fameAmount: number;
+    dialogueGroup: string;
+    cue: string;
+    scanSource: string;
     actions: ConfiguredEventExecutionAction[];
   }
 
@@ -1612,6 +1641,64 @@ namespace XiannongCore.Quests {
       };
     }
 
+    function configuredEventFireRuinFinishActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFireRuinFinishActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "finish_fire_ruin";
+      const firstFinish = applies && !setHas(state.completed, constants.fireRuinFinishFlag);
+      const completedFlags = applies
+        ? [
+          constants.fireRuinFinishFlag,
+          "chapter_3_complete",
+          "fire_core_restored",
+        ]
+        : [];
+      const itemId = applies ? constants.fireCoreItemId : "";
+      const itemCount = applies ? 1 : 0;
+      const shouldGrantItem = applies && !hasItem(state, itemId, itemCount);
+      const npcFavors = firstFinish
+        ? [
+          { npcId: "npc_hu_sihai", amount: 12, source: "\u70bd\u708e\u706b\u7cbe" },
+          { npcId: "npc_shen_gudeng", amount: 8, source: "\u70bd\u7802\u9057\u8ff9\u5f52\u6765" },
+        ]
+        : [];
+      const fameAmount = firstFinish ? 8 : 0;
+      const dialogueGroup = applies ? "dialogue_main_0307_fire_ruin_finish" : "";
+      const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+      const scanSource = applies ? "fire_ruin:chapter_finish" : "";
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          ...completedFlags.map((flag) => ({ kind: "complete_flag" as const, flag })),
+          ...(shouldGrantItem ? [{ kind: "grant_item_if_missing" as const, itemId, count: itemCount }] : []),
+          ...npcFavors.map((favor) => ({ kind: "add_npc_favor" as const, npcId: favor.npcId, amount: favor.amount, source: favor.source })),
+          ...(fameAmount > 0 ? [{ kind: "add_fame" as const, amount: fameAmount }] : []),
+          { kind: "apply_fire_ruin_finish_world_change" },
+          { kind: "trigger_chapter3_trade_feedback", phase: "finish" },
+          { kind: "queue_dialogue_group", groupId: dialogueGroup },
+          { kind: "play_cue", cue },
+          { kind: "log_fire_ruin_finish" },
+          { kind: "update_missions" },
+          { kind: "check_quest_rewards" },
+          { kind: "scan_configured_events", source: scanSource },
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        executeGroup: plan.executeGroup,
+        firstFinish,
+        completedFlags,
+        itemId,
+        itemCount,
+        npcFavors,
+        fameAmount,
+        dialogueGroup,
+        cue,
+        scanSource,
+        actions,
+      };
+    }
+
     function configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan {
       const plan = configuredEventExecutionPlan(event);
       const applies = plan.actionKind === "generic_unlock";
@@ -1729,6 +1816,7 @@ namespace XiannongCore.Quests {
       configuredEventFactionOrderStartActionPlan,
       configuredEventFireRuinUnlockActionPlan,
       configuredEventFireRuinStartActionPlan,
+      configuredEventFireRuinFinishActionPlan,
       configuredEventGenericUnlockActionPlan,
     };
   }

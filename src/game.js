@@ -15720,7 +15720,9 @@ function questRuntime() {
       fireRuinEntryEventId: FIRE_RUIN_ENTRY_EVENT_ID,
       fireRuinAreaId: FIRE_RUIN_AREA_ID,
       fireRuinUnlockFlag: FIRE_RUIN_UNLOCK_FLAG,
+      fireRuinFinishFlag: FIRE_RUIN_FINISH_FLAG,
       fireRuinBossId: FIRE_RUIN_BOSS_ID,
+      fireCoreItemId: FIRE_CORE_ITEM_ID,
       chapter4DroughtQuestId: CHAPTER_4_DROUGHT_QUEST_ID,
       chapter4DroughtFlag: CHAPTER_4_DROUGHT_FLAG,
       chapter4DroughtReliefDoneFlag: CHAPTER_4_DROUGHT_RELIEF_DONE_FLAG,
@@ -17279,6 +17281,17 @@ function applyConfiguredEventAction(action, context = {}) {
     });
     return null;
   }
+  if (action.kind === "apply_fire_ruin_finish_world_change") {
+    upsertWorldChange({
+      key: "fire_core_restored",
+      dungeonId: FIRE_RUIN_AREA_ID,
+      title: "火位核心归阵",
+      detail: "炽炎火精压回阵眼后，旧采路的余烬不再乱窜，洞天工坊旁多出一圈稳定的赤金炉光。",
+      rewardHint: `${itemName(FIRE_CORE_ITEM_ID)} · 高阶订单与终章前置`,
+      visualType: "fire_core_beacon",
+    });
+    return null;
+  }
   if (action.kind === "trigger_chapter3_trade_feedback") {
     triggerChapter3TradeFeedback(action.phase, action.eventNameKey ? localize(action.eventNameKey, action.fallbackName || context.eventName) : context.eventName);
     return null;
@@ -17327,6 +17340,10 @@ function applyConfiguredEventAction(action, context = {}) {
   }
   if (action.kind === "log_fire_ruin_start") {
     addLog("炽砂遗迹", `${context.eventName}：旧采路尽头的残阵热浪还没死透，带回 ${itemName(FIRE_CORE_ITEM_ID)} 才算真正把这条火线接稳。`);
+    return null;
+  }
+  if (action.kind === "log_fire_ruin_finish") {
+    addLog("第三章收束", `${context.eventName}：${bossName(FIRE_RUIN_BOSS_ID)} 已伏，${itemName(FIRE_CORE_ITEM_ID)} 入手，门派大单与终章前置正式接上。`);
     return null;
   }
   if (action.kind === "check_quest_rewards") {
@@ -17678,7 +17695,45 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "finish_fire_ruin" || (!actionKind && executeGroup.includes("finish_fire_ruin"))) {
-    finishFireRuinLine(eventName);
+    const firstFinish = !state.completed.has(FIRE_RUIN_FINISH_FLAG);
+    const actionPlan = runtime?.configuredEventFireRuinFinishActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      firstFinish,
+      completedFlags: [FIRE_RUIN_FINISH_FLAG, "chapter_3_complete", "fire_core_restored"],
+      itemId: FIRE_CORE_ITEM_ID,
+      itemCount: 1,
+      npcFavors: firstFinish ? [
+        { npcId: "npc_hu_sihai", amount: 12, source: "炽炎火精" },
+        { npcId: "npc_shen_gudeng", amount: 8, source: "炽砂遗迹归来" },
+      ] : [],
+      fameAmount: firstFinish ? 8 : 0,
+      dialogueGroup: "dialogue_main_0307_fire_ruin_finish",
+      cue: "成就解锁",
+      scanSource: "fire_ruin:chapter_finish",
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: FIRE_RUIN_FINISH_FLAG },
+        { kind: "complete_flag", flag: "chapter_3_complete" },
+        { kind: "complete_flag", flag: "fire_core_restored" },
+        ...(!hasItem(FIRE_CORE_ITEM_ID, 1) ? [{ kind: "grant_item_if_missing", itemId: FIRE_CORE_ITEM_ID, count: 1 }] : []),
+        ...(firstFinish ? [
+          { kind: "add_npc_favor", npcId: "npc_hu_sihai", amount: 12, source: "炽炎火精" },
+          { kind: "add_npc_favor", npcId: "npc_shen_gudeng", amount: 8, source: "炽砂遗迹归来" },
+          { kind: "add_fame", amount: 8 },
+        ] : []),
+        { kind: "apply_fire_ruin_finish_world_change" },
+        { kind: "trigger_chapter3_trade_feedback", phase: "finish" },
+        { kind: "queue_dialogue_group", groupId: "dialogue_main_0307_fire_ruin_finish" },
+        { kind: "play_cue", cue: "成就解锁" },
+        { kind: "log_fire_ruin_finish" },
+        { kind: "update_missions" },
+        { kind: "check_quest_rewards" },
+        { kind: "scan_configured_events", source: "fire_ruin:chapter_finish" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan, { eventName });
     return true;
   }
 
@@ -38167,6 +38222,16 @@ function startFireRuinExpedition(eventName = "炽砂遗迹开启") {
 }
 
 function finishFireRuinLine(eventName = "炽炎火精归位") {
+  const plan = questRuntime()?.configuredEventFireRuinFinishActionPlan({
+    event_id: FIRE_RUIN_FINISH_EVENT_ID,
+    trigger_type: "on_boss_defeat",
+    trigger_param: FIRE_RUIN_BOSS_ID,
+    execute_group: "exec_finish_fire_ruin",
+  });
+  if (plan?.applies) {
+    applyConfiguredEventActionPlan(plan, { eventName });
+    return true;
+  }
   const firstFinish = !state.completed.has(FIRE_RUIN_FINISH_FLAG);
   state.completed.add(FIRE_RUIN_FINISH_FLAG);
   state.completed.add("chapter_3_complete");

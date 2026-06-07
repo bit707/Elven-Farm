@@ -3008,6 +3008,7 @@ for (const questRuntimeTerm of [
   "runtime?.configuredEventFactionOrderStartActionPlan(event)",
   "runtime?.configuredEventFireRuinUnlockActionPlan(event)",
   "runtime?.configuredEventFireRuinStartActionPlan(event)",
+  "runtime?.configuredEventFireRuinFinishActionPlan(event)",
   "runtime?.configuredEventGenericUnlockActionPlan(event)",
   "applyConfiguredEventActionPlan(actionPlan)",
   "applyConfiguredEventAction(action",
@@ -3278,6 +3279,7 @@ for (const questCoreSourceTerm of [
   "export interface ConfiguredEventFactionOrderStartActionPlan",
   "export interface ConfiguredEventFireRuinUnlockActionPlan",
   "export interface ConfiguredEventFireRuinStartActionPlan",
+  "export interface ConfiguredEventFireRuinFinishActionPlan",
   "export interface ConfiguredEventGenericUnlockActionPlan",
   "configuredEventSideQuestActionPlan(event",
   "configuredEventMainQuestActionPlan(event",
@@ -3291,6 +3293,7 @@ for (const questCoreSourceTerm of [
   "configuredEventFactionOrderStartActionPlan(event",
   "configuredEventFireRuinUnlockActionPlan(event",
   "configuredEventFireRuinStartActionPlan(event",
+  "configuredEventFireRuinFinishActionPlan(event",
   "configuredEventGenericUnlockActionPlan(event",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -3389,6 +3392,7 @@ for (const questCoreRuntimeTerm of [
   "function configuredEventFactionOrderStartActionPlan",
   "function configuredEventFireRuinUnlockActionPlan",
   "function configuredEventFireRuinStartActionPlan",
+  "function configuredEventFireRuinFinishActionPlan",
   "function configuredEventGenericUnlockActionPlan",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -5856,6 +5860,17 @@ if (!fireRuinBoss || fireRuinBoss.defeat_event_id !== "event_main_0307") {
 }
 if (!eventMain0307 || eventMain0307.trigger_type !== "on_boss_defeat" || eventMain0307.trigger_param !== "boss_chiyan_xiehou" || eventMain0307.condition_group !== "quest_main_0302_active" || eventMain0307.execute_group !== "exec_finish_fire_ruin") {
   throw new Error("Fire Ruin boss defeat must finish chapter three through configured event_main_0307");
+}
+if (!game.includes('executeGroup.includes("finish_fire_ruin")')
+  || !game.includes("runtime?.configuredEventFireRuinFinishActionPlan(event)")
+  || !game.includes("questRuntime()?.configuredEventFireRuinFinishActionPlan({")
+  || !game.includes('kind: "apply_fire_ruin_finish_world_change"')
+  || !game.includes('kind: "log_fire_ruin_finish"')
+  || !questRuntimeTs.includes("function configuredEventFireRuinFinishActionPlan")
+  || !questRuntimeTs.includes("constants.fireRuinFinishFlag")
+  || !questRuntimeTs.includes("constants.fireCoreItemId")
+  || !questRuntimeTs.includes('source: scanSource')) {
+  throw new Error("Fire Ruin finish must run through a TypeScript configured-event action plan with rewards, world change, quest settlement, and follow-up scan");
 }
 if (game.includes("state.missionDone.add(SPIRIT_MANOR_QUEST_ID);\n  if (firstStart)")
   || game.includes("state.missionDone.add(FACTION_ORDER_QUEST_ID);\n  if (firstStart)")) {

@@ -2492,6 +2492,63 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventFireRuinFinishActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "finish_fire_ruin";
+                const firstFinish = applies && !setHas(state.completed, constants.fireRuinFinishFlag);
+                const completedFlags = applies
+                    ? [
+                        constants.fireRuinFinishFlag,
+                        "chapter_3_complete",
+                        "fire_core_restored",
+                    ]
+                    : [];
+                const itemId = applies ? constants.fireCoreItemId : "";
+                const itemCount = applies ? 1 : 0;
+                const shouldGrantItem = applies && !hasItem(state, itemId, itemCount);
+                const npcFavors = firstFinish
+                    ? [
+                        { npcId: "npc_hu_sihai", amount: 12, source: "\u70bd\u708e\u706b\u7cbe" },
+                        { npcId: "npc_shen_gudeng", amount: 8, source: "\u70bd\u7802\u9057\u8ff9\u5f52\u6765" },
+                    ]
+                    : [];
+                const fameAmount = firstFinish ? 8 : 0;
+                const dialogueGroup = applies ? "dialogue_main_0307_fire_ruin_finish" : "";
+                const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+                const scanSource = applies ? "fire_ruin:chapter_finish" : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        ...(shouldGrantItem ? [{ kind: "grant_item_if_missing", itemId, count: itemCount }] : []),
+                        ...npcFavors.map((favor) => ({ kind: "add_npc_favor", npcId: favor.npcId, amount: favor.amount, source: favor.source })),
+                        ...(fameAmount > 0 ? [{ kind: "add_fame", amount: fameAmount }] : []),
+                        { kind: "apply_fire_ruin_finish_world_change" },
+                        { kind: "trigger_chapter3_trade_feedback", phase: "finish" },
+                        { kind: "queue_dialogue_group", groupId: dialogueGroup },
+                        { kind: "play_cue", cue },
+                        { kind: "log_fire_ruin_finish" },
+                        { kind: "update_missions" },
+                        { kind: "check_quest_rewards" },
+                        { kind: "scan_configured_events", source: scanSource },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    firstFinish,
+                    completedFlags,
+                    itemId,
+                    itemCount,
+                    npcFavors,
+                    fameAmount,
+                    dialogueGroup,
+                    cue,
+                    scanSource,
+                    actions,
+                };
+            }
             function configuredEventGenericUnlockActionPlan(event) {
                 const plan = configuredEventExecutionPlan(event);
                 const applies = plan.actionKind === "generic_unlock";
@@ -2607,6 +2664,7 @@ var XiannongCore;
                 configuredEventFactionOrderStartActionPlan,
                 configuredEventFireRuinUnlockActionPlan,
                 configuredEventFireRuinStartActionPlan,
+                configuredEventFireRuinFinishActionPlan,
                 configuredEventGenericUnlockActionPlan,
             };
         }
