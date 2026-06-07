@@ -968,6 +968,24 @@ var XiannongCore;
                     qualityAfter: qualityBefore + (shouldReward ? rewardCount : 0),
                 };
             }
+            function harvestRouteAccountingPlan(input) {
+                const route = input.route || null;
+                if (!route)
+                    return { lastHarvestUseRoute: null, hasRoute: false };
+                const count = Math.max(1, Number(route.count || input.count || 1));
+                const itemId = String(route.itemId || input.itemId || "");
+                const lastHarvestUseRoute = {
+                    ...route,
+                    itemId,
+                    count,
+                    day: Number(route.day || input.day || 1),
+                    ready: Boolean(route.ready),
+                };
+                return {
+                    lastHarvestUseRoute,
+                    hasRoute: Boolean(itemId),
+                };
+            }
             function plantStatePlan(input) {
                 const crop = input.crop || {};
                 const cropId = String(crop.crop_id || "");
@@ -1012,6 +1030,7 @@ var XiannongCore;
                 harvestStatePlan,
                 harvestProgressPlan,
                 harvestQualityRewardPlan,
+                harvestRouteAccountingPlan,
                 plantStatePlan,
                 waterStatePlan,
             };

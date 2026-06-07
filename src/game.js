@@ -55273,7 +55273,16 @@ function harvest() {
   };
   addItem(crop.crop_id, amount);
   const useRoute = harvestUseRouteSpec(crop.crop_id, amount);
-  state.lastHarvestUseRoute = useRoute;
+  const harvestRoutePlan = farmingRuntime()?.harvestRouteAccountingPlan({
+    route: useRoute,
+    itemId: crop.crop_id,
+    count: amount,
+    day: state.day,
+  }) || {
+    lastHarvestUseRoute: useRoute,
+    hasRoute: Boolean(useRoute?.itemId),
+  };
+  state.lastHarvestUseRoute = harvestRoutePlan.lastHarvestUseRoute;
   recordHarvestProgress(crop.crop_id, amount);
   if (qualityRewardPlan.shouldReward) addItem(qualityRewardPlan.rewardItemId, qualityRewardPlan.rewardCount);
   state.harvestFeedback = harvestFeedbackSpec(crop, amount, qualitySpec, useRoute, {

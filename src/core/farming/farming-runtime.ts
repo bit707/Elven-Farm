@@ -185,6 +185,41 @@ namespace XiannongCore.Farming {
     qualityAfter: number;
   }
 
+  export interface HarvestRoutePlan {
+    type?: string;
+    itemId?: string;
+    itemName?: string;
+    count?: number;
+    badge?: string;
+    headline?: string;
+    detail?: string;
+    logText?: string;
+    cta?: string;
+    recipeId?: string;
+    recipeName?: string;
+    orderId?: string;
+    orderTitle?: string;
+    orderNpc?: string;
+    shopTag?: string;
+    shopTagLabel?: string;
+    targetName?: string;
+    ready?: boolean;
+    missingText?: string;
+    day?: number;
+  }
+
+  export interface HarvestRouteAccountingPlanInput {
+    route?: HarvestRoutePlan | null;
+    itemId?: string;
+    count?: number;
+    day?: number;
+  }
+
+  export interface HarvestRouteAccountingPlan {
+    lastHarvestUseRoute: HarvestRoutePlan | null;
+    hasRoute: boolean;
+  }
+
   export interface PlantStatePlanInput {
     crop?: FarmingRow | null;
     seedItemId?: string;
@@ -235,6 +270,7 @@ namespace XiannongCore.Farming {
     harvestStatePlan(input: HarvestStatePlanInput): HarvestStatePlan;
     harvestProgressPlan(input: HarvestProgressPlanInput): HarvestProgressPlan;
     harvestQualityRewardPlan(input: HarvestQualityRewardPlanInput): HarvestQualityRewardPlan;
+    harvestRouteAccountingPlan(input: HarvestRouteAccountingPlanInput): HarvestRouteAccountingPlan;
     plantStatePlan(input: PlantStatePlanInput): PlantStatePlan;
     waterStatePlan(input: WaterStatePlanInput): WaterStatePlan;
   }
@@ -544,6 +580,24 @@ namespace XiannongCore.Farming {
       };
     }
 
+    function harvestRouteAccountingPlan(input: HarvestRouteAccountingPlanInput): HarvestRouteAccountingPlan {
+      const route = input.route || null;
+      if (!route) return { lastHarvestUseRoute: null, hasRoute: false };
+      const count = Math.max(1, Number(route.count || input.count || 1));
+      const itemId = String(route.itemId || input.itemId || "");
+      const lastHarvestUseRoute: HarvestRoutePlan = {
+        ...route,
+        itemId,
+        count,
+        day: Number(route.day || input.day || 1),
+        ready: Boolean(route.ready),
+      };
+      return {
+        lastHarvestUseRoute,
+        hasRoute: Boolean(itemId),
+      };
+    }
+
     function plantStatePlan(input: PlantStatePlanInput): PlantStatePlan {
       const crop = input.crop || {};
       const cropId = String(crop.crop_id || "");
@@ -590,6 +644,7 @@ namespace XiannongCore.Farming {
       harvestStatePlan,
       harvestProgressPlan,
       harvestQualityRewardPlan,
+      harvestRouteAccountingPlan,
       plantStatePlan,
       waterStatePlan,
     };
