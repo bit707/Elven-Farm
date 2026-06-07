@@ -1068,6 +1068,32 @@ var XiannongCore;
                     rule,
                 };
             }
+            function sumValues(values = {}) {
+                let total = 0;
+                for (const value of Object.values(values))
+                    total += Number(value || 0);
+                return total;
+            }
+            function customerPurchaseDecision(input) {
+                const priced = input.priced;
+                const budgetBonus = sumValues(input.budgetBonuses);
+                const effectiveBudget = Math.round(Number(input.budget || 0) * (1 + budgetBonus));
+                const priceTolerance = Number(input.behavior?.price_tolerance || 0.7);
+                const priceSensitive = Math.max(Number(input.customer?.price_sensitive || 0.5), 1 - priceTolerance);
+                const stockPressure = Number(input.behavior?.stock_sensitivity || 0.7) > 0.8 && Number(input.choice?.count || 0) <= 1;
+                const priceRelief = sumValues(input.priceReliefs);
+                const rejectedByPrice = priced.overprice && priceSensitive > Math.max(0.35, 0.55 - priceRelief);
+                const canBuy = Boolean(input.hasStock) && priced.price <= effectiveBudget && !rejectedByPrice && !stockPressure;
+                return {
+                    effectiveBudget,
+                    priceTolerance,
+                    priceSensitive,
+                    stockPressure,
+                    rejectedByPrice,
+                    canBuy,
+                    reason: canBuy ? "buy" : priced.price > effectiveBudget || rejectedByPrice ? "price" : stockPressure ? "stock" : "tag",
+                };
+            }
             return {
                 customerPriceRule,
                 customerProfile,
@@ -1075,6 +1101,7 @@ var XiannongCore;
                 customerViewFor,
                 customerBudget,
                 pricedGood,
+                customerPurchaseDecision,
             };
         }
         Shop.createShopRuntime = createShopRuntime;

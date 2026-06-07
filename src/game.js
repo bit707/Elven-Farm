@@ -58056,16 +58056,59 @@ function openShop() {
       ? `${activeVisitPledge.customerLabel}是照着“${activeVisitPledge.headline || "铺前来帖"}”来认货的，目标货摆在头排会更容易成交。`
       : "";
     const weatherShelfSupport = shopWeatherShelfChoiceSupport(choice, weatherShelf, customer, ecologyGarden);
-    const effectiveBudget = Math.round(budget * (1 + shopSpiritBonus + budgetBonus + guestBudgetBonus + silentMarketCustomerBonus + displaySupport.budgetBonus + ecologyAuraBudgetBonus + qingboSignatureBudgetBonus + waterwayFollowupSupport.budgetBonus + waterwayStandingSupport.budgetBonus + wordOfMouthBudgetBonus + visitPledgeBudgetBonus + weatherShelfSupport.budgetBonus + masterBuff * 0.35 + honeyTasteBonus * 0.55 + (winterShopActive ? dengyingFestivalBonus * 0.3 : 0)));
-    const priceTolerance = Number(behavior.price_tolerance || 0.7);
-    const priceSensitive = Math.max(Number(customer.price_sensitive || 0.5), 1 - priceTolerance);
-    const stockPressure = Number(behavior.stock_sensitivity || 0.7) > 0.8 && choice.count <= 1;
-    const rejectedByPrice = priced.overprice && priceSensitive > Math.max(0.35, 0.55 - guestBudgetBonus * 0.4 - silentMarketCustomerBonus * 0.5 - ecologyAuraBudgetBonus * 0.45 - waterwayFollowupSupport.priceRelief - waterwayStandingSupport.priceRelief - visitPledgeBudgetBonus * 0.35 - weatherShelfSupport.priceRelief - masterBuff * 0.3 - guestStayBonus * 0.25 - honeyTasteBonus * 0.6);
+    const purchaseDecision = shopRuntime()?.customerPurchaseDecision({
+      priced,
+      budget,
+      behavior,
+      customer,
+      choice,
+      hasStock: hasItem(choice.itemId, 1),
+      budgetBonuses: {
+        shopSpiritBonus,
+        budgetBonus,
+        guestBudgetBonus,
+        silentMarketCustomerBonus,
+        displaySupport: displaySupport.budgetBonus,
+        ecologyAuraBudgetBonus,
+        qingboSignatureBudgetBonus,
+        waterwayFollowup: waterwayFollowupSupport.budgetBonus,
+        waterwayStanding: waterwayStandingSupport.budgetBonus,
+        wordOfMouthBudgetBonus,
+        visitPledgeBudgetBonus,
+        weatherShelf: weatherShelfSupport.budgetBonus,
+        masterBuff: masterBuff * 0.35,
+        honeyTasteBonus: honeyTasteBonus * 0.55,
+        winterDengying: winterShopActive ? dengyingFestivalBonus * 0.3 : 0,
+      },
+      priceReliefs: {
+        guestBudget: guestBudgetBonus * 0.4,
+        silentMarket: silentMarketCustomerBonus * 0.5,
+        ecologyAura: ecologyAuraBudgetBonus * 0.45,
+        waterwayFollowup: waterwayFollowupSupport.priceRelief,
+        waterwayStanding: waterwayStandingSupport.priceRelief,
+        visitPledge: visitPledgeBudgetBonus * 0.35,
+        weatherShelf: weatherShelfSupport.priceRelief,
+        masterBuff: masterBuff * 0.3,
+        guestStay: guestStayBonus * 0.25,
+        honeyTaste: honeyTasteBonus * 0.6,
+      },
+    }) || {
+      effectiveBudget: Math.round(budget * (1 + shopSpiritBonus + budgetBonus + guestBudgetBonus + silentMarketCustomerBonus + displaySupport.budgetBonus + ecologyAuraBudgetBonus + qingboSignatureBudgetBonus + waterwayFollowupSupport.budgetBonus + waterwayStandingSupport.budgetBonus + wordOfMouthBudgetBonus + visitPledgeBudgetBonus + weatherShelfSupport.budgetBonus + masterBuff * 0.35 + honeyTasteBonus * 0.55 + (winterShopActive ? dengyingFestivalBonus * 0.3 : 0))),
+      priceTolerance: Number(behavior.price_tolerance || 0.7),
+      priceSensitive: Math.max(Number(customer.price_sensitive || 0.5), 1 - Number(behavior.price_tolerance || 0.7)),
+      stockPressure: Number(behavior.stock_sensitivity || 0.7) > 0.8 && choice.count <= 1,
+      rejectedByPrice: priced.overprice && Math.max(Number(customer.price_sensitive || 0.5), 1 - Number(behavior.price_tolerance || 0.7)) > Math.max(0.35, 0.55 - guestBudgetBonus * 0.4 - silentMarketCustomerBonus * 0.5 - ecologyAuraBudgetBonus * 0.45 - waterwayFollowupSupport.priceRelief - waterwayStandingSupport.priceRelief - visitPledgeBudgetBonus * 0.35 - weatherShelfSupport.priceRelief - masterBuff * 0.3 - guestStayBonus * 0.25 - honeyTasteBonus * 0.6),
+    };
+    const effectiveBudget = purchaseDecision.effectiveBudget;
+    const priceTolerance = purchaseDecision.priceTolerance;
+    const priceSensitive = purchaseDecision.priceSensitive;
+    const stockPressure = purchaseDecision.stockPressure;
+    const rejectedByPrice = purchaseDecision.rejectedByPrice;
     const dessertSaleBonus = dessertChoice && fengmiDessertQualityActive() ? Number(fengmiDessertQualitySkill()?.effect_param_1 || 0.08) : 0;
     const baseSalePrice = Math.max(1, Math.round(priced.price * (1 + profitBuff)));
     const salePrice = Math.max(1, Math.round(priced.price * (1 + profitBuff + dessertSaleBonus)));
 
-    if (priced.price <= effectiveBudget && !rejectedByPrice && !stockPressure && hasItem(choice.itemId, 1)) {
+    if (purchaseDecision.canBuy ?? (priced.price <= effectiveBudget && !rejectedByPrice && !stockPressure && hasItem(choice.itemId, 1))) {
       addItem(choice.itemId, -1);
       state.gold += salePrice;
       sold += 1;

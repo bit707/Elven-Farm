@@ -20,6 +20,7 @@ namespace XiannongCore.Shop {
     customerViewFor(customer: ShopRow | null | undefined, segment?: ShopRow | null): ShopRow;
     customerBudget(customer: ShopRow | null | undefined, segment?: ShopRow | null): number;
     pricedGood(choice: ShopGoodChoice | null | undefined, customer: ShopRow | null | undefined, options?: PricedGoodOptions): PricedGoodResult;
+    customerPurchaseDecision(input: CustomerPurchaseDecisionInput): CustomerPurchaseDecision;
   }
 
   export interface ShopGoodChoice {
@@ -38,6 +39,29 @@ namespace XiannongCore.Shop {
     multiplier: number;
     overprice: boolean;
     rule: ShopRow | null;
+  }
+
+  export interface CustomerPurchaseDecisionInput {
+    priced: PricedGoodResult;
+    budget: number;
+    behavior?: ShopRow | null;
+    customer?: ShopRow | null;
+    choice?: { count?: number | string } | null;
+    hasStock?: boolean;
+    budgetBonuses?: Record<string, number | undefined>;
+    priceReliefs?: Record<string, number | undefined>;
+  }
+
+  export type CustomerPurchaseDecisionReason = "buy" | "price" | "stock" | "tag";
+
+  export interface CustomerPurchaseDecision {
+    effectiveBudget: number;
+    priceTolerance: number;
+    priceSensitive: number;
+    stockPressure: boolean;
+    rejectedByPrice: boolean;
+    canBuy: boolean;
+    reason: CustomerPurchaseDecisionReason;
   }
 
   function rowByKey(rows: ShopRow[], key: string, value: string): ShopRow | null {
@@ -119,6 +143,33 @@ namespace XiannongCore.Shop {
       };
     }
 
+    function sumValues(values: Record<string, number | undefined> = {}): number {
+      let total = 0;
+      for (const value of Object.values(values)) total += Number(value || 0);
+      return total;
+    }
+
+    function customerPurchaseDecision(input: CustomerPurchaseDecisionInput): CustomerPurchaseDecision {
+      const priced = input.priced;
+      const budgetBonus = sumValues(input.budgetBonuses);
+      const effectiveBudget = Math.round(Number(input.budget || 0) * (1 + budgetBonus));
+      const priceTolerance = Number(input.behavior?.price_tolerance || 0.7);
+      const priceSensitive = Math.max(Number(input.customer?.price_sensitive || 0.5), 1 - priceTolerance);
+      const stockPressure = Number(input.behavior?.stock_sensitivity || 0.7) > 0.8 && Number(input.choice?.count || 0) <= 1;
+      const priceRelief = sumValues(input.priceReliefs);
+      const rejectedByPrice = priced.overprice && priceSensitive > Math.max(0.35, 0.55 - priceRelief);
+      const canBuy = Boolean(input.hasStock) && priced.price <= effectiveBudget && !rejectedByPrice && !stockPressure;
+      return {
+        effectiveBudget,
+        priceTolerance,
+        priceSensitive,
+        stockPressure,
+        rejectedByPrice,
+        canBuy,
+        reason: canBuy ? "buy" : priced.price > effectiveBudget || rejectedByPrice ? "price" : stockPressure ? "stock" : "tag",
+      };
+    }
+
     return {
       customerPriceRule,
       customerProfile,
@@ -126,6 +177,7 @@ namespace XiannongCore.Shop {
       customerViewFor,
       customerBudget,
       pricedGood,
+      customerPurchaseDecision,
     };
   }
 }
