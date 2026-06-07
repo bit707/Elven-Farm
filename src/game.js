@@ -55261,11 +55261,21 @@ function harvest() {
   const harvestBefore = Number(state.harvestCounts[crop.crop_id] || 0);
   const qualitySpec = harvestQualitySpec(crop, plot, amount, affinity);
   const qualityBefore = qualitySpec.qualityItemId ? Number(state.inventory[qualitySpec.qualityItemId] || 0) : 0;
+  const qualityRewardPlan = farmingRuntime()?.harvestQualityRewardPlan({
+    qualitySpec,
+    qualityBefore,
+  }) || {
+    rewardItemId: qualitySpec.qualityItemId || "",
+    rewardCount: qualitySpec.qualityItemId && qualitySpec.qualityCount > 0 ? qualitySpec.qualityCount : 0,
+    shouldReward: Boolean(qualitySpec.qualityItemId && qualitySpec.qualityCount > 0),
+    qualityBefore,
+    qualityAfter: qualityBefore + (qualitySpec.qualityItemId && qualitySpec.qualityCount > 0 ? Number(qualitySpec.qualityCount || 0) : 0),
+  };
   addItem(crop.crop_id, amount);
   const useRoute = harvestUseRouteSpec(crop.crop_id, amount);
   state.lastHarvestUseRoute = useRoute;
   recordHarvestProgress(crop.crop_id, amount);
-  if (qualitySpec.qualityItemId && qualitySpec.qualityCount > 0) addItem(qualitySpec.qualityItemId, qualitySpec.qualityCount);
+  if (qualityRewardPlan.shouldReward) addItem(qualityRewardPlan.rewardItemId, qualityRewardPlan.rewardCount);
   state.harvestFeedback = harvestFeedbackSpec(crop, amount, qualitySpec, useRoute, {
     harvestBonus,
     cohabWaterBonus,
@@ -55282,7 +55292,7 @@ function harvest() {
   const shouldBirthSpiritSprout = !state.spiritGuaranteed && crop.crop_id === "crop_lingqi_bailuobo";
   if (shouldBirthSpiritSprout) completeSpiritSproutBirth(plot);
   const harvestAfter = Number(state.harvestCounts[crop.crop_id] || 0);
-  const qualityAfter = qualitySpec.qualityItemId ? Number(state.inventory[qualitySpec.qualityItemId] || 0) : qualityBefore;
+  const qualityAfter = qualityRewardPlan.qualityAfter;
   const finalPantaoHarvest = crop.crop_id === CHAPTER_4_PANTAO_CROP_ID;
   const harvestStatePlan = farmingRuntime()?.harvestStatePlan({
     plot,

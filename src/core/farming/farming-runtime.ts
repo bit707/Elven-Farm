@@ -172,6 +172,19 @@ namespace XiannongCore.Farming {
     qualityReady: boolean;
   }
 
+  export interface HarvestQualityRewardPlanInput {
+    qualitySpec?: HarvestQualitySpec | null;
+    qualityBefore?: number;
+  }
+
+  export interface HarvestQualityRewardPlan {
+    rewardItemId: string;
+    rewardCount: number;
+    shouldReward: boolean;
+    qualityBefore: number;
+    qualityAfter: number;
+  }
+
   export interface PlantStatePlanInput {
     crop?: FarmingRow | null;
     seedItemId?: string;
@@ -221,6 +234,7 @@ namespace XiannongCore.Farming {
     harvestYieldPlan(input: HarvestYieldPlanInput): HarvestYieldPlan;
     harvestStatePlan(input: HarvestStatePlanInput): HarvestStatePlan;
     harvestProgressPlan(input: HarvestProgressPlanInput): HarvestProgressPlan;
+    harvestQualityRewardPlan(input: HarvestQualityRewardPlanInput): HarvestQualityRewardPlan;
     plantStatePlan(input: PlantStatePlanInput): PlantStatePlan;
     waterStatePlan(input: WaterStatePlanInput): WaterStatePlan;
   }
@@ -515,6 +529,21 @@ namespace XiannongCore.Farming {
       };
     }
 
+    function harvestQualityRewardPlan(input: HarvestQualityRewardPlanInput): HarvestQualityRewardPlan {
+      const qualitySpec = input.qualitySpec || null;
+      const rewardItemId = String(qualitySpec?.qualityItemId || "");
+      const rewardCount = Math.max(0, Number(qualitySpec?.qualityCount || 0));
+      const qualityBefore = Number(input.qualityBefore || 0);
+      const shouldReward = Boolean(rewardItemId && rewardCount > 0);
+      return {
+        rewardItemId,
+        rewardCount: shouldReward ? rewardCount : 0,
+        shouldReward,
+        qualityBefore,
+        qualityAfter: qualityBefore + (shouldReward ? rewardCount : 0),
+      };
+    }
+
     function plantStatePlan(input: PlantStatePlanInput): PlantStatePlan {
       const crop = input.crop || {};
       const cropId = String(crop.crop_id || "");
@@ -560,6 +589,7 @@ namespace XiannongCore.Farming {
       harvestYieldPlan,
       harvestStatePlan,
       harvestProgressPlan,
+      harvestQualityRewardPlan,
       plantStatePlan,
       waterStatePlan,
     };
