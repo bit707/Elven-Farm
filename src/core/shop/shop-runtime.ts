@@ -43,6 +43,7 @@ namespace XiannongCore.Shop {
     shopWeatherShelfChoiceWeight(input?: ShopWeatherShelfChoiceWeightInput | null): ShopWeatherShelfChoiceWeightPlan;
     matchCustomerGood(input?: ShopCustomerGoodMatchInput | null): ShopCustomerGoodMatchPlan;
     shopSalesStatsDelta(input?: ShopSalesStatsDeltaInput | null): ShopSalesStatsDelta;
+    applyShopSalesStatsDelta(stats?: ShopSalesStatsSnapshot | null, delta?: ShopSalesStatsDelta | null): ShopSalesStatsSnapshot | null;
     shopSeasonCycleInfo(day?: number | string | null): ShopSeasonCycleInfo;
     shopSeasonCycleKey(input?: ShopSeasonCycleKeyInput | null): string;
     shopSeasonRules(season?: ShopRow | null): ShopRow[];
@@ -204,6 +205,23 @@ namespace XiannongCore.Shop {
     customerVisits: Record<string, number>;
     customerBuys: Record<string, number>;
     themeUsage: Record<string, number>;
+  }
+
+  export interface ShopSalesStatsSnapshot {
+    sessions?: number | string;
+    visitors?: number | string;
+    buyers?: number | string;
+    soldCount?: number | string;
+    sales?: number | string;
+    positive?: number | string;
+    themeTotal?: number | string;
+    stockWarnings?: number | string;
+    stockSafeSessions?: number | string;
+    itemSales?: ShopNumericCounts | null;
+    customerVisits?: ShopNumericCounts | null;
+    customerBuys?: ShopNumericCounts | null;
+    themeUsage?: ShopNumericCounts | null;
+    [key: string]: unknown;
   }
 
   export interface ShopSeasonCycleInfo {
@@ -849,6 +867,37 @@ namespace XiannongCore.Shop {
       };
     }
 
+    function addShopStatsCounts(counts?: ShopNumericCounts | null, delta?: ShopNumericCounts | null): Record<string, number> {
+      const next: Record<string, number> = {};
+      for (const [key, value] of Object.entries(counts || {})) {
+        next[key] = Number(value || 0);
+      }
+      for (const [key, value] of Object.entries(delta || {})) {
+        next[key] = Number(next[key] || 0) + Number(value || 0);
+      }
+      return next;
+    }
+
+    function applyShopSalesStatsDelta(stats: ShopSalesStatsSnapshot | null = null, delta: ShopSalesStatsDelta | null = null): ShopSalesStatsSnapshot | null {
+      if (!stats || !delta) return stats;
+      return {
+        ...stats,
+        sessions: Number(stats.sessions || 0) + Number(delta.sessions || 0),
+        visitors: Number(stats.visitors || 0) + Number(delta.visitors || 0),
+        buyers: Number(stats.buyers || 0) + Number(delta.buyers || 0),
+        soldCount: Number(stats.soldCount || 0) + Number(delta.soldCount || 0),
+        sales: Number(stats.sales || 0) + Number(delta.sales || 0),
+        positive: Number(stats.positive || 0) + Number(delta.positive || 0),
+        themeTotal: Number(stats.themeTotal || 0) + Number(delta.themeTotal || 0),
+        stockWarnings: Number(stats.stockWarnings || 0) + Number(delta.stockWarnings || 0),
+        stockSafeSessions: Number(stats.stockSafeSessions || 0) + Number(delta.stockSafeSessions || 0),
+        customerVisits: addShopStatsCounts(stats.customerVisits, delta.customerVisits),
+        customerBuys: addShopStatsCounts(stats.customerBuys, delta.customerBuys),
+        itemSales: addShopStatsCounts(stats.itemSales, delta.itemSales),
+        themeUsage: addShopStatsCounts(stats.themeUsage, delta.themeUsage),
+      };
+    }
+
     function shopSeasonCycleInfo(day: number | string | null = state.day || 1): ShopSeasonCycleInfo {
       const seasons = Array.isArray(data.shopSeasons) ? data.shopSeasons : [];
       if (seasons.length === 0) return { season: null, cycleIndex: 0, dayInSeason: 1, startDay: 1, cycleDays: 30 };
@@ -1086,6 +1135,7 @@ namespace XiannongCore.Shop {
       shopWeatherShelfChoiceWeight,
       matchCustomerGood,
       shopSalesStatsDelta,
+      applyShopSalesStatsDelta,
       shopSeasonCycleInfo,
       shopSeasonCycleKey,
       shopSeasonRules,

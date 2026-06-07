@@ -20667,6 +20667,11 @@ function matchCustomerGoodLegacy(goods, customer, ecologyGarden = null) {
 
 function applyShopSalesStatsDelta(stats, delta) {
   if (!stats || !delta) return stats;
+  const runtimeStats = shopRuntime()?.applyShopSalesStatsDelta(stats, delta);
+  if (runtimeStats) {
+    Object.assign(stats, runtimeStats);
+    return stats;
+  }
   stats.sessions += Number(delta.sessions || 0);
   stats.visitors += Number(delta.visitors || 0);
   stats.buyers += Number(delta.buyers || 0);

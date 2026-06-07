@@ -2457,6 +2457,36 @@ var XiannongCore;
                     themeUsage,
                 };
             }
+            function addShopStatsCounts(counts, delta) {
+                const next = {};
+                for (const [key, value] of Object.entries(counts || {})) {
+                    next[key] = Number(value || 0);
+                }
+                for (const [key, value] of Object.entries(delta || {})) {
+                    next[key] = Number(next[key] || 0) + Number(value || 0);
+                }
+                return next;
+            }
+            function applyShopSalesStatsDelta(stats = null, delta = null) {
+                if (!stats || !delta)
+                    return stats;
+                return {
+                    ...stats,
+                    sessions: Number(stats.sessions || 0) + Number(delta.sessions || 0),
+                    visitors: Number(stats.visitors || 0) + Number(delta.visitors || 0),
+                    buyers: Number(stats.buyers || 0) + Number(delta.buyers || 0),
+                    soldCount: Number(stats.soldCount || 0) + Number(delta.soldCount || 0),
+                    sales: Number(stats.sales || 0) + Number(delta.sales || 0),
+                    positive: Number(stats.positive || 0) + Number(delta.positive || 0),
+                    themeTotal: Number(stats.themeTotal || 0) + Number(delta.themeTotal || 0),
+                    stockWarnings: Number(stats.stockWarnings || 0) + Number(delta.stockWarnings || 0),
+                    stockSafeSessions: Number(stats.stockSafeSessions || 0) + Number(delta.stockSafeSessions || 0),
+                    customerVisits: addShopStatsCounts(stats.customerVisits, delta.customerVisits),
+                    customerBuys: addShopStatsCounts(stats.customerBuys, delta.customerBuys),
+                    itemSales: addShopStatsCounts(stats.itemSales, delta.itemSales),
+                    themeUsage: addShopStatsCounts(stats.themeUsage, delta.themeUsage),
+                };
+            }
             function shopSeasonCycleInfo(day = state.day || 1) {
                 const seasons = Array.isArray(data.shopSeasons) ? data.shopSeasons : [];
                 if (seasons.length === 0)
@@ -2686,6 +2716,7 @@ var XiannongCore;
                 shopWeatherShelfChoiceWeight,
                 matchCustomerGood,
                 shopSalesStatsDelta,
+                applyShopSalesStatsDelta,
                 shopSeasonCycleInfo,
                 shopSeasonCycleKey,
                 shopSeasonRules,
