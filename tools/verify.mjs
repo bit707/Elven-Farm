@@ -3001,6 +3001,7 @@ for (const questRuntimeTerm of [
   "runtime?.configuredEventCutsceneActionPlan(event)",
   "runtime?.configuredEventShopTutorialActionPlan(event)",
   "runtime?.configuredEventHuSihaiArrivalActionPlan(event)",
+  "runtime?.configuredEventHerbValleyUnlockActionPlan(event)",
   "runtime?.configuredEventGenericUnlockActionPlan(event)",
   "applyConfiguredEventActionPlan(actionPlan)",
   "applyConfiguredEventAction(action",
@@ -3264,12 +3265,14 @@ for (const questCoreSourceTerm of [
   "export interface ConfiguredEventCutsceneActionPlan",
   "export interface ConfiguredEventShopTutorialActionPlan",
   "export interface ConfiguredEventHuSihaiArrivalActionPlan",
+  "export interface ConfiguredEventHerbValleyUnlockActionPlan",
   "export interface ConfiguredEventGenericUnlockActionPlan",
   "configuredEventSideQuestActionPlan(event",
   "configuredEventMainQuestActionPlan(event",
   "configuredEventCutsceneActionPlan(event",
   "configuredEventShopTutorialActionPlan(event",
   "configuredEventHuSihaiArrivalActionPlan(event",
+  "configuredEventHerbValleyUnlockActionPlan(event",
   "configuredEventGenericUnlockActionPlan(event",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -3278,6 +3281,9 @@ for (const questCoreSourceTerm of [
   "kind: \"complete_flag\"",
   "kind: \"add_npc_favor\"",
   "kind: \"queue_dialogue_group\"",
+  "kind: \"apply_herb_valley_world_change\"",
+  "kind: \"trigger_herb_valley_unlock_feedback\"",
+  "kind: \"play_cue\"",
   "kind: \"check_quest_rewards\"",
   "configuredEventReadyQueue()",
   "configuredEventActionKind(event",
@@ -3343,6 +3349,7 @@ for (const questCoreRuntimeTerm of [
   "function configuredEventCutsceneActionPlan",
   "function configuredEventShopTutorialActionPlan",
   "function configuredEventHuSihaiArrivalActionPlan",
+  "function configuredEventHerbValleyUnlockActionPlan",
   "function configuredEventGenericUnlockActionPlan",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -3351,6 +3358,9 @@ for (const questCoreRuntimeTerm of [
   "kind: \"complete_flag\"",
   "kind: \"add_npc_favor\"",
   "kind: \"queue_dialogue_group\"",
+  "kind: \"apply_herb_valley_world_change\"",
+  "kind: \"trigger_herb_valley_unlock_feedback\"",
+  "kind: \"play_cue\"",
   "kind: \"check_quest_rewards\"",
   "function dialogueGroupForExecuteGroup",
   "function dialogueLinesForGroup",
@@ -5697,6 +5707,9 @@ if (!game.includes("state.completed.has(`quest_unlock_${questId}`)")
   || !game.includes('const BAIZHI_QUALITY_ITEM_ID = "item_crop_quality_2plus_shihu"')
   || !game.includes('function harvestQualitySpec')
   || !game.includes('executeGroup.includes("unlock_herb_valley")')
+  || !game.includes("runtime?.configuredEventHerbValleyUnlockActionPlan(event)")
+  || !game.includes('flag: HERB_VALLEY_UNLOCK_FLAG')
+  || !game.includes('groupId: "dialogue_main_0205_herb_valley"')
   || !game.includes('function finishHerbValleyBaizhiLine')
   || !game.includes('startSpiritManorChapter(localize("event_name_main_0301"')) {
   throw new Error("Runtime must treat favor-unlocked main quests as active and connect Baizhi quality crop, Herb Valley, and chapter-three start handlers");

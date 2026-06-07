@@ -209,6 +209,7 @@ namespace XiannongCore.Quests {
     configuredEventCutsceneActionPlan(event: ConfiguredTriggerRow): ConfiguredEventCutsceneActionPlan;
     configuredEventShopTutorialActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopTutorialActionPlan;
     configuredEventHuSihaiArrivalActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHuSihaiArrivalActionPlan;
+    configuredEventHerbValleyUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHerbValleyUnlockActionPlan;
     configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan;
   }
 
@@ -283,6 +284,16 @@ namespace XiannongCore.Quests {
       groupId: string;
     }
     | {
+      kind: "apply_herb_valley_world_change";
+    }
+    | {
+      kind: "trigger_herb_valley_unlock_feedback";
+    }
+    | {
+      kind: "play_cue";
+      cue: string;
+    }
+    | {
       kind: "check_quest_rewards";
     };
 
@@ -326,6 +337,16 @@ namespace XiannongCore.Quests {
     favorAmount: number;
     favorSource: string;
     dialogueGroup: string;
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventHerbValleyUnlockActionPlan {
+    applies: boolean;
+    eventId: string;
+    executeGroup: string;
+    completedFlags: string[];
+    dialogueGroup: string;
+    cue: string;
     actions: ConfiguredEventExecutionAction[];
   }
 
@@ -1131,6 +1152,33 @@ namespace XiannongCore.Quests {
       };
     }
 
+    function configuredEventHerbValleyUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHerbValleyUnlockActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "unlock_herb_valley";
+      const completedFlags = applies ? ["unlock_herb_valley", "baizhi_herb_valley_revealed"] : [];
+      const dialogueGroup = applies ? "dialogue_main_0205_herb_valley" : "";
+      const cue = applies ? "成就解锁" : "";
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          ...completedFlags.map((flag) => ({ kind: "complete_flag" as const, flag })),
+          { kind: "apply_herb_valley_world_change" },
+          { kind: "trigger_herb_valley_unlock_feedback" },
+          { kind: "queue_dialogue_group", groupId: dialogueGroup },
+          { kind: "play_cue", cue },
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        executeGroup: plan.executeGroup,
+        completedFlags,
+        dialogueGroup,
+        cue,
+        actions,
+      };
+    }
+
     function configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan {
       const plan = configuredEventExecutionPlan(event);
       const applies = plan.actionKind === "generic_unlock";
@@ -1241,6 +1289,7 @@ namespace XiannongCore.Quests {
       configuredEventCutsceneActionPlan,
       configuredEventShopTutorialActionPlan,
       configuredEventHuSihaiArrivalActionPlan,
+      configuredEventHerbValleyUnlockActionPlan,
       configuredEventGenericUnlockActionPlan,
     };
   }

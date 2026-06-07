@@ -2207,6 +2207,32 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventHerbValleyUnlockActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "unlock_herb_valley";
+                const completedFlags = applies ? ["unlock_herb_valley", "baizhi_herb_valley_revealed"] : [];
+                const dialogueGroup = applies ? "dialogue_main_0205_herb_valley" : "";
+                const cue = applies ? "成就解锁" : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        { kind: "apply_herb_valley_world_change" },
+                        { kind: "trigger_herb_valley_unlock_feedback" },
+                        { kind: "queue_dialogue_group", groupId: dialogueGroup },
+                        { kind: "play_cue", cue },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    completedFlags,
+                    dialogueGroup,
+                    cue,
+                    actions,
+                };
+            }
             function configuredEventGenericUnlockActionPlan(event) {
                 const plan = configuredEventExecutionPlan(event);
                 const applies = plan.actionKind === "generic_unlock";
@@ -2315,6 +2341,7 @@ var XiannongCore;
                 configuredEventCutsceneActionPlan,
                 configuredEventShopTutorialActionPlan,
                 configuredEventHuSihaiArrivalActionPlan,
+                configuredEventHerbValleyUnlockActionPlan,
                 configuredEventGenericUnlockActionPlan,
             };
         }

@@ -17212,6 +17212,18 @@ function applyConfiguredEventAction(action, context = {}) {
     queueDialogueGroup(action.groupId);
     return null;
   }
+  if (action.kind === "apply_herb_valley_world_change") {
+    herbValleyWorldChange();
+    return null;
+  }
+  if (action.kind === "trigger_herb_valley_unlock_feedback") {
+    triggerHerbValleyUnlockFeedback(context.eventName);
+    return null;
+  }
+  if (action.kind === "play_cue") {
+    playCue(action.cue);
+    return null;
+  }
   if (action.kind === "check_quest_rewards") {
     checkQuestRewards();
     return null;
@@ -17219,10 +17231,10 @@ function applyConfiguredEventAction(action, context = {}) {
   return null;
 }
 
-function applyConfiguredEventActionPlan(actionPlan) {
+function applyConfiguredEventActionPlan(actionPlan, context = {}) {
   let presented = 0;
   for (const action of actionPlan?.actions || []) {
-    const result = applyConfiguredEventAction(action, { presented });
+    const result = applyConfiguredEventAction(action, { ...context, presented });
     if (typeof result === "number") presented = result;
   }
   return presented;
@@ -17311,12 +17323,24 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "unlock_herb_valley" || (!actionKind && executeGroup.includes("unlock_herb_valley"))) {
-    state.completed.add(HERB_VALLEY_UNLOCK_FLAG);
-    state.completed.add("baizhi_herb_valley_revealed");
-    herbValleyWorldChange();
-    triggerHerbValleyUnlockFeedback(eventName);
-    queueDialogueGroup("dialogue_main_0205_herb_valley");
-    playCue("成就解锁");
+    const actionPlan = runtime?.configuredEventHerbValleyUnlockActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      completedFlags: [HERB_VALLEY_UNLOCK_FLAG, "baizhi_herb_valley_revealed"],
+      dialogueGroup: "dialogue_main_0205_herb_valley",
+      cue: "成就解锁",
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: HERB_VALLEY_UNLOCK_FLAG },
+        { kind: "complete_flag", flag: "baizhi_herb_valley_revealed" },
+        { kind: "apply_herb_valley_world_change" },
+        { kind: "trigger_herb_valley_unlock_feedback" },
+        { kind: "queue_dialogue_group", groupId: "dialogue_main_0205_herb_valley" },
+        { kind: "play_cue", cue: "成就解锁" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan, { eventName });
     addLog("药谷入口显现", "良品石斛的药气压住瘴雾，雾隐药谷已经能从医馆后山进入。");
     return true;
   }
