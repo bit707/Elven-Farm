@@ -17208,6 +17208,14 @@ function applyConfiguredEventAction(action, context = {}) {
     addNpcFavor(action.npcId, action.amount, action.source);
     return null;
   }
+  if (action.kind === "grant_item_if_missing") {
+    if (!hasItem(action.itemId, action.count)) addItem(action.itemId, action.count);
+    return null;
+  }
+  if (action.kind === "add_fame") {
+    state.fame += Number(action.amount || 0);
+    return null;
+  }
   if (action.kind === "queue_dialogue_group") {
     queueDialogueGroup(action.groupId);
     return null;
@@ -17220,12 +17228,45 @@ function applyConfiguredEventAction(action, context = {}) {
     triggerHerbValleyUnlockFeedback(context.eventName);
     return null;
   }
+  if (action.kind === "apply_baizhi_chapter_finish_world_change") {
+    upsertWorldChange({
+      key: "baizhi_mother_dew_heal",
+      dungeonId: HERB_VALLEY_AREA_ID,
+      title: "医馆药炉回暖",
+      detail: "百草母露入炉后，医馆后室的咳声终于轻了下去，镇上开始相信洞天灵植真能救人。",
+      rewardHint: `${itemName(BAIZHI_MOTHER_DEW_ITEM_ID)} · 高级药园线`,
+      visualType: "warm_hearth",
+    });
+    return null;
+  }
+  if (action.kind === "trigger_baizhi_chapter_finish_feedback") {
+    triggerBaizhiChapterFinishFeedback(context.eventName);
+    return null;
+  }
+  if (action.kind === "start_spirit_manor_chapter_if_needed") {
+    if (!state.triggeredEvents.has(SPIRIT_MANOR_ENTRY_EVENT_ID)) {
+      startSpiritManorChapter(localize(action.eventNameKey, action.fallbackName));
+    }
+    return null;
+  }
+  if (action.kind === "update_missions") {
+    updateMissions();
+    return null;
+  }
   if (action.kind === "play_cue") {
     playCue(action.cue);
     return null;
   }
+  if (action.kind === "log_baizhi_chapter_finish") {
+    addLog("第二章收束", `${context.eventName}：${itemName(BAIZHI_MOTHER_DEW_ITEM_ID)} 已交到白芷手里，医馆试药线完成，百怪大院线开始抬头。`);
+    return null;
+  }
   if (action.kind === "check_quest_rewards") {
     checkQuestRewards();
+    return null;
+  }
+  if (action.kind === "scan_configured_events") {
+    scanConfiguredEvents(action.source);
     return null;
   }
   return null;
@@ -17346,7 +17387,42 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "finish_herb_valley_baizhi" || (!actionKind && executeGroup.includes("finish_herb_valley_baizhi"))) {
-    finishHerbValleyBaizhiLine(eventName);
+    const actionPlan = runtime?.configuredEventHerbValleyFinishActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      firstFinish: !state.completed.has("baizhi_chapter_2_finish"),
+      completedFlags: ["baizhi_chapter_2_finish", "baizhi_mother_dew_obtained"],
+      itemId: BAIZHI_MOTHER_DEW_ITEM_ID,
+      itemCount: 1,
+      npcId: "npc_baizhi",
+      favorAmount: !state.completed.has("baizhi_chapter_2_finish") ? 12 : 0,
+      favorSource: !state.completed.has("baizhi_chapter_2_finish") ? "百草母露" : "",
+      fameAmount: !state.completed.has("baizhi_chapter_2_finish") ? 6 : 0,
+      dialogueGroup: "dialogue_main_0207_baizhi_finish",
+      cue: "成就解锁",
+      scanSource: "baizhi:chapter_finish",
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: "baizhi_chapter_2_finish" },
+        { kind: "complete_flag", flag: "baizhi_mother_dew_obtained" },
+        ...(!hasItem(BAIZHI_MOTHER_DEW_ITEM_ID, 1) ? [{ kind: "grant_item_if_missing", itemId: BAIZHI_MOTHER_DEW_ITEM_ID, count: 1 }] : []),
+        ...(!state.completed.has("baizhi_chapter_2_finish") ? [
+          { kind: "add_npc_favor", npcId: "npc_baizhi", amount: 12, source: "百草母露" },
+          { kind: "add_fame", amount: 6 },
+        ] : []),
+        { kind: "apply_baizhi_chapter_finish_world_change" },
+        { kind: "trigger_baizhi_chapter_finish_feedback" },
+        { kind: "queue_dialogue_group", groupId: "dialogue_main_0207_baizhi_finish" },
+        { kind: "play_cue", cue: "成就解锁" },
+        { kind: "log_baizhi_chapter_finish" },
+        { kind: "update_missions" },
+        { kind: "check_quest_rewards" },
+        ...(!state.triggeredEvents.has(SPIRIT_MANOR_ENTRY_EVENT_ID) ? [{ kind: "start_spirit_manor_chapter_if_needed", eventNameKey: "event_name_main_0301", fallbackName: "百怪大院蓝图" }] : []),
+        { kind: "scan_configured_events", source: "baizhi:chapter_finish" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan, { eventName });
     return true;
   }
 

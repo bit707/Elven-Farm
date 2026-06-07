@@ -3002,6 +3002,7 @@ for (const questRuntimeTerm of [
   "runtime?.configuredEventShopTutorialActionPlan(event)",
   "runtime?.configuredEventHuSihaiArrivalActionPlan(event)",
   "runtime?.configuredEventHerbValleyUnlockActionPlan(event)",
+  "runtime?.configuredEventHerbValleyFinishActionPlan(event)",
   "runtime?.configuredEventGenericUnlockActionPlan(event)",
   "applyConfiguredEventActionPlan(actionPlan)",
   "applyConfiguredEventAction(action",
@@ -3266,6 +3267,7 @@ for (const questCoreSourceTerm of [
   "export interface ConfiguredEventShopTutorialActionPlan",
   "export interface ConfiguredEventHuSihaiArrivalActionPlan",
   "export interface ConfiguredEventHerbValleyUnlockActionPlan",
+  "export interface ConfiguredEventHerbValleyFinishActionPlan",
   "export interface ConfiguredEventGenericUnlockActionPlan",
   "configuredEventSideQuestActionPlan(event",
   "configuredEventMainQuestActionPlan(event",
@@ -3273,6 +3275,7 @@ for (const questCoreSourceTerm of [
   "configuredEventShopTutorialActionPlan(event",
   "configuredEventHuSihaiArrivalActionPlan(event",
   "configuredEventHerbValleyUnlockActionPlan(event",
+  "configuredEventHerbValleyFinishActionPlan(event",
   "configuredEventGenericUnlockActionPlan(event",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -3280,11 +3283,19 @@ for (const questCoreSourceTerm of [
   "kind: \"start_main_quest\"",
   "kind: \"complete_flag\"",
   "kind: \"add_npc_favor\"",
+  "kind: \"grant_item_if_missing\"",
+  "kind: \"add_fame\"",
   "kind: \"queue_dialogue_group\"",
   "kind: \"apply_herb_valley_world_change\"",
   "kind: \"trigger_herb_valley_unlock_feedback\"",
+  "kind: \"apply_baizhi_chapter_finish_world_change\"",
+  "kind: \"trigger_baizhi_chapter_finish_feedback\"",
+  "kind: \"start_spirit_manor_chapter_if_needed\"",
+  "kind: \"update_missions\"",
   "kind: \"play_cue\"",
+  "kind: \"log_baizhi_chapter_finish\"",
   "kind: \"check_quest_rewards\"",
+  "kind: \"scan_configured_events\"",
   "configuredEventReadyQueue()",
   "configuredEventActionKind(event",
   "dialogueGroupForExecuteGroup(executeGroup",
@@ -3350,6 +3361,7 @@ for (const questCoreRuntimeTerm of [
   "function configuredEventShopTutorialActionPlan",
   "function configuredEventHuSihaiArrivalActionPlan",
   "function configuredEventHerbValleyUnlockActionPlan",
+  "function configuredEventHerbValleyFinishActionPlan",
   "function configuredEventGenericUnlockActionPlan",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -3357,11 +3369,19 @@ for (const questCoreRuntimeTerm of [
   "kind: \"start_main_quest\"",
   "kind: \"complete_flag\"",
   "kind: \"add_npc_favor\"",
+  "kind: \"grant_item_if_missing\"",
+  "kind: \"add_fame\"",
   "kind: \"queue_dialogue_group\"",
   "kind: \"apply_herb_valley_world_change\"",
   "kind: \"trigger_herb_valley_unlock_feedback\"",
+  "kind: \"apply_baizhi_chapter_finish_world_change\"",
+  "kind: \"trigger_baizhi_chapter_finish_feedback\"",
+  "kind: \"start_spirit_manor_chapter_if_needed\"",
+  "kind: \"update_missions\"",
   "kind: \"play_cue\"",
+  "kind: \"log_baizhi_chapter_finish\"",
   "kind: \"check_quest_rewards\"",
+  "kind: \"scan_configured_events\"",
   "function dialogueGroupForExecuteGroup",
   "function dialogueLinesForGroup",
   "hooks.localize",
@@ -5711,6 +5731,9 @@ if (!game.includes("state.completed.has(`quest_unlock_${questId}`)")
   || !game.includes('flag: HERB_VALLEY_UNLOCK_FLAG')
   || !game.includes('groupId: "dialogue_main_0205_herb_valley"')
   || !game.includes('function finishHerbValleyBaizhiLine')
+  || !game.includes("runtime?.configuredEventHerbValleyFinishActionPlan(event)")
+  || !game.includes('kind: "grant_item_if_missing"')
+  || !game.includes('kind: "start_spirit_manor_chapter_if_needed"')
   || !game.includes('startSpiritManorChapter(localize("event_name_main_0301"')) {
   throw new Error("Runtime must treat favor-unlocked main quests as active and connect Baizhi quality crop, Herb Valley, and chapter-three start handlers");
 }

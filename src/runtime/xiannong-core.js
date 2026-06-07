@@ -2233,6 +2233,58 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventHerbValleyFinishActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "finish_herb_valley_baizhi";
+                const firstFinish = applies && !setHas(state.completed, "baizhi_chapter_2_finish");
+                const completedFlags = applies ? ["baizhi_chapter_2_finish", "baizhi_mother_dew_obtained"] : [];
+                const itemId = applies ? "item_special_baicao_mulu" : "";
+                const itemCount = applies ? 1 : 0;
+                const npcId = applies ? "npc_baizhi" : "";
+                const favorAmount = firstFinish ? 12 : 0;
+                const favorSource = firstFinish ? "百草母露" : "";
+                const fameAmount = firstFinish ? 6 : 0;
+                const dialogueGroup = applies ? "dialogue_main_0207_baizhi_finish" : "";
+                const cue = applies ? "成就解锁" : "";
+                const scanSource = applies ? "baizhi:chapter_finish" : "";
+                const shouldGrantItem = applies && !hasItem(state, itemId, itemCount);
+                const shouldStartSpiritManor = applies && !setHas(state.triggeredEvents, "event_main_0301");
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        ...(shouldGrantItem ? [{ kind: "grant_item_if_missing", itemId, count: itemCount }] : []),
+                        ...(favorAmount > 0 ? [{ kind: "add_npc_favor", npcId, amount: favorAmount, source: favorSource }] : []),
+                        ...(fameAmount > 0 ? [{ kind: "add_fame", amount: fameAmount }] : []),
+                        { kind: "apply_baizhi_chapter_finish_world_change" },
+                        { kind: "trigger_baizhi_chapter_finish_feedback" },
+                        { kind: "queue_dialogue_group", groupId: dialogueGroup },
+                        { kind: "play_cue", cue },
+                        { kind: "log_baizhi_chapter_finish" },
+                        { kind: "update_missions" },
+                        { kind: "check_quest_rewards" },
+                        ...(shouldStartSpiritManor ? [{ kind: "start_spirit_manor_chapter_if_needed", eventNameKey: "event_name_main_0301", fallbackName: "百怪大院蓝图" }] : []),
+                        { kind: "scan_configured_events", source: scanSource },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    firstFinish,
+                    completedFlags,
+                    itemId,
+                    itemCount,
+                    npcId,
+                    favorAmount,
+                    favorSource,
+                    fameAmount,
+                    dialogueGroup,
+                    cue,
+                    scanSource,
+                    actions,
+                };
+            }
             function configuredEventGenericUnlockActionPlan(event) {
                 const plan = configuredEventExecutionPlan(event);
                 const applies = plan.actionKind === "generic_unlock";
@@ -2342,6 +2394,7 @@ var XiannongCore;
                 configuredEventShopTutorialActionPlan,
                 configuredEventHuSihaiArrivalActionPlan,
                 configuredEventHerbValleyUnlockActionPlan,
+                configuredEventHerbValleyFinishActionPlan,
                 configuredEventGenericUnlockActionPlan,
             };
         }
