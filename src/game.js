@@ -55284,13 +55284,16 @@ function harvest() {
   const harvestAfter = Number(state.harvestCounts[crop.crop_id] || 0);
   const qualityAfter = qualitySpec.qualityItemId ? Number(state.inventory[qualitySpec.qualityItemId] || 0) : qualityBefore;
   const finalPantaoHarvest = crop.crop_id === CHAPTER_4_PANTAO_CROP_ID;
-  Object.assign(plot, {
+  const harvestStatePlan = farmingRuntime()?.harvestStatePlan({
+    plot,
+  }) || {
     cropId: null,
     seedItemId: null,
     plantedDay: null,
     watered: false,
     mature: false,
-  });
+  };
+  Object.assign(plot, harvestStatePlan);
   if (finalPantaoHarvest) finishFinalBanquet(localize("event_name_main_0407", "蟠桃大宴开启"));
   complete("harvest");
   pulseAtHarvest(plot, useRoute, state.harvestFeedback);

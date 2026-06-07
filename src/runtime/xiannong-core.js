@@ -933,6 +933,15 @@ var XiannongCore;
                     affinity,
                 };
             }
+            function harvestStatePlan(input) {
+                return {
+                    cropId: null,
+                    seedItemId: null,
+                    plantedDay: null,
+                    watered: false,
+                    mature: false,
+                };
+            }
             function plantStatePlan(input) {
                 const crop = input.crop || {};
                 const cropId = String(crop.crop_id || "");
@@ -974,6 +983,7 @@ var XiannongCore;
                 nightCropGrowthPlan,
                 nightCropStatePlan,
                 harvestYieldPlan,
+                harvestStatePlan,
                 plantStatePlan,
                 waterStatePlan,
             };

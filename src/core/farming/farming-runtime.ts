@@ -146,6 +146,18 @@ namespace XiannongCore.Farming {
     affinity: CropSolarAffinity | null;
   }
 
+  export interface HarvestStatePlanInput {
+    plot?: FarmingPlot | null;
+  }
+
+  export interface HarvestStatePlan {
+    cropId: null;
+    seedItemId: null;
+    plantedDay: null;
+    watered: false;
+    mature: false;
+  }
+
   export interface PlantStatePlanInput {
     crop?: FarmingRow | null;
     seedItemId?: string;
@@ -193,6 +205,7 @@ namespace XiannongCore.Farming {
     nightCropGrowthPlan(input: NightCropGrowthInput): NightCropGrowthPlan;
     nightCropStatePlan(input: NightCropStatePlanInput): NightCropStatePlan;
     harvestYieldPlan(input: HarvestYieldPlanInput): HarvestYieldPlan;
+    harvestStatePlan(input: HarvestStatePlanInput): HarvestStatePlan;
     plantStatePlan(input: PlantStatePlanInput): PlantStatePlan;
     waterStatePlan(input: WaterStatePlanInput): WaterStatePlan;
   }
@@ -464,6 +477,16 @@ namespace XiannongCore.Farming {
       };
     }
 
+    function harvestStatePlan(input: HarvestStatePlanInput): HarvestStatePlan {
+      return {
+        cropId: null,
+        seedItemId: null,
+        plantedDay: null,
+        watered: false,
+        mature: false,
+      };
+    }
+
     function plantStatePlan(input: PlantStatePlanInput): PlantStatePlan {
       const crop = input.crop || {};
       const cropId = String(crop.crop_id || "");
@@ -507,6 +530,7 @@ namespace XiannongCore.Farming {
       nightCropGrowthPlan,
       nightCropStatePlan,
       harvestYieldPlan,
+      harvestStatePlan,
       plantStatePlan,
       waterStatePlan,
     };
