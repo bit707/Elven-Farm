@@ -3935,6 +3935,25 @@ const eventMain0301 = eventTriggers.find((entry) => entry.event_id === "event_ma
 const mainQuest0202Condition = conditionGroups.find((entry) => entry.condition_group_id === "quest_main_0202_active");
 const chapter3EntryCondition = conditionGroups.find((entry) => entry.condition_group_id === "chapter_3_entry_ready");
 const baizhiFavor2Reward = favorRewards.find((entry) => entry.reward_id === "favor_reward_baizhi_2");
+const mainQuest0301 = quests.find((entry) => entry.quest_id === "quest_main_0301_baiguai_youyuan");
+const mainQuestSteps0301 = questSteps.filter((entry) => entry.quest_id === "quest_main_0301_baiguai_youyuan");
+const spiritManorBuilding = buildings.find((entry) => entry.building_id === "build_spirit_manor");
+const eventMain0302 = eventTriggers.find((entry) => entry.event_id === "event_main_0302");
+const eventMain0303 = eventTriggers.find((entry) => entry.event_id === "event_main_0303");
+const mainQuest0301Condition = conditionGroups.find((entry) => entry.condition_group_id === "quest_main_0301_active");
+const spiritManorOverviewCondition = conditionGroups.find((entry) => entry.condition_group_id === "spirit_manor_overview_unlocked");
+const mainQuest0302 = quests.find((entry) => entry.quest_id === "quest_main_0302_shanghui_laike");
+const mainQuestSteps0302 = questSteps.filter((entry) => entry.quest_id === "quest_main_0302_shanghui_laike");
+const factionOrder = orders.find((entry) => entry.order_id === "order_faction_0001");
+const eventMain0305 = eventTriggers.find((entry) => entry.event_id === "event_main_0305");
+const eventMain0306 = eventTriggers.find((entry) => entry.event_id === "event_main_0306");
+const eventMain0307 = eventTriggers.find((entry) => entry.event_id === "event_main_0307");
+const chapter3TradeCondition = conditionGroups.find((entry) => entry.condition_group_id === "chapter_3_trade_started");
+const factionOrderDoneCondition = conditionGroups.find((entry) => entry.condition_group_id === "faction_order_first_delivered");
+const fireRuinCondition = conditionGroups.find((entry) => entry.condition_group_id === "fire_ruin_unlocked");
+const mainQuest0302Condition = conditionGroups.find((entry) => entry.condition_group_id === "quest_main_0302_active");
+const fireRuinDungeon = dungeons.find((entry) => entry.area_id === "area_ruin_fire");
+const fireRuinBoss = bosses.find((entry) => entry.boss_id === "boss_chiyan_xiehou");
 const sideQuest0101Rewards = rewardPools.filter((entry) => entry.reward_pool_id === sideQuest0101?.complete_reward_group);
 const reliefSideQuest = sideQuests.find((entry) => entry.quest_id === "quest_side_0401_relief_supply");
 const reliefSideRewards = rewardPools.filter((entry) => entry.reward_pool_id === reliefSideQuest?.complete_reward_group);
@@ -4609,6 +4628,78 @@ if (!game.includes("state.completed.has(`quest_unlock_${questId}`)")
   || !game.includes('function finishHerbValleyBaizhiLine')
   || !game.includes('startSpiritManorChapter(localize("event_name_main_0301"')) {
   throw new Error("Runtime must treat favor-unlocked main quests as active and connect Baizhi quality crop, Herb Valley, and chapter-three start handlers");
+}
+if (!mainQuest0301 || mainQuest0301.chapter !== "3" || mainQuestSteps0301.length < 4) {
+  throw new Error("Main quest 0301 must exist as the chapter-three Spirit Manor build quest");
+}
+if (!mainQuestSteps0301.some((step) => step.objective_type === "collect" && step.target_id === "item_metal_xuantie" && step.target_count === "20")
+  || !mainQuestSteps0301.some((step) => step.objective_type === "collect" && step.target_id === "item_cloth_liuyunsi" && step.target_count === "30")
+  || !mainQuestSteps0301.some((step) => step.objective_type === "build" && step.target_id === "build_spirit_manor")) {
+  throw new Error("Spirit Manor quest must ask for rare metal, Liuyunsi cloth, and the actual manor build");
+}
+if (!spiritManorBuilding || spiritManorBuilding.unlock_type !== "quest" || spiritManorBuilding.unlock_param !== "quest_main_0301_baiguai_youyuan" || spiritManorBuilding.cost_special_item !== "item_cloth_liuyunsi") {
+  throw new Error("Spirit Manor building must remain a quest-gated chapter-three build that consumes Liuyunsi cloth");
+}
+if (!mainQuest0301Condition || mainQuest0301Condition.expression !== "quest_state(quest_main_0301_baiguai_youyuan)==active") {
+  throw new Error("Spirit Manor build event must watch quest_main_0301 active state");
+}
+if (!eventMain0303 || eventMain0303.trigger_type !== "on_build_complete" || eventMain0303.trigger_param !== "build_spirit_manor" || eventMain0303.condition_group !== "quest_main_0301_active" || eventMain0303.execute_group !== "exec_unlock_spirit_overview") {
+  throw new Error("Building Spirit Manor must unlock the spirit overview through configured event_main_0303");
+}
+if (!spiritManorOverviewCondition || spiritManorOverviewCondition.expression !== "flag(spirit_manor_overview_unlocked)==true") {
+  throw new Error("Faction order entry must depend on the real Spirit Manor overview unlock flag");
+}
+if (!eventMain0302 || eventMain0302.trigger_type !== "on_world_state" || eventMain0302.trigger_param !== "spirit_manor_overview_unlocked" || eventMain0302.condition_group !== "spirit_manor_overview_unlocked" || eventMain0302.execute_group !== "exec_start_quest_main_0302") {
+  throw new Error("Faction order chapter must start from the Spirit Manor overview event chain");
+}
+if (!mainQuest0302 || mainQuest0302.chapter !== "3" || mainQuestSteps0302.length < 3) {
+  throw new Error("Main quest 0302 must exist as the faction order and Fire Ruin chapter-three quest");
+}
+if (!mainQuestSteps0302.some((step) => step.objective_type === "sell" && step.target_id === "order_faction_0001")
+  || !mainQuestSteps0302.some((step) => step.objective_type === "enter_area" && step.target_id === "area_ruin_fire")
+  || !mainQuestSteps0302.some((step) => step.objective_type === "defeat" && step.target_id === "boss_chiyan_xiehou")) {
+  throw new Error("Faction order quest must require the faction order, Fire Ruin entry, and Chiyan Xiehou boss defeat");
+}
+if (!factionOrder || factionOrder.appear_condition_group !== "chapter_3_trade_started" || !String(factionOrder.need_item_ids || "").includes("item_drink_xuanxiang_lingniang") || !String(factionOrder.need_item_ids || "").includes("item_gift_yunjin_lijuan")) {
+  throw new Error("First faction order must appear from chapter_3_trade_started and require the designed premium drink/gift bundle");
+}
+if (!chapter3TradeCondition || chapter3TradeCondition.expression !== "flag(chapter_3_trade_started)==true") {
+  throw new Error("Faction order visibility must depend on the chapter_3_trade_started flag");
+}
+if (!factionOrderDoneCondition || factionOrderDoneCondition.expression !== "flag(order_faction_0001_delivered)==true") {
+  throw new Error("Fire Ruin unlock must depend on the delivered faction order flag");
+}
+if (!eventMain0305 || eventMain0305.trigger_type !== "on_trade_complete" || eventMain0305.trigger_param !== "order_faction_0001" || eventMain0305.condition_group !== "faction_order_first_delivered" || eventMain0305.execute_group !== "exec_unlock_ruin_fire") {
+  throw new Error("Delivering the first faction order must unlock Fire Ruin through event_main_0305");
+}
+if (!fireRuinCondition || fireRuinCondition.expression !== "flag(fire_ruin_unlocked)==true") {
+  throw new Error("Fire Ruin dungeon condition must depend on the fire_ruin_unlocked flag");
+}
+if (!fireRuinDungeon || fireRuinDungeon.unlock_condition_group !== "fire_ruin_unlocked" || fireRuinDungeon.boss_id !== "boss_chiyan_xiehou") {
+  throw new Error("Fire Ruin dungeon must be gated by fire_ruin_unlocked and connect to Chiyan Xiehou");
+}
+if (!mainQuest0302Condition || mainQuest0302Condition.expression !== "quest_state(quest_main_0302_shanghui_laike)==active") {
+  throw new Error("Fire Ruin entry event must watch quest_main_0302 active state");
+}
+if (!eventMain0306 || eventMain0306.trigger_type !== "on_enter_area" || eventMain0306.trigger_param !== "area_ruin_fire" || eventMain0306.condition_group !== "fire_ruin_unlocked" || eventMain0306.execute_group !== "exec_start_ruin_fire") {
+  throw new Error("Entering Fire Ruin must trigger configured event_main_0306");
+}
+if (!fireRuinBoss || fireRuinBoss.defeat_event_id !== "event_main_0307") {
+  throw new Error("Chiyan Xiehou boss must resolve through event_main_0307");
+}
+if (!eventMain0307 || eventMain0307.trigger_type !== "on_boss_defeat" || eventMain0307.trigger_param !== "boss_chiyan_xiehou" || eventMain0307.condition_group !== "quest_main_0302_active" || eventMain0307.execute_group !== "exec_finish_fire_ruin") {
+  throw new Error("Fire Ruin boss defeat must finish chapter three through configured event_main_0307");
+}
+if (game.includes("state.missionDone.add(SPIRIT_MANOR_QUEST_ID);\n  if (firstStart)")
+  || game.includes("state.missionDone.add(FACTION_ORDER_QUEST_ID);\n  if (firstStart)")) {
+  throw new Error("Chapter-three quest start handlers must not mark their quests done before the build/order/boss objectives complete");
+}
+if (!game.includes("state.completed.add(`quest_unlock_${SPIRIT_MANOR_QUEST_ID}`)")
+  || !game.includes("state.completed.add(`quest_unlock_${FACTION_ORDER_QUEST_ID}`)")
+  || !game.includes("state.completed.add(FIRE_RUIN_AREA_ID)")
+  || !game.includes("state.triggeredEvents.add(FIRE_RUIN_ENTRY_EVENT_ID)")
+  || !game.includes('function finishFireRuinLine')) {
+  throw new Error("Chapter-three runtime must unlock quests without false completion and record Fire Ruin entry/finish states");
 }
 if (!sideQuest0101 || sideQuestSteps0101.length < 2 || !sideQuestTrigger0101) {
   throw new Error("Side quest 0101 must include base, steps, and trigger rows");

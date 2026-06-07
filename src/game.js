@@ -36983,8 +36983,8 @@ function spiritManorPanelHint() {
 function startSpiritManorChapter(eventName = "百怪大院蓝图") {
   const firstStart = !state.completed.has(SPIRIT_MANOR_ENTRY_FLAG);
   state.completed.add(SPIRIT_MANOR_ENTRY_FLAG);
+  state.completed.add(`quest_unlock_${SPIRIT_MANOR_QUEST_ID}`);
   state.triggeredEvents.add(SPIRIT_MANOR_ENTRY_EVENT_ID);
-  if (!state.missionDone.has(SPIRIT_MANOR_QUEST_ID)) state.missionDone.add(SPIRIT_MANOR_QUEST_ID);
   if (firstStart) addNpcFavor("npc_atan", 8, "百怪大院蓝图");
   triggerSpiritManorFeedback("entry", eventName);
   queueDialogueGroup("dialogue_main_0301_spirit_manor");
@@ -37147,8 +37147,8 @@ function chapter3TradePanelHint() {
 function startFactionOrderChapter(eventName = "商会来客") {
   const firstStart = !chapter3TradeStarted();
   state.completed.add(CHAPTER_3_TRADE_FLAG);
+  state.completed.add(`quest_unlock_${FACTION_ORDER_QUEST_ID}`);
   state.triggeredEvents.add(FACTION_ORDER_ENTRY_EVENT_ID);
-  if (!state.missionDone.has(FACTION_ORDER_QUEST_ID)) state.missionDone.add(FACTION_ORDER_QUEST_ID);
   if (firstStart) addNpcFavor("npc_hu_sihai", 8, "商会来客");
   triggerChapter3TradeFeedback("entry", eventName);
   queueDialogueGroup("dialogue_main_0302_faction_order");
@@ -37178,6 +37178,8 @@ function unlockFireRuin(eventName = "炽砂线索到手") {
 
 function startFireRuinExpedition(eventName = "炽砂遗迹开启") {
   if (!fireRuinUnlocked()) unlockFireRuin(localize("event_name_main_0305", "炽砂线索到手"));
+  state.completed.add(FIRE_RUIN_AREA_ID);
+  state.triggeredEvents.add(FIRE_RUIN_ENTRY_EVENT_ID);
   triggerChapter3TradeFeedback("entry_area", eventName);
   queueDialogueGroup("dialogue_main_0306_fire_ruin");
   playCue("成就解锁");
