@@ -444,6 +444,18 @@ var XiannongCore;
             function sideQuestAccepted(quest) {
                 return Boolean(quest?.quest_id && (setHas(state.activeSideQuests, quest.quest_id) || quest.auto_accept === "true"));
             }
+            function sideQuestVisible(quest) {
+                if (!quest?.quest_id)
+                    return false;
+                const triggers = data.sideQuestTriggersByQuest.get(quest.quest_id) || [];
+                if (setHas(state.activeSideQuests, quest.quest_id))
+                    return true;
+                if (quest.auto_accept === "true")
+                    return true;
+                if (Number(quest.chapter || 0) <= 1 && Number(state.fame || 0) >= 1)
+                    return true;
+                return triggers.some((trigger) => configuredTriggerReady(trigger).ready);
+            }
             function currentSideQuestStep(quest) {
                 if (!quest)
                     return null;
@@ -509,13 +521,55 @@ var XiannongCore;
                     : [];
                 return hooks.formatSideQuestRewardPreview(quest, rewardPoolId, rewards);
             }
+            function sideQuestClueForNpc(npcId = "", questId = "") {
+                const candidates = data.sideQuests
+                    .filter((quest) => (!questId || quest.quest_id === questId) && quest.issuer_id === npcId && !setHas(state.claimedQuestRewards, quest.quest_id))
+                    .map((quest) => {
+                    const triggers = data.sideQuestTriggersByQuest.get(quest.quest_id) || [];
+                    const trigger = triggers.find((entry) => entry.trigger_param === npcId) || triggers[0] || null;
+                    const triggerStatus = trigger ? configuredTriggerReady(trigger) : { param: true, condition: true, ready: true };
+                    const active = sideQuestAccepted(quest);
+                    const visible = active || sideQuestVisible(quest);
+                    const progress = questProgress(quest, true);
+                    const currentStep = progress.steps.find((step) => stepProgress(step) < Number(step.target_count || 1)) || progress.steps[progress.steps.length - 1] || null;
+                    const ready = Boolean(triggerStatus.ready || active || quest.auto_accept === "true");
+                    const rewardReady = questRewardReady(quest, true);
+                    const status = rewardReady
+                        ? "reward"
+                        : active
+                            ? "active"
+                            : ready
+                                ? "ready"
+                                : visible
+                                    ? "visible"
+                                    : "locked";
+                    return {
+                        quest,
+                        trigger,
+                        triggerStatus,
+                        active,
+                        visible,
+                        ready,
+                        rewardReady,
+                        status,
+                        progress,
+                        currentStep,
+                    };
+                })
+                    .filter((entry) => entry.visible || entry.ready || entry.active)
+                    .sort((a, b) => {
+                    const stateScore = { reward: 60, active: 50, ready: 40, visible: 20, locked: 0 };
+                    return (stateScore[b.status] || 0) - (stateScore[a.status] || 0) || Number(b.quest.priority || 0) - Number(a.quest.priority || 0);
+                });
+                return candidates[0] || null;
+            }
             function rewardPoolEntries(poolId) {
                 return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
             }
             function questRewardReady(quest, side = false) {
                 if (!quest?.complete_reward_group || setHas(state.claimedQuestRewards, quest.quest_id))
                     return false;
-                if (side && !hooks.sideQuestVisible(quest))
+                if (side && !sideQuestVisible(quest))
                     return false;
                 const progress = questProgress(quest, side);
                 return progress.total > 0 && progress.done >= progress.total;
@@ -585,6 +639,8 @@ var XiannongCore;
                 sideQuestActionLabel,
                 sideQuestRouteActionLabel,
                 sideQuestRewardPreviewText,
+                sideQuestVisible,
+                sideQuestClueForNpc,
             };
         }
         Quests.createQuestRuntime = createQuestRuntime;

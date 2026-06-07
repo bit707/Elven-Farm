@@ -15610,6 +15610,7 @@ function questRuntime() {
       rewardPools: data.rewardPools,
       questStepsByQuest: data.questStepsByQuest,
       sideQuestStepsByQuest: data.sideQuestStepsByQuest,
+      sideQuestTriggersByQuest: data.sideQuestTriggersByQuest,
       cropsBySeed: data.cropsBySeed,
     },
     {
@@ -17216,6 +17217,8 @@ function scanConfiguredEvents(source = "runtime") {
 }
 
 function sideQuestVisible(quest) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.sideQuestVisible(quest);
   const triggers = data.sideQuestTriggersByQuest.get(quest.quest_id) || [];
   if (state.activeSideQuests.has(quest.quest_id)) return true;
   if (quest.auto_accept === "true") return true;
@@ -17224,6 +17227,8 @@ function sideQuestVisible(quest) {
 }
 
 function sideQuestClueForNpc(npcId = "", questId = "") {
+  const runtime = questRuntime();
+  if (runtime) return runtime.sideQuestClueForNpc(npcId, questId);
   const candidates = data.sideQuests
     .filter((quest) => (!questId || quest.quest_id === questId) && quest.issuer_id === npcId && !state.claimedQuestRewards.has(quest.quest_id))
     .map((quest) => {
