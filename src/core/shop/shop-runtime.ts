@@ -21,6 +21,7 @@ namespace XiannongCore.Shop {
     customerBudget(customer: ShopRow | null | undefined, segment?: ShopRow | null): number;
     pricedGood(choice: ShopGoodChoice | null | undefined, customer: ShopRow | null | undefined, options?: PricedGoodOptions): PricedGoodResult;
     customerPurchaseDecision(input: CustomerPurchaseDecisionInput): CustomerPurchaseDecision;
+    salePricePlan(input: SalePricePlanInput): SalePricePlan;
   }
 
   export interface ShopGoodChoice {
@@ -62,6 +63,20 @@ namespace XiannongCore.Shop {
     rejectedByPrice: boolean;
     canBuy: boolean;
     reason: CustomerPurchaseDecisionReason;
+  }
+
+  export interface SalePricePlanInput {
+    priced: PricedGoodResult;
+    profitBuff?: number;
+    dessertChoice?: boolean;
+    dessertSaleBonusRate?: number;
+  }
+
+  export interface SalePricePlan {
+    baseSalePrice: number;
+    salePrice: number;
+    dessertSaleBonus: number;
+    dessertBonusGold: number;
   }
 
   function rowByKey(rows: ShopRow[], key: string, value: string): ShopRow | null {
@@ -170,6 +185,20 @@ namespace XiannongCore.Shop {
       };
     }
 
+    function salePricePlan(input: SalePricePlanInput): SalePricePlan {
+      const priced = input.priced;
+      const profitBuff = Number(input.profitBuff || 0);
+      const dessertSaleBonus = input.dessertChoice ? Number(input.dessertSaleBonusRate || 0) : 0;
+      const baseSalePrice = Math.max(1, Math.round(Number(priced.price || 0) * (1 + profitBuff)));
+      const salePrice = Math.max(1, Math.round(Number(priced.price || 0) * (1 + profitBuff + dessertSaleBonus)));
+      return {
+        baseSalePrice,
+        salePrice,
+        dessertSaleBonus,
+        dessertBonusGold: Math.max(0, salePrice - baseSalePrice),
+      };
+    }
+
     return {
       customerPriceRule,
       customerProfile,
@@ -178,6 +207,7 @@ namespace XiannongCore.Shop {
       customerBudget,
       pricedGood,
       customerPurchaseDecision,
+      salePricePlan,
     };
   }
 }

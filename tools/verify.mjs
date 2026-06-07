@@ -3001,6 +3001,8 @@ for (const shopRuntimeTerm of [
   "runtime.pricedGood(choice, customer",
   "customerPurchaseDecision",
   "purchaseDecision.canBuy",
+  "salePricePlan",
+  "salePlan.dessertBonusGold",
 ]) {
   if (!game.includes(shopRuntimeTerm)) throw new Error(`Shop TypeScript runtime bridge missing: ${shopRuntimeTerm}`);
 }
@@ -3135,6 +3137,10 @@ for (const shopCoreSourceTerm of [
   "effectiveBudget",
   "stockPressure",
   "rejectedByPrice",
+  "export interface SalePricePlan",
+  "salePricePlan(input",
+  "baseSalePrice",
+  "dessertBonusGold",
   "data.priceRulesByArchetype?.get",
   "data.customerProfilesBy?.get",
   "preferred_tags: compactJoin",
@@ -3159,6 +3165,9 @@ for (const shopCoreRuntimeTerm of [
   "effectiveBudget",
   "stockPressure",
   "rejectedByPrice",
+  "function salePricePlan",
+  "baseSalePrice",
+  "dessertBonusGold",
   "data.priceRulesByArchetype?.get",
   "data.customerProfilesBy?.get",
   "preferred_tags: compactJoin",

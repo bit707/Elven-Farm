@@ -1094,6 +1094,19 @@ var XiannongCore;
                     reason: canBuy ? "buy" : priced.price > effectiveBudget || rejectedByPrice ? "price" : stockPressure ? "stock" : "tag",
                 };
             }
+            function salePricePlan(input) {
+                const priced = input.priced;
+                const profitBuff = Number(input.profitBuff || 0);
+                const dessertSaleBonus = input.dessertChoice ? Number(input.dessertSaleBonusRate || 0) : 0;
+                const baseSalePrice = Math.max(1, Math.round(Number(priced.price || 0) * (1 + profitBuff)));
+                const salePrice = Math.max(1, Math.round(Number(priced.price || 0) * (1 + profitBuff + dessertSaleBonus)));
+                return {
+                    baseSalePrice,
+                    salePrice,
+                    dessertSaleBonus,
+                    dessertBonusGold: Math.max(0, salePrice - baseSalePrice),
+                };
+            }
             return {
                 customerPriceRule,
                 customerProfile,
@@ -1102,6 +1115,7 @@ var XiannongCore;
                 customerBudget,
                 pricedGood,
                 customerPurchaseDecision,
+                salePricePlan,
             };
         }
         Shop.createShopRuntime = createShopRuntime;

@@ -58104,9 +58104,19 @@ function openShop() {
     const priceSensitive = purchaseDecision.priceSensitive;
     const stockPressure = purchaseDecision.stockPressure;
     const rejectedByPrice = purchaseDecision.rejectedByPrice;
-    const dessertSaleBonus = dessertChoice && fengmiDessertQualityActive() ? Number(fengmiDessertQualitySkill()?.effect_param_1 || 0.08) : 0;
-    const baseSalePrice = Math.max(1, Math.round(priced.price * (1 + profitBuff)));
-    const salePrice = Math.max(1, Math.round(priced.price * (1 + profitBuff + dessertSaleBonus)));
+    const salePlan = shopRuntime()?.salePricePlan({
+      priced,
+      profitBuff,
+      dessertChoice,
+      dessertSaleBonusRate: fengmiDessertQualityActive() ? Number(fengmiDessertQualitySkill()?.effect_param_1 || 0.08) : 0,
+    }) || {
+      dessertSaleBonus: dessertChoice && fengmiDessertQualityActive() ? Number(fengmiDessertQualitySkill()?.effect_param_1 || 0.08) : 0,
+      baseSalePrice: Math.max(1, Math.round(priced.price * (1 + profitBuff))),
+      salePrice: Math.max(1, Math.round(priced.price * (1 + profitBuff + (dessertChoice && fengmiDessertQualityActive() ? Number(fengmiDessertQualitySkill()?.effect_param_1 || 0.08) : 0)))),
+    };
+    const dessertSaleBonus = salePlan.dessertSaleBonus;
+    const baseSalePrice = salePlan.baseSalePrice;
+    const salePrice = salePlan.salePrice;
 
     if (purchaseDecision.canBuy ?? (priced.price <= effectiveBudget && !rejectedByPrice && !stockPressure && hasItem(choice.itemId, 1))) {
       addItem(choice.itemId, -1);
@@ -58114,7 +58124,7 @@ function openShop() {
       sold += 1;
       if (dessertChoice) {
         dessertSold += 1;
-        dessertBonusGold += Math.max(0, salePrice - baseSalePrice);
+        dessertBonusGold += salePlan.dessertBonusGold ?? Math.max(0, salePrice - baseSalePrice);
       }
       if (honeyTasteBonus > 0) honeyFeastCustomers += 1;
       if (displaySupport.matched.length > 0) {
