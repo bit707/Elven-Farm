@@ -2728,6 +2728,62 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventChapter4PantaoFinaleActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "start_final_array_cutscene";
+                const firstStart = applies
+                    && !setHas(state.completed, "chapter4_final_boss_defeated")
+                    && !setHas(state.missionDone, constants.chapter4PantaoQuestId);
+                const completedFlags = applies
+                    ? [
+                        "chapter4_final_boss_defeated",
+                        "final_boss_defeated",
+                        `quest_unlock_${constants.chapter4PantaoQuestId}`,
+                    ]
+                    : [];
+                const bossId = applies ? constants.chapter4FinalBossId : "";
+                const questId = applies ? constants.chapter4PantaoQuestId : "";
+                const npcFavors = firstStart
+                    ? [
+                        { npcId: "npc_xubo", amount: 8, source: "\u7ec8\u7ae0\u534f\u529b" },
+                        { npcId: "npc_lu_sanxiao", amount: 8, source: "\u7ec8\u9635\u5f00\u5c40" },
+                    ]
+                    : [];
+                const fameAmount = firstStart ? 10 : 0;
+                const dialogueGroup = applies ? "dialogue_main_0403_final_support" : "";
+                const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+                const scanSource = applies ? "chapter4:pantao_finale" : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        { kind: "mark_boss_defeated", bossId },
+                        ...npcFavors.map((favor) => ({ kind: "add_npc_favor", npcId: favor.npcId, amount: favor.amount, source: favor.source })),
+                        ...(fameAmount > 0 ? [{ kind: "add_fame", amount: fameAmount }] : []),
+                        { kind: "apply_chapter4_pantao_finale_world_change" },
+                        { kind: "queue_dialogue_group", groupId: dialogueGroup },
+                        { kind: "play_cue", cue },
+                        { kind: "log_chapter4_pantao_finale" },
+                        { kind: "update_missions" },
+                        { kind: "scan_configured_events", source: scanSource },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    firstStart,
+                    completedFlags,
+                    bossId,
+                    questId,
+                    npcFavors,
+                    fameAmount,
+                    dialogueGroup,
+                    cue,
+                    scanSource,
+                    actions,
+                };
+            }
             function configuredEventGenericUnlockActionPlan(event) {
                 const plan = configuredEventExecutionPlan(event);
                 const applies = plan.actionKind === "generic_unlock";
@@ -2847,6 +2903,7 @@ var XiannongCore;
                 configuredEventChapter4DroughtStartActionPlan,
                 configuredEventChapter4LuTruthActionPlan,
                 configuredEventChapter4FinalNestUnlockActionPlan,
+                configuredEventChapter4PantaoFinaleActionPlan,
                 configuredEventGenericUnlockActionPlan,
             };
         }

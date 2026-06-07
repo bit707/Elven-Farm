@@ -15732,6 +15732,7 @@ function questRuntime() {
       chapter4DinghaiItemId: CHAPTER_4_DINGHAI_ITEM_ID,
       chapter4FinalNestUnlockFlag: CHAPTER_4_FINAL_NEST_UNLOCK_FLAG,
       chapter4PantaoQuestId: CHAPTER_4_PANTAO_QUEST_ID,
+      chapter4FinalBossId: CHAPTER_4_FINAL_BOSS_ID,
       chapter4PantaoSeedId: CHAPTER_4_PANTAO_SEED_ID,
       chapter4PantaoPlantedFlag: CHAPTER_4_PANTAO_PLANTED_FLAG,
       demoMissionIds: DEMO_MISSIONS.map((mission) => mission.id),
@@ -17215,6 +17216,10 @@ function applyConfiguredEventAction(action, context = {}) {
     state.completed.add(action.flag);
     return null;
   }
+  if (action.kind === "mark_boss_defeated") {
+    state.defeatedBosses.add(action.bossId);
+    return null;
+  }
   if (action.kind === "add_npc_favor") {
     addNpcFavor(action.npcId, action.amount, action.source);
     return null;
@@ -17414,6 +17419,21 @@ function applyConfiguredEventAction(action, context = {}) {
   }
   if (action.kind === "log_chapter4_final_nest_unlock") {
     addLog("终巢开启", `${context.eventName}：${itemName(CHAPTER_4_DINGHAI_ITEM_ID)}入手，${dungeonName(data.dungeonsById.get(CHAPTER_4_FINAL_NEST_AREA_ID))}已经可以进入。`);
+    return null;
+  }
+  if (action.kind === "apply_chapter4_pantao_finale_world_change") {
+    upsertWorldChange({
+      key: "chapter4_final_array_ready",
+      dungeonId: CHAPTER_4_FINAL_NEST_AREA_ID,
+      title: "螟巢死潮退去",
+      detail: "噬灵螟母被击退，终巢里反噬的旱气被压回阵脚。众人终于能把二十四节气大阵搭起来。",
+      rewardHint: `${buildingName(data.buildingsById.get(CHAPTER_4_FINAL_ARRAY_BUILDING_ID))} · ${questTitle(data.quests.find((quest) => quest.quest_id === CHAPTER_4_PANTAO_QUEST_ID) || { quest_id: CHAPTER_4_PANTAO_QUEST_ID })}`,
+      visualType: "solar_array_stela",
+    });
+    return null;
+  }
+  if (action.kind === "log_chapter4_pantao_finale") {
+    addLog("终章协力", `${context.eventName}：${bossName(CHAPTER_4_FINAL_BOSS_ID)}已伏，众人开始把终阵材料、守护和灯火接到阵台。`);
     return null;
   }
   if (action.kind === "unlock_final_nest_if_ready") {
@@ -17908,7 +17928,9 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "start_final_array_cutscene" || (!actionKind && executeGroup.includes("start_final_array_cutscene"))) {
-    startChapter4PantaoFinale(eventName);
+    const actionPlan = runtime?.configuredEventChapter4PantaoFinaleActionPlan(event);
+    if (actionPlan?.applies) applyConfiguredEventActionPlan(actionPlan, { eventName });
+    else startChapter4PantaoFinale(eventName);
     return true;
   }
 
@@ -38730,6 +38752,18 @@ function unlockFinalNest(eventName = "最终巢穴开启") {
 }
 
 function startChapter4PantaoFinale(eventName = "终章决战收束") {
+  const plan = questRuntime()?.configuredEventChapter4PantaoFinaleActionPlan({
+    event_id: "event_main_0405",
+    event_name_key: "event_name_main_0405",
+    trigger_type: "on_boss_defeat",
+    trigger_param: CHAPTER_4_FINAL_BOSS_ID,
+    condition_group: "quest_main_0403_active",
+    execute_group: "exec_start_final_array_cutscene",
+  });
+  if (plan?.applies) {
+    applyConfiguredEventActionPlan(plan, { eventName });
+    return true;
+  }
   const firstStart = !state.completed.has("chapter4_final_boss_defeated") && !state.missionDone.has(CHAPTER_4_PANTAO_QUEST_ID);
   state.completed.add("chapter4_final_boss_defeated");
   state.completed.add("final_boss_defeated");
