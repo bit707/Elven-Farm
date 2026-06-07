@@ -537,6 +537,31 @@ var XiannongCore;
                     stampAmount: overflowFailure ? 2 : finiteNumber(input?.floor, 1) >= 3 ? 2 : 1,
                 };
             }
+            function dungeonPostBattleSideEffectPlan(input = null) {
+                const bossId = input?.bossId || "";
+                const storyHooks = [];
+                if (bossId === "boss_shixiang_tengmu")
+                    storyHooks.push("herb_valley_baizhi_finish");
+                if (bossId === "boss_chiyan_xiehou")
+                    storyHooks.push("fire_ruin_finish");
+                if (bossId === "boss_shiling_mingmu")
+                    storyHooks.push("chapter4_pantao_finale");
+                return {
+                    completionKeys: ["dungeon"],
+                    seasonalGoal: input?.termId === "term_dongzhi"
+                        ? {
+                            category: "seasonal",
+                            key: "lanternDungeonClears",
+                            amount: 1,
+                        }
+                        : null,
+                    storyHooks,
+                    cohabEvent: {
+                        trigger: "on_dungeon_return",
+                        areaId: input?.areaId || "",
+                    },
+                };
+            }
             return {
                 bossSkillsFor,
                 bossPhaseForPercent,
@@ -557,6 +582,7 @@ var XiannongCore;
                 dungeonBossExchangeStatePlan,
                 dungeonBossClearPlan,
                 dungeonFailureRewardPlan,
+                dungeonPostBattleSideEffectPlan,
             };
         }
         Combat.createDungeonRuntime = createDungeonRuntime;

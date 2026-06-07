@@ -42803,7 +42803,21 @@ function challengeDungeonBoss() {
     target: dungeon.area_id,
     rewardText: `声望 +5 · ${finalBossLoot.map((entry) => `${itemName(entry.itemId)} x${entry.count}`).join("、") || "秘境余波"}`,
   });
-  if (currentTermId() === "term_dongzhi") addGoalBookProgress("seasonal", "lanternDungeonClears", 1);
+  const sideEffectPlan = dungeonRuntime()?.dungeonPostBattleSideEffectPlan({
+    areaId: dungeon.area_id,
+    bossId,
+    termId: currentTermId(),
+  }) || {
+    completionKeys: ["dungeon"],
+    seasonalGoal: currentTermId() === "term_dongzhi" ? { category: "seasonal", key: "lanternDungeonClears", amount: 1 } : null,
+    storyHooks: [
+      bossId === BAIZHI_BOSS_ID ? "herb_valley_baizhi_finish" : "",
+      bossId === FIRE_RUIN_BOSS_ID ? "fire_ruin_finish" : "",
+      bossId === CHAPTER_4_FINAL_BOSS_ID ? "chapter4_pantao_finale" : "",
+    ].filter(Boolean),
+    cohabEvent: { trigger: "on_dungeon_return", areaId: dungeon.area_id },
+  };
+  if (sideEffectPlan.seasonalGoal) addGoalBookProgress(sideEffectPlan.seasonalGoal.category, sideEffectPlan.seasonalGoal.key, sideEffectPlan.seasonalGoal.amount);
   const rotationRewards = run.rotationRareDropPool ? resolveDungeonRewardPool(run.rotationRareDropPool, run.hiddenReveal ? 1.25 : 1) : [];
   const rotationRewardItems = rotationRewards
     .filter((entry) => entry.itemId && entry.count > 0)
@@ -42815,11 +42829,11 @@ function challengeDungeonBoss() {
   run.rotationRewards = rotationRewards.map((entry) => entry.text);
   const stampGain = grantDungeonCompendiumProgress("clear", 3, run, dungeon, mechanic);
   const aftermath = applyDungeonWorldChange(dungeon, mechanic, finalBossLoot);
-  if (bossId === BAIZHI_BOSS_ID) finishHerbValleyBaizhiLine(localize("event_name_main_0207", "百草母露入手"));
-  if (bossId === FIRE_RUIN_BOSS_ID) finishFireRuinLine(localize("event_name_main_0307", "炽炎火精归位"));
-  if (bossId === CHAPTER_4_FINAL_BOSS_ID) startChapter4PantaoFinale(localize("event_name_main_0405", "终章决战收束"));
-  complete("dungeon");
-  triggerCohabWeeklyEvents("on_dungeon_return", { areaId: dungeon.area_id, day: state.day });
+  if (sideEffectPlan.storyHooks.includes("herb_valley_baizhi_finish")) finishHerbValleyBaizhiLine(localize("event_name_main_0207", "百草母露入手"));
+  if (sideEffectPlan.storyHooks.includes("fire_ruin_finish")) finishFireRuinLine(localize("event_name_main_0307", "炽炎火精归位"));
+  if (sideEffectPlan.storyHooks.includes("chapter4_pantao_finale")) startChapter4PantaoFinale(localize("event_name_main_0405", "终章决战收束"));
+  for (const completionKey of sideEffectPlan.completionKeys || ["dungeon"]) complete(completionKey);
+  if (sideEffectPlan.cohabEvent) triggerCohabWeeklyEvents(sideEffectPlan.cohabEvent.trigger, { areaId: sideEffectPlan.cohabEvent.areaId, day: state.day });
   addLog("Boss 击破", `${bossName(bossId)} 已击败，最后化解了 ${skillName(bossSkill)}。${stampGain ? `；${stampGain.text}` : ""}${aftermath.change?.title || `${dungeonName(dungeon)} 外部生态发生变化。`}${aftermath.clue ? `；发现 ${aftermath.clue.spiritName} 线索：${aftermath.clue.sceneSummary}` : ""}${rotationRewards.length > 0 ? `；隐藏层回响：${rotationRewards.map((entry) => entry.text).join("、")}` : ""} 声望 +5。`);
   recordDungeonDayEcho("clear", run, dungeon, mechanic, {
     bossLoot: run.lastLoot || finalBossLoot,

@@ -252,6 +252,26 @@ namespace XiannongCore.Combat {
     stampAmount: number;
   }
 
+  export interface DungeonPostBattleSideEffectPlanInput {
+    areaId?: string | null;
+    bossId?: string | null;
+    termId?: string | null;
+  }
+
+  export interface DungeonPostBattleSideEffectPlan {
+    completionKeys: string[];
+    seasonalGoal: {
+      category: string;
+      key: string;
+      amount: number;
+    } | null;
+    storyHooks: string[];
+    cohabEvent: {
+      trigger: string;
+      areaId: string;
+    } | null;
+  }
+
   export interface CombatRuntime {
     bossSkillsFor(bossId?: string | null): CombatRow[];
     bossPhaseForPercent(bossId?: string | null, hpPercent?: number | string | null): number;
@@ -272,6 +292,7 @@ namespace XiannongCore.Combat {
     dungeonBossExchangeStatePlan(input?: DungeonBossExchangeStatePlanInput | null): DungeonBossExchangeStatePlan;
     dungeonBossClearPlan(input?: DungeonBossClearPlanInput | null): DungeonBossClearPlan;
     dungeonFailureRewardPlan(input?: DungeonFailureRewardPlanInput | null): DungeonFailureRewardPlan;
+    dungeonPostBattleSideEffectPlan(input?: DungeonPostBattleSideEffectPlanInput | null): DungeonPostBattleSideEffectPlan;
   }
 
   function byId(rows: CombatRow[], idField: string, id?: string | null): CombatRow | null {
@@ -805,6 +826,29 @@ namespace XiannongCore.Combat {
       };
     }
 
+    function dungeonPostBattleSideEffectPlan(input: DungeonPostBattleSideEffectPlanInput | null = null): DungeonPostBattleSideEffectPlan {
+      const bossId = input?.bossId || "";
+      const storyHooks: string[] = [];
+      if (bossId === "boss_shixiang_tengmu") storyHooks.push("herb_valley_baizhi_finish");
+      if (bossId === "boss_chiyan_xiehou") storyHooks.push("fire_ruin_finish");
+      if (bossId === "boss_shiling_mingmu") storyHooks.push("chapter4_pantao_finale");
+      return {
+        completionKeys: ["dungeon"],
+        seasonalGoal: input?.termId === "term_dongzhi"
+          ? {
+            category: "seasonal",
+            key: "lanternDungeonClears",
+            amount: 1,
+          }
+          : null,
+        storyHooks,
+        cohabEvent: {
+          trigger: "on_dungeon_return",
+          areaId: input?.areaId || "",
+        },
+      };
+    }
+
     return {
       bossSkillsFor,
       bossPhaseForPercent,
@@ -825,6 +869,7 @@ namespace XiannongCore.Combat {
       dungeonBossExchangeStatePlan,
       dungeonBossClearPlan,
       dungeonFailureRewardPlan,
+      dungeonPostBattleSideEffectPlan,
     };
   }
 }

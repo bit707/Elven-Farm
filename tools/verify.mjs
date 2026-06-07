@@ -3141,6 +3141,10 @@ for (const combatRuntimeTerm of [
   "failurePlan?.failureReason",
   "failurePlan?.stampAmount",
   "failurePlan?.shouldRecord",
+  "dungeonRuntime()?.dungeonPostBattleSideEffectPlan({",
+  "sideEffectPlan.storyHooks.includes(\"fire_ruin_finish\")",
+  "for (const completionKey of sideEffectPlan.completionKeys",
+  "triggerCohabWeeklyEvents(sideEffectPlan.cohabEvent.trigger",
 ]) {
   if (!game.includes(combatRuntimeTerm)) throw new Error(`Combat TypeScript runtime bridge missing: ${combatRuntimeTerm}`);
 }
@@ -3610,6 +3614,10 @@ for (const combatCoreSourceTerm of [
   "dungeonFailureRewardPlan(input",
   "outcome === \"boss_failed\"",
   "overflowFailure ? \"overflow\" : \"retreat\"",
+  "export interface DungeonPostBattleSideEffectPlan",
+  "dungeonPostBattleSideEffectPlan(input",
+  "lanternDungeonClears",
+  "chapter4_pantao_finale",
   "phaseCount >= 3",
   "percent <= 0.35",
   "percent <= 0.7",
@@ -3681,6 +3689,9 @@ for (const combatCoreRuntimeTerm of [
   "function dungeonFailureRewardPlan",
   "outcome === \"boss_failed\"",
   "overflowFailure ? \"overflow\" : \"retreat\"",
+  "function dungeonPostBattleSideEffectPlan",
+  "lanternDungeonClears",
+  "chapter4_pantao_finale",
   "phaseCount >= 3",
   "percent <= 0.35",
   "percent <= 0.7",
