@@ -29,9 +29,11 @@ const requiredFiles = [
   "tools/generate-manual-qa-evidence.mjs",
   "tools/generate-final-capture-evidence.mjs",
   "tools/smoke-longrun.mjs",
+  "tools/smoke-desktop-json-save.mjs",
   "tools/steam-preflight.mjs",
   "tools/generate-windows-icon.py",
   "desktop-shell/main.mjs",
+  "desktop-shell/json-save-core.mjs",
   "desktop-shell/preload.cjs",
   "desktop-shell/package.template.json",
   "desktop-shell/README_DESKTOP_SHELL.md",
@@ -2892,8 +2894,10 @@ const packageScript = readFileSync("tools/package-demo.mjs", "utf8");
 const standaloneScript = readFileSync("tools/package-standalone.mjs", "utf8");
 const desktopShellScript = readFileSync("tools/package-desktop-shell.mjs", "utf8");
 const desktopShellMain = readFileSync("desktop-shell/main.mjs", "utf8");
+const desktopJsonSaveCore = readFileSync("desktop-shell/json-save-core.mjs", "utf8");
 const desktopShellPreload = readFileSync("desktop-shell/preload.cjs", "utf8");
 const desktopShellTemplate = readFileSync("desktop-shell/package.template.json", "utf8");
+const desktopSaveSmokeScript = readFileSync("tools/smoke-desktop-json-save.mjs", "utf8");
 const runtimeDataScript = readFileSync("tools/build-runtime-data.mjs", "utf8");
 const farmingRuntimeTs = readFileSync("src/core/farming/farming-runtime.ts", "utf8");
 const questRuntimeTs = readFileSync("src/core/quests/quest-runtime.ts", "utf8");
@@ -3474,8 +3478,20 @@ for (const farmingCoreRuntimeTerm of [
 }
 
 for (const desktopSaveTerm of ["xiannong:save-json", "registerJsonSaveIpc", "SAVE_DIR_NAME", "savePathForProfile", "XiannongStorage", "writeProfile", "readProfile", "desktop-json-save-v1"]) {
-  if (!desktopShellMain.includes(desktopSaveTerm) && !desktopShellPreload.includes(desktopSaveTerm)) {
+  if (!desktopShellMain.includes(desktopSaveTerm) && !desktopShellPreload.includes(desktopSaveTerm) && !desktopJsonSaveCore.includes(desktopSaveTerm)) {
     throw new Error(`Desktop JSON save bridge missing: ${desktopSaveTerm}`);
+  }
+}
+
+for (const desktopJsonSaveCoreTerm of ["DESKTOP_JSON_SAVE_ADAPTER", "readDesktopJsonProfile", "writeDesktopJsonProfile", "safeFileName", "saveDirForUserData", "startsWith(safeRoot)", "userData/saves/profile_1.json"]) {
+  if (!desktopJsonSaveCore.includes(desktopJsonSaveCoreTerm) && !desktopSaveSmokeScript.includes(desktopJsonSaveCoreTerm)) {
+    throw new Error(`Desktop JSON save executable core missing: ${desktopJsonSaveCoreTerm}`);
+  }
+}
+
+for (const desktopSaveSmokeTerm of ["readDesktopJsonProfile(userData, \"profile_1\")", "writeDesktopJsonProfile(userData, \"profile_1\"", "savePathForProfile(userData, \"../profile escape?.json\")", "DESKTOP_JSON_SAVE_SMOKE.json"]) {
+  if (!desktopSaveSmokeScript.includes(desktopSaveSmokeTerm)) {
+    throw new Error(`Desktop JSON save smoke missing: ${desktopSaveSmokeTerm}`);
   }
 }
 
@@ -3508,6 +3524,9 @@ for (const desktopTemplateTerm of ["electron", "electron-builder", "package:win"
 
 if (!readFileSync("package.json", "utf8").includes('"package:desktop-shell": "node tools/package-desktop-shell.mjs"')) {
   throw new Error("package.json must expose package:desktop-shell");
+}
+if (!readFileSync("package.json", "utf8").includes('"qa:desktop-save": "node tools/smoke-desktop-json-save.mjs"')) {
+  throw new Error("package.json must expose qa:desktop-save");
 }
 
 for (const steamRcTerm of ["xiannong-dongtian-steam-rc", "README_STEAM_RC.md", "STEAMWORKS_GAP_REPORT.md", "launch-demo.ps1", "launch-demo.cmd", "design-docs", "steam", "qa", "not_steam_final", "release_readiness_gate.csv", "steam_asset_production_plan.csv"]) {

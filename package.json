@@ -12,6 +12,7 @@
     "start": "node tools/dev-server.mjs",
     "preverify": "npm run data:build && npm run build:core",
     "verify": "node tools/verify.mjs",
+    "qa:desktop-save": "node tools/smoke-desktop-json-save.mjs",
     "preqa:smoke": "npm run data:build && npm run build:core",
     "qa:smoke": "node tools/smoke-longrun.mjs",
     "qa:manual-template": "node tools/generate-manual-qa-evidence.mjs",

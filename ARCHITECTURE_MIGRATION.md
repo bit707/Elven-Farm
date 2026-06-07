@@ -18,7 +18,7 @@ This project keeps the current Web Canvas game instead of switching to Unity or 
 - `src/core/farming/farming-runtime.ts` moves crop target lookup, solar-term crop affinity, yield bonus, projected harvest previews, harvest yield planning, harvest quality scoring, crop growth visual specs, and night crop growth planning into TypeScript.
 - `tools/build-runtime-data.mjs` converts gameplay CSV tables into `runtime-data/runtime-data.json`.
 - `src/runtime/xiannong-core.js` is the generated TypeScript runtime loaded before `src/game.js`.
-- `desktop-shell/main.mjs` and `desktop-shell/preload.cjs` expose `XiannongStorage`, writing the main profile to `Electron userData/saves/profile_1.json`.
+- `desktop-shell/main.mjs`, `desktop-shell/preload.cjs`, and `desktop-shell/json-save-core.mjs` expose `XiannongStorage`, writing the main profile to `Electron userData/saves/profile_1.json`; `tools/smoke-desktop-json-save.mjs` verifies write/read/path-safety behavior without requiring Electron.
 
 ## Next Migration Targets
 
