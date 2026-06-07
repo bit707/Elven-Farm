@@ -3479,16 +3479,31 @@ function townLifeShopMomentArchiveEntries(npcId = "", limit = 6) {
 function nextTownLifeMemory(npcId = "") {
   const memories = TOWN_LIFE_MEMORY_BOOK[npcId] || [];
   const remembered = townLifeRememberedIds(npcId);
+  const runtimePlan = npcRuntime()?.nextRelationshipMemory({
+    npcId,
+    memories,
+    rememberedMemoryIds: Object.keys(remembered),
+  });
+  if (runtimePlan && "memory" in runtimePlan) return runtimePlan.memory || null;
   return memories.find((memory) => !remembered[memory.id]) || null;
 }
 
 function townLifeMemoryProgressText(npcId = "") {
-  const next = nextTownLifeMemory(npcId);
-  if (!next) return "关系记忆已写满当前 5 心篇章";
   const counts = townLifeInteractionCounts(npcId);
-  const level = favorLevel(state.npcFavor[npcId] || 0);
-  const needFavor = Math.max(0, next.level - level);
-  const needInteractions = Math.max(0, Number(next.interactions || 0) - counts.total);
+  const memories = TOWN_LIFE_MEMORY_BOOK[npcId] || [];
+  const remembered = townLifeRememberedIds(npcId);
+  const runtimeProgress = npcRuntime()?.relationshipMemoryProgress({
+    npcId,
+    memories,
+    rememberedMemoryIds: Object.keys(remembered),
+    favorValue: state.npcFavor[npcId] || 0,
+    counts,
+  });
+  const next = runtimeProgress?.next || memories.find((memory) => !remembered[memory.id]) || null;
+  if (!next) return "关系记忆已写满当前 5 心篇章";
+  const level = Number.isFinite(runtimeProgress?.level) ? runtimeProgress.level : favorLevel(state.npcFavor[npcId] || 0);
+  const needFavor = Number.isFinite(runtimeProgress?.needFavor) ? runtimeProgress.needFavor : Math.max(0, next.level - level);
+  const needInteractions = Number.isFinite(runtimeProgress?.needInteractions) ? runtimeProgress.needInteractions : Math.max(0, Number(next.interactions || 0) - counts.total);
   if (needFavor <= 0 && needInteractions <= 0) return `下一记忆「${next.title}」待触发`;
   return `下一记忆「${next.title}」需 ${next.level} 心 / ${next.interactions} 次来往（还差 ${needFavor} 心、${needInteractions} 次）`;
 }
@@ -3549,10 +3564,21 @@ function scanTownLifeRelationshipMemories(npcId = "") {
   const remembered = townLifeRememberedIds(npcId);
   const counts = townLifeInteractionCounts(npcId);
   const level = favorLevel(state.npcFavor[npcId] || 0);
-  for (const memory of memories) {
-    if (remembered[memory.id]) continue;
-    if (level < Number(memory.level || 0)) continue;
-    if (counts.total < Number(memory.interactions || 0)) continue;
+  const unlockPlan = npcRuntime()?.claimableRelationshipMemories({
+    npcId,
+    memories,
+    rememberedMemoryIds: Object.keys(remembered),
+    favorValue: state.npcFavor[npcId] || 0,
+    counts,
+  }) || {
+    memories: memories.filter((memory) => {
+      if (remembered[memory.id]) return false;
+      if (level < Number(memory.level || 0)) return false;
+      if (counts.total < Number(memory.interactions || 0)) return false;
+      return true;
+    }),
+  };
+  for (const memory of unlockPlan.memories) {
     const entry = unlockTownLifeMemory(npcId, memory);
     if (entry) unlocked.push(entry);
   }
@@ -45152,6 +45178,12 @@ function canvasTownLifeFocusMarkup() {
 function townLifeNextMemoryPreview(npcId = "") {
   const memories = TOWN_LIFE_MEMORY_BOOK[npcId] || [];
   const remembered = syncTownLifeInteractionState().memoryByNpc?.[npcId] || {};
+  const runtimePlan = npcRuntime()?.nextRelationshipMemory({
+    npcId,
+    memories,
+    rememberedMemoryIds: Object.keys(remembered),
+  });
+  if (runtimePlan && "memory" in runtimePlan) return runtimePlan.memory || null;
   return memories.find((memory) => !remembered[memory.id]) || null;
 }
 

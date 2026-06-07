@@ -1,5 +1,13 @@
 namespace XiannongCore.Npc {
   export type NpcRow = Record<string, string | undefined>;
+  export type NpcMemory = Record<string, string | number | undefined>;
+
+  export interface InteractionCounts {
+    greet?: number;
+    errand?: number;
+    gift?: number;
+    total?: number;
+  }
 
   export interface ScheduleContext {
     minute?: number;
@@ -40,9 +48,43 @@ namespace XiannongCore.Npc {
     rewardIds: string[];
   }
 
+  export interface RelationshipMemoryPlanInput {
+    npcId?: string;
+    memories?: NpcMemory[] | null;
+    rememberedMemoryIds?: string[] | null;
+    favorValue?: number;
+    counts?: InteractionCounts | null;
+  }
+
+  export interface RelationshipMemoryNextPlan {
+    memory: NpcMemory | null;
+    memoryId: string;
+  }
+
+  export interface RelationshipMemoryProgressPlan {
+    level: number;
+    interactions: number;
+    next: NpcMemory | null;
+    nextId: string;
+    needFavor: number;
+    needInteractions: number;
+    ready: boolean;
+    complete: boolean;
+  }
+
+  export interface RelationshipMemoryUnlockPlan {
+    level: number;
+    interactions: number;
+    memories: NpcMemory[];
+    memoryIds: string[];
+  }
+
   export interface NpcRuntime {
     favorLevel(value?: number): number;
     claimableFavorRewards(input: FavorRewardPlanInput): FavorRewardPlan;
+    nextRelationshipMemory(input: RelationshipMemoryPlanInput): RelationshipMemoryNextPlan;
+    relationshipMemoryProgress(input: RelationshipMemoryPlanInput): RelationshipMemoryProgressPlan;
+    claimableRelationshipMemories(input: RelationshipMemoryPlanInput): RelationshipMemoryUnlockPlan;
     schedulePriority(schedule?: NpcRow | null, context?: ScheduleContext): SchedulePriorityPlan;
     scheduleMatchesNow(schedule?: NpcRow | null, context?: ScheduleContext): ScheduleMatchPlan;
   }
@@ -72,6 +114,78 @@ namespace XiannongCore.Npc {
         level,
         rewards,
         rewardIds: rewards.map((reward) => String(reward.reward_id || "")).filter(Boolean),
+      };
+    }
+
+    function memoryId(memory: NpcMemory | null = null): string {
+      return String(memory?.id || "");
+    }
+
+    function rememberedMemorySet(input: RelationshipMemoryPlanInput): Set<string> {
+      return new Set((input.rememberedMemoryIds || []).map((id) => String(id || "")).filter(Boolean));
+    }
+
+    function interactionTotal(counts: InteractionCounts | null = null): number {
+      const greet = Number(counts?.greet || 0);
+      const errand = Number(counts?.errand || 0);
+      const gift = Number(counts?.gift || 0);
+      return Math.max(Number(counts?.total || 0), greet + errand + gift);
+    }
+
+    function nextRelationshipMemory(input: RelationshipMemoryPlanInput): RelationshipMemoryNextPlan {
+      const remembered = rememberedMemorySet(input);
+      const memory = (input.memories || []).find((entry) => !remembered.has(memoryId(entry))) || null;
+      return {
+        memory,
+        memoryId: memoryId(memory),
+      };
+    }
+
+    function relationshipMemoryProgress(input: RelationshipMemoryPlanInput): RelationshipMemoryProgressPlan {
+      const next = nextRelationshipMemory(input).memory;
+      const level = favorLevel(input.favorValue || 0);
+      const interactions = interactionTotal(input.counts);
+      if (!next) {
+        return {
+          level,
+          interactions,
+          next: null,
+          nextId: "",
+          needFavor: 0,
+          needInteractions: 0,
+          ready: false,
+          complete: true,
+        };
+      }
+      const needFavor = Math.max(0, Number(next.level || 0) - level);
+      const needInteractions = Math.max(0, Number(next.interactions || 0) - interactions);
+      return {
+        level,
+        interactions,
+        next,
+        nextId: memoryId(next),
+        needFavor,
+        needInteractions,
+        ready: needFavor <= 0 && needInteractions <= 0,
+        complete: false,
+      };
+    }
+
+    function claimableRelationshipMemories(input: RelationshipMemoryPlanInput): RelationshipMemoryUnlockPlan {
+      const remembered = rememberedMemorySet(input);
+      const level = favorLevel(input.favorValue || 0);
+      const interactions = interactionTotal(input.counts);
+      const memories = (input.memories || []).filter((memory) => {
+        if (remembered.has(memoryId(memory))) return false;
+        if (level < Number(memory.level || 0)) return false;
+        if (interactions < Number(memory.interactions || 0)) return false;
+        return true;
+      });
+      return {
+        level,
+        interactions,
+        memories,
+        memoryIds: memories.map((memory) => memoryId(memory)).filter(Boolean),
       };
     }
 
@@ -121,6 +235,9 @@ namespace XiannongCore.Npc {
     return {
       favorLevel,
       claimableFavorRewards,
+      nextRelationshipMemory,
+      relationshipMemoryProgress,
+      claimableRelationshipMemories,
       schedulePriority,
       scheduleMatchesNow,
     };

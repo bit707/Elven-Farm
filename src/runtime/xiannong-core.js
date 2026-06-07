@@ -1093,6 +1093,75 @@ var XiannongCore;
                     rewardIds: rewards.map((reward) => String(reward.reward_id || "")).filter(Boolean),
                 };
             }
+            function memoryId(memory = null) {
+                return String(memory?.id || "");
+            }
+            function rememberedMemorySet(input) {
+                return new Set((input.rememberedMemoryIds || []).map((id) => String(id || "")).filter(Boolean));
+            }
+            function interactionTotal(counts = null) {
+                const greet = Number(counts?.greet || 0);
+                const errand = Number(counts?.errand || 0);
+                const gift = Number(counts?.gift || 0);
+                return Math.max(Number(counts?.total || 0), greet + errand + gift);
+            }
+            function nextRelationshipMemory(input) {
+                const remembered = rememberedMemorySet(input);
+                const memory = (input.memories || []).find((entry) => !remembered.has(memoryId(entry))) || null;
+                return {
+                    memory,
+                    memoryId: memoryId(memory),
+                };
+            }
+            function relationshipMemoryProgress(input) {
+                const next = nextRelationshipMemory(input).memory;
+                const level = favorLevel(input.favorValue || 0);
+                const interactions = interactionTotal(input.counts);
+                if (!next) {
+                    return {
+                        level,
+                        interactions,
+                        next: null,
+                        nextId: "",
+                        needFavor: 0,
+                        needInteractions: 0,
+                        ready: false,
+                        complete: true,
+                    };
+                }
+                const needFavor = Math.max(0, Number(next.level || 0) - level);
+                const needInteractions = Math.max(0, Number(next.interactions || 0) - interactions);
+                return {
+                    level,
+                    interactions,
+                    next,
+                    nextId: memoryId(next),
+                    needFavor,
+                    needInteractions,
+                    ready: needFavor <= 0 && needInteractions <= 0,
+                    complete: false,
+                };
+            }
+            function claimableRelationshipMemories(input) {
+                const remembered = rememberedMemorySet(input);
+                const level = favorLevel(input.favorValue || 0);
+                const interactions = interactionTotal(input.counts);
+                const memories = (input.memories || []).filter((memory) => {
+                    if (remembered.has(memoryId(memory)))
+                        return false;
+                    if (level < Number(memory.level || 0))
+                        return false;
+                    if (interactions < Number(memory.interactions || 0))
+                        return false;
+                    return true;
+                });
+                return {
+                    level,
+                    interactions,
+                    memories,
+                    memoryIds: memories.map((memory) => memoryId(memory)).filter(Boolean),
+                };
+            }
             function schedulePriority(schedule = null, context = {}) {
                 const termMatch = Boolean(schedule?.solar_term && schedule.solar_term === context.termId);
                 const weatherMatch = Boolean(schedule?.weather_tag && (schedule.weather_tag === context.weatherId || schedule.weather_tag === context.disasterTag));
@@ -1137,6 +1206,9 @@ var XiannongCore;
             return {
                 favorLevel,
                 claimableFavorRewards,
+                nextRelationshipMemory,
+                relationshipMemoryProgress,
+                claimableRelationshipMemories,
                 schedulePriority,
                 scheduleMatchesNow,
             };
