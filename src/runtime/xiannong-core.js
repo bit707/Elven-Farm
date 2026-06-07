@@ -1351,6 +1351,35 @@ var XiannongCore;
                     labelKind: support.isTopGood ? "top" : "match",
                 };
             }
+            function scoreCustomerGoodCandidate(candidate) {
+                const weatherWeightScore = Number(candidate.weatherWeightScore || 0);
+                const stockWeight = Number(candidate.stockWeight || 0);
+                const index = Number(candidate.index || 0);
+                return {
+                    ...candidate,
+                    weatherWeightScore,
+                    stockWeight,
+                    index,
+                    score: (candidate.preferredHit ? 80 : 0) + weatherWeightScore + stockWeight - index * 0.01,
+                };
+            }
+            function topCustomerGoodCandidate(candidates) {
+                return [...candidates].sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0] || null;
+            }
+            function matchCustomerGood(input = null) {
+                const scoredCandidates = (Array.isArray(input?.candidates) ? input.candidates : []).map(scoreCustomerGoodCandidate);
+                const candidates = scoredCandidates.filter((candidate) => !candidate.dislikedHit);
+                const preferredCandidate = topCustomerGoodCandidate(candidates.filter((candidate) => candidate.preferredHit));
+                if (preferredCandidate?.good)
+                    return { good: preferredCandidate.good, candidate: preferredCandidate, reason: "preferred" };
+                const weatherCandidate = topCustomerGoodCandidate(candidates.filter((candidate) => candidate.weatherWeightScore > 0));
+                if (weatherCandidate?.good)
+                    return { good: weatherCandidate.good, candidate: weatherCandidate, reason: "weather" };
+                const scoredCandidate = topCustomerGoodCandidate(candidates);
+                if (scoredCandidate?.good)
+                    return { good: scoredCandidate.good, candidate: scoredCandidate, reason: "score" };
+                return { good: input?.fallbackGood || null, candidate: null, reason: "fallback" };
+            }
             return {
                 customerPriceRule,
                 customerProfile,
@@ -1374,6 +1403,7 @@ var XiannongCore;
                 shopCompendiumCustomerSupport,
                 shopWeatherShelfChoiceSupport,
                 shopWeatherShelfChoiceWeight,
+                matchCustomerGood,
             };
         }
         Shop.createShopRuntime = createShopRuntime;

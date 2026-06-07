@@ -20534,31 +20534,42 @@ function shopWeatherShelfChoiceWeight(choice = null, shelf = null, customer = nu
 function matchCustomerGood(goods, customer, ecologyGarden = null, weatherShelf = null) {
   const preferred = splitTags(customer.preferred_tags);
   const disliked = splitTags(customer.disliked_tags);
-  const candidates = goods
-    .map((good, index) => {
-      const tags = shopTagsForItem(good.item, ecologyGarden);
-      const dislikedHit = shopTagsOverlap(tags, disliked);
-      const preferredHit = shopTagsOverlap(tags, preferred);
-      const weatherWeight = shopWeatherShelfChoiceWeight(good, weatherShelf, customer, ecologyGarden, preferred);
-      const stockWeight = Math.min(8, Number(good.count || 0));
-      return {
-        good,
-        dislikedHit,
-        preferredHit,
-        weatherWeight,
-        score: (preferredHit ? 80 : 0) + weatherWeight.score + stockWeight - index * 0.01,
-      };
-    })
+  const candidates = goods.map((good, index) => {
+    const tags = shopTagsForItem(good.item, ecologyGarden);
+    const dislikedHit = shopTagsOverlap(tags, disliked);
+    const preferredHit = shopTagsOverlap(tags, preferred);
+    const weatherWeight = shopWeatherShelfChoiceWeight(good, weatherShelf, customer, ecologyGarden, preferred);
+    const stockWeight = Math.min(8, Number(good.count || 0));
+    return {
+      good,
+      dislikedHit,
+      preferredHit,
+      weatherWeight,
+      weatherWeightScore: weatherWeight.score,
+      stockWeight,
+      index,
+    };
+  });
+  const runtimePlan = shopRuntime()?.matchCustomerGood({
+    candidates,
+    fallbackGood: goods[0],
+  });
+  if (runtimePlan?.good) return runtimePlan.good;
+  const availableCandidates = candidates
+    .map((entry) => ({
+      ...entry,
+      score: (entry.preferredHit ? 80 : 0) + entry.weatherWeight.score + entry.stockWeight - entry.index * 0.01,
+    }))
     .filter((entry) => !entry.dislikedHit);
-  const preferredGood = candidates
+  const preferredGood = availableCandidates
     .filter((entry) => entry.preferredHit)
     .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0]?.good;
   if (preferredGood) return preferredGood;
-  const weatherGood = candidates
+  const weatherGood = availableCandidates
     .filter((entry) => entry.weatherWeight.score > 0)
     .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0]?.good;
   if (weatherGood) return weatherGood;
-  return candidates.sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0]?.good || goods[0];
+  return availableCandidates.sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0]?.good || goods[0];
 }
 
 function matchCustomerGoodLegacy(goods, customer, ecologyGarden = null) {

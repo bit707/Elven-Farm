@@ -37,6 +37,7 @@ namespace XiannongCore.Shop {
     shopCompendiumCustomerSupport(input?: ShopCompendiumCustomerSupportInput | null): ShopCompendiumCustomerSupportPlan;
     shopWeatherShelfChoiceSupport(input?: ShopWeatherShelfChoiceSupportInput | null): ShopWeatherShelfChoiceSupportPlan;
     shopWeatherShelfChoiceWeight(input?: ShopWeatherShelfChoiceWeightInput | null): ShopWeatherShelfChoiceWeightPlan;
+    matchCustomerGood(input?: ShopCustomerGoodMatchInput | null): ShopCustomerGoodMatchPlan;
   }
 
   export interface ShopGoodChoice {
@@ -121,6 +122,35 @@ namespace XiannongCore.Shop {
     topWeight: number;
     budgetWeight: number;
     labelKind: "top" | "match" | "";
+  }
+
+  export interface ShopCustomerGoodCandidate {
+    good?: ShopGoodChoice | null;
+    dislikedHit?: boolean;
+    preferredHit?: boolean;
+    weatherWeightScore?: number | string;
+    stockWeight?: number | string;
+    index?: number | string;
+  }
+
+  export interface ShopCustomerGoodScoredCandidate extends ShopCustomerGoodCandidate {
+    weatherWeightScore: number;
+    stockWeight: number;
+    index: number;
+    score: number;
+  }
+
+  export interface ShopCustomerGoodMatchInput {
+    candidates?: ShopCustomerGoodCandidate[] | null;
+    fallbackGood?: ShopGoodChoice | null;
+  }
+
+  export type ShopCustomerGoodMatchReason = "preferred" | "weather" | "score" | "fallback";
+
+  export interface ShopCustomerGoodMatchPlan {
+    good: ShopGoodChoice | null;
+    candidate: ShopCustomerGoodScoredCandidate | null;
+    reason: ShopCustomerGoodMatchReason;
   }
 
   export interface PricedGoodOptions {
@@ -536,6 +566,35 @@ namespace XiannongCore.Shop {
       };
     }
 
+    function scoreCustomerGoodCandidate(candidate: ShopCustomerGoodCandidate): ShopCustomerGoodScoredCandidate {
+      const weatherWeightScore = Number(candidate.weatherWeightScore || 0);
+      const stockWeight = Number(candidate.stockWeight || 0);
+      const index = Number(candidate.index || 0);
+      return {
+        ...candidate,
+        weatherWeightScore,
+        stockWeight,
+        index,
+        score: (candidate.preferredHit ? 80 : 0) + weatherWeightScore + stockWeight - index * 0.01,
+      };
+    }
+
+    function topCustomerGoodCandidate(candidates: ShopCustomerGoodScoredCandidate[]): ShopCustomerGoodScoredCandidate | null {
+      return [...candidates].sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0] || null;
+    }
+
+    function matchCustomerGood(input: ShopCustomerGoodMatchInput | null = null): ShopCustomerGoodMatchPlan {
+      const scoredCandidates = (Array.isArray(input?.candidates) ? input.candidates : []).map(scoreCustomerGoodCandidate);
+      const candidates = scoredCandidates.filter((candidate) => !candidate.dislikedHit);
+      const preferredCandidate = topCustomerGoodCandidate(candidates.filter((candidate) => candidate.preferredHit));
+      if (preferredCandidate?.good) return { good: preferredCandidate.good, candidate: preferredCandidate, reason: "preferred" };
+      const weatherCandidate = topCustomerGoodCandidate(candidates.filter((candidate) => candidate.weatherWeightScore > 0));
+      if (weatherCandidate?.good) return { good: weatherCandidate.good, candidate: weatherCandidate, reason: "weather" };
+      const scoredCandidate = topCustomerGoodCandidate(candidates);
+      if (scoredCandidate?.good) return { good: scoredCandidate.good, candidate: scoredCandidate, reason: "score" };
+      return { good: input?.fallbackGood || null, candidate: null, reason: "fallback" };
+    }
+
     return {
       customerPriceRule,
       customerProfile,
@@ -559,6 +618,7 @@ namespace XiannongCore.Shop {
       shopCompendiumCustomerSupport,
       shopWeatherShelfChoiceSupport,
       shopWeatherShelfChoiceWeight,
+      matchCustomerGood,
     };
   }
 }
