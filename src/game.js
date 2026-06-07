@@ -17200,6 +17200,14 @@ function applyConfiguredEventAction(action, context = {}) {
     if (!action.onlyIfNotStarted || !state.missionDone.has(action.questId)) state.missionDone.add(action.questId);
     return null;
   }
+  if (action.kind === "complete_flag") {
+    state.completed.add(action.flag);
+    return null;
+  }
+  if (action.kind === "check_quest_rewards") {
+    checkQuestRewards();
+    return null;
+  }
   return null;
 }
 
@@ -17311,10 +17319,20 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "shop_tutorial_complete" || (!actionKind && executeGroup.includes("shop_tutorial_complete"))) {
-    state.completed.add("shop_tutorial_complete");
-    state.completed.add("quest_main_0201_step_2_done");
+    const actionPlan = runtime?.configuredEventShopTutorialActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      completedFlags: ["shop_tutorial_complete", "quest_main_0201_step_2_done"],
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: "shop_tutorial_complete" },
+        { kind: "complete_flag", flag: "quest_main_0201_step_2_done" },
+        { kind: "check_quest_rewards" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan);
     addLog("Shop tutorial complete", `${eventName}: real shop sales reached ${Number(state.shopStats?.soldCount || 0)} sold items; next target is 800 total sales.`);
-    checkQuestRewards();
     return true;
   }
 

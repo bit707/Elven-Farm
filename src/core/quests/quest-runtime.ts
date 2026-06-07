@@ -207,6 +207,7 @@ namespace XiannongCore.Quests {
     configuredEventSideQuestActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSideQuestActionPlan;
     configuredEventMainQuestActionPlan(event: ConfiguredTriggerRow): ConfiguredEventMainQuestActionPlan;
     configuredEventCutsceneActionPlan(event: ConfiguredTriggerRow): ConfiguredEventCutsceneActionPlan;
+    configuredEventShopTutorialActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopTutorialActionPlan;
     configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan;
   }
 
@@ -265,6 +266,13 @@ namespace XiannongCore.Quests {
       kind: "start_main_quest";
       questId: string;
       onlyIfNotStarted: boolean;
+    }
+    | {
+      kind: "complete_flag";
+      flag: string;
+    }
+    | {
+      kind: "check_quest_rewards";
     };
 
   export interface ConfiguredEventSideQuestActionPlan {
@@ -287,6 +295,14 @@ namespace XiannongCore.Quests {
     applies: boolean;
     eventId: string;
     dialogueGroup: string;
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventShopTutorialActionPlan {
+    applies: boolean;
+    eventId: string;
+    executeGroup: string;
+    completedFlags: string[];
     actions: ConfiguredEventExecutionAction[];
   }
 
@@ -1042,6 +1058,26 @@ namespace XiannongCore.Quests {
       };
     }
 
+    function configuredEventShopTutorialActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopTutorialActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "shop_tutorial_complete";
+      const completedFlags = applies ? ["shop_tutorial_complete", "quest_main_0201_step_2_done"] : [];
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          ...completedFlags.map((flag) => ({ kind: "complete_flag" as const, flag })),
+          { kind: "check_quest_rewards" },
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        executeGroup: plan.executeGroup,
+        completedFlags,
+        actions,
+      };
+    }
+
     function configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan {
       const plan = configuredEventExecutionPlan(event);
       const applies = plan.actionKind === "generic_unlock";
@@ -1150,6 +1186,7 @@ namespace XiannongCore.Quests {
       configuredEventSideQuestActionPlan,
       configuredEventMainQuestActionPlan,
       configuredEventCutsceneActionPlan,
+      configuredEventShopTutorialActionPlan,
       configuredEventGenericUnlockActionPlan,
     };
   }

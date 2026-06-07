@@ -2999,6 +2999,7 @@ for (const questRuntimeTerm of [
   "runtime?.configuredEventSideQuestActionPlan(event)",
   "runtime?.configuredEventMainQuestActionPlan(event)",
   "runtime?.configuredEventCutsceneActionPlan(event)",
+  "runtime?.configuredEventShopTutorialActionPlan(event)",
   "runtime?.configuredEventGenericUnlockActionPlan(event)",
   "applyConfiguredEventActionPlan(actionPlan)",
   "applyConfiguredEventAction(action",
@@ -3260,15 +3261,19 @@ for (const questCoreSourceTerm of [
   "export interface ConfiguredEventSideQuestActionPlan",
   "export interface ConfiguredEventMainQuestActionPlan",
   "export interface ConfiguredEventCutsceneActionPlan",
+  "export interface ConfiguredEventShopTutorialActionPlan",
   "export interface ConfiguredEventGenericUnlockActionPlan",
   "configuredEventSideQuestActionPlan(event",
   "configuredEventMainQuestActionPlan(event",
   "configuredEventCutsceneActionPlan(event",
+  "configuredEventShopTutorialActionPlan(event",
   "configuredEventGenericUnlockActionPlan(event",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
   "kind: \"present_side_quest\"",
   "kind: \"start_main_quest\"",
+  "kind: \"complete_flag\"",
+  "kind: \"check_quest_rewards\"",
   "configuredEventReadyQueue()",
   "configuredEventActionKind(event",
   "dialogueGroupForExecuteGroup(executeGroup",
@@ -3331,11 +3336,14 @@ for (const questCoreRuntimeTerm of [
   "function configuredEventSideQuestActionPlan",
   "function configuredEventMainQuestActionPlan",
   "function configuredEventCutsceneActionPlan",
+  "function configuredEventShopTutorialActionPlan",
   "function configuredEventGenericUnlockActionPlan",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
   "kind: \"present_side_quest\"",
   "kind: \"start_main_quest\"",
+  "kind: \"complete_flag\"",
+  "kind: \"check_quest_rewards\"",
   "function dialogueGroupForExecuteGroup",
   "function dialogueLinesForGroup",
   "hooks.localize",
@@ -5633,7 +5641,8 @@ if (!game.includes('if (building.unlock_type === "completed") return state.compl
   throw new Error("Shop-opening runtime must unlock completed-gated buildings and advance sell steps from real shop stats");
 }
 if (!game.includes('executeGroup.includes("shop_tutorial_complete")')
-  || !game.includes('state.completed.add("quest_main_0201_step_2_done")')
+  || !game.includes("runtime?.configuredEventShopTutorialActionPlan(event)")
+  || !game.includes('flag: "quest_main_0201_step_2_done"')
   || !game.includes('executeGroup.includes("spawn_hu_sihai")')
   || !game.includes('state.completed.add("npc_hu_sihai_arrived")')
   || !game.includes('queueDialogueGroup("dialogue_hu_default")')) {

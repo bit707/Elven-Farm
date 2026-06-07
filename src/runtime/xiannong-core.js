@@ -2159,6 +2159,25 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventShopTutorialActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "shop_tutorial_complete";
+                const completedFlags = applies ? ["shop_tutorial_complete", "quest_main_0201_step_2_done"] : [];
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        { kind: "check_quest_rewards" },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    completedFlags,
+                    actions,
+                };
+            }
             function configuredEventGenericUnlockActionPlan(event) {
                 const plan = configuredEventExecutionPlan(event);
                 const applies = plan.actionKind === "generic_unlock";
@@ -2265,6 +2284,7 @@ var XiannongCore;
                 configuredEventSideQuestActionPlan,
                 configuredEventMainQuestActionPlan,
                 configuredEventCutsceneActionPlan,
+                configuredEventShopTutorialActionPlan,
                 configuredEventGenericUnlockActionPlan,
             };
         }
