@@ -17178,7 +17178,7 @@ function questForExecuteGroup(executeGroup, side = false) {
 
 let scanningConfiguredEvents = false;
 
-function applyConfiguredEventSideQuestAction(action, context = {}) {
+function applyConfiguredEventAction(action, context = {}) {
   if (!action?.kind) return null;
   if (action.kind === "trigger_event") {
     state.triggeredEvents.add(action.eventId);
@@ -17196,13 +17196,17 @@ function applyConfiguredEventSideQuestAction(action, context = {}) {
     if (action.groupId) showDialogue(action.groupId);
     return null;
   }
+  if (action.kind === "start_main_quest") {
+    if (!action.onlyIfNotStarted || !state.missionDone.has(action.questId)) state.missionDone.add(action.questId);
+    return null;
+  }
   return null;
 }
 
-function applyConfiguredEventSideQuestActionPlan(actionPlan) {
+function applyConfiguredEventActionPlan(actionPlan) {
   let presented = 0;
   for (const action of actionPlan?.actions || []) {
-    const result = applyConfiguredEventSideQuestAction(action, { presented });
+    const result = applyConfiguredEventAction(action, { presented });
     if (typeof result === "number") presented = result;
   }
   return presented;
@@ -17231,7 +17235,7 @@ function executeConfiguredEvent(event, source = "runtime") {
     };
     const quest = plan?.sideQuest || data.sideQuests.find((entry) => entry.quest_id === event.quest_id);
     addLog("支线开启", `${questTitle(quest || { quest_id: event.quest_id })}：${event.note || eventName}`);
-    const presented = applyConfiguredEventSideQuestActionPlan(actionPlan);
+    const presented = applyConfiguredEventActionPlan(actionPlan);
     state.sideQuestFeedback = sideQuestFeedbackSpec(actionPlan.questId || event.quest_id, "accept", "after_accept", "", presented);
     return true;
   }
@@ -17253,11 +17257,18 @@ function executeConfiguredEvent(event, source = "runtime") {
 
   if (actionKind === "start_main_quest" || (!actionKind && executeGroup.includes("start_quest_main"))) {
     const quest = plan?.quest || questForExecuteGroup(executeGroup);
-    if (quest && !state.missionDone.has(quest.quest_id)) {
-      state.missionDone.add(quest.quest_id);
-      const dialogueGroup = plan?.dialogueGroup || dialogueGroupForExecuteGroup(executeGroup);
-      if (dialogueGroup) showDialogue(dialogueGroup);
-    }
+    const actionPlan = runtime?.configuredEventMainQuestActionPlan(event) || {
+      applies: Boolean(quest),
+      eventId: event.event_id || "",
+      questId: quest?.quest_id || "",
+      dialogueGroup: plan?.dialogueGroup || dialogueGroupForExecuteGroup(executeGroup),
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        ...(quest ? [{ kind: "start_main_quest", questId: quest.quest_id, onlyIfNotStarted: true }] : []),
+        ...((plan?.dialogueGroup || dialogueGroupForExecuteGroup(executeGroup)) ? [{ kind: "show_dialogue", groupId: plan?.dialogueGroup || dialogueGroupForExecuteGroup(executeGroup), when: "if_not_presented" }] : []),
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan);
     addLog("配置事件", `${eventName}：${quest ? questTitle(quest) : executeGroup}`);
     return true;
   }

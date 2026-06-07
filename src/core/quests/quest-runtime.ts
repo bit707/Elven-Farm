@@ -205,6 +205,7 @@ namespace XiannongCore.Quests {
     questForExecuteGroup(executeGroup: string, side?: boolean): QuestRow | null;
     configuredEventExecutionPlan(event: ConfiguredTriggerRow): ConfiguredEventExecutionPlan;
     configuredEventSideQuestActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSideQuestActionPlan;
+    configuredEventMainQuestActionPlan(event: ConfiguredTriggerRow): ConfiguredEventMainQuestActionPlan;
   }
 
   export interface QuestRewardClaimResult {
@@ -257,9 +258,22 @@ namespace XiannongCore.Quests {
       kind: "show_dialogue";
       groupId: string;
       when: "if_not_presented";
+    }
+    | {
+      kind: "start_main_quest";
+      questId: string;
+      onlyIfNotStarted: boolean;
     };
 
   export interface ConfiguredEventSideQuestActionPlan {
+    applies: boolean;
+    eventId: string;
+    questId: string;
+    dialogueGroup: string;
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventMainQuestActionPlan {
     applies: boolean;
     eventId: string;
     questId: string;
@@ -975,6 +989,26 @@ namespace XiannongCore.Quests {
       };
     }
 
+    function configuredEventMainQuestActionPlan(event: ConfiguredTriggerRow): ConfiguredEventMainQuestActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const questId = plan.quest?.quest_id || "";
+      const applies = plan.actionKind === "start_main_quest" && Boolean(questId);
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          { kind: "start_main_quest", questId, onlyIfNotStarted: true },
+          ...(plan.dialogueGroup ? [{ kind: "show_dialogue" as const, groupId: plan.dialogueGroup, when: "if_not_presented" as const }] : []),
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        questId,
+        dialogueGroup: plan.dialogueGroup,
+        actions,
+      };
+    }
+
     function rewardPoolEntries(poolId: string): RewardPoolRow[] {
       return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
     }
@@ -1067,6 +1101,7 @@ namespace XiannongCore.Quests {
       questForExecuteGroup,
       configuredEventExecutionPlan,
       configuredEventSideQuestActionPlan,
+      configuredEventMainQuestActionPlan,
     };
   }
 }
