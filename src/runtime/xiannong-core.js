@@ -587,6 +587,35 @@ var XiannongCore;
                     overflowRelief,
                 };
             }
+            function dungeonFailureInsightApplyPlan(input = null) {
+                const insight = input?.insight || dungeonFailureInsightPlan({ key: input?.key || "", reason: input?.reason || "battle" });
+                const key = input?.key || insight.key || "";
+                const text = input?.codexText || {};
+                const reason = input?.reason || insight.lastReason || "battle";
+                const support = text.support
+                    || text.rewardText
+                    || (Number(insight.pathBonus || 0) > 0 ? `Path pressure -${insight.pathBonus}` : "Failure insight retained");
+                return {
+                    nextInsights: {
+                        ...(input?.insights || {}),
+                        [key]: insight,
+                    },
+                    codexEntry: {
+                        id: `failure_dungeon_${key}`,
+                        type: "dungeon",
+                        sourceId: key,
+                        title: text.title || (reason === "boss" ? "Boss failure insight" : "Dungeon failure insight"),
+                        headline: text.headline || "Dungeon route memory retained",
+                        problem: text.problem || (reason === "boss" ? "Boss forced a retreat" : reason === "overflow" ? "Solar mechanic overflow blocked progress" : "Dungeon exploration ended early"),
+                        insight: text.insight || "This dungeon now has reusable route memory.",
+                        nextAction: text.nextAction || "Next entry will be easier to read.",
+                        support,
+                        rewardText: text.rewardText || support,
+                        tone: text.tone || (reason === "boss" ? "boss" : "learn"),
+                        icon: text.icon || (reason === "boss" ? "B" : "D"),
+                    },
+                };
+            }
             function dungeonPostBattleSideEffectPlan(input = null) {
                 const bossId = input?.bossId || "";
                 const storyHooks = [];
@@ -643,6 +672,7 @@ var XiannongCore;
                 dungeonBossClearPlan,
                 dungeonFailureRewardPlan,
                 dungeonFailureInsightPlan,
+                dungeonFailureInsightApplyPlan,
                 dungeonPostBattleSideEffectPlan,
             };
         }

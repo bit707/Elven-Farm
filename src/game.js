@@ -41693,15 +41693,8 @@ function recordDungeonFailureInsight(reason = "battle", run = state.dungeon, dun
   const nextBossSkill = insight.bossNextSkillId ? data.bossSkills.find((skill) => skill.boss_skill_id === insight.bossNextSkillId) : null;
   insight.bossNextSkillName = nextBossSkill ? skillName(nextBossSkill) : "";
   insight.note = dungeonFailureInsightNote(reason, dungeon, mechanic, insight);
-  state.dungeonFailureInsights = {
-    ...(state.dungeonFailureInsights || {}),
-    [key]: insight,
-  };
   const summary = dungeonFailureInsightSummary(insight);
-  recordFailureCodexEntry({
-    id: `failure_dungeon_${key}`,
-    type: "dungeon",
-    sourceId: key,
+  const codexText = {
     title: summary?.title || "秘境失利见闻",
     headline: `${dungeonName(dungeon)} 的路感被记住了`,
     problem: reason === "boss" ? `${bossName(dungeonBossId(dungeon))} 把你逼退` : reason === "overflow" ? "节气机关满溢压住了推进" : "秘境探索中途撤退",
@@ -41711,7 +41704,27 @@ function recordDungeonFailureInsight(reason = "battle", run = state.dungeon, dun
     rewardText: summary?.bossMemory || (Number(insight.pathBonus || 0) > 0 ? `下次路压 -${insight.pathBonus}` : "已保留探索见闻"),
     tone: reason === "boss" ? "boss" : "learn",
     icon: reason === "boss" ? "魇" : "境",
-  });
+  };
+  const applyPlan = dungeonRuntime()?.dungeonFailureInsightApplyPlan({
+    key,
+    reason,
+    insight,
+    insights: state.dungeonFailureInsights || {},
+    codexText,
+  }) || {
+    nextInsights: {
+      ...(state.dungeonFailureInsights || {}),
+      [key]: insight,
+    },
+    codexEntry: {
+      id: `failure_dungeon_${key}`,
+      type: "dungeon",
+      sourceId: key,
+      ...codexText,
+    },
+  };
+  state.dungeonFailureInsights = applyPlan.nextInsights;
+  recordFailureCodexEntry(applyPlan.codexEntry);
   return insight;
 }
 
