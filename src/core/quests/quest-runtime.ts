@@ -182,6 +182,7 @@ namespace XiannongCore.Quests {
     sideQuestStepAdvanceAmount(step: QuestStepRow | null | undefined): number;
     sideQuestActionState(quest: QuestRow | null | undefined): SideQuestActionState;
     sideQuestRouteActionState(quest: QuestRow | null | undefined): SideQuestActionState;
+    sideQuestResolvePlan(quest: QuestRow | null | undefined): SideQuestResolvePlan;
     sideQuestActionLabel(quest: QuestRow | null | undefined): string;
     sideQuestRouteActionLabel(quest: QuestRow | null | undefined): string;
     sideQuestRewardPreviewText(quest: QuestRow | null | undefined): string;
@@ -256,6 +257,19 @@ namespace XiannongCore.Quests {
     kind: "missing" | "claimed" | "reward" | "accept" | "done" | "step";
     objectiveType: string;
     targetId: string;
+  }
+
+  export type SideQuestResolveKind = "missing" | "hidden" | "accept" | "reward" | "done" | "step";
+
+  export interface SideQuestResolvePlan {
+    kind: SideQuestResolveKind;
+    questId: string;
+    issuerId: string;
+    step: QuestStepRow | null;
+    before: number;
+    targetCount: number;
+    amount: number;
+    timing: string;
   }
 
   export type SideQuestClueStatus = "reward" | "active" | "ready" | "visible" | "locked";
@@ -576,6 +590,48 @@ namespace XiannongCore.Quests {
       return { kind: "step", objectiveType: step.objective_type || "", targetId: step.target_id || "" };
     }
 
+    function sideQuestResolveTiming(step: QuestStepRow | null): string {
+      const type = step?.objective_type || "";
+      if (type === "talk") return "after_talk";
+      if (type === "build") return "after_build";
+      if (type === "craft") return "after_complete";
+      if (type === "sell") return "after_sell";
+      if (type === "defeat") return "after_finish";
+      if (type === "enter_area") return "after_trigger";
+      return "after_collect";
+    }
+
+    function sideQuestResolvePlan(quest: QuestRow | null | undefined): SideQuestResolvePlan {
+      const questId = quest?.quest_id || "";
+      const base = {
+        questId,
+        issuerId: quest?.issuer_id || "",
+        step: null,
+        before: 0,
+        targetCount: 0,
+        amount: 0,
+        timing: "after_collect",
+      };
+      if (!quest) return { ...base, kind: "missing" };
+      if (!sideQuestVisible(quest)) return { ...base, kind: "hidden" };
+      if (!sideQuestAccepted(quest)) return { ...base, kind: "accept" };
+      if (questRewardReady(quest, true)) return { ...base, kind: "reward" };
+      const step = currentSideQuestStep(quest);
+      if (!step) return { ...base, kind: "done" };
+      const before = stepProgress(step);
+      const targetCount = Number(step.target_count || 1);
+      const amount = sideQuestStepAdvanceAmount(step);
+      return {
+        ...base,
+        kind: "step",
+        step,
+        before,
+        targetCount,
+        amount,
+        timing: sideQuestResolveTiming(step),
+      };
+    }
+
     function sideQuestActionLabel(quest: QuestRow | null | undefined): string {
       return hooks.formatSideQuestActionLabel(sideQuestActionState(quest));
     }
@@ -839,6 +895,7 @@ namespace XiannongCore.Quests {
       sideQuestStepAdvanceAmount,
       sideQuestActionState,
       sideQuestRouteActionState,
+      sideQuestResolvePlan,
       sideQuestActionLabel,
       sideQuestRouteActionLabel,
       sideQuestRewardPreviewText,

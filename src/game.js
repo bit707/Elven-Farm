@@ -17803,30 +17803,31 @@ function sideQuestStepAdvanceAmount(step) {
 function resolveSideQuestStep(questId = "") {
   const quest = data.sideQuests.find((entry) => entry.quest_id === questId);
   if (!quest) return addLog("支线行动", "没有找到这条支线。");
-  if (!sideQuestVisible(quest)) return addLog("支线行动", `${questTitle(quest)} 的触发条件还没有满足。`);
-  if (!state.activeSideQuests.has(quest.quest_id) && quest.auto_accept !== "true") {
-    return acceptTownLifeSideQuest(quest.issuer_id, quest.quest_id);
+  const resolvePlan = questRuntime()?.sideQuestResolvePlan(quest) || null;
+  if (resolvePlan?.kind === "hidden" || !resolvePlan && !sideQuestVisible(quest)) return addLog("支线行动", `${questTitle(quest)} 的触发条件还没有满足。`);
+  if (resolvePlan?.kind === "accept" || !resolvePlan && !state.activeSideQuests.has(quest.quest_id) && quest.auto_accept !== "true") {
+    return acceptTownLifeSideQuest(resolvePlan?.issuerId || quest.issuer_id, quest.quest_id);
   }
-  if (questRewardReady(quest, true)) {
+  if (resolvePlan?.kind === "reward" || !resolvePlan && questRewardReady(quest, true)) {
     claimQuestReward(quest, true);
     playCue("成就解锁");
     render();
     return;
   }
 
-  const step = currentSideQuestStep(quest);
-  if (!step) {
+  const step = resolvePlan?.step || currentSideQuestStep(quest);
+  if (resolvePlan?.kind === "done" || !step) {
     state.sideQuestFeedback = sideQuestFeedbackSpec(quest.quest_id, "finish", "after_complete", "", 0);
     addLog("支线收束", `${questTitle(quest)} 已经没有未完成步骤，可以回任务面板查看奖励状态。`);
     render();
     return;
   }
 
-  const before = stepProgress(step);
-  const targetCount = Number(step.target_count || 1);
-  const amount = sideQuestStepAdvanceAmount(step);
+  const before = Number.isFinite(resolvePlan?.before) ? resolvePlan.before : stepProgress(step);
+  const targetCount = Number.isFinite(resolvePlan?.targetCount) ? resolvePlan.targetCount : Number(step.target_count || 1);
+  const amount = Number.isFinite(resolvePlan?.amount) ? resolvePlan.amount : sideQuestStepAdvanceAmount(step);
   let detail = "";
-  let timing = "after_collect";
+  let timing = resolvePlan?.timing || "after_collect";
 
   if (step.objective_type === "talk") {
     const maps = sideQuestPresentationMaps(quest.quest_id, "after_talk", step.step_id);
