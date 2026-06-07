@@ -2143,6 +2143,39 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventFirstSpiritBirthActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "birth_first_spirit";
+                const shouldSummon = applies && (state.spirits?.length || 0) === 0;
+                const spiritId = applies ? "spirit_luobo_01" : "";
+                const job = applies ? "farm" : "";
+                const completedFlags = shouldSummon ? ["spirit"] : [];
+                const cue = shouldSummon ? "\u7b2c\u4e00\u6b21\u6210\u7cbe" : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...(shouldSummon ? [
+                            { kind: "summon_first_spirit", spiritId, job },
+                            { kind: "set_spirit_guaranteed", value: true },
+                            ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                            { kind: "trigger_spirit_join_feedback", source: "first_join" },
+                            { kind: "play_cue", cue },
+                            { kind: "log_first_spirit_birth" },
+                        ] : []),
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    shouldSummon,
+                    spiritId,
+                    job,
+                    completedFlags,
+                    cue,
+                    actions,
+                };
+            }
             function configuredEventCutsceneActionPlan(event) {
                 const plan = configuredEventExecutionPlan(event);
                 const applies = plan.actionKind === "cutscene";
@@ -3000,6 +3033,7 @@ var XiannongCore;
                 configuredEventExecutionPlan,
                 configuredEventSideQuestActionPlan,
                 configuredEventMainQuestActionPlan,
+                configuredEventFirstSpiritBirthActionPlan,
                 configuredEventCutsceneActionPlan,
                 configuredEventShopTutorialActionPlan,
                 configuredEventHuSihaiArrivalActionPlan,

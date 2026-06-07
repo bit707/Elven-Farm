@@ -216,6 +216,7 @@ namespace XiannongCore.Quests {
     configuredEventExecutionPlan(event: ConfiguredTriggerRow): ConfiguredEventExecutionPlan;
     configuredEventSideQuestActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSideQuestActionPlan;
     configuredEventMainQuestActionPlan(event: ConfiguredTriggerRow): ConfiguredEventMainQuestActionPlan;
+    configuredEventFirstSpiritBirthActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFirstSpiritBirthActionPlan;
     configuredEventCutsceneActionPlan(event: ConfiguredTriggerRow): ConfiguredEventCutsceneActionPlan;
     configuredEventShopTutorialActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopTutorialActionPlan;
     configuredEventHuSihaiArrivalActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHuSihaiArrivalActionPlan;
@@ -299,6 +300,22 @@ namespace XiannongCore.Quests {
     | {
       kind: "complete_flag";
       flag: string;
+    }
+    | {
+      kind: "summon_first_spirit";
+      spiritId: string;
+      job: string;
+    }
+    | {
+      kind: "set_spirit_guaranteed";
+      value: boolean;
+    }
+    | {
+      kind: "trigger_spirit_join_feedback";
+      source: string;
+    }
+    | {
+      kind: "log_first_spirit_birth";
     }
     | {
       kind: "mark_boss_defeated";
@@ -495,6 +512,18 @@ namespace XiannongCore.Quests {
     applies: boolean;
     eventId: string;
     dialogueGroup: string;
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventFirstSpiritBirthActionPlan {
+    applies: boolean;
+    eventId: string;
+    executeGroup: string;
+    shouldSummon: boolean;
+    spiritId: string;
+    job: string;
+    completedFlags: string[];
+    cue: string;
     actions: ConfiguredEventExecutionAction[];
   }
 
@@ -1494,6 +1523,40 @@ namespace XiannongCore.Quests {
       };
     }
 
+    function configuredEventFirstSpiritBirthActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFirstSpiritBirthActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "birth_first_spirit";
+      const shouldSummon = applies && (state.spirits?.length || 0) === 0;
+      const spiritId = applies ? "spirit_luobo_01" : "";
+      const job = applies ? "farm" : "";
+      const completedFlags = shouldSummon ? ["spirit"] : [];
+      const cue = shouldSummon ? "\u7b2c\u4e00\u6b21\u6210\u7cbe" : "";
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          ...(shouldSummon ? [
+            { kind: "summon_first_spirit" as const, spiritId, job },
+            { kind: "set_spirit_guaranteed" as const, value: true },
+            ...completedFlags.map((flag) => ({ kind: "complete_flag" as const, flag })),
+            { kind: "trigger_spirit_join_feedback" as const, source: "first_join" },
+            { kind: "play_cue" as const, cue },
+            { kind: "log_first_spirit_birth" as const },
+          ] : []),
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        executeGroup: plan.executeGroup,
+        shouldSummon,
+        spiritId,
+        job,
+        completedFlags,
+        cue,
+        actions,
+      };
+    }
+
     function configuredEventCutsceneActionPlan(event: ConfiguredTriggerRow): ConfiguredEventCutsceneActionPlan {
       const plan = configuredEventExecutionPlan(event);
       const applies = plan.actionKind === "cutscene";
@@ -2374,6 +2437,7 @@ namespace XiannongCore.Quests {
       configuredEventExecutionPlan,
       configuredEventSideQuestActionPlan,
       configuredEventMainQuestActionPlan,
+      configuredEventFirstSpiritBirthActionPlan,
       configuredEventCutsceneActionPlan,
       configuredEventShopTutorialActionPlan,
       configuredEventHuSihaiArrivalActionPlan,

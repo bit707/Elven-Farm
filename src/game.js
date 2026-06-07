@@ -17218,6 +17218,26 @@ function applyConfiguredEventAction(action, context = {}) {
     state.completed.add(action.flag);
     return null;
   }
+  if (action.kind === "summon_first_spirit") {
+    if (state.spirits.length > 0) return state.spirits[0];
+    const spirit = data.spirits.find((entry) => entry.spirit_id === action.spiritId);
+    const joinedSpirit = createSpiritInstance(spirit, action.job || "farm");
+    state.spirits.push(joinedSpirit);
+    return joinedSpirit;
+  }
+  if (action.kind === "set_spirit_guaranteed") {
+    state.spiritGuaranteed = Boolean(action.value);
+    return null;
+  }
+  if (action.kind === "trigger_spirit_join_feedback") {
+    const joinedSpirit = context.lastResult || state.spirits[0];
+    if (joinedSpirit) triggerSpiritJoinFeedback(joinedSpirit, action.source || "first_join");
+    return null;
+  }
+  if (action.kind === "log_first_spirit_birth") {
+    addLog("作物成精", "泥里探出一个胖乎乎的萝卜脑袋。大胖萝卜精加入洞天。");
+    return null;
+  }
   if (action.kind === "mark_boss_defeated") {
     state.defeatedBosses.add(action.bossId);
     return null;
@@ -17649,7 +17669,9 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if ((actionKind === "birth_first_spirit" || (!actionKind && executeGroup.includes("birth_first_spirit"))) && state.spirits.length === 0) {
-    unlockSpirit();
+    const actionPlan = runtime?.configuredEventFirstSpiritBirthActionPlan(event);
+    if (actionPlan?.applies) applyConfiguredEventActionPlan(actionPlan, { eventName });
+    else unlockSpirit();
     addLog("配置事件", `${eventName}：第一只精怪已按事件表入队。`);
     return true;
   }
@@ -56628,6 +56650,18 @@ function completeRareSpiritEvent(entryId) {
 }
 
 function unlockSpirit() {
+  const plan = questRuntime()?.configuredEventFirstSpiritBirthActionPlan({
+    event_id: "event_main_0005",
+    event_name_key: "event_name_main_0005",
+    trigger_type: "on_day_start",
+    trigger_param: "day_3_morning",
+    condition_group: "has_first_harvest",
+    execute_group: "exec_birth_first_spirit",
+  });
+  if (plan?.applies) {
+    applyConfiguredEventActionPlan(plan, { eventName: localize("event_name_main_0005", "第一只精怪诞生") });
+    return true;
+  }
   const spirit = data.spirits.find((entry) => entry.spirit_id === "spirit_luobo_01");
   const joinedSpirit = createSpiritInstance(spirit, "farm");
   state.spirits.push(joinedSpirit);
@@ -56636,6 +56670,7 @@ function unlockSpirit() {
   triggerSpiritJoinFeedback(joinedSpirit, "first_join");
   playCue("第一次成精");
   addLog("作物成精", "泥里探出一个胖乎乎的萝卜脑袋。大胖萝卜精加入洞天。");
+  return true;
 }
 
 function unlockSecondSpirit() {
