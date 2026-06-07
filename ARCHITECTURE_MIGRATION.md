@@ -15,7 +15,7 @@ This project keeps the current Web Canvas game instead of switching to Unity or 
 - `src/core/persistence/save-runtime.ts` defines a typed save adapter for browser storage and desktop JSON save bridges.
 - `src/core/quests/quest-runtime.ts` moves quest step progress, quest state checks, story quest start/done checks, quest reward claiming, configured event trigger readiness/ready-queue scanning/action classification/execute-group resolution/execution planning, side-quest route/action readiness, and side-quest clue visibility into TypeScript.
 - `src/core/shop/shop-runtime.ts` moves shop customer price rules, customer profiles, reputation score, merged customer preference views, and budget calculation into TypeScript.
-- `src/core/farming/farming-runtime.ts` moves crop target lookup, solar-term crop affinity, yield bonus, and projected harvest previews into TypeScript.
+- `src/core/farming/farming-runtime.ts` moves crop target lookup, solar-term crop affinity, yield bonus, projected harvest previews, harvest quality scoring, and crop growth visual specs into TypeScript.
 - `tools/build-runtime-data.mjs` converts gameplay CSV tables into `runtime-data/runtime-data.json`.
 - `src/runtime/xiannong-core.js` is the generated TypeScript runtime loaded before `src/game.js`.
 - `desktop-shell/main.mjs` and `desktop-shell/preload.cjs` expose `XiannongStorage`, writing the main profile to `Electron userData/saves/profile_1.json`.

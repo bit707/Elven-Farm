@@ -15631,6 +15631,8 @@ function farmingRuntime() {
       splitTags,
       localize,
       unresolvedRisks,
+      hasAnySpirit: () => state.spirits.length > 0,
+      qualityQuestItemIdForCrop,
     },
   );
   return farmingRuntimeCache;
@@ -36218,6 +36220,8 @@ function recordHarvestProgress(itemId, count = 0) {
 }
 
 function harvestQualitySpec(crop = null, plot = null, amount = 1, affinity = cropSolarAffinity(crop, plot)) {
+  const runtime = farmingRuntime();
+  if (runtime) return runtime.harvestQualitySpec(crop, plot, amount, affinity);
   if (!crop) return { score: 0, tier: 1, label: "凡品", qualityItemId: "", qualityCount: 0 };
   const baseScore = Number(crop.base_quality_weight || 50);
   const affinityBonus = affinity.state === "boost" ? 14 : affinity.state === "season" ? 8 : affinity.state === "risk" ? -16 : 0;
@@ -68876,6 +68880,8 @@ function cropSolarYieldBonus(crop = null, plot = null, affinity = cropSolarAffin
 }
 
 function cropWorldGrowthVisualSpec(crop = null, plot = null, plotIndex = 0) {
+  const runtime = farmingRuntime();
+  if (runtime) return runtime.cropWorldGrowthVisualSpec(crop, plot, plotIndex, state.day);
   if (!crop || !plot?.cropId) return null;
   const affinity = cropSolarAffinity(crop, plot);
   const yieldBonus = cropSolarYieldBonus(crop, plot, affinity);

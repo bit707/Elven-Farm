@@ -184,11 +184,88 @@ var XiannongCore;
                     yieldBonus,
                 };
             }
+            function harvestQualitySpec(crop = null, plot = null, amount = 1, affinity = cropSolarAffinity(crop, plot)) {
+                if (!crop)
+                    return { score: 0, tier: 1, label: "Normal", qualityItemId: "", qualityCount: 0 };
+                const baseScore = Number(crop.base_quality_weight || 50);
+                const affinityBonus = affinity?.state === "boost" ? 14 : affinity?.state === "season" ? 8 : affinity?.state === "risk" ? -16 : 0;
+                const soilBonus = plot?.waterSoil ? (crop.element_type === "water" ? 10 : 2) : 0;
+                const spiritBonus = hooks.hasAnySpirit() ? 4 : 0;
+                const cleanGrowBonus = plot?.watered ? 2 : 0;
+                const score = baseScore + affinityBonus + soilBonus + spiritBonus + cleanGrowBonus;
+                const tier = score >= 92 ? 3 : score >= 72 ? 2 : 1;
+                const qualityItemId = tier >= 2 ? hooks.qualityQuestItemIdForCrop(crop.crop_id) : "";
+                const qualityCount = qualityItemId
+                    ? Math.max(1, Math.min(Number(amount || 1), Math.round(Number(amount || 1) * (tier >= 3 ? 0.8 : 0.6))))
+                    : 0;
+                return {
+                    score,
+                    tier,
+                    label: tier >= 3 ? "Superior" : tier >= 2 ? "Fine" : "Normal",
+                    qualityItemId,
+                    qualityCount,
+                };
+            }
+            function cropWorldGrowthVisualSpec(crop = null, plot = null, plotIndex = 0, day = 1) {
+                if (!crop || !plot?.cropId)
+                    return null;
+                const affinity = cropSolarAffinity(crop, plot);
+                const yieldBonus = cropSolarYieldBonus(crop, plot, affinity);
+                const growDays = Math.max(1, Number(crop.grow_days || 1));
+                const age = Math.max(0, Number(day || 1) - Number(plot.plantedDay || day || 1));
+                const rawProgress = plot.mature ? 1 : Math.max(0.08, Math.min(0.96, (age + (plot.watered ? 0.32 : 0)) / growDays));
+                const stage = plot.mature
+                    ? "ripe"
+                    : rawProgress >= 0.72
+                        ? "bud"
+                        : rawProgress >= 0.38
+                            ? "leaf"
+                            : "sprout";
+                const stageLabel = {
+                    sprout: "Sprout",
+                    leaf: "Leaf",
+                    bud: "Bud",
+                    ripe: "Ripe",
+                }[stage] || "Growing";
+                const needsWater = !plot.mature && !plot.watered;
+                const affinityTone = affinity.state === "empty" ? "offseason" : affinity.state;
+                const palette = {
+                    boost: { accent: "#e0b66d", fill: "rgba(255, 248, 232, 0.9)", glow: "rgba(246, 240, 182, 0.28)" },
+                    season: { accent: "#48a868", fill: "rgba(237, 243, 223, 0.88)", glow: "rgba(202, 235, 210, 0.22)" },
+                    risk: { accent: "#be4f37", fill: "rgba(255, 240, 232, 0.92)", glow: "rgba(190, 79, 55, 0.2)" },
+                    offseason: { accent: "#8f5f3f", fill: "rgba(255, 253, 245, 0.82)", glow: "rgba(143, 95, 63, 0.13)" },
+                }[affinityTone] || { accent: "#5d6f65", fill: "rgba(255, 253, 245, 0.82)", glow: "rgba(93, 111, 101, 0.13)" };
+                const elementPalette = crop.element_type === "water"
+                    ? { body: "#4d91a6", leaf: "#caebd2" }
+                    : crop.element_type === "fire"
+                        ? { body: "#be4f37", leaf: "#f0a54e" }
+                        : crop.element_type === "wood"
+                            ? { body: "#48a868", leaf: "#f5f0b6" }
+                            : { body: "#b47d2f", leaf: "#286f58" };
+                return {
+                    affinity,
+                    yieldBonus,
+                    growDays,
+                    age,
+                    progress: rawProgress,
+                    stage,
+                    stageLabel,
+                    needsWater,
+                    remaining: plot.mature ? 0 : Math.max(0, growDays - age),
+                    spriteScale: plot.mature ? 0.76 : Math.max(0.34, 0.36 + rawProgress * 0.28),
+                    plotIndex,
+                    palette,
+                    elementPalette,
+                    badge: yieldBonus.amount > 0 ? `${affinity.label || "Term"}+${yieldBonus.amount}` : affinity.label || stageLabel,
+                };
+            }
             return {
                 cropForHarvestTarget,
                 cropSolarAffinity,
                 cropSolarYieldBonus,
                 seedProjectedHarvestSpec,
+                harvestQualitySpec,
+                cropWorldGrowthVisualSpec,
             };
         }
         Farming.createFarmingRuntime = createFarmingRuntime;

@@ -3009,6 +3009,8 @@ for (const farmingRuntimeTerm of [
   "runtime.cropSolarAffinity(crop, plot, term, weather)",
   "runtime.cropSolarYieldBonus(crop, plot, affinity)",
   "runtime.seedProjectedHarvestSpec(crop, plot)",
+  "runtime.harvestQualitySpec(crop, plot, amount, affinity)",
+  "runtime.cropWorldGrowthVisualSpec(crop, plot, plotIndex, state.day)",
 ]) {
   if (!game.includes(farmingRuntimeTerm)) throw new Error(`Farming TypeScript runtime bridge missing: ${farmingRuntimeTerm}`);
 }
@@ -3146,6 +3148,11 @@ for (const farmingCoreSourceTerm of [
   "cropSolarAffinity(",
   "cropSolarYieldBonus(crop",
   "seedProjectedHarvestSpec(crop",
+  "harvestQualitySpec(crop",
+  "cropWorldGrowthVisualSpec(crop",
+  "hooks.hasAnySpirit()",
+  "hooks.qualityQuestItemIdForCrop",
+  "spriteScale: plot.mature ? 0.76",
   "data.cropsById?.get",
   "data.cropsBySeed?.get",
   "hooks.unresolvedRisks()",
@@ -3162,6 +3169,11 @@ for (const farmingCoreRuntimeTerm of [
   "function cropSolarAffinity",
   "function cropSolarYieldBonus",
   "function seedProjectedHarvestSpec",
+  "function harvestQualitySpec",
+  "function cropWorldGrowthVisualSpec",
+  "hooks.hasAnySpirit()",
+  "hooks.qualityQuestItemIdForCrop",
+  "spriteScale: plot.mature ? 0.76",
   "data.cropsById?.get",
   "data.cropsBySeed?.get",
   "hooks.unresolvedRisks()",
