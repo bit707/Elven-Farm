@@ -16,6 +16,15 @@ namespace XiannongCore.Quests {
     [key: string]: string | undefined;
   }
 
+  export interface RewardPoolRow {
+    reward_pool_id: string;
+    reward_type: string;
+    reward_param: string;
+    reward_count?: string;
+    condition_group?: string;
+    [key: string]: string | undefined;
+  }
+
   export interface QuestRuntimeState {
     day?: number;
     gold?: number;
@@ -50,6 +59,7 @@ namespace XiannongCore.Quests {
     sideQuests: QuestRow[];
     questSteps: QuestStepRow[];
     sideQuestSteps: QuestStepRow[];
+    rewardPools: RewardPoolRow[];
     questStepsByQuest: Map<string, QuestStepRow[]>;
     sideQuestStepsByQuest: Map<string, QuestStepRow[]>;
     cropsBySeed: Map<string, { crop_id?: string }>;
@@ -81,6 +91,9 @@ namespace XiannongCore.Quests {
     baizhiChapterFinished(): boolean;
     year2Unlocked(): boolean;
     hasCoreLoop(): boolean;
+    sideQuestVisible(quest: QuestRow): boolean;
+    conditionMet(condition: string): boolean;
+    applyRewardEntry(entry: RewardPoolRow): string;
   }
 
   export interface QuestProgress {
@@ -97,6 +110,18 @@ namespace XiannongCore.Quests {
     mainStoryQuestStarted(quest: QuestRow | null | undefined): boolean;
     questStateMatches(questId: string, expected: string): boolean;
     questStepDone(stepId: string): boolean;
+    questRewardReady(quest: QuestRow | null | undefined, side?: boolean): boolean;
+    claimQuestReward(quest: QuestRow | null | undefined, side?: boolean): QuestRewardClaimResult;
+    checkQuestRewards(): QuestRewardClaimResult[];
+  }
+
+  export interface QuestRewardClaimResult {
+    claimed: boolean;
+    questId: string;
+    side: boolean;
+    rewards: string[];
+    finalStep: QuestStepRow | null;
+    reason: string;
   }
 
   function setHas(set: Set<string> | undefined, value: string): boolean {
@@ -286,6 +311,63 @@ namespace XiannongCore.Quests {
       return Boolean(step && stepProgress(step) >= Number(step.target_count || 1));
     }
 
+    function rewardPoolEntries(poolId: string): RewardPoolRow[] {
+      return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
+    }
+
+    function questRewardReady(quest: QuestRow | null | undefined, side = false): boolean {
+      if (!quest?.complete_reward_group || setHas(state.claimedQuestRewards, quest.quest_id)) return false;
+      if (side && !hooks.sideQuestVisible(quest)) return false;
+      const progress = questProgress(quest, side);
+      return progress.total > 0 && progress.done >= progress.total;
+    }
+
+    function claimQuestReward(quest: QuestRow | null | undefined, side = false): QuestRewardClaimResult {
+      const questId = quest?.quest_id || "";
+      if (!questRewardReady(quest, side)) {
+        return {
+          claimed: false,
+          questId,
+          side,
+          rewards: [],
+          finalStep: null,
+          reason: "not_ready",
+        };
+      }
+
+      const rewards = rewardPoolEntries(quest?.complete_reward_group || "")
+        .filter((entry) => hooks.conditionMet(entry.condition_group || "always_true"))
+        .map((entry) => hooks.applyRewardEntry(entry));
+
+      state.claimedQuestRewards?.add(questId);
+      if (side) state.activeSideQuests?.add(questId);
+      else state.missionDone?.add(questId);
+
+      const steps = side ? questStepsFor(quest, true) : [];
+      const finalStep = steps[steps.length - 1] || null;
+      return {
+        claimed: true,
+        questId,
+        side,
+        rewards,
+        finalStep,
+        reason: "claimed",
+      };
+    }
+
+    function checkQuestRewards(): QuestRewardClaimResult[] {
+      const results: QuestRewardClaimResult[] = [];
+      for (const quest of data.quests) {
+        const result = claimQuestReward(quest);
+        if (result.claimed) results.push(result);
+      }
+      for (const quest of data.sideQuests) {
+        const result = claimQuestReward(quest, true);
+        if (result.claimed) results.push(result);
+      }
+      return results;
+    }
+
     return {
       questStepsFor,
       stepProgress,
@@ -294,6 +376,9 @@ namespace XiannongCore.Quests {
       mainStoryQuestStarted,
       questStateMatches,
       questStepDone,
+      questRewardReady,
+      claimQuestReward,
+      checkQuestRewards,
     };
   }
 }

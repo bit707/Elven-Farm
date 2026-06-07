@@ -2893,6 +2893,7 @@ const desktopShellMain = readFileSync("desktop-shell/main.mjs", "utf8");
 const desktopShellPreload = readFileSync("desktop-shell/preload.cjs", "utf8");
 const desktopShellTemplate = readFileSync("desktop-shell/package.template.json", "utf8");
 const runtimeDataScript = readFileSync("tools/build-runtime-data.mjs", "utf8");
+const questRuntimeTs = readFileSync("src/core/quests/quest-runtime.ts", "utf8");
 const coreRuntimeJs = readFileSync("src/runtime/xiannong-core.js", "utf8");
 const runtimeDataManifest = JSON.parse(readFileSync("runtime-data/runtime-data.json", "utf8"));
 const packageJson = readFileSync("package.json", "utf8");
@@ -2964,8 +2965,38 @@ for (const questRuntimeTerm of [
   "runtime.mainStoryQuestStarted(quest)",
   "runtime.questStateMatches(questId, expected)",
   "runtime.questStepDone(stepId)",
+  "runtime.questRewardReady(quest, side)",
+  "runtime.claimQuestReward(quest, side)",
+  "runtime.checkQuestRewards()",
+  "finishClaimedQuestReward",
 ]) {
   if (!game.includes(questRuntimeTerm)) throw new Error(`Quest TypeScript runtime bridge missing: ${questRuntimeTerm}`);
+}
+
+for (const questCoreSourceTerm of [
+  "export interface RewardPoolRow",
+  "questRewardReady(",
+  "claimQuestReward(",
+  "checkQuestRewards()",
+  "hooks.applyRewardEntry",
+  "state.claimedQuestRewards?.add",
+  "state.missionDone?.add",
+  "state.activeSideQuests?.add",
+]) {
+  if (!questRuntimeTs.includes(questCoreSourceTerm)) throw new Error(`Quest TypeScript source missing reward runtime term: ${questCoreSourceTerm}`);
+}
+
+for (const questCoreRuntimeTerm of [
+  "function rewardPoolEntries",
+  "function questRewardReady",
+  "function claimQuestReward",
+  "function checkQuestRewards",
+  "hooks.applyRewardEntry",
+  "state.claimedQuestRewards?.add",
+  "state.missionDone?.add",
+  "state.activeSideQuests?.add",
+]) {
+  if (!coreRuntimeJs.includes(questCoreRuntimeTerm)) throw new Error(`Generated quest runtime missing reward term: ${questCoreRuntimeTerm}`);
 }
 
 for (const desktopSaveTerm of ["xiannong:save-json", "registerJsonSaveIpc", "SAVE_DIR_NAME", "savePathForProfile", "XiannongStorage", "writeProfile", "readProfile", "desktop-json-save-v1"]) {

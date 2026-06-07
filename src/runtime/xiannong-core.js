@@ -374,6 +374,62 @@ var XiannongCore;
                 const step = [...data.questSteps, ...data.sideQuestSteps].find((entry) => entry.step_id === stepId);
                 return Boolean(step && stepProgress(step) >= Number(step.target_count || 1));
             }
+            function rewardPoolEntries(poolId) {
+                return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
+            }
+            function questRewardReady(quest, side = false) {
+                if (!quest?.complete_reward_group || setHas(state.claimedQuestRewards, quest.quest_id))
+                    return false;
+                if (side && !hooks.sideQuestVisible(quest))
+                    return false;
+                const progress = questProgress(quest, side);
+                return progress.total > 0 && progress.done >= progress.total;
+            }
+            function claimQuestReward(quest, side = false) {
+                const questId = quest?.quest_id || "";
+                if (!questRewardReady(quest, side)) {
+                    return {
+                        claimed: false,
+                        questId,
+                        side,
+                        rewards: [],
+                        finalStep: null,
+                        reason: "not_ready",
+                    };
+                }
+                const rewards = rewardPoolEntries(quest?.complete_reward_group || "")
+                    .filter((entry) => hooks.conditionMet(entry.condition_group || "always_true"))
+                    .map((entry) => hooks.applyRewardEntry(entry));
+                state.claimedQuestRewards?.add(questId);
+                if (side)
+                    state.activeSideQuests?.add(questId);
+                else
+                    state.missionDone?.add(questId);
+                const steps = side ? questStepsFor(quest, true) : [];
+                const finalStep = steps[steps.length - 1] || null;
+                return {
+                    claimed: true,
+                    questId,
+                    side,
+                    rewards,
+                    finalStep,
+                    reason: "claimed",
+                };
+            }
+            function checkQuestRewards() {
+                const results = [];
+                for (const quest of data.quests) {
+                    const result = claimQuestReward(quest);
+                    if (result.claimed)
+                        results.push(result);
+                }
+                for (const quest of data.sideQuests) {
+                    const result = claimQuestReward(quest, true);
+                    if (result.claimed)
+                        results.push(result);
+                }
+                return results;
+            }
             return {
                 questStepsFor,
                 stepProgress,
@@ -382,6 +438,9 @@ var XiannongCore;
                 mainStoryQuestStarted,
                 questStateMatches,
                 questStepDone,
+                questRewardReady,
+                claimQuestReward,
+                checkQuestRewards,
             };
         }
         Quests.createQuestRuntime = createQuestRuntime;

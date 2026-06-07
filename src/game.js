@@ -7364,13 +7364,44 @@ function favorRewardSummary(reward) {
 }
 
 function questRewardReady(quest, side = false) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.questRewardReady(quest, side);
+
   if (!quest?.complete_reward_group || state.claimedQuestRewards.has(quest.quest_id)) return false;
   if (side && !sideQuestVisible(quest)) return false;
   const progress = questProgress(quest, side);
   return progress.total > 0 && progress.done >= progress.total;
 }
 
+function finishClaimedQuestReward(quest, side = false, result = null) {
+  const rewards = Array.isArray(result?.rewards) ? result.rewards : [];
+  if (side && quest.quest_id === "quest_side_0205_qinghe_pond") {
+    syncPondState();
+    state.pondState.waterControlUnlocked = true;
+    if (state.pondState.waterLevel === 0) state.pondState.waterLevel = 1;
+    complete("pond_water_control");
+    state.selectedRecipeId = "recipe_water_crop_intro";
+    triggerQinghePondProgressFeedback("recipe", { rewardText: rewards.join(" 路 ") });
+  }
+  if (side) {
+    const steps = questStepsFor(quest, true);
+    const finalStep = result?.finalStep || steps[steps.length - 1];
+    triggerSideQuestPresentation(quest.quest_id, "after_finish", finalStep?.step_id);
+    triggerSideQuestPresentation(quest.quest_id, "after_complete", finalStep?.step_id);
+    state.sideQuestFeedback = sideQuestFeedbackSpec(quest.quest_id, "finish", "after_complete", finalStep?.step_id, 1);
+  }
+  addLog("Quest complete", `${questTitle(quest)} rewards: ${rewards.join(", ") || "none"}.`);
+  return true;
+}
+
 function claimQuestReward(quest, side = false) {
+  const runtime = questRuntime();
+  if (runtime) {
+    const result = runtime.claimQuestReward(quest, side);
+    if (!result.claimed) return false;
+    return finishClaimedQuestReward(quest, side, result);
+  }
+
   if (!questRewardReady(quest, side)) return false;
   const rewards = rewardPoolEntries(quest.complete_reward_group)
     .filter((entry) => conditionMet(entry.condition_group || "always_true"))
@@ -7398,6 +7429,16 @@ function claimQuestReward(quest, side = false) {
 }
 
 function checkQuestRewards() {
+  const runtime = questRuntime();
+  if (runtime) {
+    const results = runtime.checkQuestRewards();
+    for (const result of results) {
+      const quest = (result.side ? data.sideQuests : data.quests).find((entry) => entry.quest_id === result.questId);
+      if (quest) finishClaimedQuestReward(quest, result.side, result);
+    }
+    return results.length;
+  }
+
   let claimed = 0;
   for (const quest of data.quests) {
     if (claimQuestReward(quest)) claimed += 1;
@@ -15566,6 +15607,7 @@ function questRuntime() {
       sideQuests: data.sideQuests,
       questSteps: data.questSteps,
       sideQuestSteps: data.sideQuestSteps,
+      rewardPools: data.rewardPools,
       questStepsByQuest: data.questStepsByQuest,
       sideQuestStepsByQuest: data.sideQuestStepsByQuest,
       cropsBySeed: data.cropsBySeed,
@@ -15595,6 +15637,9 @@ function questRuntime() {
       baizhiChapterFinished,
       year2Unlocked,
       hasCoreLoop,
+      sideQuestVisible,
+      conditionMet,
+      applyRewardEntry,
     },
   );
   return questRuntimeCache;
