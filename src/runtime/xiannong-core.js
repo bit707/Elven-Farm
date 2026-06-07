@@ -2104,6 +2104,26 @@ var XiannongCore;
                     sideQuest,
                 };
             }
+            function configuredEventSideQuestActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const questId = plan.questId || "";
+                const applies = plan.actionKind === "side_quest_accept" && Boolean(questId);
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        { kind: "activate_side_quest", questId },
+                        { kind: "present_side_quest", questId, phase: "accept", timing: "after_accept" },
+                        ...(plan.dialogueGroup ? [{ kind: "show_dialogue", groupId: plan.dialogueGroup, when: "if_not_presented" }] : []),
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    questId,
+                    dialogueGroup: plan.dialogueGroup,
+                    actions,
+                };
+            }
             function rewardPoolEntries(poolId) {
                 return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
             }
@@ -2194,6 +2214,7 @@ var XiannongCore;
                 flushQueuedDialoguePlan,
                 questForExecuteGroup,
                 configuredEventExecutionPlan,
+                configuredEventSideQuestActionPlan,
             };
         }
         Quests.createQuestRuntime = createQuestRuntime;

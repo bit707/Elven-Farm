@@ -204,6 +204,7 @@ namespace XiannongCore.Quests {
     flushQueuedDialoguePlan(queuedGroups: string[]): DialogueFlushPlan;
     questForExecuteGroup(executeGroup: string, side?: boolean): QuestRow | null;
     configuredEventExecutionPlan(event: ConfiguredTriggerRow): ConfiguredEventExecutionPlan;
+    configuredEventSideQuestActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSideQuestActionPlan;
   }
 
   export interface QuestRewardClaimResult {
@@ -235,6 +236,35 @@ namespace XiannongCore.Quests {
     questId: string;
     quest: QuestRow | null;
     sideQuest: QuestRow | null;
+  }
+
+  export type ConfiguredEventExecutionAction =
+    | {
+      kind: "trigger_event";
+      eventId: string;
+    }
+    | {
+      kind: "activate_side_quest";
+      questId: string;
+    }
+    | {
+      kind: "present_side_quest";
+      questId: string;
+      phase: "accept";
+      timing: "after_accept";
+    }
+    | {
+      kind: "show_dialogue";
+      groupId: string;
+      when: "if_not_presented";
+    };
+
+  export interface ConfiguredEventSideQuestActionPlan {
+    applies: boolean;
+    eventId: string;
+    questId: string;
+    dialogueGroup: string;
+    actions: ConfiguredEventExecutionAction[];
   }
 
   export type ConfiguredEventActionKind =
@@ -924,6 +954,27 @@ namespace XiannongCore.Quests {
       };
     }
 
+    function configuredEventSideQuestActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSideQuestActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const questId = plan.questId || "";
+      const applies = plan.actionKind === "side_quest_accept" && Boolean(questId);
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          { kind: "activate_side_quest", questId },
+          { kind: "present_side_quest", questId, phase: "accept", timing: "after_accept" },
+          ...(plan.dialogueGroup ? [{ kind: "show_dialogue" as const, groupId: plan.dialogueGroup, when: "if_not_presented" as const }] : []),
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        questId,
+        dialogueGroup: plan.dialogueGroup,
+        actions,
+      };
+    }
+
     function rewardPoolEntries(poolId: string): RewardPoolRow[] {
       return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
     }
@@ -1015,6 +1066,7 @@ namespace XiannongCore.Quests {
       flushQueuedDialoguePlan,
       questForExecuteGroup,
       configuredEventExecutionPlan,
+      configuredEventSideQuestActionPlan,
     };
   }
 }

@@ -17178,22 +17178,61 @@ function questForExecuteGroup(executeGroup, side = false) {
 
 let scanningConfiguredEvents = false;
 
+function applyConfiguredEventSideQuestAction(action, context = {}) {
+  if (!action?.kind) return null;
+  if (action.kind === "trigger_event") {
+    state.triggeredEvents.add(action.eventId);
+    return null;
+  }
+  if (action.kind === "activate_side_quest") {
+    state.activeSideQuests.add(action.questId);
+    return null;
+  }
+  if (action.kind === "present_side_quest") {
+    return triggerSideQuestPresentation(action.questId, action.timing || "after_accept");
+  }
+  if (action.kind === "show_dialogue") {
+    if (action.when === "if_not_presented" && context.presented) return null;
+    if (action.groupId) showDialogue(action.groupId);
+    return null;
+  }
+  return null;
+}
+
+function applyConfiguredEventSideQuestActionPlan(actionPlan) {
+  let presented = 0;
+  for (const action of actionPlan?.actions || []) {
+    const result = applyConfiguredEventSideQuestAction(action, { presented });
+    if (typeof result === "number") presented = result;
+  }
+  return presented;
+}
+
 function executeConfiguredEvent(event, source = "runtime") {
-  state.triggeredEvents.add(event.event_id);
   const runtime = questRuntime();
   const plan = runtime ? runtime.configuredEventExecutionPlan(event) : null;
   const executeGroup = plan?.executeGroup || event.execute_group || "";
   const eventName = localize(event.event_name_key, event.event_id);
   const actionKind = plan?.actionKind || "";
+  if (actionKind !== "side_quest_accept" && !(!actionKind && event.quest_id)) state.triggeredEvents.add(event.event_id);
 
   if (actionKind === "side_quest_accept" || (!actionKind && event.quest_id)) {
-    state.activeSideQuests.add(event.quest_id);
+    const actionPlan = runtime?.configuredEventSideQuestActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      questId: event.quest_id || "",
+      dialogueGroup: plan?.dialogueGroup || dialogueGroupForExecuteGroup(executeGroup),
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "activate_side_quest", questId: event.quest_id || "" },
+        { kind: "present_side_quest", questId: event.quest_id || "", phase: "accept", timing: "after_accept" },
+        ...((plan?.dialogueGroup || dialogueGroupForExecuteGroup(executeGroup)) ? [{ kind: "show_dialogue", groupId: plan?.dialogueGroup || dialogueGroupForExecuteGroup(executeGroup), when: "if_not_presented" }] : []),
+      ],
+    };
     const quest = plan?.sideQuest || data.sideQuests.find((entry) => entry.quest_id === event.quest_id);
     addLog("支线开启", `${questTitle(quest || { quest_id: event.quest_id })}：${event.note || eventName}`);
-    const presented = triggerSideQuestPresentation(event.quest_id, "after_accept");
-    state.sideQuestFeedback = sideQuestFeedbackSpec(event.quest_id, "accept", "after_accept", "", presented);
-    const dialogueGroup = plan?.dialogueGroup || dialogueGroupForExecuteGroup(executeGroup);
-    if (!presented && dialogueGroup) showDialogue(dialogueGroup);
+    const presented = applyConfiguredEventSideQuestActionPlan(actionPlan);
+    state.sideQuestFeedback = sideQuestFeedbackSpec(actionPlan.questId || event.quest_id, "accept", "after_accept", "", presented);
     return true;
   }
 
