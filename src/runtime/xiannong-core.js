@@ -1888,6 +1888,66 @@ var XiannongCore;
                 });
                 return candidates[0] || null;
             }
+            function sideQuestAcceptPlan(npcId = "", questId = "") {
+                const clue = sideQuestClueForNpc(npcId, questId);
+                const base = {
+                    kind: "missing",
+                    questId: "",
+                    npcId,
+                    trigger: null,
+                    quest: null,
+                    currentStep: null,
+                    rewardReady: false,
+                    active: false,
+                    ready: false,
+                    feedbackPhase: "",
+                    feedbackTiming: "",
+                    panelGroup: "",
+                    shouldRender: true,
+                    shouldSaveSettings: false,
+                    shouldPlayCue: false,
+                    cue: "",
+                };
+                if (!clue)
+                    return base;
+                const feedbackPhase = clue.rewardReady ? "finish" : clue.active ? "progress" : "accept";
+                const feedbackTiming = clue.rewardReady ? "after_complete" : clue.active ? "" : "after_accept";
+                const shared = {
+                    ...base,
+                    questId: clue.quest.quest_id,
+                    trigger: clue.trigger,
+                    quest: clue.quest,
+                    currentStep: clue.currentStep,
+                    rewardReady: clue.rewardReady,
+                    active: clue.active,
+                    ready: clue.ready,
+                    feedbackPhase,
+                    feedbackTiming,
+                    panelGroup: "core",
+                    shouldSaveSettings: clue.rewardReady || clue.active || clue.ready,
+                };
+                if (clue.rewardReady || clue.active) {
+                    return {
+                        ...shared,
+                        kind: "track",
+                    };
+                }
+                if (!clue.ready) {
+                    return {
+                        ...shared,
+                        kind: "locked",
+                        panelGroup: "",
+                        shouldSaveSettings: false,
+                    };
+                }
+                const triggerReady = Boolean(clue.trigger && !setHas(state.triggeredEvents, clue.trigger.event_id || "") && configuredTriggerReady(clue.trigger).ready);
+                return {
+                    ...shared,
+                    kind: triggerReady ? "start_from_trigger" : "start_direct",
+                    shouldPlayCue: true,
+                    cue: "任务完成",
+                };
+            }
             function configuredEventReadyQueue() {
                 const candidates = [];
                 const events = [...data.eventTriggers, ...data.sideQuestTriggers]
@@ -2111,6 +2171,7 @@ var XiannongCore;
                 sideQuestRewardPreviewText,
                 sideQuestVisible,
                 sideQuestClueForNpc,
+                sideQuestAcceptPlan,
                 configuredEventReadyQueue,
                 configuredEventActionKind,
                 dialogueGroupForExecuteGroup,

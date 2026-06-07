@@ -188,6 +188,7 @@ namespace XiannongCore.Quests {
     sideQuestRewardPreviewText(quest: QuestRow | null | undefined): string;
     sideQuestVisible(quest: QuestRow | null | undefined): boolean;
     sideQuestClueForNpc(npcId?: string, questId?: string): SideQuestClue | null;
+    sideQuestAcceptPlan(npcId?: string, questId?: string): SideQuestAcceptPlan;
     configuredEventReadyQueue(): ConfiguredEventCandidate[];
     configuredEventActionKind(event: ConfiguredTriggerRow): ConfiguredEventActionKind;
     dialogueGroupForExecuteGroup(executeGroup: string): string;
@@ -285,6 +286,27 @@ namespace XiannongCore.Quests {
     status: SideQuestClueStatus;
     progress: QuestProgress;
     currentStep: QuestStepRow | null;
+  }
+
+  export type SideQuestAcceptKind = "missing" | "track" | "locked" | "start_from_trigger" | "start_direct";
+
+  export interface SideQuestAcceptPlan {
+    kind: SideQuestAcceptKind;
+    questId: string;
+    npcId: string;
+    trigger: ConfiguredTriggerRow | null;
+    quest: QuestRow | null;
+    currentStep: QuestStepRow | null;
+    rewardReady: boolean;
+    active: boolean;
+    ready: boolean;
+    feedbackPhase: "accept" | "finish" | "progress" | "";
+    feedbackTiming: string;
+    panelGroup: string;
+    shouldRender: boolean;
+    shouldSaveSettings: boolean;
+    shouldPlayCue: boolean;
+    cue: string;
   }
 
   function setHas(set: Set<string> | undefined, value: string): boolean {
@@ -694,6 +716,66 @@ namespace XiannongCore.Quests {
       return candidates[0] || null;
     }
 
+    function sideQuestAcceptPlan(npcId = "", questId = ""): SideQuestAcceptPlan {
+      const clue = sideQuestClueForNpc(npcId, questId);
+      const base = {
+        kind: "missing" as SideQuestAcceptKind,
+        questId: "",
+        npcId,
+        trigger: null,
+        quest: null,
+        currentStep: null,
+        rewardReady: false,
+        active: false,
+        ready: false,
+        feedbackPhase: "" as SideQuestAcceptPlan["feedbackPhase"],
+        feedbackTiming: "",
+        panelGroup: "",
+        shouldRender: true,
+        shouldSaveSettings: false,
+        shouldPlayCue: false,
+        cue: "",
+      };
+      if (!clue) return base;
+      const feedbackPhase: SideQuestAcceptPlan["feedbackPhase"] = clue.rewardReady ? "finish" : clue.active ? "progress" : "accept";
+      const feedbackTiming = clue.rewardReady ? "after_complete" : clue.active ? "" : "after_accept";
+      const shared = {
+        ...base,
+        questId: clue.quest.quest_id,
+        trigger: clue.trigger,
+        quest: clue.quest,
+        currentStep: clue.currentStep,
+        rewardReady: clue.rewardReady,
+        active: clue.active,
+        ready: clue.ready,
+        feedbackPhase,
+        feedbackTiming,
+        panelGroup: "core",
+        shouldSaveSettings: clue.rewardReady || clue.active || clue.ready,
+      };
+      if (clue.rewardReady || clue.active) {
+        return {
+          ...shared,
+          kind: "track",
+        };
+      }
+      if (!clue.ready) {
+        return {
+          ...shared,
+          kind: "locked",
+          panelGroup: "",
+          shouldSaveSettings: false,
+        };
+      }
+      const triggerReady = Boolean(clue.trigger && !setHas(state.triggeredEvents, clue.trigger.event_id || "") && configuredTriggerReady(clue.trigger).ready);
+      return {
+        ...shared,
+        kind: triggerReady ? "start_from_trigger" : "start_direct",
+        shouldPlayCue: true,
+        cue: "任务完成",
+      };
+    }
+
     function configuredEventReadyQueue(): ConfiguredEventCandidate[] {
       const candidates: ConfiguredEventCandidate[] = [];
       const events = [...data.eventTriggers, ...data.sideQuestTriggers]
@@ -901,6 +983,7 @@ namespace XiannongCore.Quests {
       sideQuestRewardPreviewText,
       sideQuestVisible,
       sideQuestClueForNpc,
+      sideQuestAcceptPlan,
       configuredEventReadyQueue,
       configuredEventActionKind,
       dialogueGroupForExecuteGroup,

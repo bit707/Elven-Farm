@@ -17468,21 +17468,44 @@ function currentSideQuestStep(quest) {
 
 function acceptTownLifeSideQuest(npcId = "", questId = "") {
   const clue = sideQuestClueForNpc(npcId, questId);
-  if (!clue) {
+  const acceptPlan = questRuntime()?.sideQuestAcceptPlan(npcId, questId) || (() => {
+    if (!clue) return null;
+    const fallbackTrigger = clue.trigger || null;
+    const triggerReady = fallbackTrigger && !state.triggeredEvents.has(fallbackTrigger.event_id) && configuredTriggerReady(fallbackTrigger).ready;
+    return {
+      kind: clue.rewardReady || clue.active ? "track" : !clue.ready ? "locked" : triggerReady ? "start_from_trigger" : "start_direct",
+      questId: clue.quest?.quest_id || "",
+      npcId,
+      trigger: fallbackTrigger,
+      quest: clue.quest || null,
+      currentStep: clue.currentStep || null,
+      rewardReady: Boolean(clue.rewardReady),
+      active: Boolean(clue.active),
+      ready: Boolean(clue.ready),
+      feedbackPhase: clue.rewardReady ? "finish" : clue.active ? "progress" : "accept",
+      feedbackTiming: clue.rewardReady ? "after_complete" : clue.active ? "" : "after_accept",
+      panelGroup: "core",
+      shouldRender: true,
+      shouldSaveSettings: clue.rewardReady || clue.active || clue.ready,
+      shouldPlayCue: clue.ready && !clue.rewardReady && !clue.active,
+      cue: "任务完成",
+    };
+  })();
+  if (!clue || !acceptPlan || acceptPlan.kind === "missing") {
     addLog("支线线索", `${npcName(npcId)}这里暂时没有可承接的新旁事。`);
     render();
     return;
   }
-  const { quest, trigger, active, ready, rewardReady } = clue;
-  if (rewardReady || active) {
-    state.sideQuestFeedback = sideQuestFeedbackSpec(quest.quest_id, rewardReady ? "finish" : "progress", rewardReady ? "after_complete" : "", clue.currentStep?.step_id || "", 0);
-    settings.panelGroup = "core";
-    saveSettings();
-    addLog(rewardReady ? "支线待领奖" : "支线追踪", `${questTitle(quest)} 已在任务面板高亮：${clue.currentStep ? stepLabel(clue.currentStep) : "等待下一步"}。`);
+  const { quest, trigger, currentStep } = acceptPlan;
+  if (acceptPlan.kind === "track") {
+    state.sideQuestFeedback = sideQuestFeedbackSpec(acceptPlan.questId, acceptPlan.feedbackPhase, acceptPlan.feedbackTiming, currentStep?.step_id || "", 0);
+    settings.panelGroup = acceptPlan.panelGroup || "core";
+    if (acceptPlan.shouldSaveSettings) saveSettings();
+    addLog(acceptPlan.rewardReady ? "支线待领奖" : "支线追踪", `${questTitle(quest)} 已在任务面板高亮：${currentStep ? stepLabel(currentStep) : "等待下一步"}。`);
     render();
     return;
   }
-  if (!ready) {
+  if (acceptPlan.kind === "locked") {
     const missing = trigger
       ? `${triggerReadable(trigger)}；条件 ${conditionLabel(trigger.condition_group)}`
       : "还没有匹配的支线触发器。";
@@ -17491,18 +17514,18 @@ function acceptTownLifeSideQuest(npcId = "", questId = "") {
     return;
   }
   let started = false;
-  if (trigger && !state.triggeredEvents.has(trigger.event_id) && configuredTriggerReady(trigger).ready) {
+  if (acceptPlan.kind === "start_from_trigger" && trigger) {
     started = executeConfiguredEvent(trigger, `town-life:${npcId}`);
   }
   if (!started) {
-    state.activeSideQuests.add(quest.quest_id);
-    const presented = triggerSideQuestPresentation(quest.quest_id, "after_accept");
-    state.sideQuestFeedback = sideQuestFeedbackSpec(quest.quest_id, "accept", "after_accept", "", presented);
+    state.activeSideQuests.add(acceptPlan.questId);
+    const presented = triggerSideQuestPresentation(acceptPlan.questId, acceptPlan.feedbackTiming || "after_accept");
+    state.sideQuestFeedback = sideQuestFeedbackSpec(acceptPlan.questId, acceptPlan.feedbackPhase || "accept", acceptPlan.feedbackTiming || "after_accept", "", presented);
     addLog("支线开启", `${npcName(npcId)}把「${questTitle(quest)}」托到了你手上。`);
   }
-  settings.panelGroup = "core";
-  saveSettings();
-  playCue("任务完成");
+  settings.panelGroup = acceptPlan.panelGroup || "core";
+  if (acceptPlan.shouldSaveSettings) saveSettings();
+  if (acceptPlan.shouldPlayCue) playCue(acceptPlan.cue || "任务完成");
   render();
 }
 

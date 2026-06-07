@@ -13,7 +13,7 @@ This project keeps the current Web Canvas game instead of switching to Unity or 
 
 - `src/core/data/runtime-data.ts` defines a typed runtime data loader.
 - `src/core/persistence/save-runtime.ts` defines a typed save adapter for browser storage and desktop JSON save bridges.
-- `src/core/quests/quest-runtime.ts` moves quest step progress, quest state checks, story quest start/done checks, quest reward claiming, configured event trigger readiness/ready-queue scanning/action classification/execute-group resolution/execution planning, dialogue display and queue planning, side-quest route/action readiness, side-quest action resolution planning, and side-quest clue visibility into TypeScript.
+- `src/core/quests/quest-runtime.ts` moves quest step progress, quest state checks, story quest start/done checks, quest reward claiming, configured event trigger readiness/ready-queue scanning/action classification/execute-group resolution/execution planning, dialogue display and queue planning, side-quest route/action readiness, side-quest action resolution planning, side-quest accept application planning, and side-quest clue visibility into TypeScript.
 - `src/core/shop/shop-runtime.ts` moves shop customer price rules, customer profiles, reputation score, merged customer preference views, budget calculation, shelf theme matching, semantic tag matching, hot-tag prioritization, compendium display customer support, weather shelf customer support and choice weighting, customer good selection, sales statistics deltas/application, shop season cycle rules, shop season metric formulas/scoring helpers/rules-to-score plans, shop season settlement/reward claim plans, shop season rewards/ranks, feedback diagnosis matching, word-of-mouth customer boosts, item pricing plans, customer purchase decisions, and sale price settlement into TypeScript.
 - `src/core/farming/farming-runtime.ts` moves crop target lookup, solar-term crop affinity, yield bonus, projected harvest previews, planting and watering state planning, harvest yield/state/progress/quality reward/route selection and accounting planning, harvest quality scoring, crop growth visual specs, weather growth planning, and night crop growth/state planning into TypeScript.
 - `src/core/npc/npc-runtime.ts` moves NPC schedule matching, schedule priority scoring, favor level calculation, claimable favor reward planning, relationship memory readiness/progress planning, and relationship memory write planning into TypeScript.
@@ -24,7 +24,7 @@ This project keeps the current Web Canvas game instead of switching to Unity or 
 
 ## Next Migration Targets
 
-- Quests: continue moving configured event execution side effects, dialogue queue state application, and side-quest action side effects into TypeScript.
+- Quests: continue moving configured event execution side effects, dialogue queue state application, and remaining side-quest action side effects into TypeScript.
 - Shop: continue moving customer decision side effects and shop-opening story gates into TypeScript.
 - Farming: continue moving remaining cross-system route side effects into TypeScript when their owning systems are ready.
 - NPC: continue moving relationship memory write-side state application and dialogue gates into TypeScript.
