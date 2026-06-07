@@ -3110,6 +3110,10 @@ for (const farmingRuntimeTerm of [
 for (const npcRuntimeTerm of [
   "function npcRuntime()",
   "globalThis.XiannongCore.Npc.createNpcRuntime",
+  "npcRuntime()?.favorLevel",
+  "runtimeLevel",
+  "npcRuntime()?.claimableFavorRewards",
+  "rewardPlan.rewards",
   "npcRuntime()?.schedulePriority",
   "runtimePlan.score",
   "npcRuntime()?.scheduleMatchesNow",
@@ -3646,6 +3650,9 @@ for (const farmingCoreRuntimeTerm of [
 for (const npcCoreSourceTerm of [
   "namespace XiannongCore.Npc",
   "export interface NpcRuntime",
+  "favorLevel(value",
+  "claimableFavorRewards(input",
+  "rewardIds",
   "schedulePriority(schedule",
   "scheduleMatchesNow(schedule",
   "droughtMatch",
@@ -3658,6 +3665,9 @@ for (const npcCoreSourceTerm of [
 for (const npcCoreRuntimeTerm of [
   "XiannongCore.Npc",
   "function createNpcRuntime",
+  "function favorLevel",
+  "function claimableFavorRewards",
+  "rewardIds",
   "function schedulePriority",
   "function scheduleMatchesNow",
   "droughtMatch",

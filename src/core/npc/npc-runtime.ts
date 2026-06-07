@@ -27,12 +27,54 @@ namespace XiannongCore.Npc {
     timeMatch: boolean;
   }
 
+  export interface FavorRewardPlanInput {
+    npcId?: string;
+    favorValue?: number;
+    rewards?: NpcRow[] | null;
+    claimedRewardIds?: string[] | null;
+  }
+
+  export interface FavorRewardPlan {
+    level: number;
+    rewards: NpcRow[];
+    rewardIds: string[];
+  }
+
   export interface NpcRuntime {
+    favorLevel(value?: number): number;
+    claimableFavorRewards(input: FavorRewardPlanInput): FavorRewardPlan;
     schedulePriority(schedule?: NpcRow | null, context?: ScheduleContext): SchedulePriorityPlan;
     scheduleMatchesNow(schedule?: NpcRow | null, context?: ScheduleContext): ScheduleMatchPlan;
   }
 
   export function createNpcRuntime(): NpcRuntime {
+    function favorLevel(value = 0): number {
+      const favor = Number(value || 0);
+      if (favor >= 100) return 5;
+      if (favor >= 70) return 4;
+      if (favor >= 45) return 3;
+      if (favor >= 20) return 2;
+      if (favor >= 5) return 1;
+      return 0;
+    }
+
+    function claimableFavorRewards(input: FavorRewardPlanInput): FavorRewardPlan {
+      const npcId = String(input.npcId || "");
+      const level = favorLevel(input.favorValue || 0);
+      const claimed = new Set(input.claimedRewardIds || []);
+      const rewards = (input.rewards || []).filter((reward) => {
+        if (npcId && reward.npc_id !== npcId) return false;
+        if (Number(reward.favor_level || 0) > level) return false;
+        if (claimed.has(String(reward.reward_id || ""))) return false;
+        return true;
+      });
+      return {
+        level,
+        rewards,
+        rewardIds: rewards.map((reward) => String(reward.reward_id || "")).filter(Boolean),
+      };
+    }
+
     function schedulePriority(schedule: NpcRow | null = null, context: ScheduleContext = {}): SchedulePriorityPlan {
       const termMatch = Boolean(schedule?.solar_term && schedule.solar_term === context.termId);
       const weatherMatch = Boolean(schedule?.weather_tag && (schedule.weather_tag === context.weatherId || schedule.weather_tag === context.disasterTag));
@@ -77,6 +119,8 @@ namespace XiannongCore.Npc {
     }
 
     return {
+      favorLevel,
+      claimableFavorRewards,
       schedulePriority,
       scheduleMatchesNow,
     };

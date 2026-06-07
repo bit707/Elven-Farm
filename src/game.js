@@ -42897,6 +42897,8 @@ function leaveDungeon() {
 }
 
 function favorLevel(value) {
+  const runtimeLevel = npcRuntime()?.favorLevel(value);
+  if (Number.isFinite(runtimeLevel)) return runtimeLevel;
   if (value >= 100) return 5;
   if (value >= 70) return 4;
   if (value >= 45) return 3;
@@ -42988,9 +42990,18 @@ function applyFavorReward(npcId, reward) {
 }
 
 function checkFavorRewards(npcId) {
-  const level = favorLevel(state.npcFavor[npcId] || 0);
-  for (const reward of data.favorRewards.filter((entry) => entry.npc_id === npcId)) {
-    if (Number(reward.favor_level) > level || state.claimedFavorRewards.has(reward.reward_id)) continue;
+  const rewardPlan = npcRuntime()?.claimableFavorRewards({
+    npcId,
+    favorValue: state.npcFavor[npcId] || 0,
+    rewards: data.favorRewards,
+    claimedRewardIds: [...state.claimedFavorRewards],
+  }) || {
+    level: favorLevel(state.npcFavor[npcId] || 0),
+    rewards: data.favorRewards.filter((entry) => entry.npc_id === npcId)
+      .filter((reward) => Number(reward.favor_level) <= favorLevel(state.npcFavor[npcId] || 0) && !state.claimedFavorRewards.has(reward.reward_id)),
+    rewardIds: [],
+  };
+  for (const reward of rewardPlan.rewards) {
     state.claimedFavorRewards.add(reward.reward_id);
     const text = applyFavorReward(npcId, reward);
     addLog("关系奖励", `${npcName(npcId)} Lv.${reward.favor_level} 解锁：${text}`);
