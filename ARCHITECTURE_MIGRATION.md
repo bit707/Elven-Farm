@@ -15,7 +15,7 @@ This project keeps the current Web Canvas game instead of switching to Unity or 
 - `src/core/persistence/save-runtime.ts` defines a typed save adapter for browser storage and desktop JSON save bridges.
 - `src/core/quests/quest-runtime.ts` moves quest step progress, quest state checks, story quest start/done checks, quest reward claiming, configured event trigger readiness/ready-queue scanning/action classification/execute-group resolution/execution planning, side-quest route/action readiness, and side-quest clue visibility into TypeScript.
 - `src/core/shop/shop-runtime.ts` moves shop customer price rules, customer profiles, reputation score, merged customer preference views, budget calculation, shelf theme matching, semantic tag matching, hot-tag prioritization, compendium display customer support, weather shelf customer support and choice weighting, customer good selection, sales statistics deltas, shop season cycle rules, shop season metric formulas/scoring helpers/rules-to-score plans, shop season settlement/reward claim plans, shop season rewards/ranks, feedback diagnosis matching, word-of-mouth customer boosts, item pricing plans, customer purchase decisions, and sale price settlement into TypeScript.
-- `src/core/farming/farming-runtime.ts` moves crop target lookup, solar-term crop affinity, yield bonus, projected harvest previews, planting and watering state planning, harvest yield planning, harvest quality scoring, crop growth visual specs, and night crop growth planning into TypeScript.
+- `src/core/farming/farming-runtime.ts` moves crop target lookup, solar-term crop affinity, yield bonus, projected harvest previews, planting and watering state planning, harvest yield planning, harvest quality scoring, crop growth visual specs, and night crop growth/state planning into TypeScript.
 - `src/core/combat/dungeon-runtime.ts` moves dungeon boss skill ordering/turn selection, boss phase thresholds, boss skill pressure, spirit combat skill fallback/bonus, boss HP percentage/max-HP calculations, dungeon solar-mechanic effect rules, dungeon mechanic state-advance plans, active mechanic action plans, exploration encounter damage/state/outcome planning, dungeon loot planning, Boss exchange damage/shield/strike planning, Boss exchange state-application planning, Boss clear reward/state planning, failure reward planning, and post-battle side-effect planning into TypeScript.
 - `tools/build-runtime-data.mjs` converts gameplay CSV tables into `runtime-data/runtime-data.json`.
 - `src/runtime/xiannong-core.js` is the generated TypeScript runtime loaded before `src/game.js`.
@@ -25,6 +25,6 @@ This project keeps the current Web Canvas game instead of switching to Unity or 
 
 - Quests: continue moving configured event execution side effects and side-quest route execution side effects into TypeScript.
 - Shop: continue moving sale stats, customer decision rules, and shop-opening story gates into TypeScript.
-- Farming: continue moving crop growth, weather effects, and harvest accounting into TypeScript.
+- Farming: continue moving weather effects and harvest accounting into TypeScript.
 - NPC: move favor rewards, schedules, relationship memory, and dialogue gates into TypeScript.
 - Combat: continue moving dungeon post-battle story side-effect application into TypeScript.

@@ -61999,8 +61999,18 @@ function sleep() {
         });
       }
     }
-    if (growthPlan ? growthPlan.matureAfter : effectiveWatered && state.day - plot.plantedDay >= adjustedGrowDays) plot.mature = true;
-    if (growthPlan ? growthPlan.newlyMature : !beforePlot.mature && plot.mature) {
+    const cropStatePlan = runtime?.nightCropStatePlan?.({
+      plot,
+      growthPlan,
+      beforeMature: beforePlot.mature,
+    }) || {
+      cropId: plot.cropId,
+      matureAfter: growthPlan ? growthPlan.matureAfter : Boolean(beforePlot.mature) || (effectiveWatered && state.day - plot.plantedDay >= adjustedGrowDays),
+      newlyMature: growthPlan ? growthPlan.newlyMature : !beforePlot.mature && (effectiveWatered && state.day - plot.plantedDay >= adjustedGrowDays),
+      wateredAfter: false,
+    };
+    plot.mature = cropStatePlan.matureAfter;
+    if (cropStatePlan.newlyMature) {
       const matureRoute = growingCropUseRouteSpec(plot);
       nightGrowth.maturedPlots.push({
         x: plot.x,
@@ -62010,7 +62020,7 @@ function sleep() {
         useRoute: harvestUseRouteSafe(matureRoute),
       });
     }
-    plot.watered = false;
+    plot.watered = cropStatePlan.wateredAfter;
   }
 
   const ecologyMoodReduce = ecologyEffectValue("spirit_mood_cost_reduce");

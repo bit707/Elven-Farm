@@ -886,6 +886,18 @@ var XiannongCore;
                     adjustedGrowDays,
                 };
             }
+            function nightCropStatePlan(input) {
+                const plot = input.plot;
+                const growthPlan = input.growthPlan || null;
+                const beforeMature = Boolean(input.beforeMature ?? plot.mature);
+                const matureAfter = growthPlan ? Boolean(growthPlan.matureAfter) : beforeMature;
+                return {
+                    cropId: String(growthPlan?.cropId || plot.cropId || ""),
+                    matureAfter,
+                    newlyMature: growthPlan ? Boolean(growthPlan.newlyMature) : !beforeMature && matureAfter,
+                    wateredAfter: false,
+                };
+            }
             function harvestYieldPlan(input) {
                 const crop = input.crop || null;
                 const plot = input.plot || null;
@@ -945,6 +957,7 @@ var XiannongCore;
                 harvestQualitySpec,
                 cropWorldGrowthVisualSpec,
                 nightCropGrowthPlan,
+                nightCropStatePlan,
                 harvestYieldPlan,
                 plantStatePlan,
                 waterStatePlan,

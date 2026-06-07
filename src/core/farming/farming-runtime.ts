@@ -100,6 +100,19 @@ namespace XiannongCore.Farming {
     adjustedGrowDays: number;
   }
 
+  export interface NightCropStatePlanInput {
+    plot: FarmingPlot;
+    growthPlan?: NightCropGrowthPlan | null;
+    beforeMature?: boolean;
+  }
+
+  export interface NightCropStatePlan {
+    cropId: string;
+    matureAfter: boolean;
+    newlyMature: boolean;
+    wateredAfter: false;
+  }
+
   export interface HarvestYieldPlanInput {
     crop?: FarmingRow | null;
     plot?: FarmingPlot | null;
@@ -163,6 +176,7 @@ namespace XiannongCore.Farming {
     harvestQualitySpec(crop?: FarmingRow | null, plot?: FarmingPlot | null, amount?: number, affinity?: CropSolarAffinity | null): HarvestQualitySpec;
     cropWorldGrowthVisualSpec(crop?: FarmingRow | null, plot?: FarmingPlot | null, plotIndex?: number, day?: number): CropWorldGrowthVisualSpec | null;
     nightCropGrowthPlan(input: NightCropGrowthInput): NightCropGrowthPlan;
+    nightCropStatePlan(input: NightCropStatePlanInput): NightCropStatePlan;
     harvestYieldPlan(input: HarvestYieldPlanInput): HarvestYieldPlan;
     plantStatePlan(input: PlantStatePlanInput): PlantStatePlan;
     waterStatePlan(input: WaterStatePlanInput): WaterStatePlan;
@@ -385,6 +399,19 @@ namespace XiannongCore.Farming {
       };
     }
 
+    function nightCropStatePlan(input: NightCropStatePlanInput): NightCropStatePlan {
+      const plot = input.plot;
+      const growthPlan = input.growthPlan || null;
+      const beforeMature = Boolean(input.beforeMature ?? plot.mature);
+      const matureAfter = growthPlan ? Boolean(growthPlan.matureAfter) : beforeMature;
+      return {
+        cropId: String(growthPlan?.cropId || plot.cropId || ""),
+        matureAfter,
+        newlyMature: growthPlan ? Boolean(growthPlan.newlyMature) : !beforeMature && matureAfter,
+        wateredAfter: false,
+      };
+    }
+
     function harvestYieldPlan(input: HarvestYieldPlanInput): HarvestYieldPlan {
       const crop = input.crop || null;
       const plot = input.plot || null;
@@ -447,6 +474,7 @@ namespace XiannongCore.Farming {
       harvestQualitySpec,
       cropWorldGrowthVisualSpec,
       nightCropGrowthPlan,
+      nightCropStatePlan,
       harvestYieldPlan,
       plantStatePlan,
       waterStatePlan,
