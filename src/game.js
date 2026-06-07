@@ -24517,6 +24517,22 @@ function shopWeatherShelfCustomerVignetteMarkup(spec = shopWeatherShelfRecommend
 }
 
 function shopWeatherShelfChoiceSupport(choice = null, shelf = null, customer = null, ecologyGarden = ecologyCourtyardSummary()) {
+  const runtime = shopRuntime();
+  if (runtime) {
+    const itemId = choice?.itemId || choice?.item?.item_id || "";
+    const tags = shopTagsForItem(choice?.item || itemId, ecologyGarden);
+    const plan = runtime.shopWeatherShelfChoiceSupport({ itemId, itemTags: tags, shelf });
+    if (!plan.active) return { active: false, budgetBonus: 0, note: "" };
+    const label = plan.isTopGood ? "天气主推货" : shopTagLabel(plan.labelTag);
+    const customerLabel = customer?.archetype ? customerDisplayName(customer.archetype) : "顾客";
+    return {
+      ...plan,
+      label,
+      note: plan.isTopGood
+        ? `${shelf.weatherName}货签把${itemName(itemId)}推到头排，${customerLabel}愿意多停半步。`
+        : `${shelf.weatherName}正合${shopTagLabel(plan.labelTag)}，${customerLabel}对这件货更有耐心。`,
+    };
+  }
   if (!choice || !shelf?.active) return { active: false, budgetBonus: 0, note: "" };
   const itemId = choice.itemId || choice.item?.item_id || "";
   const tags = shopTagsForItem(choice.item || itemId, ecologyGarden);

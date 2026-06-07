@@ -1287,6 +1287,44 @@ var XiannongCore;
                     matched,
                 };
             }
+            function inactiveWeatherShelfPlan(itemId = "") {
+                return {
+                    active: false,
+                    itemId,
+                    isTopGood: false,
+                    matchedTags: [],
+                    labelTag: "",
+                    budgetBonus: 0,
+                    priceRelief: 0,
+                };
+            }
+            function shopWeatherShelfChoiceSupport(input = null) {
+                const itemId = String(input?.itemId || "");
+                const shelf = input?.shelf || null;
+                if (!itemId || !shelf?.active)
+                    return inactiveWeatherShelfPlan(itemId);
+                const itemTags = Array.isArray(input?.itemTags) ? input.itemTags : [];
+                const topGoods = Array.isArray(shelf.topGoods) ? shelf.topGoods : [];
+                const desiredTags = Array.isArray(shelf.desiredTags) ? shelf.desiredTags : [];
+                const topGood = topGoods.find((good) => good.itemId === itemId) || null;
+                const matchedTags = desiredTags.filter((tag) => shopTagsOverlap(itemTags, [tag]));
+                if (!topGood && matchedTags.length === 0)
+                    return inactiveWeatherShelfPlan(itemId);
+                const weatherKindBonus = ["hot-wind", "drought", "frost", "snow", "storm-rain"].includes(String(shelf.kind || "")) ? 0.015 : 0;
+                const topBonus = topGood ? 0.045 : 0;
+                const tagBonus = Math.min(0.035, matchedTags.length * 0.018);
+                const budgetBonus = Math.min(0.085, topBonus + tagBonus + weatherKindBonus);
+                const topMatchedTags = Array.isArray(topGood?.matchedTags) ? topGood?.matchedTags || [] : [];
+                return {
+                    active: true,
+                    itemId,
+                    isTopGood: Boolean(topGood),
+                    matchedTags,
+                    labelTag: matchedTags[0] || topMatchedTags[0] || desiredTags[0] || "",
+                    budgetBonus,
+                    priceRelief: Math.min(0.06, budgetBonus * 0.7),
+                };
+            }
             return {
                 customerPriceRule,
                 customerProfile,
@@ -1308,6 +1346,7 @@ var XiannongCore;
                 shopWordOfMouthVisitBias,
                 shopWordOfMouthBudgetBonus,
                 shopCompendiumCustomerSupport,
+                shopWeatherShelfChoiceSupport,
             };
         }
         Shop.createShopRuntime = createShopRuntime;
