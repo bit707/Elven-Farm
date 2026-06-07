@@ -563,6 +563,22 @@ var XiannongCore;
                 });
                 return candidates[0] || null;
             }
+            function configuredEventReadyQueue() {
+                const candidates = [];
+                const events = [...data.eventTriggers, ...data.sideQuestTriggers]
+                    .slice()
+                    .sort((a, b) => Number(b.priority || 0) - Number(a.priority || 0));
+                for (const event of events) {
+                    if (event.repeatable !== "true" && setHas(state.triggeredEvents, event.event_id || ""))
+                        continue;
+                    if (event.quest_id && setHas(state.activeSideQuests, event.quest_id))
+                        continue;
+                    const status = configuredTriggerReady(event);
+                    if (status.ready)
+                        candidates.push({ event, status });
+                }
+                return candidates;
+            }
             function rewardPoolEntries(poolId) {
                 return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
             }
@@ -641,6 +657,7 @@ var XiannongCore;
                 sideQuestRewardPreviewText,
                 sideQuestVisible,
                 sideQuestClueForNpc,
+                configuredEventReadyQueue,
             };
         }
         Quests.createQuestRuntime = createQuestRuntime;

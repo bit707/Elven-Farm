@@ -15608,6 +15608,8 @@ function questRuntime() {
       questSteps: data.questSteps,
       sideQuestSteps: data.sideQuestSteps,
       rewardPools: data.rewardPools,
+      eventTriggers: data.eventTriggers,
+      sideQuestTriggers: data.sideQuestTriggers,
       questStepsByQuest: data.questStepsByQuest,
       sideQuestStepsByQuest: data.sideQuestStepsByQuest,
       sideQuestTriggersByQuest: data.sideQuestTriggersByQuest,
@@ -17202,6 +17204,14 @@ function scanConfiguredEvents(source = "runtime") {
   if (scanningConfiguredEvents) return 0;
   scanningConfiguredEvents = true;
   let triggered = 0;
+  const runtime = questRuntime();
+  if (runtime) {
+    for (const candidate of runtime.configuredEventReadyQueue()) {
+      if (executeConfiguredEvent(candidate.event, source)) triggered += 1;
+    }
+    scanningConfiguredEvents = false;
+    return triggered;
+  }
   const events = [...data.eventTriggers, ...data.sideQuestTriggers]
     .slice()
     .sort((a, b) => Number(b.priority || 0) - Number(a.priority || 0));

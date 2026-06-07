@@ -26,9 +26,13 @@ namespace XiannongCore.Quests {
   }
 
   export interface ConfiguredTriggerRow {
+    event_id?: string;
+    quest_id?: string;
     trigger_type: string;
     trigger_param?: string;
     condition_group?: string;
+    repeatable?: string;
+    priority?: string;
     [key: string]: string | undefined;
   }
 
@@ -69,6 +73,8 @@ namespace XiannongCore.Quests {
     questSteps: QuestStepRow[];
     sideQuestSteps: QuestStepRow[];
     rewardPools: RewardPoolRow[];
+    eventTriggers: ConfiguredTriggerRow[];
+    sideQuestTriggers: ConfiguredTriggerRow[];
     questStepsByQuest: Map<string, QuestStepRow[]>;
     sideQuestStepsByQuest: Map<string, QuestStepRow[]>;
     sideQuestTriggersByQuest: Map<string, ConfiguredTriggerRow[]>;
@@ -140,6 +146,7 @@ namespace XiannongCore.Quests {
     sideQuestRewardPreviewText(quest: QuestRow | null | undefined): string;
     sideQuestVisible(quest: QuestRow | null | undefined): boolean;
     sideQuestClueForNpc(npcId?: string, questId?: string): SideQuestClue | null;
+    configuredEventReadyQueue(): ConfiguredEventCandidate[];
   }
 
   export interface QuestRewardClaimResult {
@@ -155,6 +162,11 @@ namespace XiannongCore.Quests {
     param: boolean;
     condition: boolean;
     ready: boolean;
+  }
+
+  export interface ConfiguredEventCandidate {
+    event: ConfiguredTriggerRow;
+    status: TriggerReadyStatus;
   }
 
   export interface SideQuestActionState {
@@ -543,6 +555,20 @@ namespace XiannongCore.Quests {
       return candidates[0] || null;
     }
 
+    function configuredEventReadyQueue(): ConfiguredEventCandidate[] {
+      const candidates: ConfiguredEventCandidate[] = [];
+      const events = [...data.eventTriggers, ...data.sideQuestTriggers]
+        .slice()
+        .sort((a, b) => Number(b.priority || 0) - Number(a.priority || 0));
+      for (const event of events) {
+        if (event.repeatable !== "true" && setHas(state.triggeredEvents, event.event_id || "")) continue;
+        if (event.quest_id && setHas(state.activeSideQuests, event.quest_id)) continue;
+        const status = configuredTriggerReady(event);
+        if (status.ready) candidates.push({ event, status });
+      }
+      return candidates;
+    }
+
     function rewardPoolEntries(poolId: string): RewardPoolRow[] {
       return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
     }
@@ -622,6 +648,7 @@ namespace XiannongCore.Quests {
       sideQuestRewardPreviewText,
       sideQuestVisible,
       sideQuestClueForNpc,
+      configuredEventReadyQueue,
     };
   }
 }

@@ -2977,6 +2977,7 @@ for (const questRuntimeTerm of [
   "runtime.sideQuestRewardPreviewText(quest)",
   "runtime.sideQuestVisible(quest)",
   "runtime.sideQuestClueForNpc(npcId, questId)",
+  "runtime.configuredEventReadyQueue()",
   "finishClaimedQuestReward",
 ]) {
   if (!game.includes(questRuntimeTerm)) throw new Error(`Quest TypeScript runtime bridge missing: ${questRuntimeTerm}`);
@@ -3007,6 +3008,10 @@ for (const questCoreSourceTerm of [
   "sideQuestClueForNpc(npcId",
   "export interface SideQuestClue",
   "export type SideQuestClueStatus",
+  "export interface ConfiguredEventCandidate",
+  "configuredEventReadyQueue()",
+  "data.eventTriggers",
+  "data.sideQuestTriggers",
   "data.sideQuestTriggersByQuest",
   "Number(state.fame || 0)",
   "hooks.rewardEntryPreview",
@@ -3037,6 +3042,9 @@ for (const questCoreRuntimeTerm of [
   "function sideQuestRewardPreviewText",
   "function sideQuestVisible",
   "function sideQuestClueForNpc",
+  "function configuredEventReadyQueue",
+  "data.eventTriggers",
+  "data.sideQuestTriggers",
   "data.sideQuestTriggersByQuest",
   "Number(state.fame || 0)",
   "hooks.rewardEntryPreview",
@@ -3320,7 +3328,7 @@ for (const questRewardTerm of ["claimedQuestRewards", "questRewardReady", "claim
   if (!game.includes(questRewardTerm)) throw new Error(`Quest reward runtime path missing: ${questRewardTerm}`);
 }
 
-for (const configuredEventTerm of ["triggerParamMet", "configuredTriggerReady", "executeConfiguredEvent", "scanConfiguredEvents", "activeSideQuests", "conditionMet(event.condition_group)", "state.activeSideQuests.add", "source !== \"term-risk\""]) {
+for (const configuredEventTerm of ["triggerParamMet", "configuredTriggerReady", "configuredEventReadyQueue", "executeConfiguredEvent", "scanConfiguredEvents", "activeSideQuests", "conditionMet(event.condition_group)", "state.activeSideQuests.add", "source !== \"term-risk\""]) {
   if (!game.includes(configuredEventTerm)) throw new Error(`Configured event runtime path missing: ${configuredEventTerm}`);
 }
 
