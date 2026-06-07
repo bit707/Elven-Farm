@@ -1988,6 +1988,8 @@ var XiannongCore;
                     return "shop_tutorial_complete";
                 if (executeGroup.includes("spawn_hu_sihai"))
                     return "spawn_hu_sihai";
+                if (executeGroup.includes("unlock_mine_entrance"))
+                    return "unlock_mine_entrance";
                 if (executeGroup.includes("unlock_spirit_overview"))
                     return "unlock_spirit_overview";
                 if (executeGroup.includes("unlock_ruin_fire"))
@@ -2237,6 +2239,43 @@ var XiannongCore;
                     favorAmount,
                     favorSource,
                     dialogueGroup,
+                    actions,
+                };
+            }
+            function configuredEventMineEntranceUnlockActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "unlock_mine_entrance";
+                const questId = applies ? "quest_main_0103_duanqiao_jiumu" : "";
+                const areaId = applies ? constants.mineAreaId || "area_mine_qingyun" : "";
+                const unlockFlag = constants.mineEntranceUnlockFlag || "chapter_1_bridge_complete";
+                const completedFlags = applies
+                    ? [unlockFlag, "dungeon_area_mine", areaId]
+                    : [];
+                const firstUnlock = applies
+                    && !setHas(state.completed, unlockFlag)
+                    && !setHas(state.completed, "dungeon_area_mine")
+                    && !setHas(state.completed, areaId);
+                const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        { kind: "complete_main_quest_if_needed", questId },
+                        { kind: "apply_mine_entrance_unlock_world_change" },
+                        { kind: "play_cue", cue },
+                        { kind: "log_mine_entrance_unlock" },
+                        { kind: "check_quest_rewards" },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    firstUnlock,
+                    completedFlags,
+                    questId,
+                    areaId,
+                    cue,
                     actions,
                 };
             }
@@ -3037,6 +3076,7 @@ var XiannongCore;
                 configuredEventCutsceneActionPlan,
                 configuredEventShopTutorialActionPlan,
                 configuredEventHuSihaiArrivalActionPlan,
+                configuredEventMineEntranceUnlockActionPlan,
                 configuredEventHerbValleyUnlockActionPlan,
                 configuredEventHerbValleyFinishActionPlan,
                 configuredEventSpiritManorStartActionPlan,

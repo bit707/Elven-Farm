@@ -15713,6 +15713,9 @@ function questRuntime() {
     },
     {
       baizhiQuestId: BAIZHI_QUEST_ID,
+      mineEntranceUnlockEventId: MINE_ENTRANCE_UNLOCK_EVENT_ID,
+      mineAreaId: MINE_AREA_ID,
+      mineEntranceUnlockFlag: MINE_ENTRANCE_UNLOCK_FLAG,
       spiritManorQuestId: SPIRIT_MANOR_QUEST_ID,
       spiritManorBuildingId: SPIRIT_MANOR_BUILDING_ID,
       factionOrderQuestId: FACTION_ORDER_QUEST_ID,
@@ -17274,6 +17277,10 @@ function applyConfiguredEventAction(action, context = {}) {
     herbValleyWorldChange();
     return null;
   }
+  if (action.kind === "apply_mine_entrance_unlock_world_change") {
+    mineEntranceUnlockWorldChange();
+    return null;
+  }
   if (action.kind === "trigger_herb_valley_unlock_feedback") {
     triggerHerbValleyUnlockFeedback(context.eventName);
     return null;
@@ -17379,6 +17386,10 @@ function applyConfiguredEventAction(action, context = {}) {
   }
   if (action.kind === "play_cue") {
     playCue(action.cue);
+    return null;
+  }
+  if (action.kind === "log_mine_entrance_unlock") {
+    addLog("青云矿洞入口", `${context.eventName}：断桥与灵渠已经重新接通，后山矿路亮起，青云矿洞可以作为第一章秘境继续推进。`);
     return null;
   }
   if (action.kind === "log_baizhi_chapter_finish") {
@@ -17793,6 +17804,35 @@ function executeConfiguredEvent(event, source = "runtime") {
     };
     applyConfiguredEventActionPlan(actionPlan);
     addLog("Hu Sihai arrived", `${eventName}: old shop total sales reached ${Number(state.shopStats?.sales || 0)}; the merchant visitor is now in town.`);
+    return true;
+  }
+
+  if (actionKind === "unlock_mine_entrance" || (!actionKind && executeGroup.includes("unlock_mine_entrance"))) {
+    const mineEntranceWasUnlocked = state.completed.has(MINE_ENTRANCE_UNLOCK_FLAG)
+      || state.completed.has("dungeon_area_mine")
+      || state.completed.has(MINE_AREA_ID);
+    const actionPlan = runtime?.configuredEventMineEntranceUnlockActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      firstUnlock: !mineEntranceWasUnlocked,
+      completedFlags: [MINE_ENTRANCE_UNLOCK_FLAG, "dungeon_area_mine", MINE_AREA_ID],
+      questId: "quest_main_0103_duanqiao_jiumu",
+      areaId: MINE_AREA_ID,
+      cue: "成就解锁",
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: MINE_ENTRANCE_UNLOCK_FLAG },
+        { kind: "complete_flag", flag: "dungeon_area_mine" },
+        { kind: "complete_flag", flag: MINE_AREA_ID },
+        { kind: "complete_main_quest_if_needed", questId: "quest_main_0103_duanqiao_jiumu" },
+        { kind: "apply_mine_entrance_unlock_world_change" },
+        { kind: "play_cue", cue: "成就解锁" },
+        { kind: "log_mine_entrance_unlock" },
+        { kind: "check_quest_rewards" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan, { eventName });
     return true;
   }
 
@@ -37179,6 +37219,9 @@ const BAIZHI_CROP_ID = "crop_tiepi_shihu";
 const BAIZHI_QUALITY_ITEM_ID = "item_crop_quality_2plus_shihu";
 const BAIZHI_MOTHER_DEW_ITEM_ID = "item_special_baicao_mulu";
 const BAIZHI_BOSS_ID = "boss_shixiang_tengmu";
+const MINE_AREA_ID = "area_mine_qingyun";
+const MINE_ENTRANCE_UNLOCK_EVENT_ID = "event_main_0106";
+const MINE_ENTRANCE_UNLOCK_FLAG = "chapter_1_bridge_complete";
 const HERB_VALLEY_AREA_ID = "area_herb_valley";
 const HERB_VALLEY_UNLOCK_EVENT_ID = "event_main_0205";
 const HERB_VALLEY_FINISH_EVENT_ID = "event_main_0207";
@@ -38104,6 +38147,18 @@ function herbValleyWorldChange() {
     detail: "良品石斛的药气压住谷口瘴雾，医馆后山露出一条能走的藤影小径。",
     rewardHint: dungeon ? `${dungeonName(dungeon)} · Boss ${bossName(dungeonBossId(dungeon))}` : "雾隐药谷",
     visualType: "herb_valley_gate",
+  });
+}
+
+function mineEntranceUnlockWorldChange() {
+  const dungeon = data.dungeonsById.get(MINE_AREA_ID);
+  return upsertWorldChange({
+    key: MINE_ENTRANCE_UNLOCK_FLAG,
+    dungeonId: MINE_AREA_ID,
+    title: "青云矿洞路脉点亮",
+    detail: "断桥重新接上后，后山矿路和第一段灵渠一起亮起，青云矿洞的入口被正式纳入主线地图。",
+    rewardHint: dungeon ? `${dungeonName(dungeon)} · Boss ${bossName(dungeonBossId(dungeon))}` : "青云矿洞",
+    visualType: "spirit_channel",
   });
 }
 

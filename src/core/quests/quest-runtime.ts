@@ -128,6 +128,9 @@ namespace XiannongCore.Quests {
 
   export interface QuestRuntimeConstants {
     baizhiQuestId: string;
+    mineEntranceUnlockEventId?: string;
+    mineAreaId?: string;
+    mineEntranceUnlockFlag?: string;
     spiritManorQuestId: string;
     spiritManorBuildingId: string;
     factionOrderQuestId: string;
@@ -220,6 +223,7 @@ namespace XiannongCore.Quests {
     configuredEventCutsceneActionPlan(event: ConfiguredTriggerRow): ConfiguredEventCutsceneActionPlan;
     configuredEventShopTutorialActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopTutorialActionPlan;
     configuredEventHuSihaiArrivalActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHuSihaiArrivalActionPlan;
+    configuredEventMineEntranceUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventMineEntranceUnlockActionPlan;
     configuredEventHerbValleyUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHerbValleyUnlockActionPlan;
     configuredEventHerbValleyFinishActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHerbValleyFinishActionPlan;
     configuredEventSpiritManorStartActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSpiritManorStartActionPlan;
@@ -318,6 +322,9 @@ namespace XiannongCore.Quests {
       kind: "log_first_spirit_birth";
     }
     | {
+      kind: "log_mine_entrance_unlock";
+    }
+    | {
       kind: "mark_boss_defeated";
       bossId: string;
     }
@@ -355,6 +362,9 @@ namespace XiannongCore.Quests {
     }
     | {
       kind: "apply_herb_valley_world_change";
+    }
+    | {
+      kind: "apply_mine_entrance_unlock_world_change";
     }
     | {
       kind: "trigger_herb_valley_unlock_feedback";
@@ -544,6 +554,18 @@ namespace XiannongCore.Quests {
     favorAmount: number;
     favorSource: string;
     dialogueGroup: string;
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventMineEntranceUnlockActionPlan {
+    applies: boolean;
+    eventId: string;
+    executeGroup: string;
+    firstUnlock: boolean;
+    completedFlags: string[];
+    questId: string;
+    areaId: string;
+    cue: string;
     actions: ConfiguredEventExecutionAction[];
   }
 
@@ -807,6 +829,7 @@ namespace XiannongCore.Quests {
     | "finish_herb_valley_baizhi"
     | "shop_tutorial_complete"
     | "spawn_hu_sihai"
+    | "unlock_mine_entrance"
     | "unlock_spirit_overview"
     | "unlock_ruin_fire"
     | "start_ruin_fire"
@@ -1368,6 +1391,7 @@ namespace XiannongCore.Quests {
       if (executeGroup.includes("finish_herb_valley_baizhi")) return "finish_herb_valley_baizhi";
       if (executeGroup.includes("shop_tutorial_complete")) return "shop_tutorial_complete";
       if (executeGroup.includes("spawn_hu_sihai")) return "spawn_hu_sihai";
+      if (executeGroup.includes("unlock_mine_entrance")) return "unlock_mine_entrance";
       if (executeGroup.includes("unlock_spirit_overview")) return "unlock_spirit_overview";
       if (executeGroup.includes("unlock_ruin_fire")) return "unlock_ruin_fire";
       if (executeGroup.includes("start_ruin_fire")) return "start_ruin_fire";
@@ -1620,6 +1644,44 @@ namespace XiannongCore.Quests {
         favorAmount,
         favorSource,
         dialogueGroup,
+        actions,
+      };
+    }
+
+    function configuredEventMineEntranceUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventMineEntranceUnlockActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "unlock_mine_entrance";
+      const questId = applies ? "quest_main_0103_duanqiao_jiumu" : "";
+      const areaId = applies ? constants.mineAreaId || "area_mine_qingyun" : "";
+      const unlockFlag = constants.mineEntranceUnlockFlag || "chapter_1_bridge_complete";
+      const completedFlags = applies
+        ? [unlockFlag, "dungeon_area_mine", areaId]
+        : [];
+      const firstUnlock = applies
+        && !setHas(state.completed, unlockFlag)
+        && !setHas(state.completed, "dungeon_area_mine")
+        && !setHas(state.completed, areaId);
+      const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          ...completedFlags.map((flag) => ({ kind: "complete_flag" as const, flag })),
+          { kind: "complete_main_quest_if_needed", questId },
+          { kind: "apply_mine_entrance_unlock_world_change" },
+          { kind: "play_cue", cue },
+          { kind: "log_mine_entrance_unlock" },
+          { kind: "check_quest_rewards" },
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        executeGroup: plan.executeGroup,
+        firstUnlock,
+        completedFlags,
+        questId,
+        areaId,
+        cue,
         actions,
       };
     }
@@ -2441,6 +2503,7 @@ namespace XiannongCore.Quests {
       configuredEventCutsceneActionPlan,
       configuredEventShopTutorialActionPlan,
       configuredEventHuSihaiArrivalActionPlan,
+      configuredEventMineEntranceUnlockActionPlan,
       configuredEventHerbValleyUnlockActionPlan,
       configuredEventHerbValleyFinishActionPlan,
       configuredEventSpiritManorStartActionPlan,
