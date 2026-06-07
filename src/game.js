@@ -20612,6 +20612,8 @@ function customerDisplayName(archetype) {
 }
 
 function expandShopSemanticTags(tags = []) {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.expandShopSemanticTags(tags);
   const groups = [
     ["festival", "festival_food", "festival_gift"],
     ["gift", "festival_gift", "flower_food"],
@@ -20648,6 +20650,8 @@ function expandShopSemanticTags(tags = []) {
 }
 
 function shopTagsOverlap(leftTags = [], rightTags = []) {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.shopTagsOverlap(leftTags, rightTags);
   if (!leftTags.length || !rightTags.length) return false;
   const right = new Set(expandShopSemanticTags(rightTags));
   return expandShopSemanticTags(leftTags).some((tag) => right.has(tag));

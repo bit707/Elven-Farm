@@ -14,7 +14,7 @@ This project keeps the current Web Canvas game instead of switching to Unity or 
 - `src/core/data/runtime-data.ts` defines a typed runtime data loader.
 - `src/core/persistence/save-runtime.ts` defines a typed save adapter for browser storage and desktop JSON save bridges.
 - `src/core/quests/quest-runtime.ts` moves quest step progress, quest state checks, story quest start/done checks, quest reward claiming, configured event trigger readiness/ready-queue scanning/action classification/execute-group resolution/execution planning, side-quest route/action readiness, and side-quest clue visibility into TypeScript.
-- `src/core/shop/shop-runtime.ts` moves shop customer price rules, customer profiles, reputation score, merged customer preference views, budget calculation, shelf theme matching, item pricing plans, customer purchase decisions, and sale price settlement into TypeScript.
+- `src/core/shop/shop-runtime.ts` moves shop customer price rules, customer profiles, reputation score, merged customer preference views, budget calculation, shelf theme matching, semantic tag matching, item pricing plans, customer purchase decisions, and sale price settlement into TypeScript.
 - `src/core/farming/farming-runtime.ts` moves crop target lookup, solar-term crop affinity, yield bonus, projected harvest previews, harvest yield planning, harvest quality scoring, crop growth visual specs, and night crop growth planning into TypeScript.
 - `tools/build-runtime-data.mjs` converts gameplay CSV tables into `runtime-data/runtime-data.json`.
 - `src/runtime/xiannong-core.js` is the generated TypeScript runtime loaded before `src/game.js`.

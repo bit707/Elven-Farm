@@ -1007,6 +1007,25 @@ var XiannongCore;
         function compactJoin(values) {
             return values.filter(Boolean).join("|");
         }
+        const semanticTagGroups = [
+            ["festival", "festival_food", "festival_gift"],
+            ["gift", "festival_gift", "flower_food"],
+            ["premium", "premium_luxury", "luxury", "rare_goods"],
+            ["portable_food", "portable_supply"],
+            ["route_rare", "rare_goods"],
+            ["drink", "cooling_drink"],
+            ["cooling", "cooling_drink", "refreshing"],
+            ["cheap", "low_price", "cheap_crop"],
+            ["crop", "common_crop", "cheap_crop"],
+            ["batch", "batch_standard"],
+            ["water_food", "water"],
+            ["recover_sp", "heal_sp"],
+            ["recover_hp", "heal_hp"],
+            ["dessert", "sweet_food", "festival_food", "flower_food", "fruit_food"],
+            ["material", "workshop_supply"],
+            ["medicine", "relief"],
+            ["staple", "portable_supply"],
+        ];
         function createShopRuntime(state, data) {
             function customerPriceRule(customer) {
                 const archetype = customerArchetype(customer);
@@ -1118,6 +1137,32 @@ var XiannongCore;
                 const matched = safeGoods.filter((good) => splitTags(good.item?.tags).some((tag) => required.includes(tag))).length;
                 return matched / safeGoods.length;
             }
+            function expandShopSemanticTags(tags = []) {
+                const expanded = new Set((Array.isArray(tags) ? tags : []).filter(Boolean));
+                let changed = true;
+                while (changed) {
+                    changed = false;
+                    for (const group of semanticTagGroups) {
+                        if (!group.some((tag) => expanded.has(tag)))
+                            continue;
+                        for (const tag of group) {
+                            if (expanded.has(tag))
+                                continue;
+                            expanded.add(tag);
+                            changed = true;
+                        }
+                    }
+                }
+                return [...expanded];
+            }
+            function shopTagsOverlap(leftTags = [], rightTags = []) {
+                const left = Array.isArray(leftTags) ? leftTags : [];
+                const right = Array.isArray(rightTags) ? rightTags : [];
+                if (!left.length || !right.length)
+                    return false;
+                const expandedRight = new Set(expandShopSemanticTags(right));
+                return expandShopSemanticTags(left).some((tag) => expandedRight.has(tag));
+            }
             return {
                 customerPriceRule,
                 customerProfile,
@@ -1128,6 +1173,8 @@ var XiannongCore;
                 customerPurchaseDecision,
                 salePricePlan,
                 themeMatchScore,
+                expandShopSemanticTags,
+                shopTagsOverlap,
             };
         }
         Shop.createShopRuntime = createShopRuntime;
