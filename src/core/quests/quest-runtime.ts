@@ -54,6 +54,27 @@ namespace XiannongCore.Quests {
     contextType?: string;
   }
 
+  export interface DialogueQueueContext {
+    activeCutscene?: boolean;
+    activeDialogueCount?: number;
+    queuedGroups?: string[];
+  }
+
+  export interface DialogueQueuePlan {
+    accepted: boolean;
+    immediate: boolean;
+    enqueue: boolean;
+    duplicate: boolean;
+    groupId: string;
+    queuedGroups: string[];
+  }
+
+  export interface DialogueFlushPlan {
+    nextGroupId: string;
+    remainingGroups: string[];
+    skippedGroups: string[];
+  }
+
   export interface QuestRuntimeState {
     day?: number;
     gold?: number;
@@ -170,6 +191,8 @@ namespace XiannongCore.Quests {
     configuredEventActionKind(event: ConfiguredTriggerRow): ConfiguredEventActionKind;
     dialogueGroupForExecuteGroup(executeGroup: string): string;
     dialogueLinesForGroup(groupId: string): ActiveDialogueLine[];
+    queueDialogueGroupPlan(groupId: string, context: DialogueQueueContext): DialogueQueuePlan;
+    flushQueuedDialoguePlan(queuedGroups: string[]): DialogueFlushPlan;
     questForExecuteGroup(executeGroup: string, side?: boolean): QuestRow | null;
     configuredEventExecutionPlan(event: ConfiguredTriggerRow): ConfiguredEventExecutionPlan;
   }
@@ -678,6 +701,45 @@ namespace XiannongCore.Quests {
         }));
     }
 
+    function normalizedQueue(queuedGroups: string[] | undefined): string[] {
+      return (queuedGroups || []).map((groupId) => String(groupId || "")).filter(Boolean);
+    }
+
+    function queueDialogueGroupPlan(groupId: string, context: DialogueQueueContext = {}): DialogueQueuePlan {
+      const normalizedGroupId = String(groupId || "");
+      const queuedGroups = normalizedQueue(context.queuedGroups);
+      if (!normalizedGroupId) {
+        return {
+          accepted: false,
+          immediate: false,
+          enqueue: false,
+          duplicate: false,
+          groupId: "",
+          queuedGroups,
+        };
+      }
+      const immediate = !context.activeCutscene && Number(context.activeDialogueCount || 0) <= 0;
+      const duplicate = queuedGroups.includes(normalizedGroupId);
+      return {
+        accepted: true,
+        immediate,
+        enqueue: !immediate && !duplicate,
+        duplicate,
+        groupId: normalizedGroupId,
+        queuedGroups: !immediate && !duplicate ? [...queuedGroups, normalizedGroupId] : queuedGroups,
+      };
+    }
+
+    function flushQueuedDialoguePlan(queuedGroups: string[]): DialogueFlushPlan {
+      const normalized = normalizedQueue(queuedGroups);
+      const nextGroupId = normalized[0] || "";
+      return {
+        nextGroupId,
+        remainingGroups: normalized.slice(nextGroupId ? 1 : 0),
+        skippedGroups: [],
+      };
+    }
+
     function questForExecuteGroup(executeGroup: string, side = false): QuestRow | null {
       const raw = String(executeGroup || "");
       const match = raw.match(side ? /side_\d+/ : /quest_main_\d+/);
@@ -786,6 +848,8 @@ namespace XiannongCore.Quests {
       configuredEventActionKind,
       dialogueGroupForExecuteGroup,
       dialogueLinesForGroup,
+      queueDialogueGroupPlan,
+      flushQueuedDialoguePlan,
       questForExecuteGroup,
       configuredEventExecutionPlan,
     };

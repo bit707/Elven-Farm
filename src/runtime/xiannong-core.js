@@ -1830,6 +1830,42 @@ var XiannongCore;
                     contextType: line.context_type,
                 }));
             }
+            function normalizedQueue(queuedGroups) {
+                return (queuedGroups || []).map((groupId) => String(groupId || "")).filter(Boolean);
+            }
+            function queueDialogueGroupPlan(groupId, context = {}) {
+                const normalizedGroupId = String(groupId || "");
+                const queuedGroups = normalizedQueue(context.queuedGroups);
+                if (!normalizedGroupId) {
+                    return {
+                        accepted: false,
+                        immediate: false,
+                        enqueue: false,
+                        duplicate: false,
+                        groupId: "",
+                        queuedGroups,
+                    };
+                }
+                const immediate = !context.activeCutscene && Number(context.activeDialogueCount || 0) <= 0;
+                const duplicate = queuedGroups.includes(normalizedGroupId);
+                return {
+                    accepted: true,
+                    immediate,
+                    enqueue: !immediate && !duplicate,
+                    duplicate,
+                    groupId: normalizedGroupId,
+                    queuedGroups: !immediate && !duplicate ? [...queuedGroups, normalizedGroupId] : queuedGroups,
+                };
+            }
+            function flushQueuedDialoguePlan(queuedGroups) {
+                const normalized = normalizedQueue(queuedGroups);
+                const nextGroupId = normalized[0] || "";
+                return {
+                    nextGroupId,
+                    remainingGroups: normalized.slice(nextGroupId ? 1 : 0),
+                    skippedGroups: [],
+                };
+            }
             function questForExecuteGroup(executeGroup, side = false) {
                 const raw = String(executeGroup || "");
                 const match = raw.match(side ? /side_\d+/ : /quest_main_\d+/);
@@ -1936,6 +1972,8 @@ var XiannongCore;
                 configuredEventActionKind,
                 dialogueGroupForExecuteGroup,
                 dialogueLinesForGroup,
+                queueDialogueGroupPlan,
+                flushQueuedDialoguePlan,
                 questForExecuteGroup,
                 configuredEventExecutionPlan,
             };

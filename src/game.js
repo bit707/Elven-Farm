@@ -18149,6 +18149,17 @@ function clearQueuedDialogues() {
 }
 
 function queueDialogueGroup(groupId) {
+  const queuePlan = questRuntime()?.queueDialogueGroupPlan(groupId, {
+    activeCutscene: Boolean(state.activeCutscene),
+    activeDialogueCount: state.activeDialogue.length,
+    queuedGroups: queuedDialogueGroups,
+  });
+  if (queuePlan) {
+    if (!queuePlan.accepted) return false;
+    if (queuePlan.immediate) return showDialogue(queuePlan.groupId);
+    queuedDialogueGroups = queuePlan.queuedGroups;
+    return true;
+  }
   if (!groupId) return false;
   if (!state.activeCutscene && state.activeDialogue.length === 0) return showDialogue(groupId);
   if (!queuedDialogueGroups.includes(groupId)) queuedDialogueGroups.push(groupId);
@@ -18157,7 +18168,9 @@ function queueDialogueGroup(groupId) {
 
 function flushQueuedDialogueGroup() {
   while (queuedDialogueGroups.length > 0) {
-    const nextGroupId = queuedDialogueGroups.shift();
+    const flushPlan = questRuntime()?.flushQueuedDialoguePlan(queuedDialogueGroups);
+    const nextGroupId = flushPlan?.nextGroupId || queuedDialogueGroups.shift();
+    if (flushPlan) queuedDialogueGroups = flushPlan.remainingGroups;
     if (showDialogue(nextGroupId)) return true;
   }
   return false;
