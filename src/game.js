@@ -15642,6 +15642,10 @@ function questRuntime() {
       currentTermId,
       shopReputationScore,
       applyRewardEntry,
+      rewardEntryPreview: applyRewardEntryPreview,
+      formatSideQuestActionLabel,
+      formatSideQuestRouteActionLabel,
+      formatSideQuestRewardPreview,
     },
   );
   return questRuntimeCache;
@@ -17271,7 +17275,53 @@ function sideQuestClueStatusText(clue) {
   return "等待线索";
 }
 
+function formatSideQuestActionLabel(actionState = {}) {
+  if (actionState.kind === "missing") return "推进支线";
+  if (actionState.kind === "reward") return "领取奖励";
+  if (actionState.kind === "accept") return "承接支线";
+  if (actionState.kind === "done") return "查看收束";
+  const labels = {
+    talk: "去交谈",
+    collect: String(actionState.targetId || "").startsWith("item_") ? "收集/调查" : "推进收集",
+    build: "去建造",
+    craft: "安排制作",
+    sell: "去经营",
+    defeat: "处理险情",
+    harvest: "去收获",
+    plant: "去播种",
+    enter_area: "前往地点",
+  };
+  return labels[actionState.objectiveType] || "推进支线";
+}
+
+function formatSideQuestRouteActionLabel(actionState = {}) {
+  if (actionState.kind === "missing") return "定位玩法入口";
+  if (actionState.kind === "claimed") return "已完成";
+  if (actionState.kind === "reward") return "定位领奖";
+  if (actionState.kind === "accept") return "定位承接人";
+  if (actionState.kind === "done") return "定位任务卡";
+  const labels = {
+    talk: "定位交谈",
+    collect: "定位来源",
+    build: "定位建造",
+    craft: "定位配方",
+    sell: "定位经营",
+    defeat: "定位险情",
+    harvest: "定位收获",
+    plant: "定位播种",
+    enter_area: "定位地点",
+  };
+  return labels[actionState.objectiveType] || "定位玩法入口";
+}
+
+function formatSideQuestRewardPreview(quest = null, rewardPoolId = "", rewards = []) {
+  if (!quest?.complete_reward_group) return "回报：关系、声望或线索待配置";
+  return rewards.length ? `回报：${rewards.join(" / ")}` : `回报池：${rewardPoolId}`;
+}
+
 function currentSideQuestStep(quest) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.currentSideQuestStep(quest);
   if (!quest) return null;
   const progress = questProgress(quest, true);
   return progress.steps.find((step) => stepProgress(step) < Number(step.target_count || 1)) || null;
@@ -17318,6 +17368,8 @@ function acceptTownLifeSideQuest(npcId = "", questId = "") {
 }
 
 function sideQuestActionLabel(quest) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.sideQuestActionLabel(quest);
   if (!quest) return "推进支线";
   if (questRewardReady(quest, true)) return "领取奖励";
   if (!state.activeSideQuests.has(quest.quest_id) && quest.auto_accept !== "true") return "承接支线";
@@ -17338,6 +17390,8 @@ function sideQuestActionLabel(quest) {
 }
 
 function sideQuestRouteActionLabel(quest) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.sideQuestRouteActionLabel(quest);
   if (!quest) return "定位玩法入口";
   if (state.claimedQuestRewards.has(quest.quest_id)) return "已完成";
   if (questRewardReady(quest, true)) return "定位领奖";
@@ -17595,6 +17649,8 @@ function runSideQuestRouteAction(questId = "") {
 }
 
 function sideQuestStepAdvanceAmount(step) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.sideQuestStepAdvanceAmount(step);
   const count = Number(step?.target_count || 1);
   const current = stepProgress(step);
   if (current >= count) return 0;
@@ -17695,6 +17751,8 @@ function sideQuestWorldClueSafetyText() {
 }
 
 function sideQuestRewardPreviewText(quest = null) {
+  const runtime = questRuntime();
+  if (runtime) return runtime.sideQuestRewardPreviewText(quest);
   if (!quest?.complete_reward_group) return "回报：关系、声望或线索待配置";
   const rewards = rewardPoolEntries(quest.complete_reward_group)
     .slice(0, 3)

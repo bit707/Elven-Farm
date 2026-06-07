@@ -2970,6 +2970,11 @@ for (const questRuntimeTerm of [
   "runtime.checkQuestRewards()",
   "runtime.triggerParamMet(trigger)",
   "runtime.configuredTriggerReady(trigger)",
+  "runtime.currentSideQuestStep(quest)",
+  "runtime.sideQuestActionLabel(quest)",
+  "runtime.sideQuestRouteActionLabel(quest)",
+  "runtime.sideQuestStepAdvanceAmount(step)",
+  "runtime.sideQuestRewardPreviewText(quest)",
   "finishClaimedQuestReward",
 ]) {
   if (!game.includes(questRuntimeTerm)) throw new Error(`Quest TypeScript runtime bridge missing: ${questRuntimeTerm}`);
@@ -2990,6 +2995,16 @@ for (const questCoreSourceTerm of [
   "configuredTriggerReady(trigger",
   "hooks.currentTermId()",
   "hooks.shopReputationScore()",
+  "export interface SideQuestActionState",
+  "currentSideQuestStep(quest",
+  "sideQuestStepAdvanceAmount(step",
+  "sideQuestActionState(quest",
+  "sideQuestRouteActionState(quest",
+  "sideQuestRewardPreviewText(quest",
+  "hooks.rewardEntryPreview",
+  "hooks.formatSideQuestActionLabel",
+  "hooks.formatSideQuestRouteActionLabel",
+  "hooks.formatSideQuestRewardPreview",
 ]) {
   if (!questRuntimeTs.includes(questCoreSourceTerm)) throw new Error(`Quest TypeScript source missing quest runtime term: ${questCoreSourceTerm}`);
 }
@@ -3007,6 +3022,15 @@ for (const questCoreRuntimeTerm of [
   "function configuredTriggerReady",
   "hooks.currentTermId()",
   "hooks.shopReputationScore()",
+  "function currentSideQuestStep",
+  "function sideQuestStepAdvanceAmount",
+  "function sideQuestActionState",
+  "function sideQuestRouteActionState",
+  "function sideQuestRewardPreviewText",
+  "hooks.rewardEntryPreview",
+  "hooks.formatSideQuestActionLabel",
+  "hooks.formatSideQuestRouteActionLabel",
+  "hooks.formatSideQuestRewardPreview",
 ]) {
   if (!coreRuntimeJs.includes(questCoreRuntimeTerm)) throw new Error(`Generated quest runtime missing quest term: ${questCoreRuntimeTerm}`);
 }

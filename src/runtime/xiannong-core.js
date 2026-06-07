@@ -441,6 +441,74 @@ var XiannongCore;
                     ready: paramReady && conditionReady,
                 };
             }
+            function sideQuestAccepted(quest) {
+                return Boolean(quest?.quest_id && (setHas(state.activeSideQuests, quest.quest_id) || quest.auto_accept === "true"));
+            }
+            function currentSideQuestStep(quest) {
+                if (!quest)
+                    return null;
+                const progress = questProgress(quest, true);
+                return progress.steps.find((step) => stepProgress(step) < Number(step.target_count || 1)) || null;
+            }
+            function sideQuestStepAdvanceAmount(step) {
+                if (!step)
+                    return 0;
+                const count = Number(step.target_count || 1);
+                const current = stepProgress(step);
+                if (current >= count)
+                    return 0;
+                if (step.objective_type === "collect")
+                    return Math.max(1, Math.min(count - current, Math.ceil(count / 2)));
+                if (step.objective_type === "defeat")
+                    return Math.max(1, Math.min(count - current, 1));
+                if (step.objective_type === "sell")
+                    return Math.max(1, Math.min(count - current, 1));
+                if (step.objective_type === "craft")
+                    return Math.max(1, Math.min(count - current, 1));
+                return count - current;
+            }
+            function sideQuestActionState(quest) {
+                if (!quest)
+                    return { kind: "missing", objectiveType: "", targetId: "" };
+                if (questRewardReady(quest, true))
+                    return { kind: "reward", objectiveType: "", targetId: "" };
+                if (!sideQuestAccepted(quest))
+                    return { kind: "accept", objectiveType: "", targetId: quest.issuer_id || "" };
+                const step = currentSideQuestStep(quest);
+                if (!step)
+                    return { kind: "done", objectiveType: "", targetId: "" };
+                return { kind: "step", objectiveType: step.objective_type || "", targetId: step.target_id || "" };
+            }
+            function sideQuestRouteActionState(quest) {
+                if (!quest)
+                    return { kind: "missing", objectiveType: "", targetId: "" };
+                if (setHas(state.claimedQuestRewards, quest.quest_id))
+                    return { kind: "claimed", objectiveType: "", targetId: "" };
+                if (questRewardReady(quest, true))
+                    return { kind: "reward", objectiveType: "", targetId: "" };
+                if (!sideQuestAccepted(quest))
+                    return { kind: "accept", objectiveType: "", targetId: quest.issuer_id || "" };
+                const step = currentSideQuestStep(quest);
+                if (!step)
+                    return { kind: "done", objectiveType: "", targetId: "" };
+                return { kind: "step", objectiveType: step.objective_type || "", targetId: step.target_id || "" };
+            }
+            function sideQuestActionLabel(quest) {
+                return hooks.formatSideQuestActionLabel(sideQuestActionState(quest));
+            }
+            function sideQuestRouteActionLabel(quest) {
+                return hooks.formatSideQuestRouteActionLabel(sideQuestRouteActionState(quest));
+            }
+            function sideQuestRewardPreviewText(quest) {
+                const rewardPoolId = quest?.complete_reward_group || "";
+                const rewards = rewardPoolId
+                    ? rewardPoolEntries(rewardPoolId)
+                        .slice(0, 3)
+                        .map((entry) => hooks.rewardEntryPreview(entry))
+                        .filter(Boolean)
+                    : [];
+                return hooks.formatSideQuestRewardPreview(quest, rewardPoolId, rewards);
+            }
             function rewardPoolEntries(poolId) {
                 return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
             }
@@ -510,6 +578,13 @@ var XiannongCore;
                 checkQuestRewards,
                 triggerParamMet,
                 configuredTriggerReady,
+                currentSideQuestStep,
+                sideQuestStepAdvanceAmount,
+                sideQuestActionState,
+                sideQuestRouteActionState,
+                sideQuestActionLabel,
+                sideQuestRouteActionLabel,
+                sideQuestRewardPreviewText,
             };
         }
         Quests.createQuestRuntime = createQuestRuntime;
