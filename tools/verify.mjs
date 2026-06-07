@@ -8,6 +8,7 @@ const requiredFiles = [
   "src/game.js",
   "src/styles.css",
   "src/core/data/runtime-data.ts",
+  "src/core/farming/farming-runtime.ts",
   "src/core/persistence/save-runtime.ts",
   "src/core/quests/quest-runtime.ts",
   "src/core/shop/shop-runtime.ts",
@@ -2894,6 +2895,7 @@ const desktopShellMain = readFileSync("desktop-shell/main.mjs", "utf8");
 const desktopShellPreload = readFileSync("desktop-shell/preload.cjs", "utf8");
 const desktopShellTemplate = readFileSync("desktop-shell/package.template.json", "utf8");
 const runtimeDataScript = readFileSync("tools/build-runtime-data.mjs", "utf8");
+const farmingRuntimeTs = readFileSync("src/core/farming/farming-runtime.ts", "utf8");
 const questRuntimeTs = readFileSync("src/core/quests/quest-runtime.ts", "utf8");
 const shopRuntimeTs = readFileSync("src/core/shop/shop-runtime.ts", "utf8");
 const coreRuntimeJs = readFileSync("src/runtime/xiannong-core.js", "utf8");
@@ -2944,7 +2946,7 @@ if (!runtimeDataManifest.contentHash || Object.keys(runtimeDataManifest.files ||
   throw new Error("Runtime JSON manifest must include a content hash and all gameplay CSV tables");
 }
 
-for (const coreTerm of ["XiannongCore.Data", "createRuntimeDataLoader", "XiannongCore.Persistence", "createSaveRuntime", "XiannongStorage", "XiannongCore.Quests", "createQuestRuntime", "XiannongCore.Shop", "createShopRuntime"]) {
+for (const coreTerm of ["XiannongCore.Data", "createRuntimeDataLoader", "XiannongCore.Persistence", "createSaveRuntime", "XiannongStorage", "XiannongCore.Quests", "createQuestRuntime", "XiannongCore.Shop", "createShopRuntime", "XiannongCore.Farming", "createFarmingRuntime"]) {
   if (!coreRuntimeJs.includes(coreTerm) && !game.includes(coreTerm)) {
     throw new Error(`Generated core runtime or game bridge missing: ${coreTerm}`);
   }
@@ -2998,6 +3000,17 @@ for (const shopRuntimeTerm of [
   "runtime.customerBudget(customer, segment)",
 ]) {
   if (!game.includes(shopRuntimeTerm)) throw new Error(`Shop TypeScript runtime bridge missing: ${shopRuntimeTerm}`);
+}
+
+for (const farmingRuntimeTerm of [
+  "function farmingRuntime()",
+  "globalThis.XiannongCore.Farming.createFarmingRuntime",
+  "runtime.cropForHarvestTarget(targetId)",
+  "runtime.cropSolarAffinity(crop, plot, term, weather)",
+  "runtime.cropSolarYieldBonus(crop, plot, affinity)",
+  "runtime.seedProjectedHarvestSpec(crop, plot)",
+]) {
+  if (!game.includes(farmingRuntimeTerm)) throw new Error(`Farming TypeScript runtime bridge missing: ${farmingRuntimeTerm}`);
 }
 
 for (const questCoreSourceTerm of [
@@ -3124,6 +3137,38 @@ for (const shopCoreRuntimeTerm of [
   "Math.round(Math.max(baseBudget, csvBudget) * budgetRate)",
 ]) {
   if (!coreRuntimeJs.includes(shopCoreRuntimeTerm)) throw new Error(`Generated shop runtime missing shop term: ${shopCoreRuntimeTerm}`);
+}
+
+for (const farmingCoreSourceTerm of [
+  "namespace XiannongCore.Farming",
+  "export interface FarmingRuntime",
+  "cropForHarvestTarget(targetId",
+  "cropSolarAffinity(",
+  "cropSolarYieldBonus(crop",
+  "seedProjectedHarvestSpec(crop",
+  "data.cropsById?.get",
+  "data.cropsBySeed?.get",
+  "hooks.unresolvedRisks()",
+  "termBonuses.some",
+  "yieldBonus: Math.min(2, boostCount)",
+]) {
+  if (!farmingRuntimeTs.includes(farmingCoreSourceTerm)) throw new Error(`Farming TypeScript source missing farming runtime term: ${farmingCoreSourceTerm}`);
+}
+
+for (const farmingCoreRuntimeTerm of [
+  "XiannongCore.Farming",
+  "function createFarmingRuntime",
+  "function cropForHarvestTarget",
+  "function cropSolarAffinity",
+  "function cropSolarYieldBonus",
+  "function seedProjectedHarvestSpec",
+  "data.cropsById?.get",
+  "data.cropsBySeed?.get",
+  "hooks.unresolvedRisks()",
+  "termBonuses.some",
+  "yieldBonus: Math.min(2, boostCount)",
+]) {
+  if (!coreRuntimeJs.includes(farmingCoreRuntimeTerm)) throw new Error(`Generated farming runtime missing farming term: ${farmingCoreRuntimeTerm}`);
 }
 
 for (const desktopSaveTerm of ["xiannong:save-json", "registerJsonSaveIpc", "SAVE_DIR_NAME", "savePathForProfile", "XiannongStorage", "writeProfile", "readProfile", "desktop-json-save-v1"]) {

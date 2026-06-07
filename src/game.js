@@ -15614,6 +15614,28 @@ function shopRuntime() {
   return shopRuntimeCache;
 }
 
+let farmingRuntimeCache = null;
+let farmingRuntimeCacheDataReady = null;
+
+function farmingRuntime() {
+  if (!globalThis.XiannongCore?.Farming?.createFarmingRuntime) return null;
+  if (farmingRuntimeCache && farmingRuntimeCacheDataReady === state.dataReady) return farmingRuntimeCache;
+  farmingRuntimeCacheDataReady = state.dataReady;
+  farmingRuntimeCache = globalThis.XiannongCore.Farming.createFarmingRuntime(
+    {
+      crops: data.crops,
+      cropsById: data.cropsById,
+      cropsBySeed: data.cropsBySeed,
+    },
+    {
+      splitTags,
+      localize,
+      unresolvedRisks,
+    },
+  );
+  return farmingRuntimeCache;
+}
+
 let questRuntimeCache = null;
 let questRuntimeCacheState = null;
 
@@ -16792,6 +16814,8 @@ function storyRecipeForTarget(itemId = "") {
 }
 
 function cropForHarvestTarget(targetId = "") {
+  const runtime = farmingRuntime();
+  if (runtime) return runtime.cropForHarvestTarget(targetId);
   return data.crops.find((crop) => crop.crop_id === targetId || crop.seed_item_id === targetId || crop.output_item_id === targetId) || null;
 }
 
@@ -36498,6 +36522,8 @@ function harvestFeedbackSpec(crop = null, amount = 1, quality = null, useRoute =
 }
 
 function seedProjectedHarvestSpec(crop = null, plot = selectedPlot()) {
+  const runtime = farmingRuntime();
+  if (runtime) return runtime.seedProjectedHarvestSpec(crop, plot);
   if (!crop) return { count: 1, affinity: null, yieldBonus: { amount: 0, text: "" } };
   const simulatedPlot = {
     ...(plot || {}),
@@ -68780,6 +68806,8 @@ function solarTermAtmosphereProfile(term = currentTermConfig(), weatherFx = "") 
 }
 
 function cropSolarAffinity(crop = null, plot = null, term = currentTermConfig(), weather = currentWeatherConfig()) {
+  const runtime = farmingRuntime();
+  if (runtime) return runtime.cropSolarAffinity(crop, plot, term, weather);
   if (!crop) return { state: "empty", label: "", detail: "" };
   const termId = term?.term_id || currentTermId();
   const shortTerm = termId.replace("term_", "");
@@ -68831,6 +68859,8 @@ function cropSolarAffinity(crop = null, plot = null, term = currentTermConfig(),
 }
 
 function cropSolarYieldBonus(crop = null, plot = null, affinity = cropSolarAffinity(crop, plot)) {
+  const runtime = farmingRuntime();
+  if (runtime) return runtime.cropSolarYieldBonus(crop, plot, affinity);
   if (!crop || !affinity || affinity.state === "empty") return { amount: 0, text: "" };
   const amount = Math.max(0, Number(affinity.yieldBonus || 0));
   if (amount <= 0) {

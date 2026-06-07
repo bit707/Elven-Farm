@@ -15,6 +15,7 @@ This project keeps the current Web Canvas game instead of switching to Unity or 
 - `src/core/persistence/save-runtime.ts` defines a typed save adapter for browser storage and desktop JSON save bridges.
 - `src/core/quests/quest-runtime.ts` moves quest step progress, quest state checks, story quest start/done checks, quest reward claiming, configured event trigger readiness/ready-queue scanning/action classification/execute-group resolution/execution planning, side-quest route/action readiness, and side-quest clue visibility into TypeScript.
 - `src/core/shop/shop-runtime.ts` moves shop customer price rules, customer profiles, reputation score, merged customer preference views, and budget calculation into TypeScript.
+- `src/core/farming/farming-runtime.ts` moves crop target lookup, solar-term crop affinity, yield bonus, and projected harvest previews into TypeScript.
 - `tools/build-runtime-data.mjs` converts gameplay CSV tables into `runtime-data/runtime-data.json`.
 - `src/runtime/xiannong-core.js` is the generated TypeScript runtime loaded before `src/game.js`.
 - `desktop-shell/main.mjs` and `desktop-shell/preload.cjs` expose `XiannongStorage`, writing the main profile to `Electron userData/saves/profile_1.json`.
@@ -23,6 +24,6 @@ This project keeps the current Web Canvas game instead of switching to Unity or 
 
 - Quests: continue moving configured event execution side effects and side-quest route execution side effects into TypeScript.
 - Shop: continue moving sale stats, customer decision rules, and shop-opening story gates into TypeScript.
-- Farming: move plot state, crop growth, weather effects, and harvest accounting into TypeScript.
+- Farming: continue moving plot state, crop growth, weather effects, and harvest accounting into TypeScript.
 - NPC: move favor rewards, schedules, relationship memory, and dialogue gates into TypeScript.
 - Combat: move dungeon enemy/boss state, loot, and spirit skill calculations into TypeScript.
