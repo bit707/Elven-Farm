@@ -142,6 +142,7 @@ namespace XiannongCore.Quests {
     chapter4DroughtFlag: string;
     chapter4DroughtReliefDoneFlag: string;
     chapter4DroughtOrderId: string;
+    chapter4DroughtReliefItemId: string;
     chapter4LuTruthQuestId: string;
     chapter4DinghaiItemId: string;
     chapter4FinalNestUnlockFlag: string;
@@ -223,6 +224,7 @@ namespace XiannongCore.Quests {
     configuredEventFireRuinUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFireRuinUnlockActionPlan;
     configuredEventFireRuinStartActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFireRuinStartActionPlan;
     configuredEventFireRuinFinishActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFireRuinFinishActionPlan;
+    configuredEventChapter4DroughtStartActionPlan(event: ConfiguredTriggerRow): ConfiguredEventChapter4DroughtStartActionPlan;
     configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan;
   }
 
@@ -302,8 +304,17 @@ namespace XiannongCore.Quests {
       count: number;
     }
     | {
+      kind: "grant_item";
+      itemId: string;
+      count: number;
+    }
+    | {
       kind: "add_fame";
       amount: number;
+    }
+    | {
+      kind: "set_weather";
+      weatherId: string;
     }
     | {
       kind: "queue_dialogue_group";
@@ -335,6 +346,12 @@ namespace XiannongCore.Quests {
     }
     | {
       kind: "apply_fire_ruin_finish_world_change";
+    }
+    | {
+      kind: "apply_chapter4_drought_world_change";
+    }
+    | {
+      kind: "trigger_chapter4_drought_feedback";
     }
     | {
       kind: "trigger_chapter3_trade_feedback";
@@ -376,6 +393,9 @@ namespace XiannongCore.Quests {
     }
     | {
       kind: "log_fire_ruin_finish";
+    }
+    | {
+      kind: "log_chapter4_drought_start";
     }
     | {
       kind: "check_quest_rewards";
@@ -541,6 +561,29 @@ namespace XiannongCore.Quests {
       source: string;
     }>;
     fameAmount: number;
+    dialogueGroup: string;
+    cue: string;
+    scanSource: string;
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventChapter4DroughtStartActionPlan {
+    applies: boolean;
+    eventId: string;
+    executeGroup: string;
+    firstStart: boolean;
+    completedFlags: string[];
+    weatherId: string;
+    npcFavors: Array<{
+      npcId: string;
+      amount: number;
+      source: string;
+    }>;
+    fameAmount: number;
+    itemGrants: Array<{
+      itemId: string;
+      count: number;
+    }>;
     dialogueGroup: string;
     cue: string;
     scanSource: string;
@@ -1699,6 +1742,69 @@ namespace XiannongCore.Quests {
       };
     }
 
+    function configuredEventChapter4DroughtStartActionPlan(event: ConfiguredTriggerRow): ConfiguredEventChapter4DroughtStartActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "world_state_drought";
+      const firstStart = applies && !setHas(state.completed, constants.chapter4DroughtFlag);
+      const completedFlags = applies
+        ? [
+          constants.chapter4DroughtFlag,
+          "drought",
+          `quest_unlock_${constants.chapter4DroughtQuestId}`,
+        ]
+        : [];
+      const weatherId = applies ? "weather_dry_heat" : "";
+      const npcFavors = firstStart
+        ? [
+          { npcId: "npc_xubo", amount: 10, source: "\u4e5d\u66dc\u5927\u65f1\u5148\u6551\u4eba" },
+          { npcId: "npc_qinghe", amount: 8, source: "\u501f\u6d1e\u5929\u7075\u6cc9" },
+        ]
+        : [];
+      const fameAmount = firstStart ? 6 : 0;
+      const itemGrants = firstStart
+        ? [
+          { itemId: constants.chapter4DroughtReliefItemId, count: 5 },
+          { itemId: "seed_qingshui_hulu", count: 3 },
+          { itemId: "seed_jinsui_yumi", count: 3 },
+        ]
+        : [];
+      const dialogueGroup = applies ? "dialogue_main_0401_drought_start" : "";
+      const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+      const scanSource = applies ? "chapter4:drought_start" : "";
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          ...completedFlags.map((flag) => ({ kind: "complete_flag" as const, flag })),
+          { kind: "set_weather", weatherId },
+          ...npcFavors.map((favor) => ({ kind: "add_npc_favor" as const, npcId: favor.npcId, amount: favor.amount, source: favor.source })),
+          ...(fameAmount > 0 ? [{ kind: "add_fame" as const, amount: fameAmount }] : []),
+          ...itemGrants.map((grant) => ({ kind: "grant_item" as const, itemId: grant.itemId, count: grant.count })),
+          { kind: "apply_chapter4_drought_world_change" },
+          { kind: "trigger_chapter4_drought_feedback" },
+          { kind: "queue_dialogue_group", groupId: dialogueGroup },
+          { kind: "play_cue", cue },
+          { kind: "log_chapter4_drought_start" },
+          { kind: "update_missions" },
+          { kind: "scan_configured_events", source: scanSource },
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        executeGroup: plan.executeGroup,
+        firstStart,
+        completedFlags,
+        weatherId,
+        npcFavors,
+        fameAmount,
+        itemGrants,
+        dialogueGroup,
+        cue,
+        scanSource,
+        actions,
+      };
+    }
+
     function configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan {
       const plan = configuredEventExecutionPlan(event);
       const applies = plan.actionKind === "generic_unlock";
@@ -1817,6 +1923,7 @@ namespace XiannongCore.Quests {
       configuredEventFireRuinUnlockActionPlan,
       configuredEventFireRuinStartActionPlan,
       configuredEventFireRuinFinishActionPlan,
+      configuredEventChapter4DroughtStartActionPlan,
       configuredEventGenericUnlockActionPlan,
     };
   }

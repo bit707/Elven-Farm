@@ -2549,6 +2549,68 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventChapter4DroughtStartActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "world_state_drought";
+                const firstStart = applies && !setHas(state.completed, constants.chapter4DroughtFlag);
+                const completedFlags = applies
+                    ? [
+                        constants.chapter4DroughtFlag,
+                        "drought",
+                        `quest_unlock_${constants.chapter4DroughtQuestId}`,
+                    ]
+                    : [];
+                const weatherId = applies ? "weather_dry_heat" : "";
+                const npcFavors = firstStart
+                    ? [
+                        { npcId: "npc_xubo", amount: 10, source: "\u4e5d\u66dc\u5927\u65f1\u5148\u6551\u4eba" },
+                        { npcId: "npc_qinghe", amount: 8, source: "\u501f\u6d1e\u5929\u7075\u6cc9" },
+                    ]
+                    : [];
+                const fameAmount = firstStart ? 6 : 0;
+                const itemGrants = firstStart
+                    ? [
+                        { itemId: constants.chapter4DroughtReliefItemId, count: 5 },
+                        { itemId: "seed_qingshui_hulu", count: 3 },
+                        { itemId: "seed_jinsui_yumi", count: 3 },
+                    ]
+                    : [];
+                const dialogueGroup = applies ? "dialogue_main_0401_drought_start" : "";
+                const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+                const scanSource = applies ? "chapter4:drought_start" : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        { kind: "set_weather", weatherId },
+                        ...npcFavors.map((favor) => ({ kind: "add_npc_favor", npcId: favor.npcId, amount: favor.amount, source: favor.source })),
+                        ...(fameAmount > 0 ? [{ kind: "add_fame", amount: fameAmount }] : []),
+                        ...itemGrants.map((grant) => ({ kind: "grant_item", itemId: grant.itemId, count: grant.count })),
+                        { kind: "apply_chapter4_drought_world_change" },
+                        { kind: "trigger_chapter4_drought_feedback" },
+                        { kind: "queue_dialogue_group", groupId: dialogueGroup },
+                        { kind: "play_cue", cue },
+                        { kind: "log_chapter4_drought_start" },
+                        { kind: "update_missions" },
+                        { kind: "scan_configured_events", source: scanSource },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    firstStart,
+                    completedFlags,
+                    weatherId,
+                    npcFavors,
+                    fameAmount,
+                    itemGrants,
+                    dialogueGroup,
+                    cue,
+                    scanSource,
+                    actions,
+                };
+            }
             function configuredEventGenericUnlockActionPlan(event) {
                 const plan = configuredEventExecutionPlan(event);
                 const applies = plan.actionKind === "generic_unlock";
@@ -2665,6 +2727,7 @@ var XiannongCore;
                 configuredEventFireRuinUnlockActionPlan,
                 configuredEventFireRuinStartActionPlan,
                 configuredEventFireRuinFinishActionPlan,
+                configuredEventChapter4DroughtStartActionPlan,
                 configuredEventGenericUnlockActionPlan,
             };
         }

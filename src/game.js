@@ -15727,6 +15727,7 @@ function questRuntime() {
       chapter4DroughtFlag: CHAPTER_4_DROUGHT_FLAG,
       chapter4DroughtReliefDoneFlag: CHAPTER_4_DROUGHT_RELIEF_DONE_FLAG,
       chapter4DroughtOrderId: CHAPTER_4_DROUGHT_ORDER_ID,
+      chapter4DroughtReliefItemId: CHAPTER_4_DROUGHT_RELIEF_ITEM_ID,
       chapter4LuTruthQuestId: CHAPTER_4_LU_TRUTH_QUEST_ID,
       chapter4DinghaiItemId: CHAPTER_4_DINGHAI_ITEM_ID,
       chapter4FinalNestUnlockFlag: CHAPTER_4_FINAL_NEST_UNLOCK_FLAG,
@@ -17222,8 +17223,16 @@ function applyConfiguredEventAction(action, context = {}) {
     if (!hasItem(action.itemId, action.count)) addItem(action.itemId, action.count);
     return null;
   }
+  if (action.kind === "grant_item") {
+    addItem(action.itemId, action.count);
+    return null;
+  }
   if (action.kind === "add_fame") {
     state.fame += Number(action.amount || 0);
+    return null;
+  }
+  if (action.kind === "set_weather") {
+    state.weatherId = action.weatherId;
     return null;
   }
   if (action.kind === "queue_dialogue_group") {
@@ -17292,6 +17301,20 @@ function applyConfiguredEventAction(action, context = {}) {
     });
     return null;
   }
+  if (action.kind === "apply_chapter4_drought_world_change") {
+    upsertWorldChange({
+      key: CHAPTER_4_DROUGHT_FLAG,
+      title: "凡仙镇枯井见底",
+      detail: "主街井绳拖出空响，洞天灵泉被接成救命水线。田垄还能缓，镇上的人缓不得。",
+      rewardHint: "应急订单 · 供水压力 · 二十四枢前置",
+      visualType: "drought_cracked_well",
+    });
+    return null;
+  }
+  if (action.kind === "trigger_chapter4_drought_feedback") {
+    triggerChapter4DroughtFeedback(context.eventName);
+    return null;
+  }
   if (action.kind === "trigger_chapter3_trade_feedback") {
     triggerChapter3TradeFeedback(action.phase, action.eventNameKey ? localize(action.eventNameKey, action.fallbackName || context.eventName) : context.eventName);
     return null;
@@ -17344,6 +17367,10 @@ function applyConfiguredEventAction(action, context = {}) {
   }
   if (action.kind === "log_fire_ruin_finish") {
     addLog("第三章收束", `${context.eventName}：${bossName(FIRE_RUIN_BOSS_ID)} 已伏，${itemName(FIRE_CORE_ITEM_ID)} 入手，门派大单与终章前置正式接上。`);
+    return null;
+  }
+  if (action.kind === "log_chapter4_drought_start") {
+    addLog("第四章开启", `${context.eventName}：九曜大旱压到凡仙镇，${droughtReliefOrder() ? orderTitle(droughtReliefOrder()) : "应急救援订单"}已刷新，洞天灵泉先封出 5 份${itemName(CHAPTER_4_DROUGHT_RELIEF_ITEM_ID)}，清水葫芦和金穗玉米种子已上架救援。`);
     return null;
   }
   if (action.kind === "check_quest_rewards") {
@@ -17738,7 +17765,51 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "world_state_drought" || (!actionKind && executeGroup.includes("world_state_drought"))) {
-    startChapter4Drought(eventName);
+    const firstStart = !state.completed.has(CHAPTER_4_DROUGHT_FLAG);
+    const actionPlan = runtime?.configuredEventChapter4DroughtStartActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      firstStart,
+      completedFlags: [CHAPTER_4_DROUGHT_FLAG, "drought", `quest_unlock_${CHAPTER_4_DROUGHT_QUEST_ID}`],
+      weatherId: "weather_dry_heat",
+      npcFavors: firstStart ? [
+        { npcId: "npc_xubo", amount: 10, source: "九曜大旱先救人" },
+        { npcId: "npc_qinghe", amount: 8, source: "借洞天灵泉" },
+      ] : [],
+      fameAmount: firstStart ? 6 : 0,
+      itemGrants: firstStart ? [
+        { itemId: CHAPTER_4_DROUGHT_RELIEF_ITEM_ID, count: 5 },
+        { itemId: "seed_qingshui_hulu", count: 3 },
+        { itemId: "seed_jinsui_yumi", count: 3 },
+      ] : [],
+      dialogueGroup: "dialogue_main_0401_drought_start",
+      cue: "成就解锁",
+      scanSource: "chapter4:drought_start",
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: CHAPTER_4_DROUGHT_FLAG },
+        { kind: "complete_flag", flag: "drought" },
+        { kind: "complete_flag", flag: `quest_unlock_${CHAPTER_4_DROUGHT_QUEST_ID}` },
+        { kind: "set_weather", weatherId: "weather_dry_heat" },
+        ...(firstStart ? [
+          { kind: "add_npc_favor", npcId: "npc_xubo", amount: 10, source: "九曜大旱先救人" },
+          { kind: "add_npc_favor", npcId: "npc_qinghe", amount: 8, source: "借洞天灵泉" },
+          { kind: "add_fame", amount: 6 },
+          { kind: "grant_item", itemId: CHAPTER_4_DROUGHT_RELIEF_ITEM_ID, count: 5 },
+          { kind: "grant_item", itemId: "seed_qingshui_hulu", count: 3 },
+          { kind: "grant_item", itemId: "seed_jinsui_yumi", count: 3 },
+        ] : []),
+        { kind: "apply_chapter4_drought_world_change" },
+        { kind: "trigger_chapter4_drought_feedback" },
+        { kind: "queue_dialogue_group", groupId: "dialogue_main_0401_drought_start" },
+        { kind: "play_cue", cue: "成就解锁" },
+        { kind: "log_chapter4_drought_start" },
+        { kind: "update_missions" },
+        { kind: "scan_configured_events", source: "chapter4:drought_start" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan, { eventName });
     return true;
   }
 
@@ -38330,6 +38401,16 @@ function chapter4DroughtPanelHint() {
 }
 
 function startChapter4Drought(eventName = "九曜大旱降临") {
+  const plan = questRuntime()?.configuredEventChapter4DroughtStartActionPlan({
+    event_id: CHAPTER_4_DROUGHT_EVENT_ID,
+    trigger_type: "on_day_start",
+    trigger_param: "day_67",
+    execute_group: "exec_world_state_drought",
+  });
+  if (plan?.applies) {
+    applyConfiguredEventActionPlan(plan, { eventName });
+    return true;
+  }
   const firstStart = !state.completed.has(CHAPTER_4_DROUGHT_FLAG) && !state.triggeredEvents.has(CHAPTER_4_DROUGHT_EVENT_ID);
   state.completed.add(CHAPTER_4_DROUGHT_FLAG);
   state.completed.add("drought");

@@ -3009,6 +3009,7 @@ for (const questRuntimeTerm of [
   "runtime?.configuredEventFireRuinUnlockActionPlan(event)",
   "runtime?.configuredEventFireRuinStartActionPlan(event)",
   "runtime?.configuredEventFireRuinFinishActionPlan(event)",
+  "runtime?.configuredEventChapter4DroughtStartActionPlan(event)",
   "runtime?.configuredEventGenericUnlockActionPlan(event)",
   "applyConfiguredEventActionPlan(actionPlan)",
   "applyConfiguredEventAction(action",
@@ -3280,6 +3281,7 @@ for (const questCoreSourceTerm of [
   "export interface ConfiguredEventFireRuinUnlockActionPlan",
   "export interface ConfiguredEventFireRuinStartActionPlan",
   "export interface ConfiguredEventFireRuinFinishActionPlan",
+  "export interface ConfiguredEventChapter4DroughtStartActionPlan",
   "export interface ConfiguredEventGenericUnlockActionPlan",
   "configuredEventSideQuestActionPlan(event",
   "configuredEventMainQuestActionPlan(event",
@@ -3294,6 +3296,7 @@ for (const questCoreSourceTerm of [
   "configuredEventFireRuinUnlockActionPlan(event",
   "configuredEventFireRuinStartActionPlan(event",
   "configuredEventFireRuinFinishActionPlan(event",
+  "configuredEventChapter4DroughtStartActionPlan(event",
   "configuredEventGenericUnlockActionPlan(event",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -3393,6 +3396,7 @@ for (const questCoreRuntimeTerm of [
   "function configuredEventFireRuinUnlockActionPlan",
   "function configuredEventFireRuinStartActionPlan",
   "function configuredEventFireRuinFinishActionPlan",
+  "function configuredEventChapter4DroughtStartActionPlan",
   "function configuredEventGenericUnlockActionPlan",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -5892,6 +5896,18 @@ if (!mainQuestSteps0401.some((step) => step.objective_type === "enter_area" && s
 }
 if (!eventMain0401 || eventMain0401.trigger_type !== "on_day_start" || eventMain0401.trigger_param !== "day_67" || eventMain0401.condition_group !== "chapter_3_complete" || eventMain0401.execute_group !== "exec_world_state_drought") {
   throw new Error("Chapter four drought must start after chapter three completion through event_main_0401");
+}
+if (!game.includes('executeGroup.includes("world_state_drought")')
+  || !game.includes("runtime?.configuredEventChapter4DroughtStartActionPlan(event)")
+  || !game.includes("questRuntime()?.configuredEventChapter4DroughtStartActionPlan({")
+  || !game.includes('kind: "apply_chapter4_drought_world_change"')
+  || !game.includes('kind: "trigger_chapter4_drought_feedback"')
+  || !game.includes('kind: "log_chapter4_drought_start"')
+  || !questRuntimeTs.includes("function configuredEventChapter4DroughtStartActionPlan")
+  || !questRuntimeTs.includes("constants.chapter4DroughtReliefItemId")
+  || !questRuntimeTs.includes('weatherId = applies ? "weather_dry_heat"')
+  || !questRuntimeTs.includes('source: scanSource')) {
+  throw new Error("Chapter four drought start must run through a TypeScript configured-event action plan with weather, starter supplies, feedback, and follow-up scan");
 }
 if (!worldStateDroughtCondition || worldStateDroughtCondition.expression !== "flag(world_state_drought)==true") {
   throw new Error("Drought order visibility must depend on the world_state_drought flag");
