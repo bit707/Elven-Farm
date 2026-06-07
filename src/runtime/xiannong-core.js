@@ -1244,6 +1244,30 @@ var XiannongCore;
                 const matched = tag ? exact.filter((entry) => shopFeedbackEntryMatchesTag(entry, tag)) : exact;
                 return matched[0] || null;
             }
+            function shopWordOfMouthVisitBias(customer = null, segment = null, spec = null) {
+                if (!customer || !spec)
+                    return 0;
+                let bonus = 0;
+                if ((spec.preferredArchetypes || []).includes(customerArchetype(customer)))
+                    bonus += Number(spec.visitBias || 0);
+                if (spec.hotTag) {
+                    const view = customerViewFor(customer, segment);
+                    const tags = expandShopSemanticTags(splitTags(view.preferred_tags || ""));
+                    if (shopTagsOverlap(tags, [spec.hotTag]))
+                        bonus += Number(spec.tagVisitBias || 0);
+                }
+                return bonus;
+            }
+            function shopWordOfMouthBudgetBonus(customer = null, choiceTags = [], spec = null) {
+                if (!customer || !Array.isArray(choiceTags) || !spec)
+                    return 0;
+                let bonus = 0;
+                if ((spec.preferredArchetypes || []).includes(customerArchetype(customer)))
+                    bonus += Number(spec.budgetBonus || 0);
+                if (spec.hotTag && shopTagsOverlap(choiceTags, [spec.hotTag]))
+                    bonus += Number(spec.tagBudgetBonus || 0);
+                return bonus;
+            }
             return {
                 customerPriceRule,
                 customerProfile,
@@ -1262,6 +1286,8 @@ var XiannongCore;
                 shopHotTag,
                 shopFeedbackEntryMatchesTag,
                 shopFeedbackForSegment,
+                shopWordOfMouthVisitBias,
+                shopWordOfMouthBudgetBonus,
             };
         }
         Shop.createShopRuntime = createShopRuntime;

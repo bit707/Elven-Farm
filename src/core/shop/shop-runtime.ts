@@ -32,6 +32,8 @@ namespace XiannongCore.Shop {
     shopHotTag(goods?: ShopTaggedGoodChoice[] | null, theme?: ShopRow | null, fallback?: string): string;
     shopFeedbackEntryMatchesTag(entry?: ShopRow | null, tag?: string | null): boolean;
     shopFeedbackForSegment(type: string, customerSegment?: string | null, tag?: string | null): ShopRow | null;
+    shopWordOfMouthVisitBias(customer?: ShopRow | null, segment?: ShopRow | null, spec?: ShopWordOfMouthSpec | null): number;
+    shopWordOfMouthBudgetBonus(customer?: ShopRow | null, choiceTags?: string[] | null, spec?: ShopWordOfMouthSpec | null): number;
   }
 
   export interface ShopGoodChoice {
@@ -45,6 +47,15 @@ namespace XiannongCore.Shop {
   }
 
   export type ShopTagCounts = Map<string, number> | Record<string, number | undefined>;
+
+  export interface ShopWordOfMouthSpec {
+    preferredArchetypes?: string[] | null;
+    hotTag?: string;
+    visitBias?: number | string;
+    tagVisitBias?: number | string;
+    budgetBonus?: number | string;
+    tagBudgetBonus?: number | string;
+  }
 
   export interface PricedGoodOptions {
     themeScore?: number;
@@ -355,6 +366,26 @@ namespace XiannongCore.Shop {
       return matched[0] || null;
     }
 
+    function shopWordOfMouthVisitBias(customer: ShopRow | null = null, segment: ShopRow | null = null, spec: ShopWordOfMouthSpec | null = null): number {
+      if (!customer || !spec) return 0;
+      let bonus = 0;
+      if ((spec.preferredArchetypes || []).includes(customerArchetype(customer))) bonus += Number(spec.visitBias || 0);
+      if (spec.hotTag) {
+        const view = customerViewFor(customer, segment);
+        const tags = expandShopSemanticTags(splitTags(view.preferred_tags || ""));
+        if (shopTagsOverlap(tags, [spec.hotTag])) bonus += Number(spec.tagVisitBias || 0);
+      }
+      return bonus;
+    }
+
+    function shopWordOfMouthBudgetBonus(customer: ShopRow | null = null, choiceTags: string[] | null = [], spec: ShopWordOfMouthSpec | null = null): number {
+      if (!customer || !Array.isArray(choiceTags) || !spec) return 0;
+      let bonus = 0;
+      if ((spec.preferredArchetypes || []).includes(customerArchetype(customer))) bonus += Number(spec.budgetBonus || 0);
+      if (spec.hotTag && shopTagsOverlap(choiceTags, [spec.hotTag])) bonus += Number(spec.tagBudgetBonus || 0);
+      return bonus;
+    }
+
     return {
       customerPriceRule,
       customerProfile,
@@ -373,6 +404,8 @@ namespace XiannongCore.Shop {
       shopHotTag,
       shopFeedbackEntryMatchesTag,
       shopFeedbackForSegment,
+      shopWordOfMouthVisitBias,
+      shopWordOfMouthBudgetBonus,
     };
   }
 }

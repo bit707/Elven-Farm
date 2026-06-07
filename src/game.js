@@ -22223,6 +22223,8 @@ function shopWordOfMouthDisplaySpec(day = state.day, stats = normalizeShopStats(
 }
 
 function shopWordOfMouthVisitBias(customer, segment = null, spec = activeShopWordOfMouthSpec()) {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.shopWordOfMouthVisitBias(customer, segment, spec);
   if (!customer || !spec) return 0;
   let bonus = 0;
   if ((spec.preferredArchetypes || []).includes(customer.archetype)) bonus += Number(spec.visitBias || 0);
@@ -22235,6 +22237,11 @@ function shopWordOfMouthVisitBias(customer, segment = null, spec = activeShopWor
 }
 
 function shopWordOfMouthBudgetBonus(customer, choice = null, spec = activeShopWordOfMouthSpec()) {
+  const runtime = shopRuntime();
+  if (runtime) {
+    const tags = choice ? shopTagsForItem(choice.itemId || choice.item || "", ecologyCourtyardSummary()) : [];
+    return runtime.shopWordOfMouthBudgetBonus(customer, tags, spec);
+  }
   if (!customer || !choice || !spec) return 0;
   let bonus = 0;
   if ((spec.preferredArchetypes || []).includes(customer.archetype)) bonus += Number(spec.budgetBonus || 0);

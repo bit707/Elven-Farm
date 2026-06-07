@@ -3013,6 +3013,8 @@ for (const shopRuntimeTerm of [
   "shopFeedback: data.shopFeedback",
   "runtime.shopFeedbackEntryMatchesTag(entry, tag)",
   "runtime.shopFeedbackForSegment(type, customerSegment, tag)",
+  "runtime.shopWordOfMouthVisitBias(customer, segment, spec)",
+  "runtime.shopWordOfMouthBudgetBonus(customer, tags, spec)",
 ]) {
   if (!game.includes(shopRuntimeTerm)) throw new Error(`Shop TypeScript runtime bridge missing: ${shopRuntimeTerm}`);
 }
@@ -3167,6 +3169,12 @@ for (const shopCoreSourceTerm of [
   "data.shopFeedback.filter",
   "trigger.match(/hot_tag==([a-z_]+)/)",
   "trigger.matchAll(/tag_match==([a-z_]+)/g)",
+  "export interface ShopWordOfMouthSpec",
+  "shopWordOfMouthVisitBias(customer",
+  "shopWordOfMouthBudgetBonus(customer",
+  "spec.preferredArchetypes",
+  "Number(spec.tagVisitBias || 0)",
+  "Number(spec.tagBudgetBonus || 0)",
   "ecology_product: 20",
   "route_rare: 18",
   "recover_sp: 13",
@@ -3216,6 +3224,10 @@ for (const shopCoreRuntimeTerm of [
   "data.shopFeedback.filter",
   "trigger.match(/hot_tag==([a-z_]+)/)",
   "trigger.matchAll(/tag_match==([a-z_]+)/g)",
+  "function shopWordOfMouthVisitBias",
+  "function shopWordOfMouthBudgetBonus",
+  "Number(spec.tagVisitBias || 0)",
+  "Number(spec.tagBudgetBonus || 0)",
   "ecology_product: 20",
   "route_rare: 18",
   "recover_sp: 13",
