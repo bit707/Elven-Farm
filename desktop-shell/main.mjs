@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain, shell } from "electron";
-import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,6 +8,7 @@ const APP_ROOT = join(__dirname, "..");
 const DEFAULT_ENTRY = join(APP_ROOT, "standalone-offline", "index.html");
 const FALLBACK_ENTRY = join(APP_ROOT, "index.html");
 const EVIDENCE_DIR_NAME = "steamworks-stub-evidence";
+const SAVE_DIR_NAME = "saves";
 
 function evidenceDir(...parts) {
   const dir = join(app.getPath("userData"), EVIDENCE_DIR_NAME, ...parts);
@@ -51,6 +52,55 @@ function registerSteamworksStubIpc() {
   ipcMain.handle("xiannong:steamworks-stub", (_event, payload = {}) => writeSteamworksEvidence(payload));
 }
 
+function saveDir() {
+  const dir = join(app.getPath("userData"), SAVE_DIR_NAME);
+  mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+function savePathForProfile(profileId) {
+  const fileName = safeFileName(profileId || "profile_1", "profile_1").replace(/\.json$/i, "");
+  return join(saveDir(), `${fileName}.json`);
+}
+
+function registerJsonSaveIpc() {
+  ipcMain.handle("xiannong:save-json", (_event, payload = {}) => {
+    const profileId = String(payload.profileId || "profile_1");
+    const path = savePathForProfile(profileId);
+
+    if (payload.action === "read") {
+      if (!existsSync(path)) {
+        return {
+          ok: false,
+          adapter: "desktop-json-save-v1",
+          path,
+          missing: true,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      const saved = readFileSync(path, "utf8");
+      return {
+        ok: true,
+        adapter: "desktop-json-save-v1",
+        path,
+        payload: saved,
+        bytes: saved.length,
+        updatedAt: new Date().toISOString(),
+      };
+    }
+
+    const raw = String(payload.payload || "{}");
+    writeFileSync(path, raw, "utf8");
+    return {
+      ok: true,
+      adapter: "desktop-json-save-v1",
+      path,
+      bytes: raw.length,
+      updatedAt: new Date().toISOString(),
+    };
+  });
+}
+
 function createMainWindow() {
   const win = new BrowserWindow({
     width: 1440,
@@ -84,6 +134,7 @@ app.setName("仙农洞天：精怪工坊");
 
 app.whenReady().then(() => {
   registerSteamworksStubIpc();
+  registerJsonSaveIpc();
   createMainWindow();
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow();

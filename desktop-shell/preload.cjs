@@ -22,6 +22,13 @@ function invokeStub(payload) {
   });
 }
 
+function invokeSave(payload) {
+  return ipcRenderer.invoke("xiannong:save-json", {
+    ...payload,
+    at: new Date().toISOString(),
+  });
+}
+
 const bridge = {
   adapterId: "desktop-shell-steamworks-bridge-v1",
   mode: "desktop-shell-stub",
@@ -64,6 +71,27 @@ const bridge = {
 
 globalThis.XiannongSteamworks = bridge;
 
+const storageBridge = {
+  adapterId: "desktop-json-save-v1",
+  mode: "electron-userData-json",
+  writeProfile(profileId, payload) {
+    return invokeSave({
+      action: "write",
+      profileId,
+      payload,
+    });
+  },
+  readProfile(profileId) {
+    return invokeSave({
+      action: "read",
+      profileId,
+    });
+  },
+};
+
+globalThis.XiannongStorage = storageBridge;
+
 if (contextBridge?.exposeInMainWorld) {
   contextBridge.exposeInMainWorld("XiannongSteamworks", bridge);
+  contextBridge.exposeInMainWorld("XiannongStorage", storageBridge);
 }

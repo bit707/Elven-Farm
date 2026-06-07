@@ -83,6 +83,7 @@ const DATA_FILES = {
 };
 
 const SAVE_KEY = "xiannong_dongtian_p0_save";
+const SAVE_PROFILE_ID = "profile_1";
 const SETTINGS_KEY = "xiannong_dongtian_settings";
 const ERROR_LOG_KEY = "xiannong_dongtian_error_log";
 const ACHIEVEMENT_KEY = "xiannong_dongtian_achievements";
@@ -95,6 +96,12 @@ const BUILD_INFO = {
   steamAppId: "TBD",
   buildDate: "2026-06-02",
 };
+const runtimeDataLoader = globalThis.XiannongCore?.Data?.createRuntimeDataLoader?.({
+  manifestPath: "runtime-data/runtime-data.json",
+});
+const saveRuntime = globalThis.XiannongCore?.Persistence?.createSaveRuntime?.({
+  desktopBridgeName: "XiannongStorage",
+});
 const STEAMWORKS_BRIDGE = {
   adapterId: "steamworks-adapter-v1",
   expectedGlobal: "XiannongSteamworks",
@@ -4858,7 +4865,12 @@ async function loadCsv(path) {
 
 async function loadData() {
   const entries = await Promise.all(
-    Object.entries(DATA_FILES).map(async ([key, path]) => [key, await loadCsv(path)]),
+    Object.entries(DATA_FILES).map(async ([key, path]) => [
+      key,
+      runtimeDataLoader
+        ? await runtimeDataLoader.loadTable(key, path, () => loadCsv(path))
+        : await loadCsv(path),
+    ]),
   );
 
   for (const [key, value] of entries) data[key] = value;
@@ -11934,7 +11946,11 @@ function steamworksAdapter() {
 
 function persistPlatformState() {
   try {
-    localStorage.setItem(PLATFORM_STATE_KEY, JSON.stringify(state.platformState));
+    if (saveRuntime) {
+      saveRuntime.writeBrowserSlot(PLATFORM_STATE_KEY, state.platformState);
+    } else {
+      localStorage.setItem(PLATFORM_STATE_KEY, JSON.stringify(state.platformState));
+    }
   } catch (error) {
     recordError("platform_state_save", error);
   }
@@ -11961,12 +11977,46 @@ function updatePlatformState(patch) {
 
 function hydratePlatformState() {
   try {
-    const raw = localStorage.getItem(PLATFORM_STATE_KEY);
+    const raw = saveRuntime ? saveRuntime.readBrowserSlot(PLATFORM_STATE_KEY) : localStorage.getItem(PLATFORM_STATE_KEY);
     if (raw) state.platformState = { ...state.platformState, ...JSON.parse(raw) };
   } catch (error) {
     recordError("platform_state_load", error);
   }
   updatePlatformState({});
+}
+
+async function writeDesktopSaveProfile(payload) {
+  if (!saveRuntime?.bridgeAvailable?.()) return null;
+  const result = await saveRuntime.writeDesktopProfile(SAVE_PROFILE_ID, payload);
+  updatePlatformState({
+    lastLocalJsonSave: {
+      profileId: SAVE_PROFILE_ID,
+      path: result.path || SAVE_PROFILE_ID,
+      status: result.ok ? "written_to_user_save_dir" : "desktop_json_save_failed",
+      adapter: result.adapter || saveRuntime.adapterLabel(),
+      bytes: result.bytes || 0,
+      at: result.updatedAt || new Date().toISOString(),
+      error: result.error || "",
+    },
+  });
+  return result;
+}
+
+async function readDesktopSaveProfile() {
+  if (!saveRuntime?.bridgeAvailable?.()) return null;
+  const result = await saveRuntime.readDesktopProfile(SAVE_PROFILE_ID);
+  updatePlatformState({
+    lastLocalJsonLoad: {
+      profileId: SAVE_PROFILE_ID,
+      path: result.path || SAVE_PROFILE_ID,
+      status: result.ok ? "loaded_from_user_save_dir" : result.missing ? "desktop_json_save_missing" : "desktop_json_load_failed",
+      adapter: result.adapter || saveRuntime.adapterLabel(),
+      bytes: result.bytes || 0,
+      at: result.updatedAt || new Date().toISOString(),
+      error: result.error || "",
+    },
+  });
+  return result;
 }
 
 function syncSteamAchievement(achievement) {
@@ -12041,7 +12091,11 @@ function writeCloudMirror() {
     schemaReport,
     achievements: [...state.unlockedAchievements],
   };
-  localStorage.setItem(CLOUD_SAVE_KEY, JSON.stringify(payload));
+  if (saveRuntime) {
+    saveRuntime.writeBrowserSlot(CLOUD_SAVE_KEY, payload);
+  } else {
+    localStorage.setItem(CLOUD_SAVE_KEY, JSON.stringify(payload));
+  }
   const adapter = steamworksAdapter();
   let status = "mirrored_to_local_storage";
   if (adapter.bridgeReady && adapter.writeCloud) {
@@ -53660,20 +53714,31 @@ function applySave(payload) {
   if (migration.applied.length) addLog("存档迁移", `已从 v${migration.fromVersion} 升级到 v${SAVE_SCHEMA_VERSION}，应用 ${migration.applied.length} 条迁移。`);
 }
 
-function saveGame() {
+async function saveGame() {
   state.lastSavedAt = new Date().toISOString();
   state.saveVersion = SAVE_SCHEMA_VERSION;
   validateSaveSchema();
   checkAchievements();
   const cloudMirror = writeCloudMirror();
   checkAchievements();
-  localStorage.setItem(SAVE_KEY, JSON.stringify(serializeState()));
+  const payload = serializeState();
+  if (saveRuntime) {
+    saveRuntime.writeBrowserSlot(SAVE_KEY, payload);
+    await writeDesktopSaveProfile(payload);
+  } else {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+  }
   addLog("存档完成", `Schema v${cloudMirror.schemaVersion} 已校验，覆盖 ${cloudMirror.schemaReport.covered}/${cloudMirror.schemaReport.required} 个必存字段；Steam Cloud 镜像：${cloudMirror.suggestedSteamCloudPath}`);
   render();
 }
 
-function loadGame() {
-  const raw = localStorage.getItem(SAVE_KEY);
+async function loadGame() {
+  const desktopResult = await readDesktopSaveProfile();
+  const raw = desktopResult?.ok && desktopResult.payload
+    ? desktopResult.payload
+    : saveRuntime
+      ? saveRuntime.readBrowserSlot(SAVE_KEY)
+      : localStorage.getItem(SAVE_KEY);
   if (!raw) {
     addLog("没有存档", "当前浏览器还没有保存过洞天状态。");
     return render();
@@ -98054,6 +98119,8 @@ function renderAchievementPanel() {
 function renderPlatformPanel() {
   const platform = state.platformState || {};
   const adapter = steamworksAdapter();
+  const dataRuntime = runtimeDataLoader?.status?.();
+  const saveAdapter = saveRuntime?.adapterLabel?.() || "browser-localStorage";
   const featureRows = STEAMWORKS_BRIDGE.requiredFeatures.map((feature) => {
     const ready = adapter.sdkReady;
     const bridgeReady = adapter.bridgeReady;
@@ -98083,6 +98150,8 @@ function renderPlatformPanel() {
     <span>成就：${platform.lastAchievementSync ? `${platform.lastAchievementSync.apiName} · ${platform.lastAchievementSync.status}` : "尚未同步"}</span>
     <span>云存档：${platform.lastCloudSync ? `${platform.lastCloudSync.path} · ${platform.lastCloudSync.status}` : "尚未生成"}</span>
     <span>Overlay：${platform.lastOverlayRequest ? `${platform.lastOverlayRequest.target} · ${platform.lastOverlayRequest.status}` : "尚未请求"}</span>
+    <span>Local JSON: ${platform.lastLocalJsonSave ? `${platform.lastLocalJsonSave.path} · ${platform.lastLocalJsonSave.status}` : `${saveAdapter} · waiting for save`}</span>
+    <span>Runtime Data: ${dataRuntime ? `${dataRuntime.mode} · ${dataRuntime.contentHash ? dataRuntime.contentHash.slice(0, 12) : dataRuntime.error || "pending"}` : "legacy csv"}</span>
     <button type="button" data-platform-overlay="store">测试 Overlay 请求</button>
   `;
   refs.platformPanel.append(sync);

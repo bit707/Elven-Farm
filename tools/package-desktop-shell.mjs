@@ -8,6 +8,7 @@ const steamConfig = readSteamReleaseConfig();
 
 const entries = [
   "desktop-shell",
+  "ARCHITECTURE_MIGRATION.md",
   "PROJECT_CONTEXT.md",
   "README_GAME.md",
 ];
@@ -93,6 +94,7 @@ const manifest = {
     mode: "desktop-shell-stub",
     evidence_mode: "desktop-shell-local-file-staging",
     evidence_path: "Electron userData/steamworks-stub-evidence",
+    local_json_save_path: "Electron userData/saves/profile_1.json",
     required_replacement: "real Steamworks SDK bridge before rrg_012 can pass",
   },
   target_final_artifacts: [
@@ -105,6 +107,7 @@ const manifest = {
     "Electron/Tauri dependencies not installed in this repo",
     "Steamworks SDK calls are stubbed",
     "Desktop executable not built or signed",
+    "Local JSON saves are staged through Electron userData/saves; Steam Cloud handoff still requires Remote Storage SDK wiring",
     steamConfig.configured ? "Steam DepotID still must match Steamworks backend and depot package" : "Steam AppID/DepotID placeholders remain",
     "Manual QA and SteamCMD preview evidence missing",
   ],

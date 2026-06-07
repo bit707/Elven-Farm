@@ -3,8 +3,15 @@ import { existsSync, statSync } from "node:fs";
 
 const requiredFiles = [
   "index.html",
+  "ARCHITECTURE_MIGRATION.md",
+  "tsconfig.json",
   "src/game.js",
   "src/styles.css",
+  "src/core/data/runtime-data.ts",
+  "src/core/persistence/save-runtime.ts",
+  "src/runtime/xiannong-core.js",
+  "runtime-data/runtime-data.json",
+  "tools/build-runtime-data.mjs",
   "tools/generate-assets.mjs",
   "tools/package-demo.mjs",
   "tools/package-standalone.mjs",
@@ -2884,6 +2891,10 @@ const desktopShellScript = readFileSync("tools/package-desktop-shell.mjs", "utf8
 const desktopShellMain = readFileSync("desktop-shell/main.mjs", "utf8");
 const desktopShellPreload = readFileSync("desktop-shell/preload.cjs", "utf8");
 const desktopShellTemplate = readFileSync("desktop-shell/package.template.json", "utf8");
+const runtimeDataScript = readFileSync("tools/build-runtime-data.mjs", "utf8");
+const coreRuntimeJs = readFileSync("src/runtime/xiannong-core.js", "utf8");
+const runtimeDataManifest = JSON.parse(readFileSync("runtime-data/runtime-data.json", "utf8"));
+const packageJson = readFileSync("package.json", "utf8");
 const steamRcScript = readFileSync("tools/package-steam-rc.mjs", "utf8");
 const steamDepotScript = readFileSync("tools/package-steam-depot.mjs", "utf8");
 const windowsStagingScript = readFileSync("tools/package-windows-staging.mjs", "utf8");
@@ -2911,12 +2922,50 @@ for (const configTerm of ["readWindowsReleaseConfig", "windows-release.config.js
   }
 }
 
+for (const migrationTerm of ["src/core/**/*.ts", "outFile", "src/runtime/xiannong-core.js", "strict"]) {
+  if (!readFileSync("tsconfig.json", "utf8").includes(migrationTerm)) {
+    throw new Error(`TypeScript migration config missing: ${migrationTerm}`);
+  }
+}
+
+for (const packageTerm of ['"data:build": "node tools/build-runtime-data.mjs"', '"build:core": "npx --yes -p typescript@5.9.3 tsc -p tsconfig.json"', '"typecheck": "npx --yes -p typescript@5.9.3 tsc -p tsconfig.json --noEmit"', '"prestart": "npm run data:build && npm run build:core"', '"preverify": "npm run data:build && npm run build:core"', '"preqa:smoke": "npm run data:build && npm run build:core"']) {
+  if (!packageJson.includes(packageTerm)) throw new Error(`TypeScript/runtime data package script missing: ${packageTerm}`);
+}
+
+for (const runtimeTerm of ["parseDataFiles", "parseCsv", "runtime-data", "runtime-data.json", "contentHash", "rowCount"]) {
+  if (!runtimeDataScript.includes(runtimeTerm)) throw new Error(`Runtime data builder missing: ${runtimeTerm}`);
+}
+
+if (!runtimeDataManifest.contentHash || Object.keys(runtimeDataManifest.files || {}).length < 80) {
+  throw new Error("Runtime JSON manifest must include a content hash and all gameplay CSV tables");
+}
+
+for (const coreTerm of ["XiannongCore.Data", "createRuntimeDataLoader", "XiannongCore.Persistence", "createSaveRuntime", "XiannongStorage"]) {
+  if (!coreRuntimeJs.includes(coreTerm) && !game.includes(coreTerm)) {
+    throw new Error(`Generated core runtime or game bridge missing: ${coreTerm}`);
+  }
+}
+
+if (!html.includes('src/runtime/xiannong-core.js') || html.indexOf('src/runtime/xiannong-core.js') > html.indexOf('src/game.js')) {
+  throw new Error("index.html must load the TypeScript core runtime before src/game.js");
+}
+
+for (const gameBridgeTerm of ["runtimeDataLoader.loadTable", "SAVE_PROFILE_ID", "writeDesktopSaveProfile", "readDesktopSaveProfile", "saveRuntime.writeBrowserSlot", "lastLocalJsonSave", "Runtime Data"]) {
+  if (!game.includes(gameBridgeTerm)) throw new Error(`Game runtime bridge missing: ${gameBridgeTerm}`);
+}
+
+for (const desktopSaveTerm of ["xiannong:save-json", "registerJsonSaveIpc", "SAVE_DIR_NAME", "savePathForProfile", "XiannongStorage", "writeProfile", "readProfile", "desktop-json-save-v1"]) {
+  if (!desktopShellMain.includes(desktopSaveTerm) && !desktopShellPreload.includes(desktopSaveTerm)) {
+    throw new Error(`Desktop JSON save bridge missing: ${desktopSaveTerm}`);
+  }
+}
+
 for (const packaged of ["solar_term_config.csv", "weather_config.csv", "localization_text.csv", "event_trigger.csv", "guide_script.csv", "quest_base.csv", "quest_step.csv", "side_quest_base.csv", "side_quest_step.csv", "side_quest_event_trigger.csv", "side_quest_dialogue_map.csv", "dungeon_area.csv", "enemy_config.csv", "loot_pool.csv", "boss_config.csv", "boss_skill.csv", "spirit_skill.csv", "dungeon_solar_mechanic.csv", "interrealm_trade_route.csv", "trade_route_event.csv", "trade_route_risk_supply.csv", "hidden_dungeon_rotation.csv", "building_config.csv", "machine_config.csv", "spirit_job_mastery.csv", "spirit_expedition.csv", "spirit_ecology_combo.csv", "early_reward_pacing.csv", "year2_goal_book_rule.csv", "year2_solar_trial.csv", "rare_spirit_event_action.csv", "freeplay_goal.csv", "reward_pool.csv", "customer_segment_rule.csv", "customer_behavior_param.csv", "customer_state_flow.csv", "customer_archetype_profile.csv", "npc_bark.csv", "demo_qa_checklist.csv", "steam_asset_production_plan.csv", "achievement_config.csv", "spirit_bond_level.csv", "spirit_mood_param.csv", "spirit_voice_bank.csv", "spirit_event.csv", "spirit_memory_flag.csv", "shop_price_rule.csv", "shop_shelf_theme_bonus.csv", "shop_customer_feedback_diagnosis.csv", "order_config.csv", "year2_order_config.csv", "year2_shop_season.csv", "year2_shop_settlement_rule.csv", "year2_shop_rank_reward.csv", "favor_reward.csv", "npc_schedule.csv", "cohab_epilogue.csv", "cohab_weekly_event.csv", "cohab_festival_event.csv", "cohab_dialogue_map.csv", "cutscene_timeline.csv", "cutscene_asset_manifest.csv", "side_quest_cutscene_beat.csv", "audio_asset_list.csv", "audio_mix_bus.csv", "final_support_bundle.csv", "final_support_stage.csv", "vertical_slice_acceptance.csv", "release_readiness_gate.csv", "save_schema_registry.csv", "save_migration_plan.csv", "localization_coverage_plan.csv", "community_content_calendar.csv", "condition_group.csv", "BUILD_MANIFEST.json"]) {
   if (!packageScript.includes(packaged)) throw new Error(`Package script does not mention: ${packaged}`);
 }
 if (!packageScript.includes('"assets"')) throw new Error("Package script does not include assets directory");
 
-for (const standaloneTerm of ["xiannong-dongtian-standalone", "STANDALONE_README.md", "offline_html_staging", "XIANNONG_EMBEDDED_CSV", "XIANNONG_EMBEDDED_ASSETS", "src/styles.css", "src/game.js", "assets/capsule-main.svg", "BUILD_MANIFEST.json"]) {
+for (const standaloneTerm of ["xiannong-dongtian-standalone", "STANDALONE_README.md", "offline_html_staging", "XIANNONG_EMBEDDED_CSV", "XIANNONG_EMBEDDED_RUNTIME_DATA", "XIANNONG_EMBEDDED_ASSETS", "src/styles.css", "src/runtime/xiannong-core.js", "src/game.js", "assets/capsule-main.svg", "BUILD_MANIFEST.json"]) {
   if (!standaloneScript.includes(standaloneTerm)) throw new Error(`Standalone package path missing: ${standaloneTerm}`);
 }
 
@@ -2928,7 +2977,7 @@ for (const desktopShellTerm of ["xiannong-dongtian-desktop-shell", "DESKTOP_SHEL
   if (!desktopShellScript.includes(desktopShellTerm)) throw new Error(`Desktop shell package path missing: ${desktopShellTerm}`);
 }
 
-for (const desktopShellRuntimeTerm of ["BrowserWindow", "preload.cjs", "standalone-offline", "setWindowOpenHandler", "contextIsolation: false", "ipcMain.handle", "app.getPath(\"userData\")", "steamworks-stub-evidence", "steamworks-stub-events.jsonl", "remote-storage", "XiannongSteamworks", "bridgeReady: true", "sdkReady: false", "desktop-shell-steamworks-bridge-v1", "setAchievement", "writeCloud", "activateOverlay", "steam_appid.txt", "stagedAppId"]) {
+for (const desktopShellRuntimeTerm of ["BrowserWindow", "preload.cjs", "standalone-offline", "setWindowOpenHandler", "contextIsolation: false", "ipcMain.handle", "app.getPath(\"userData\")", "steamworks-stub-evidence", "steamworks-stub-events.jsonl", "remote-storage", "xiannong:save-json", "XiannongStorage", "desktop-json-save-v1", "XiannongSteamworks", "bridgeReady: true", "sdkReady: false", "desktop-shell-steamworks-bridge-v1", "setAchievement", "writeCloud", "activateOverlay", "steam_appid.txt", "stagedAppId"]) {
   if (!desktopShellMain.includes(desktopShellRuntimeTerm) && !desktopShellPreload.includes(desktopShellRuntimeTerm)) {
     throw new Error(`Desktop shell runtime path missing: ${desktopShellRuntimeTerm}`);
   }

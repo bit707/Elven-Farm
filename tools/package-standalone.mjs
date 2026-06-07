@@ -60,11 +60,14 @@ function listAssets() {
   return found.sort();
 }
 
-function inlineHtml({ html, css, gameJs, csvPayload, assetPayload }) {
+function inlineHtml({ html, css, coreJs, gameJs, csvPayload, runtimeDataPayload, assetPayload }) {
   const embeddedDataScript = [
     "<script>",
     "globalThis.XIANNONG_EMBEDDED_CSV = ",
     JSON.stringify(csvPayload),
+    ";",
+    "globalThis.XIANNONG_EMBEDDED_RUNTIME_DATA = ",
+    JSON.stringify(runtimeDataPayload),
     ";",
     "globalThis.XIANNONG_EMBEDDED_ASSETS = ",
     JSON.stringify(assetPayload),
@@ -72,11 +75,13 @@ function inlineHtml({ html, css, gameJs, csvPayload, assetPayload }) {
     "</script>",
   ].join("");
 
+  const standaloneCoreJs = coreJs.replace(/\/\/# sourceMappingURL=.*$/gm, "");
   const standaloneJs = gameJs.replace(/\/\/# sourceMappingURL=.*$/gm, "");
   return html
     .replace(/<link rel="stylesheet" href="src\/styles\.css" \/>/, () => `<style>\n${css}\n</style>`)
     .replace(/src="assets\/capsule-main\.svg"/g, () => `src="${assetPayload["assets/capsule-main.svg"]}"`)
-    .replace(/<script type="module" src="src\/game\.js"><\/script>/, () => `${embeddedDataScript}\n    <script type="module">\n${standaloneJs}\n    </script>`);
+    .replace(/<script src="src\/runtime\/xiannong-core\.js"><\/script>/, () => `${embeddedDataScript}\n    <script>\n${standaloneCoreJs}\n    </script>`)
+    .replace(/<script type="module" src="src\/game\.js"><\/script>/, () => `<script type="module">\n${standaloneJs}\n    </script>`);
 }
 
 rmSync(outDir, { recursive: true, force: true });
@@ -84,9 +89,11 @@ mkdirSync(outDir, { recursive: true });
 
 const html = readText("index.html");
 const css = readText("src/styles.css");
+const coreJs = readText("src/runtime/xiannong-core.js");
 const gameJs = readText("src/game.js");
 const dataFiles = parseDataFiles(gameJs);
 const assets = listAssets();
+const runtimeDataPayload = JSON.parse(readText("runtime-data/runtime-data.json"));
 
 const csvPayload = Object.fromEntries(
   dataFiles.map(({ path }) => {
@@ -95,7 +102,7 @@ const csvPayload = Object.fromEntries(
   }),
 );
 const assetPayload = Object.fromEntries(assets.map((path) => [path, assetDataUrl(path)]));
-const standaloneHtml = inlineHtml({ html, css, gameJs, csvPayload, assetPayload });
+const standaloneHtml = inlineHtml({ html, css, coreJs, gameJs, csvPayload, runtimeDataPayload, assetPayload });
 
 writeText(outHtml, standaloneHtml);
 
@@ -105,7 +112,12 @@ const manifest = {
   status: "offline_html_staging",
   generated_at: new Date().toISOString(),
   output: "index.html",
-  embedded_globals: ["XIANNONG_EMBEDDED_CSV", "XIANNONG_EMBEDDED_ASSETS"],
+  embedded_globals: ["XIANNONG_EMBEDDED_CSV", "XIANNONG_EMBEDDED_RUNTIME_DATA", "XIANNONG_EMBEDDED_ASSETS"],
+  embedded_runtime_data: {
+    path: "runtime-data/runtime-data.json",
+    content_hash: runtimeDataPayload.contentHash,
+    table_count: Object.keys(runtimeDataPayload.files || {}).length,
+  },
   embedded_csv_files: dataFiles.map(({ key, path }) => ({ key, path, bytes: statSync(path).size })),
   embedded_assets: assets.map((path) => ({ path, bytes: statSync(path).size })),
   launch: {

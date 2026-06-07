@@ -5,8 +5,14 @@
   "description": "Playable Steam vertical-slice prototype for 仙农洞天：精怪工坊.",
   "type": "module",
   "scripts": {
+    "data:build": "node tools/build-runtime-data.mjs",
+    "build:core": "npx --yes -p typescript@5.9.3 tsc -p tsconfig.json",
+    "typecheck": "npx --yes -p typescript@5.9.3 tsc -p tsconfig.json --noEmit",
+    "prestart": "npm run data:build && npm run build:core",
     "start": "node tools/dev-server.mjs",
+    "preverify": "npm run data:build && npm run build:core",
     "verify": "node tools/verify.mjs",
+    "preqa:smoke": "npm run data:build && npm run build:core",
     "qa:smoke": "node tools/smoke-longrun.mjs",
     "qa:manual-template": "node tools/generate-manual-qa-evidence.mjs",
     "capture:final-template": "node tools/generate-final-capture-evidence.mjs",
@@ -15,8 +21,11 @@
     "evidence:qa": "node tools/generate-qa-evidence.mjs",
     "steam:preflight": "node tools/steam-preflight.mjs",
     "windows:preflight": "node tools/windows-preflight.mjs",
+    "prepackage:demo": "npm run data:build && npm run build:core",
     "package:demo": "node tools/package-demo.mjs",
+    "prepackage:standalone": "npm run data:build && npm run build:core",
     "package:standalone": "node tools/package-standalone.mjs",
+    "prepackage:desktop-shell": "npm run data:build && npm run build:core",
     "package:desktop-shell": "node tools/package-desktop-shell.mjs",
     "package:windows": "node tools/package-windows-staging.mjs",
     "package:steam-rc": "node tools/package-steam-rc.mjs",
@@ -28,5 +37,8 @@
     "steam",
     "vertical-slice"
   ],
+  "devDependencies": {
+    "typescript": "5.9.3"
+  },
   "license": "UNLICENSED"
 }
