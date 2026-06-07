@@ -1493,6 +1493,30 @@ var XiannongCore;
                     bonus_value: "0",
                 };
             }
+            function shopSeasonRewardClaimPlan(input = null) {
+                const pending = input?.pending || null;
+                const reward = pending?.reward || null;
+                const preview = reward?.reward_type === "preview";
+                const buffId = String(reward?.bonus_buff || "");
+                const buffValue = Number(reward?.bonus_value || 0);
+                const completionKey = pending ? `shop_season_reward_${pending.seasonId || ""}_${pending.cycleIndex || 0}` : "";
+                const basePlan = {
+                    pending,
+                    reward,
+                    preview,
+                    rewardEntry: reward && !preview ? reward : null,
+                    buffId,
+                    buffValue,
+                    completionKey,
+                };
+                if (!input?.year2Unlocked)
+                    return { ...basePlan, canClaim: false, reason: "locked" };
+                if (!pending)
+                    return { ...basePlan, canClaim: false, reason: "missing" };
+                if (pending.rewardClaimed)
+                    return { ...basePlan, canClaim: false, reason: "claimed" };
+                return { ...basePlan, canClaim: true, reason: "claim" };
+            }
             return {
                 customerPriceRule,
                 customerProfile,
@@ -1525,6 +1549,7 @@ var XiannongCore;
                 shopSeasonScorePlan,
                 shopSeasonRewards,
                 shopSeasonRank,
+                shopSeasonRewardClaimPlan,
             };
         }
         Shop.createShopRuntime = createShopRuntime;

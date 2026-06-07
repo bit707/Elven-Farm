@@ -26917,27 +26917,36 @@ function settleShopSeasonCycle(endedDay = state.day - 1) {
 
 function claimShopSeasonReward() {
   state.shopStats = normalizeShopStats(state.shopStats);
-  if (!year2Unlocked()) return addLog("名铺赛季未开启", "蟠桃大宴之后，第二年名铺赛季才会正式结算奖励。");
   const pending = state.shopStats.pendingSettlement;
-  if (!pending) return addLog("暂无赛季奖励", "当前没有待领取的名铺赛季结算。");
-  if (pending.rewardClaimed) return addLog("赛季奖励已领", `${pending.seasonName} 的结算奖励已经入账。`);
+  const claimPlan = shopRuntime()?.shopSeasonRewardClaimPlan({
+    year2Unlocked: year2Unlocked(),
+    pending,
+  }) || {
+    canClaim: year2Unlocked() && Boolean(pending) && !pending?.rewardClaimed,
+    reason: !year2Unlocked() ? "locked" : !pending ? "missing" : pending.rewardClaimed ? "claimed" : "claim",
+    reward: pending?.reward || null,
+    preview: pending?.reward?.reward_type === "preview",
+    rewardEntry: pending?.reward?.reward_type === "preview" ? null : pending?.reward || null,
+    buffId: pending?.reward?.bonus_buff || "",
+    buffValue: Number(pending?.reward?.bonus_value || 0),
+    completionKey: pending ? `shop_season_reward_${pending.seasonId}_${pending.cycleIndex}` : "",
+  };
+  if (claimPlan.reason === "locked") return addLog("名铺赛季未开启", "蟠桃大宴之后，第二年名铺赛季才会正式结算奖励。");
+  if (claimPlan.reason === "missing") return addLog("暂无赛季奖励", "当前没有待领取的名铺赛季结算。");
+  if (claimPlan.reason === "claimed") return addLog("赛季奖励已领", `${pending.seasonName} 的结算奖励已经入账。`);
 
-  const rewardText = pending.reward.reward_type === "preview"
+  const rewardText = claimPlan.preview
     ? "暂无实物奖励，本季结算已记入年鉴"
-    : applyRewardEntry({
-      reward_type: pending.reward.reward_type,
-      reward_param: pending.reward.reward_param,
-      reward_count: pending.reward.reward_count,
-    });
-  const buffId = pending.reward.bonus_buff;
-  const buffValue = Number(pending.reward.bonus_value || 0);
+    : applyRewardEntry(claimPlan.rewardEntry);
+  const buffId = claimPlan.buffId;
+  const buffValue = claimPlan.buffValue;
   if (buffId && buffId !== "none" && buffValue > 0) {
     state.shopStats.activeBuffs[buffId] = Math.max(Number(state.shopStats.activeBuffs[buffId] || 0), buffValue);
   }
   pending.rewardClaimed = true;
   const historyEntry = state.shopStats.history.find((entry) => entry.seasonId === pending.seasonId && entry.cycleIndex === pending.cycleIndex);
   if (historyEntry) historyEntry.rewardClaimed = true;
-  state.completed.add(`shop_season_reward_${pending.seasonId}_${pending.cycleIndex}`);
+  state.completed.add(claimPlan.completionKey);
   state.shopStats.pendingSettlement = null;
   playCue("成就解锁");
   addLog("名铺奖励入账", `${pending.seasonName} ${String(pending.rankTier).toUpperCase()} 档：${rewardText}${buffId && buffId !== "none" && buffValue > 0 ? `；获得 ${shopSeasonBuffText(buffId, buffValue)}` : ""}。`);

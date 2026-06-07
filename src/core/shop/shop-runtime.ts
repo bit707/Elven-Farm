@@ -50,6 +50,7 @@ namespace XiannongCore.Shop {
     shopSeasonScorePlan(input?: ShopSeasonScorePlanInput | null): ShopSeasonScorePlan;
     shopSeasonRewards(season?: ShopRow | null): ShopRow[];
     shopSeasonRank(score?: number | string | null, season?: ShopRow | null): ShopRow;
+    shopSeasonRewardClaimPlan(input?: ShopSeasonRewardClaimPlanInput | null): ShopSeasonRewardClaimPlan;
   }
 
   export interface ShopGoodChoice {
@@ -237,6 +238,42 @@ namespace XiannongCore.Shop {
     baseScore: number;
     ledgerBonus: number;
     parts: ShopSeasonScorePart[];
+  }
+
+  export interface ShopSeasonPendingReward {
+    reward_type?: string;
+    reward_param?: string;
+    reward_count?: number | string;
+    bonus_buff?: string;
+    bonus_value?: number | string;
+    [key: string]: unknown;
+  }
+
+  export interface ShopSeasonPendingSettlement {
+    seasonId?: string;
+    cycleIndex?: number | string;
+    reward?: ShopSeasonPendingReward | null;
+    rewardClaimed?: boolean;
+    [key: string]: unknown;
+  }
+
+  export interface ShopSeasonRewardClaimPlanInput {
+    year2Unlocked?: boolean;
+    pending?: ShopSeasonPendingSettlement | null;
+  }
+
+  export type ShopSeasonRewardClaimReason = "locked" | "missing" | "claimed" | "claim";
+
+  export interface ShopSeasonRewardClaimPlan {
+    canClaim: boolean;
+    reason: ShopSeasonRewardClaimReason;
+    pending: ShopSeasonPendingSettlement | null;
+    reward: ShopSeasonPendingReward | null;
+    preview: boolean;
+    rewardEntry: ShopSeasonPendingReward | null;
+    buffId: string;
+    buffValue: number;
+    completionKey: string;
   }
 
   export interface PricedGoodOptions {
@@ -800,6 +837,28 @@ namespace XiannongCore.Shop {
       };
     }
 
+    function shopSeasonRewardClaimPlan(input: ShopSeasonRewardClaimPlanInput | null = null): ShopSeasonRewardClaimPlan {
+      const pending = input?.pending || null;
+      const reward = pending?.reward || null;
+      const preview = reward?.reward_type === "preview";
+      const buffId = String(reward?.bonus_buff || "");
+      const buffValue = Number(reward?.bonus_value || 0);
+      const completionKey = pending ? `shop_season_reward_${pending.seasonId || ""}_${pending.cycleIndex || 0}` : "";
+      const basePlan = {
+        pending,
+        reward,
+        preview,
+        rewardEntry: reward && !preview ? reward : null,
+        buffId,
+        buffValue,
+        completionKey,
+      };
+      if (!input?.year2Unlocked) return { ...basePlan, canClaim: false, reason: "locked" };
+      if (!pending) return { ...basePlan, canClaim: false, reason: "missing" };
+      if (pending.rewardClaimed) return { ...basePlan, canClaim: false, reason: "claimed" };
+      return { ...basePlan, canClaim: true, reason: "claim" };
+    }
+
     return {
       customerPriceRule,
       customerProfile,
@@ -832,6 +891,7 @@ namespace XiannongCore.Shop {
       shopSeasonScorePlan,
       shopSeasonRewards,
       shopSeasonRank,
+      shopSeasonRewardClaimPlan,
     };
   }
 }
