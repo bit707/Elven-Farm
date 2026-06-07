@@ -17245,6 +17245,10 @@ function applyConfiguredEventAction(action, context = {}) {
     addLog("精怪伙伴栏开放", `${context.eventName || "第一只精怪入队"}：伙伴栏、岗位和互动入口已经点亮，下一步可以让精怪接手 3x3 浇水。`);
     return null;
   }
+  if (action.kind === "log_shop_open_tutorial") {
+    addLog("旧铺可开门", `${context.eventName || "旧铺建成"}：货架、开铺按钮和顾客需求预览已经解锁。先放 3 件可售作物或加工品，再点开铺试营业；这里不会自动开店或产生销售。`);
+    return null;
+  }
   if (action.kind === "mark_boss_defeated") {
     state.defeatedBosses.add(action.bossId);
     return null;
@@ -17784,6 +17788,30 @@ function executeConfiguredEvent(event, source = "runtime") {
         { kind: "check_quest_rewards" },
         ...(!state.triggeredEvents.has(SPIRIT_MANOR_ENTRY_EVENT_ID) ? [{ kind: "start_spirit_manor_chapter_if_needed", eventNameKey: "event_name_main_0301", fallbackName: "百怪大院蓝图" }] : []),
         { kind: "scan_configured_events", source: "baizhi:chapter_finish" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan, { eventName });
+    return true;
+  }
+
+  if (actionKind === "shop_open_tutorial" || (!actionKind && executeGroup.includes("shop_open_tutorial"))) {
+    const firstUnlock = !state.completed.has("shop_open_tutorial") && !state.completed.has("shop_tutorial_unlocked");
+    const actionPlan = runtime?.configuredEventShopOpenTutorialActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      firstUnlock,
+      completedFlags: ["shop_open_tutorial", "shop_tutorial_unlocked", "shop_building_ready"],
+      cue: "成就解锁",
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: "shop_open_tutorial" },
+        { kind: "complete_flag", flag: "shop_tutorial_unlocked" },
+        { kind: "complete_flag", flag: "shop_building_ready" },
+        { kind: "play_cue", cue: "成就解锁" },
+        { kind: "log_shop_open_tutorial" },
+        { kind: "update_missions" },
+        { kind: "check_quest_rewards" },
       ],
     };
     applyConfiguredEventActionPlan(actionPlan, { eventName });

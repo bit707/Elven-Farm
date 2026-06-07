@@ -1986,6 +1986,8 @@ var XiannongCore;
                     return "unlock_herb_valley";
                 if (executeGroup.includes("finish_herb_valley_baizhi"))
                     return "finish_herb_valley_baizhi";
+                if (executeGroup.includes("shop_open_tutorial"))
+                    return "shop_open_tutorial";
                 if (executeGroup.includes("shop_tutorial_complete"))
                     return "shop_tutorial_complete";
                 if (executeGroup.includes("spawn_hu_sihai"))
@@ -2219,6 +2221,34 @@ var XiannongCore;
                     applies,
                     eventId: plan.eventId,
                     dialogueGroup: plan.dialogueGroup,
+                    actions,
+                };
+            }
+            function configuredEventShopOpenTutorialActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "shop_open_tutorial";
+                const completedFlags = applies ? ["shop_open_tutorial", "shop_tutorial_unlocked", "shop_building_ready"] : [];
+                const firstUnlock = applies
+                    && !setHas(state.completed, "shop_open_tutorial")
+                    && !setHas(state.completed, "shop_tutorial_unlocked");
+                const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        { kind: "play_cue", cue },
+                        { kind: "log_shop_open_tutorial" },
+                        { kind: "update_missions" },
+                        { kind: "check_quest_rewards" },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    firstUnlock,
+                    completedFlags,
+                    cue,
                     actions,
                 };
             }
@@ -3103,6 +3133,7 @@ var XiannongCore;
                 configuredEventFirstSpiritBirthActionPlan,
                 configuredEventSpiritUiUnlockActionPlan,
                 configuredEventCutsceneActionPlan,
+                configuredEventShopOpenTutorialActionPlan,
                 configuredEventShopTutorialActionPlan,
                 configuredEventHuSihaiArrivalActionPlan,
                 configuredEventMineEntranceUnlockActionPlan,

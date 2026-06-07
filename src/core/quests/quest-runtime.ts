@@ -222,6 +222,7 @@ namespace XiannongCore.Quests {
     configuredEventFirstSpiritBirthActionPlan(event: ConfiguredTriggerRow): ConfiguredEventFirstSpiritBirthActionPlan;
     configuredEventSpiritUiUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSpiritUiUnlockActionPlan;
     configuredEventCutsceneActionPlan(event: ConfiguredTriggerRow): ConfiguredEventCutsceneActionPlan;
+    configuredEventShopOpenTutorialActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopOpenTutorialActionPlan;
     configuredEventShopTutorialActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopTutorialActionPlan;
     configuredEventHuSihaiArrivalActionPlan(event: ConfiguredTriggerRow): ConfiguredEventHuSihaiArrivalActionPlan;
     configuredEventMineEntranceUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventMineEntranceUnlockActionPlan;
@@ -327,6 +328,9 @@ namespace XiannongCore.Quests {
     }
     | {
       kind: "log_mine_entrance_unlock";
+    }
+    | {
+      kind: "log_shop_open_tutorial";
     }
     | {
       kind: "mark_boss_defeated";
@@ -542,6 +546,16 @@ namespace XiannongCore.Quests {
   }
 
   export interface ConfiguredEventSpiritUiUnlockActionPlan {
+    applies: boolean;
+    eventId: string;
+    executeGroup: string;
+    firstUnlock: boolean;
+    completedFlags: string[];
+    cue: string;
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventShopOpenTutorialActionPlan {
     applies: boolean;
     eventId: string;
     executeGroup: string;
@@ -842,6 +856,7 @@ namespace XiannongCore.Quests {
     | "cutscene"
     | "unlock_herb_valley"
     | "finish_herb_valley_baizhi"
+    | "shop_open_tutorial"
     | "shop_tutorial_complete"
     | "spawn_hu_sihai"
     | "unlock_mine_entrance"
@@ -1405,6 +1420,7 @@ namespace XiannongCore.Quests {
       if (executeGroup.includes("cutscene")) return "cutscene";
       if (executeGroup.includes("unlock_herb_valley")) return "unlock_herb_valley";
       if (executeGroup.includes("finish_herb_valley_baizhi")) return "finish_herb_valley_baizhi";
+      if (executeGroup.includes("shop_open_tutorial")) return "shop_open_tutorial";
       if (executeGroup.includes("shop_tutorial_complete")) return "shop_tutorial_complete";
       if (executeGroup.includes("spawn_hu_sihai")) return "spawn_hu_sihai";
       if (executeGroup.includes("unlock_mine_entrance")) return "unlock_mine_entrance";
@@ -1637,6 +1653,35 @@ namespace XiannongCore.Quests {
         applies,
         eventId: plan.eventId,
         dialogueGroup: plan.dialogueGroup,
+        actions,
+      };
+    }
+
+    function configuredEventShopOpenTutorialActionPlan(event: ConfiguredTriggerRow): ConfiguredEventShopOpenTutorialActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "shop_open_tutorial";
+      const completedFlags = applies ? ["shop_open_tutorial", "shop_tutorial_unlocked", "shop_building_ready"] : [];
+      const firstUnlock = applies
+        && !setHas(state.completed, "shop_open_tutorial")
+        && !setHas(state.completed, "shop_tutorial_unlocked");
+      const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [
+          { kind: "trigger_event", eventId: plan.eventId },
+          ...completedFlags.map((flag) => ({ kind: "complete_flag" as const, flag })),
+          { kind: "play_cue", cue },
+          { kind: "log_shop_open_tutorial" },
+          { kind: "update_missions" },
+          { kind: "check_quest_rewards" },
+        ]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        executeGroup: plan.executeGroup,
+        firstUnlock,
+        completedFlags,
+        cue,
         actions,
       };
     }
@@ -2545,6 +2590,7 @@ namespace XiannongCore.Quests {
       configuredEventFirstSpiritBirthActionPlan,
       configuredEventSpiritUiUnlockActionPlan,
       configuredEventCutsceneActionPlan,
+      configuredEventShopOpenTutorialActionPlan,
       configuredEventShopTutorialActionPlan,
       configuredEventHuSihaiArrivalActionPlan,
       configuredEventMineEntranceUnlockActionPlan,
