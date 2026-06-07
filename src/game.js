@@ -20471,6 +20471,14 @@ function customerPriceRule(customer) {
 }
 
 function pricedGood(choice, customer, themeScore) {
+  const runtime = shopRuntime();
+  if (runtime) {
+    return runtime.pricedGood(choice, customer, {
+      themeScore,
+      shelfTheme: currentShelfTheme(),
+      term: currentTermConfig(),
+    });
+  }
   const rule = customerPriceRule(customer);
   const basePrice = Number(choice.item.sell_price_base);
   const maxMarkup = Number(rule?.base_markup_max || 0.12);
