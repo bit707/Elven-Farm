@@ -25,12 +25,23 @@ namespace XiannongCore.Shop {
     themeMatchScore(goods?: ShopGoodChoice[] | null, theme?: ShopRow | null): number;
     expandShopSemanticTags(tags?: string[] | null): string[];
     shopTagsOverlap(leftTags?: string[] | null, rightTags?: string[] | null): boolean;
+    isExpressiveShopTag(tag?: string | null): boolean;
+    shopTagPriority(tag?: string | null): number;
+    prioritizeShopTag(tags?: string[] | null, counts?: ShopTagCounts | null, fallback?: string): string;
+    shopHotTag(goods?: ShopTaggedGoodChoice[] | null, theme?: ShopRow | null, fallback?: string): string;
   }
 
   export interface ShopGoodChoice {
     item?: ShopRow;
     itemId?: string;
   }
+
+  export interface ShopTaggedGoodChoice extends ShopGoodChoice {
+    count?: number | string;
+    tags?: string[] | null;
+  }
+
+  export type ShopTagCounts = Map<string, number> | Record<string, number | undefined>;
 
   export interface PricedGoodOptions {
     themeScore?: number;
@@ -113,6 +124,32 @@ namespace XiannongCore.Shop {
     ["medicine", "relief"],
     ["staple", "portable_supply"],
   ];
+
+  const expressiveShopTags = new Set(["refreshing", "water_food", "food_cold", "clean_food", "cooling", "recover_sp"]);
+
+  const shopTagPriorities: Record<string, number> = {
+    ecology_product: 20,
+    spirit_crafted: 19,
+    route_rare: 18,
+    refreshing: 18,
+    water_food: 17,
+    food_cold: 16,
+    clean_food: 15,
+    cooling: 14,
+    recover_sp: 13,
+    staple: 12,
+    fresh_food: 11,
+    medicine: 10,
+    drink: 9,
+    gift: 8,
+    premium: 7,
+    festival: 7,
+    vegetable: 6,
+    material: 5,
+    cheap: 2,
+    low_price: 2,
+    food: 1,
+  };
 
   export function createShopRuntime(state: ShopRuntimeState, data: ShopRuntimeData): ShopRuntime {
     function customerPriceRule(customer: ShopRow | null | undefined): ShopRow | null {
@@ -259,6 +296,44 @@ namespace XiannongCore.Shop {
       return expandShopSemanticTags(left).some((tag) => expandedRight.has(tag));
     }
 
+    function isExpressiveShopTag(tag: string | null = ""): boolean {
+      return expressiveShopTags.has(String(tag || ""));
+    }
+
+    function shopTagPriority(tag: string | null = ""): number {
+      return shopTagPriorities[String(tag || "")] || 0;
+    }
+
+    function tagCount(counts: ShopTagCounts | null | undefined, tag: string): number {
+      if (!counts) return 0;
+      if (counts instanceof Map) return Number(counts.get(tag) || 0);
+      return Number(counts[tag] || 0);
+    }
+
+    function prioritizeShopTag(tags: string[] | null = [], counts: ShopTagCounts | null = null, fallback = "food"): string {
+      const unique = [...new Set((Array.isArray(tags) ? tags : []).filter(Boolean))];
+      if (!unique.length) return fallback;
+      return unique
+        .slice()
+        .sort((a, b) => (shopTagPriority(b) * 10 + tagCount(counts, b)) - (shopTagPriority(a) * 10 + tagCount(counts, a)))[0]
+        || fallback;
+    }
+
+    function shopHotTag(goods: ShopTaggedGoodChoice[] | null = [], theme: ShopRow | null = null, fallback = "food"): string {
+      const safeGoods = Array.isArray(goods) ? goods : [];
+      const required = splitTags(theme?.required_item_tags || "");
+      const counts = new Map<string, number>();
+      for (const good of safeGoods) {
+        const tags = Array.isArray(good.tags) ? good.tags.filter(Boolean) : splitTags(good.item?.tags || "");
+        for (const tag of tags) {
+          counts.set(tag, Number(good.count || 1) + Number(counts.get(tag) || 0));
+        }
+      }
+      const available = [...counts.keys()];
+      const featured = available.filter((tag) => required.includes(tag) || isExpressiveShopTag(tag) || ["ecology_product", "spirit_crafted", "route_rare"].includes(tag));
+      return prioritizeShopTag(featured.length ? featured : available, counts, required[0] || fallback);
+    }
+
     return {
       customerPriceRule,
       customerProfile,
@@ -271,6 +346,10 @@ namespace XiannongCore.Shop {
       themeMatchScore,
       expandShopSemanticTags,
       shopTagsOverlap,
+      isExpressiveShopTag,
+      shopTagPriority,
+      prioritizeShopTag,
+      shopHotTag,
     };
   }
 }

@@ -20772,10 +20772,14 @@ function shopTagsForItem(itemOrId, ecologyGarden = null) {
 }
 
 function isExpressiveShopTag(tag = "") {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.isExpressiveShopTag(tag);
   return ["refreshing", "water_food", "food_cold", "clean_food", "cooling", "recover_sp"].includes(tag);
 }
 
 function shopTagPriority(tag = "") {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.shopTagPriority(tag);
   const priorities = {
     ecology_product: 20,
     spirit_crafted: 19,
@@ -20803,6 +20807,8 @@ function shopTagPriority(tag = "") {
 }
 
 function prioritizeShopTag(tags = [], counts = new Map(), fallback = "food") {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.prioritizeShopTag(tags, counts, fallback);
   const unique = [...new Set(tags.filter(Boolean))];
   if (!unique.length) return fallback;
   return unique
@@ -20869,6 +20875,14 @@ function shopTagLabel(tag) {
 }
 
 function shopHotTag(goods, theme, ecologyGarden = null) {
+  const runtime = shopRuntime();
+  if (runtime) {
+    const taggedGoods = (Array.isArray(goods) ? goods : []).map((good) => ({
+      ...good,
+      tags: shopTagsForItem(good?.item || good?.itemId, ecologyGarden),
+    }));
+    return runtime.shopHotTag(taggedGoods, theme);
+  }
   const required = splitTags(theme?.required_item_tags || "");
   const counts = new Map();
   for (const { item, count } of goods) {
