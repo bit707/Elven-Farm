@@ -2837,6 +2837,64 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventChapter4FinalBanquetActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "final_banquet";
+                const firstFinish = applies && !setHas(state.completed, "main_story_complete");
+                const completedFlags = applies
+                    ? [
+                        "main_story_complete",
+                        "chapter_4_complete",
+                        "final_banquet_complete",
+                        constants.chapter4PantaoHarvestedFlag,
+                    ]
+                    : [];
+                const questId = applies ? constants.chapter4PantaoQuestId : "";
+                const npcFavors = firstFinish
+                    ? [
+                        { npcId: "npc_xubo", amount: 12, source: "\u87e0\u6843\u5927\u5bb4" },
+                        { npcId: "npc_baizhi", amount: 10, source: "\u87e0\u6843\u5165\u5e2d" },
+                        { npcId: "npc_lu_sanxiao", amount: 10, source: "\u56db\u65f6\u5f52\u6b63" },
+                        { npcId: "npc_qinghe", amount: 10, source: "\u6c34\u7ebf\u590d\u660e" },
+                    ]
+                    : [];
+                const fameAmount = firstFinish ? 20 : 0;
+                const dialogueGroup = applies ? "dialogue_final_banquet" : "";
+                const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+                const cutsceneId = applies ? constants.chapter4FinalBanquetCutsceneId : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        { kind: "check_quest_rewards" },
+                        { kind: "complete_main_quest_if_needed", questId },
+                        ...npcFavors.map((favor) => ({ kind: "add_npc_favor", npcId: favor.npcId, amount: favor.amount, source: favor.source })),
+                        ...(fameAmount > 0 ? [{ kind: "add_fame", amount: fameAmount }] : []),
+                        ...(firstFinish ? [{ kind: "grant_year2_starter_kit_if_needed" }] : []),
+                        { kind: "apply_chapter4_final_banquet_world_change" },
+                        { kind: "start_cutscene_if_unplayed", cutsceneId },
+                        { kind: "queue_dialogue_group", groupId: dialogueGroup },
+                        { kind: "play_cue", cue },
+                        { kind: "log_chapter4_final_banquet" },
+                        { kind: "update_missions" },
+                        { kind: "check_achievements" },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    firstFinish,
+                    completedFlags,
+                    questId,
+                    npcFavors,
+                    fameAmount,
+                    dialogueGroup,
+                    cue,
+                    cutsceneId,
+                    actions,
+                };
+            }
             function configuredEventGenericUnlockActionPlan(event) {
                 const plan = configuredEventExecutionPlan(event);
                 const applies = plan.actionKind === "generic_unlock";
@@ -2958,6 +3016,7 @@ var XiannongCore;
                 configuredEventChapter4FinalNestUnlockActionPlan,
                 configuredEventChapter4PantaoFinaleActionPlan,
                 configuredEventChapter4FinalPlantingUnlockActionPlan,
+                configuredEventChapter4FinalBanquetActionPlan,
                 configuredEventGenericUnlockActionPlan,
             };
         }

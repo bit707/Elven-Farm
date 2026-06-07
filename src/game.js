@@ -15735,6 +15735,8 @@ function questRuntime() {
       chapter4FinalBossId: CHAPTER_4_FINAL_BOSS_ID,
       chapter4PantaoSeedId: CHAPTER_4_PANTAO_SEED_ID,
       chapter4PantaoPlantedFlag: CHAPTER_4_PANTAO_PLANTED_FLAG,
+      chapter4PantaoHarvestedFlag: CHAPTER_4_PANTAO_HARVESTED_FLAG,
+      chapter4FinalBanquetCutsceneId: CHAPTER_4_FINAL_BANQUET_CUTSCENE_ID,
       demoMissionIds: DEMO_MISSIONS.map((mission) => mission.id),
     },
     {
@@ -17454,12 +17456,37 @@ function applyConfiguredEventAction(action, context = {}) {
     addLog("终阵搭建", `${context.eventName}：${buildingName(data.buildingsById.get(CHAPTER_4_FINAL_ARRAY_BUILDING_ID))}已经落成，${itemName(CHAPTER_4_PANTAO_SEED_ID)}在阵心发亮。`);
     return null;
   }
+  if (action.kind === "grant_year2_starter_kit_if_needed") {
+    return grantYear2StarterKit();
+  }
+  if (action.kind === "apply_chapter4_final_banquet_world_change") {
+    upsertWorldChange({
+      key: "chapter4_final_banquet",
+      title: "蟠桃大宴灯火通明",
+      detail: "万年蟠桃成熟后，凡仙镇重新点起宴灯。不是你一个人救回了洞天，是这片地和镇上的人一起把天时拉了回来。",
+      rewardHint: "主线完成 · 第二年沙盒开启",
+      visualType: "final_banquet",
+    });
+    return null;
+  }
+  if (action.kind === "start_cutscene_if_unplayed") {
+    if (!state.playedCutscenes.has(action.cutsceneId)) startCutscene(action.cutsceneId);
+    return null;
+  }
+  if (action.kind === "log_chapter4_final_banquet") {
+    addLog("主线完成", `${context.eventName}：${itemName(CHAPTER_4_PANTAO_CROP_ID)}入席，第二年沙盒、同住后日谈、跨界商路与自由造景开启。`);
+    return null;
+  }
   if (action.kind === "unlock_final_nest_if_ready") {
     if (chapter4FinalNestReady()) unlockFinalNest(localize(action.eventNameKey, action.fallbackName));
     return null;
   }
   if (action.kind === "check_quest_rewards") {
     checkQuestRewards();
+    return null;
+  }
+  if (action.kind === "check_achievements") {
+    checkAchievements();
     return null;
   }
   if (action.kind === "scan_configured_events") {
@@ -17960,7 +17987,9 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "final_banquet" || (!actionKind && executeGroup.includes("final_banquet"))) {
-    finishFinalBanquet(eventName);
+    const actionPlan = runtime?.configuredEventChapter4FinalBanquetActionPlan(event);
+    if (actionPlan?.applies) applyConfiguredEventActionPlan(actionPlan, { eventName });
+    else finishFinalBanquet(eventName);
     return true;
   }
 
@@ -38874,6 +38903,18 @@ function grantYear2StarterKit() {
 }
 
 function finishFinalBanquet(eventName = "蟠桃大宴开启") {
+  const plan = questRuntime()?.configuredEventChapter4FinalBanquetActionPlan({
+    event_id: "event_main_0407",
+    event_name_key: "event_name_main_0407",
+    trigger_type: "on_crop_harvest",
+    trigger_param: CHAPTER_4_PANTAO_CROP_ID,
+    condition_group: "quest_main_0403_active",
+    execute_group: "exec_final_banquet",
+  });
+  if (plan?.applies) {
+    applyConfiguredEventActionPlan(plan, { eventName });
+    return true;
+  }
   const firstFinish = !state.completed.has("main_story_complete");
   state.completed.add("main_story_complete");
   state.completed.add("chapter_4_complete");
