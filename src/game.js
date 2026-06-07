@@ -41460,6 +41460,23 @@ function lootConditionMet(condition = "always_true") {
 function rollLoot(poolId, floor = 1, countMultiplier = 1) {
   const pool = data.lootByPool.get(poolId) || [];
   if (pool.length === 0) return [];
+  const conditionResults = Object.fromEntries(pool.map((entry) => [
+    entry.condition_group || "always_true",
+    lootConditionMet(entry.condition_group),
+  ]));
+  const lootPlan = dungeonRuntime()?.dungeonLootPlan({
+    pool,
+    floor,
+    countMultiplier,
+    day: state.day,
+    runSeed: state.dungeon?.runSeed || 0,
+    turn: state.dungeon?.turn || 0,
+    conditionResults,
+  });
+  if (lootPlan) {
+    for (const entry of lootPlan) addItem(entry.itemId, entry.count);
+    return lootPlan;
+  }
   const available = pool.filter((entry) => lootConditionMet(entry.condition_group));
   const weighted = available.length > 0 ? available : pool;
   const totalWeight = weighted.reduce((sum, entry) => sum + Math.max(1, Number(entry.weight || 1)), 0);

@@ -17,6 +17,17 @@ var XiannongCore;
         function mechanicValue(state, key, fallback = 0) {
             return Number(state?.[key] ?? fallback);
         }
+        function finiteNumber(value, fallback = 0) {
+            const parsed = Number(value ?? fallback);
+            return Number.isFinite(parsed) ? parsed : fallback;
+        }
+        function lootConditionPass(entry, conditionResults) {
+            const condition = entry.condition_group || "always_true";
+            if (!condition || condition === "always_true")
+                return true;
+            const result = conditionResults[condition];
+            return result === true || result === 1 || result === "1" || result === "true";
+        }
         function changedKeys(before, after) {
             const keys = [
                 "pillarsLit",
@@ -331,6 +342,34 @@ var XiannongCore;
                 const damage = Math.max(4, Math.round(enemyPower / 4) + effectValue(effects, "damageUp") - effectValue(effects, "damageDown"));
                 return { enemyPower, damage };
             }
+            function dungeonLootPlan(input = null) {
+                const pool = input?.pool || [];
+                if (pool.length === 0)
+                    return [];
+                const conditionResults = input?.conditionResults || {};
+                const available = pool.filter((entry) => lootConditionPass(entry, conditionResults));
+                const weighted = available.length > 0 ? available : pool;
+                const totalWeight = weighted.reduce((sum, entry) => sum + Math.max(1, finiteNumber(entry.weight, 1)), 0);
+                if (totalWeight <= 0)
+                    return [];
+                const floor = finiteNumber(input?.floor, 1);
+                const day = finiteNumber(input?.day, 0);
+                const runSeed = finiteNumber(input?.runSeed, 0);
+                const turn = finiteNumber(input?.turn, 0);
+                const countMultiplier = finiteNumber(input?.countMultiplier, 1);
+                let roll = ((day * 37) + (floor * 19) + (runSeed * 11) + turn) % totalWeight;
+                const entry = weighted.find((candidate) => {
+                    roll -= Math.max(1, finiteNumber(candidate.weight, 1));
+                    return roll < 0;
+                }) || weighted[0];
+                if (!entry?.item_id)
+                    return [];
+                const min = finiteNumber(entry.min_count, 1);
+                const max = finiteNumber(entry.max_count, min);
+                const baseCount = Math.min(max, min + (floor % Math.max(1, max - min + 1)));
+                const count = Math.max(1, Math.ceil(baseCount * countMultiplier));
+                return [{ itemId: entry.item_id, count }];
+            }
             function dungeonBossExchangePlan(input = null) {
                 const effects = input?.mechanicEffects || null;
                 const bossPressure = Math.max(20, Math.round(Number(input?.boss?.hp_total || 1200) / 90) + Number(input?.boss?.phase_count || 1) * 6);
@@ -385,6 +424,7 @@ var XiannongCore;
                 dungeonMechanicAdvancePlan,
                 dungeonMechanicActionPlan,
                 dungeonExplorePlan,
+                dungeonLootPlan,
                 dungeonBossExchangePlan,
             };
         }

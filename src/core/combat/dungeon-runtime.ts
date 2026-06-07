@@ -117,6 +117,21 @@ namespace XiannongCore.Combat {
     damage: number;
   }
 
+  export interface DungeonLootPlanInput {
+    pool?: CombatRow[] | null;
+    floor?: number | string | null;
+    countMultiplier?: number | string | null;
+    day?: number | string | null;
+    runSeed?: number | string | null;
+    turn?: number | string | null;
+    conditionResults?: Record<string, boolean | number | string | null | undefined> | null;
+  }
+
+  export interface DungeonLootPlanEntry {
+    itemId: string;
+    count: number;
+  }
+
   export interface DungeonBossExchangePlanInput {
     boss?: CombatRow | null;
     bossSkill?: CombatRow | null;
@@ -158,6 +173,7 @@ namespace XiannongCore.Combat {
     dungeonMechanicAdvancePlan(input?: DungeonMechanicAdvancePlanInput | null): DungeonMechanicAdvancePlan;
     dungeonMechanicActionPlan(input?: DungeonMechanicActionPlanInput | null): DungeonMechanicActionPlan;
     dungeonExplorePlan(input?: DungeonExplorePlanInput | null): DungeonExplorePlan;
+    dungeonLootPlan(input?: DungeonLootPlanInput | null): DungeonLootPlanEntry[];
     dungeonBossExchangePlan(input?: DungeonBossExchangePlanInput | null): DungeonBossExchangePlan;
   }
 
@@ -176,6 +192,18 @@ namespace XiannongCore.Combat {
 
   function mechanicValue(state: DungeonMechanicState | null | undefined, key: keyof DungeonMechanicState, fallback = 0): number {
     return Number(state?.[key] ?? fallback);
+  }
+
+  function finiteNumber(value: number | string | null | undefined, fallback = 0): number {
+    const parsed = Number(value ?? fallback);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  function lootConditionPass(entry: CombatRow, conditionResults: Record<string, boolean | number | string | null | undefined>): boolean {
+    const condition = entry.condition_group || "always_true";
+    if (!condition || condition === "always_true") return true;
+    const result = conditionResults[condition];
+    return result === true || result === 1 || result === "1" || result === "true";
   }
 
   function changedKeys(before: DungeonMechanicState, after: DungeonMechanicState): Array<keyof DungeonMechanicState> {
@@ -478,6 +506,32 @@ namespace XiannongCore.Combat {
       return { enemyPower, damage };
     }
 
+    function dungeonLootPlan(input: DungeonLootPlanInput | null = null): DungeonLootPlanEntry[] {
+      const pool = input?.pool || [];
+      if (pool.length === 0) return [];
+      const conditionResults = input?.conditionResults || {};
+      const available = pool.filter((entry) => lootConditionPass(entry, conditionResults));
+      const weighted = available.length > 0 ? available : pool;
+      const totalWeight = weighted.reduce((sum, entry) => sum + Math.max(1, finiteNumber(entry.weight, 1)), 0);
+      if (totalWeight <= 0) return [];
+      const floor = finiteNumber(input?.floor, 1);
+      const day = finiteNumber(input?.day, 0);
+      const runSeed = finiteNumber(input?.runSeed, 0);
+      const turn = finiteNumber(input?.turn, 0);
+      const countMultiplier = finiteNumber(input?.countMultiplier, 1);
+      let roll = ((day * 37) + (floor * 19) + (runSeed * 11) + turn) % totalWeight;
+      const entry = weighted.find((candidate) => {
+        roll -= Math.max(1, finiteNumber(candidate.weight, 1));
+        return roll < 0;
+      }) || weighted[0];
+      if (!entry?.item_id) return [];
+      const min = finiteNumber(entry.min_count, 1);
+      const max = finiteNumber(entry.max_count, min);
+      const baseCount = Math.min(max, min + (floor % Math.max(1, max - min + 1)));
+      const count = Math.max(1, Math.ceil(baseCount * countMultiplier));
+      return [{ itemId: entry.item_id, count }];
+    }
+
     function dungeonBossExchangePlan(input: DungeonBossExchangePlanInput | null = null): DungeonBossExchangePlan {
       const effects = input?.mechanicEffects || null;
       const bossPressure = Math.max(20, Math.round(Number(input?.boss?.hp_total || 1200) / 90) + Number(input?.boss?.phase_count || 1) * 6);
@@ -535,6 +589,7 @@ namespace XiannongCore.Combat {
       dungeonMechanicAdvancePlan,
       dungeonMechanicActionPlan,
       dungeonExplorePlan,
+      dungeonLootPlan,
       dungeonBossExchangePlan,
     };
   }
