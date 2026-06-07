@@ -411,6 +411,31 @@ var XiannongCore;
                     bossDamage,
                 };
             }
+            function dungeonBossExchangeStatePlan(input = null) {
+                const hpAfter = Math.max(0, finiteNumber(input?.hp, 0) - finiteNumber(input?.damage, 0));
+                const bossHpAfter = Math.max(0, finiteNumber(input?.bossHp, finiteNumber(input?.bossMaxHp, 0)) - finiteNumber(input?.bossDamage, 0));
+                const bossShieldAfter = Math.max(0, finiteNumber(input?.bossShieldAfter, 0));
+                const turnAfter = finiteNumber(input?.turn, 0) + 1;
+                const bossMaxHp = finiteNumber(input?.bossMaxHp, 0);
+                const hpPercent = bossMaxHp > 0 ? bossHpAfter / bossMaxHp : 1;
+                const bossPhaseAfter = bossPhaseForPercent(input?.bossId || "", hpPercent);
+                const phaseBefore = finiteNumber(input?.phaseBefore, bossPhaseAfter);
+                const combatMoment = bossHpAfter <= 0
+                    ? "boss_defeat"
+                    : hpAfter <= 0
+                        ? "failed"
+                        : phaseBefore !== bossPhaseAfter
+                            ? "phase_shift"
+                            : "boss_exchange";
+                return {
+                    hpAfter,
+                    bossHpAfter,
+                    bossShieldAfter,
+                    turnAfter,
+                    bossPhaseAfter,
+                    combatMoment,
+                };
+            }
             return {
                 bossSkillsFor,
                 bossPhaseForPercent,
@@ -426,6 +451,7 @@ var XiannongCore;
                 dungeonExplorePlan,
                 dungeonLootPlan,
                 dungeonBossExchangePlan,
+                dungeonBossExchangeStatePlan,
             };
         }
         Combat.createDungeonRuntime = createDungeonRuntime;

@@ -160,6 +160,27 @@ namespace XiannongCore.Combat {
     bossDamage: number;
   }
 
+  export interface DungeonBossExchangeStatePlanInput {
+    bossId?: string | null;
+    hp?: number | string | null;
+    bossHp?: number | string | null;
+    bossMaxHp?: number | string | null;
+    bossShieldAfter?: number | string | null;
+    turn?: number | string | null;
+    phaseBefore?: number | string | null;
+    damage?: number | string | null;
+    bossDamage?: number | string | null;
+  }
+
+  export interface DungeonBossExchangeStatePlan {
+    hpAfter: number;
+    bossHpAfter: number;
+    bossShieldAfter: number;
+    turnAfter: number;
+    bossPhaseAfter: number;
+    combatMoment: "boss_defeat" | "failed" | "phase_shift" | "boss_exchange";
+  }
+
   export interface CombatRuntime {
     bossSkillsFor(bossId?: string | null): CombatRow[];
     bossPhaseForPercent(bossId?: string | null, hpPercent?: number | string | null): number;
@@ -175,6 +196,7 @@ namespace XiannongCore.Combat {
     dungeonExplorePlan(input?: DungeonExplorePlanInput | null): DungeonExplorePlan;
     dungeonLootPlan(input?: DungeonLootPlanInput | null): DungeonLootPlanEntry[];
     dungeonBossExchangePlan(input?: DungeonBossExchangePlanInput | null): DungeonBossExchangePlan;
+    dungeonBossExchangeStatePlan(input?: DungeonBossExchangeStatePlanInput | null): DungeonBossExchangeStatePlan;
   }
 
   function byId(rows: CombatRow[], idField: string, id?: string | null): CombatRow | null {
@@ -576,6 +598,32 @@ namespace XiannongCore.Combat {
       };
     }
 
+    function dungeonBossExchangeStatePlan(input: DungeonBossExchangeStatePlanInput | null = null): DungeonBossExchangeStatePlan {
+      const hpAfter = Math.max(0, finiteNumber(input?.hp, 0) - finiteNumber(input?.damage, 0));
+      const bossHpAfter = Math.max(0, finiteNumber(input?.bossHp, finiteNumber(input?.bossMaxHp, 0)) - finiteNumber(input?.bossDamage, 0));
+      const bossShieldAfter = Math.max(0, finiteNumber(input?.bossShieldAfter, 0));
+      const turnAfter = finiteNumber(input?.turn, 0) + 1;
+      const bossMaxHp = finiteNumber(input?.bossMaxHp, 0);
+      const hpPercent = bossMaxHp > 0 ? bossHpAfter / bossMaxHp : 1;
+      const bossPhaseAfter = bossPhaseForPercent(input?.bossId || "", hpPercent);
+      const phaseBefore = finiteNumber(input?.phaseBefore, bossPhaseAfter);
+      const combatMoment = bossHpAfter <= 0
+        ? "boss_defeat"
+        : hpAfter <= 0
+          ? "failed"
+          : phaseBefore !== bossPhaseAfter
+            ? "phase_shift"
+            : "boss_exchange";
+      return {
+        hpAfter,
+        bossHpAfter,
+        bossShieldAfter,
+        turnAfter,
+        bossPhaseAfter,
+        combatMoment,
+      };
+    }
+
     return {
       bossSkillsFor,
       bossPhaseForPercent,
@@ -591,6 +639,7 @@ namespace XiannongCore.Combat {
       dungeonExplorePlan,
       dungeonLootPlan,
       dungeonBossExchangePlan,
+      dungeonBossExchangeStatePlan,
     };
   }
 }

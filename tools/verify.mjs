@@ -3123,7 +3123,10 @@ for (const combatRuntimeTerm of [
   "const supportGuard = exchangePlan.supportGuard",
   "const absorbed = exchangePlan.absorbed",
   "const bossDamage = exchangePlan.bossDamage",
-  "run.bossShield = exchangePlan.bossShieldAfter",
+  "dungeonRuntime()?.dungeonBossExchangeStatePlan({",
+  "bossShieldAfter: exchangePlan.bossShieldAfter",
+  "run.combatMoment = exchangeStatePlan?.combatMoment",
+  "run.bossShield = Number(exchangeStatePlan?.bossShieldAfter ?? exchangePlan.bossShieldAfter)",
 ]) {
   if (!game.includes(combatRuntimeTerm)) throw new Error(`Combat TypeScript runtime bridge missing: ${combatRuntimeTerm}`);
 }
@@ -3573,6 +3576,10 @@ for (const combatCoreSourceTerm of [
   "absorbed",
   "bossShieldAfter",
   "bossDamage",
+  "export interface DungeonBossExchangeStatePlan",
+  "dungeonBossExchangeStatePlan(input",
+  "bossHpAfter <= 0",
+  "phaseBefore !== bossPhaseAfter",
   "phaseCount >= 3",
   "percent <= 0.35",
   "percent <= 0.7",
@@ -3629,6 +3636,9 @@ for (const combatCoreRuntimeTerm of [
   "absorbed",
   "bossShieldAfter",
   "bossDamage",
+  "function dungeonBossExchangeStatePlan",
+  "bossHpAfter <= 0",
+  "phaseBefore !== bossPhaseAfter",
   "phaseCount >= 3",
   "percent <= 0.35",
   "percent <= 0.7",

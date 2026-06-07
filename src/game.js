@@ -42681,17 +42681,28 @@ function challengeDungeonBoss() {
   const damage = exchangePlan.damage;
   const absorbed = exchangePlan.absorbed;
   const bossDamage = exchangePlan.bossDamage;
-  run.bossShield = exchangePlan.bossShieldAfter;
-  run.bossHp = Math.max(0, run.bossHp - bossDamage);
-  run.hp = Math.max(0, run.hp - damage);
-  run.turn += 1;
-  run.bossPhase = bossPhaseForPercent(bossId, bossHpPercent(run, dungeon));
+  const exchangeStatePlan = dungeonRuntime()?.dungeonBossExchangeStatePlan({
+    bossId,
+    hp: run.hp,
+    bossHp: run.bossHp,
+    bossMaxHp: run.bossMaxHp,
+    bossShieldAfter: exchangePlan.bossShieldAfter,
+    turn: run.turn,
+    phaseBefore: phase,
+    damage,
+    bossDamage,
+  }) || null;
+  run.bossShield = Number(exchangeStatePlan?.bossShieldAfter ?? exchangePlan.bossShieldAfter);
+  run.bossHp = Number(exchangeStatePlan?.bossHpAfter ?? Math.max(0, run.bossHp - bossDamage));
+  run.hp = Number(exchangeStatePlan?.hpAfter ?? Math.max(0, run.hp - damage));
+  run.turn = Number(exchangeStatePlan?.turnAfter ?? run.turn + 1);
+  run.bossPhase = Number(exchangeStatePlan?.bossPhaseAfter ?? bossPhaseForPercent(bossId, bossHpPercent(run, dungeon)));
   run.lastBossSkillId = bossSkill?.boss_skill_id || "";
   run.lastBossSkillName = skillName(bossSkill);
   const usedTelegraph = dungeonBossTelegraphSpec(bossSkill, bossId, run);
   const mechanicNote = advanceDungeonMechanicState(run, mechanic, dungeon, "boss");
   run.hazards = dungeonHazards(mechanic, run, dungeon);
-  run.combatMoment = run.bossHp <= 0 ? "boss_defeat" : run.hp <= 0 ? "failed" : phase !== run.bossPhase ? "phase_shift" : "boss_exchange";
+  run.combatMoment = exchangeStatePlan?.combatMoment || (run.bossHp <= 0 ? "boss_defeat" : run.hp <= 0 ? "failed" : phase !== run.bossPhase ? "phase_shift" : "boss_exchange");
   run.skillLog.unshift(`${bossName(bossId)} P${phase} 使用 ${skillName(bossSkill)}（${bossSkill?.target_rule || "pressure"}），${supportSkill ? `${skillName(supportSkill)} 抵消 ${supportGuard}` : "无精怪技能抵消"}${solutionBossLog ? `，${solutionBossLog}` : ""}${rotationBossGuard > 0 ? `，隐藏层卸力 ${rotationBossGuard}` : ""}${failureInsightBossGuard > 0 ? `，失利见闻稳场 ${failureInsightBossGuard}` : ""}${failureInsightBossStrikeBonus > 0 ? `，Boss 熟悉度反击 +${failureInsightBossStrikeBonus}` : ""}${mechanicEffects.bossGuard > 0 ? `，节气稳场 ${mechanicEffects.bossGuard}` : ""}，你反击 ${bossDamage} 点${absorbed ? `，护盾吸收 ${absorbed}` : ""}，自身损失 ${damage} HP。应对：${usedTelegraph?.counterMove || "看地面前摇。"} `);
   run.skillLog = run.skillLog.slice(0, 5);
   run.log.unshift(`Boss 交锋：${skillName(bossSkill)} 前摇 ${bossSkill?.cast_time_sec || "?"} 秒，${bossName(bossId)} 剩余 ${Math.ceil(bossHpPercent(run, dungeon) * 100)}%。${solutionBossLog ? ` ${solutionBossLog}。` : ""}${mechanicNote ? ` ${mechanicNote}` : ""}`);
