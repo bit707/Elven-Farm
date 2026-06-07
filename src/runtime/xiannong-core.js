@@ -1498,6 +1498,13 @@ var XiannongCore;
                 };
                 return Math.max(0, Math.min(100, values[String(part || "")] || 0));
             }
+            function shopSeasonScoreFromRules(input = null) {
+                const parts = (Array.isArray(input?.rules) ? input.rules : []).map((rule) => ({
+                    rule,
+                    raw: shopSeasonMetricValue(rule.score_part || "", input),
+                }));
+                return shopSeasonScorePlan({ parts, ledgerBonus: input?.ledgerBonus || 0 });
+            }
             function shopSeasonScorePlan(input = null) {
                 const parts = (Array.isArray(input?.parts) ? input.parts : []).map((part) => {
                     const raw = Math.max(0, Math.min(100, Number(part.raw || 0)));
@@ -1645,6 +1652,7 @@ var XiannongCore;
                 shopSeasonRules,
                 shopSeasonLeadKey,
                 shopSeasonMetricValue,
+                shopSeasonScoreFromRules,
                 shopSeasonScorePlan,
                 shopSeasonSettlementPlan,
                 shopSeasonRewards,

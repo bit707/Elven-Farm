@@ -48,6 +48,7 @@ namespace XiannongCore.Shop {
     shopSeasonRules(season?: ShopRow | null): ShopRow[];
     shopSeasonLeadKey(counts?: ShopNumericCounts | null): string;
     shopSeasonMetricValue(part?: string | null, input?: ShopSeasonMetricValueInput | null): number;
+    shopSeasonScoreFromRules(input?: ShopSeasonScoreFromRulesInput | null): ShopSeasonScorePlan;
     shopSeasonScorePlan(input?: ShopSeasonScorePlanInput | null): ShopSeasonScorePlan;
     shopSeasonSettlementPlan(input?: ShopSeasonSettlementPlanInput | null): ShopSeasonSettlementPlan;
     shopSeasonRewards(season?: ShopRow | null): ShopRow[];
@@ -249,6 +250,11 @@ namespace XiannongCore.Shop {
   export interface ShopSeasonScorePartInput {
     rule: ShopRow;
     raw?: number | string;
+  }
+
+  export interface ShopSeasonScoreFromRulesInput extends ShopSeasonMetricValueInput {
+    rules?: ShopRow[] | null;
+    ledgerBonus?: number | string | null;
   }
 
   export interface ShopSeasonScorePart {
@@ -928,6 +934,14 @@ namespace XiannongCore.Shop {
       return Math.max(0, Math.min(100, values[String(part || "")] || 0));
     }
 
+    function shopSeasonScoreFromRules(input: ShopSeasonScoreFromRulesInput | null = null): ShopSeasonScorePlan {
+      const parts = (Array.isArray(input?.rules) ? input.rules : []).map((rule) => ({
+        rule,
+        raw: shopSeasonMetricValue(rule.score_part || "", input),
+      }));
+      return shopSeasonScorePlan({ parts, ledgerBonus: input?.ledgerBonus || 0 });
+    }
+
     function shopSeasonScorePlan(input: ShopSeasonScorePlanInput | null = null): ShopSeasonScorePlan {
       const parts = (Array.isArray(input?.parts) ? input.parts : []).map((part) => {
         const raw = Math.max(0, Math.min(100, Number(part.raw || 0)));
@@ -1077,6 +1091,7 @@ namespace XiannongCore.Shop {
       shopSeasonRules,
       shopSeasonLeadKey,
       shopSeasonMetricValue,
+      shopSeasonScoreFromRules,
       shopSeasonScorePlan,
       shopSeasonSettlementPlan,
       shopSeasonRewards,

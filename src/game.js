@@ -26763,9 +26763,9 @@ function shopSeasonRewards(season = currentShopSeason()) {
     .sort((a, b) => Number(b.score_min) - Number(a.score_min));
 }
 
-function shopMetricValue(part, stats = currentShopSeasonStats(), seasonDay = state.day) {
+function shopSeasonMetricContext(stats = currentShopSeasonStats(), seasonDay = state.day) {
   syncFengmiTeaPartyState();
-  const runtimeValue = shopRuntime()?.shopSeasonMetricValue(part, {
+  return {
     stats,
     seasonDay,
     activeBuffs: state.shopStats.activeBuffs,
@@ -26779,7 +26779,12 @@ function shopMetricValue(part, stats = currentShopSeasonStats(), seasonDay = sta
     currentTermId: currentTermId(),
     resolvedRisksCount: state.resolvedRisks.size,
     dungeonClearsCount: state.dungeonClears.size,
-  });
+  };
+}
+
+function shopMetricValue(part, stats = currentShopSeasonStats(), seasonDay = state.day) {
+  const metricContext = shopSeasonMetricContext(stats, seasonDay);
+  const runtimeValue = shopRuntime()?.shopSeasonMetricValue(part, metricContext);
   if (Number.isFinite(runtimeValue)) return runtimeValue;
   const avgTheme = stats.sessions ? Number(stats.themeTotal || 0) / stats.sessions : 0;
   const positiveRate = stats.visitors ? Number(stats.positive || 0) / stats.visitors : 0;
@@ -26815,13 +26820,20 @@ function shopMetricValue(part, stats = currentShopSeasonStats(), seasonDay = sta
 }
 
 function shopSeasonScore(season = currentShopSeason(), stats = currentShopSeasonStats(), seasonDay = state.day) {
-  const parts = shopSeasonRules(season).map((rule) => {
-    const raw = shopMetricValue(rule.score_part, stats, seasonDay);
-    return { rule, raw };
-  });
+  const rules = shopSeasonRules(season);
   const cycle = shopSeasonCycleInfo(seasonDay);
   const cycleKey = shopSeasonCycleKey(season || cycle.season, cycle.cycleIndex);
   const ledgerBonus = shuqiLegacyLedgerActive() ? Number(state.shopStats?.seasonScoreBoosts?.[cycleKey] || 0) : 0;
+  const runtimePlanFromRules = shopRuntime()?.shopSeasonScoreFromRules({
+    ...shopSeasonMetricContext(stats, seasonDay),
+    rules,
+    ledgerBonus,
+  });
+  if (runtimePlanFromRules) return runtimePlanFromRules;
+  const parts = rules.map((rule) => {
+    const raw = shopMetricValue(rule.score_part, stats, seasonDay);
+    return { rule, raw };
+  });
   const runtimePlan = shopRuntime()?.shopSeasonScorePlan({ parts, ledgerBonus });
   if (runtimePlan) return runtimePlan;
   const scoredParts = parts.map((part) => ({
