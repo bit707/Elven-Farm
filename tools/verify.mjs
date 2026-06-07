@@ -3137,6 +3137,10 @@ for (const combatRuntimeTerm of [
   "for (const entry of clearPlan?.guaranteedLoot || []) addItem(entry.itemId, entry.count)",
   "state.fame += Number(clearPlan?.fameDelta ?? 5)",
   "run.lastLoot = [...finalBossLoot, ...rotationRewardItems]",
+  "dungeonRuntime()?.dungeonFailureRewardPlan({",
+  "failurePlan?.failureReason",
+  "failurePlan?.stampAmount",
+  "failurePlan?.shouldRecord",
 ]) {
   if (!game.includes(combatRuntimeTerm)) throw new Error(`Combat TypeScript runtime bridge missing: ${combatRuntimeTerm}`);
 }
@@ -3602,6 +3606,10 @@ for (const combatCoreSourceTerm of [
   "boss_shixiang_tengmu",
   "item_special_baicao_mulu",
   "fameDelta: 5",
+  "export interface DungeonFailureRewardPlan",
+  "dungeonFailureRewardPlan(input",
+  "outcome === \"boss_failed\"",
+  "overflowFailure ? \"overflow\" : \"retreat\"",
   "phaseCount >= 3",
   "percent <= 0.35",
   "percent <= 0.7",
@@ -3670,6 +3678,9 @@ for (const combatCoreRuntimeTerm of [
   "boss_shixiang_tengmu",
   "item_special_baicao_mulu",
   "fameDelta: 5",
+  "function dungeonFailureRewardPlan",
+  "outcome === \"boss_failed\"",
+  "overflowFailure ? \"overflow\" : \"retreat\"",
   "phaseCount >= 3",
   "percent <= 0.35",
   "percent <= 0.7",

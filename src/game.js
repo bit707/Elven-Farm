@@ -42577,9 +42577,15 @@ function exploreDungeon() {
     run.finished = Boolean(exploreOutcomePlan?.finished ?? true);
     run.combatMoment = exploreOutcomePlan?.combatMoment || "failed";
     state.stamina = Number(exploreOutcomePlan?.staminaAfter ?? Math.max(25, state.stamina - 12));
-    const failureReason = mechanic?.dungeon_id === "dsm_004" && Number(run.mechanicState?.overflow || 0) >= 4 ? "overflow" : "battle";
+    const failurePlan = dungeonRuntime()?.dungeonFailureRewardPlan({
+      outcome: "explore_failed",
+      mechanicId: mechanic?.dungeon_id || "",
+      overflow: run.mechanicState?.overflow || 0,
+      floor: run.floor,
+    }) || null;
+    const failureReason = failurePlan?.failureReason || (mechanic?.dungeon_id === "dsm_004" && Number(run.mechanicState?.overflow || 0) >= 4 ? "overflow" : "battle");
     const failureInsight = recordDungeonFailureInsight(failureReason, run, dungeon, mechanic);
-    const stampGain = grantDungeonCompendiumProgress("shard", failureReason === "overflow" ? 2 : run.floor >= 3 ? 2 : 1, run, dungeon, mechanic);
+    const stampGain = grantDungeonCompendiumProgress(failurePlan?.stampKind || "shard", Number(failurePlan?.stampAmount ?? (failureReason === "overflow" ? 2 : run.floor >= 3 ? 2 : 1)), run, dungeon, mechanic);
     addLog("秘境撤退", `${mechanic?.failure_compensation || "你保住了已带出的掉落。"} ${failureInsight?.note || "下次进入会更容易读懂机关。"} ${stampGain ? `节气印记：${stampGain.text}。` : ""}`);
     recordDungeonDayEcho("failed", run, dungeon, mechanic, {
       loot,
@@ -42724,9 +42730,10 @@ function challengeDungeonBoss() {
   run.log = run.log.slice(0, 6);
 
   if (run.hp <= 0 && run.bossHp > 0) {
-    run.finished = true;
-    const failureInsight = recordDungeonFailureInsight("boss", run, dungeon, mechanic);
-    const stampGain = grantDungeonCompendiumProgress("shard", 2, run, dungeon, mechanic);
+    const failurePlan = dungeonRuntime()?.dungeonFailureRewardPlan({ outcome: "boss_failed" }) || null;
+    run.finished = Boolean(failurePlan?.finished ?? true);
+    const failureInsight = recordDungeonFailureInsight(failurePlan?.failureReason || "boss", run, dungeon, mechanic);
+    const stampGain = grantDungeonCompendiumProgress(failurePlan?.stampKind || "shard", Number(failurePlan?.stampAmount ?? 2), run, dungeon, mechanic);
     addLog("Boss 战失利", `${bossName(bossId)} 以 ${skillName(bossSkill)} 把你逼退。${mechanic?.failure_compensation || "已发现的 Boss 阶段会保留在日志里。"} ${failureInsight?.note || "带上精怪、提升羁绊后再来。"} ${stampGain ? `节气印记：${stampGain.text}。` : ""}`);
     recordDungeonDayEcho("boss_failed", run, dungeon, mechanic, {
       failureInsight,
@@ -42829,12 +42836,21 @@ function leaveDungeon() {
   const run = state.dungeon;
   const dungeon = currentDungeonConfig();
   const mechanic = currentDungeonMechanic(dungeon);
-  const shouldRecord = !run.finished && Number(run.progress || 0) > 0 && !state.dungeonClears.has(run.areaId);
+  const failurePlan = dungeonRuntime()?.dungeonFailureRewardPlan({
+    outcome: "retreat",
+    mechanicId: mechanic?.dungeon_id || "",
+    overflow: run.mechanicState?.overflow || 0,
+    bossReady: run.bossReady,
+    finished: run.finished,
+    progress: run.progress,
+    alreadyCleared: state.dungeonClears.has(run.areaId),
+  }) || null;
+  const shouldRecord = failurePlan?.shouldRecord ?? (!run.finished && Number(run.progress || 0) > 0 && !state.dungeonClears.has(run.areaId));
   const failureInsight = shouldRecord
-    ? recordDungeonFailureInsight(mechanic?.dungeon_id === "dsm_004" && Number(run.mechanicState?.overflow || 0) >= 4 ? "overflow" : "retreat", run, dungeon, mechanic)
+    ? recordDungeonFailureInsight(failurePlan?.failureReason || (mechanic?.dungeon_id === "dsm_004" && Number(run.mechanicState?.overflow || 0) >= 4 ? "overflow" : "retreat"), run, dungeon, mechanic)
     : null;
-  const stampGain = shouldRecord ? grantDungeonCompendiumProgress("shard", run.bossReady ? 2 : 1, run, dungeon, mechanic) : null;
-  state.dungeon.finished = true;
+  const stampGain = shouldRecord ? grantDungeonCompendiumProgress(failurePlan?.stampKind || "shard", Number(failurePlan?.stampAmount ?? (run.bossReady ? 2 : 1)), run, dungeon, mechanic) : null;
+  state.dungeon.finished = Boolean(failurePlan?.finished ?? true);
   addLog("撤离秘境", `你带着已有掉落回到洞天，下一次可以重新进入。${failureInsight?.note ? ` ${failureInsight.note}` : ""}${stampGain ? ` 节气印记：${stampGain.text}。` : ""}`);
   if (shouldRecord) {
     recordDungeonDayEcho("retreat", run, dungeon, mechanic, {

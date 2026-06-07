@@ -507,6 +507,36 @@ var XiannongCore;
                     lastLoot,
                 };
             }
+            function dungeonFailureRewardPlan(input = null) {
+                const outcome = input?.outcome || "";
+                const overflowFailure = input?.mechanicId === "dsm_004" && finiteNumber(input?.overflow, 0) >= 4;
+                if (outcome === "boss_failed") {
+                    return {
+                        shouldRecord: true,
+                        finished: true,
+                        failureReason: "boss",
+                        stampKind: "shard",
+                        stampAmount: 2,
+                    };
+                }
+                if (outcome === "retreat") {
+                    const shouldRecord = !truthyFlag(input?.finished) && finiteNumber(input?.progress, 0) > 0 && !truthyFlag(input?.alreadyCleared);
+                    return {
+                        shouldRecord,
+                        finished: true,
+                        failureReason: shouldRecord ? overflowFailure ? "overflow" : "retreat" : "",
+                        stampKind: "shard",
+                        stampAmount: shouldRecord ? truthyFlag(input?.bossReady) ? 2 : 1 : 0,
+                    };
+                }
+                return {
+                    shouldRecord: true,
+                    finished: true,
+                    failureReason: overflowFailure ? "overflow" : "battle",
+                    stampKind: "shard",
+                    stampAmount: overflowFailure ? 2 : finiteNumber(input?.floor, 1) >= 3 ? 2 : 1,
+                };
+            }
             return {
                 bossSkillsFor,
                 bossPhaseForPercent,
@@ -526,6 +556,7 @@ var XiannongCore;
                 dungeonBossExchangePlan,
                 dungeonBossExchangeStatePlan,
                 dungeonBossClearPlan,
+                dungeonFailureRewardPlan,
             };
         }
         Combat.createDungeonRuntime = createDungeonRuntime;

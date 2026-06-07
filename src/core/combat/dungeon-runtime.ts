@@ -233,6 +233,25 @@ namespace XiannongCore.Combat {
     lastLoot: DungeonLootPlanEntry[];
   }
 
+  export interface DungeonFailureRewardPlanInput {
+    outcome?: "explore_failed" | "boss_failed" | "retreat" | string | null;
+    mechanicId?: string | null;
+    overflow?: number | string | null;
+    floor?: number | string | null;
+    bossReady?: boolean | number | string | null;
+    finished?: boolean | number | string | null;
+    progress?: number | string | null;
+    alreadyCleared?: boolean | number | string | null;
+  }
+
+  export interface DungeonFailureRewardPlan {
+    shouldRecord: boolean;
+    finished: boolean;
+    failureReason: "overflow" | "battle" | "boss" | "retreat" | "";
+    stampKind: "shard";
+    stampAmount: number;
+  }
+
   export interface CombatRuntime {
     bossSkillsFor(bossId?: string | null): CombatRow[];
     bossPhaseForPercent(bossId?: string | null, hpPercent?: number | string | null): number;
@@ -252,6 +271,7 @@ namespace XiannongCore.Combat {
     dungeonBossExchangePlan(input?: DungeonBossExchangePlanInput | null): DungeonBossExchangePlan;
     dungeonBossExchangeStatePlan(input?: DungeonBossExchangeStatePlanInput | null): DungeonBossExchangeStatePlan;
     dungeonBossClearPlan(input?: DungeonBossClearPlanInput | null): DungeonBossClearPlan;
+    dungeonFailureRewardPlan(input?: DungeonFailureRewardPlanInput | null): DungeonFailureRewardPlan;
   }
 
   function byId(rows: CombatRow[], idField: string, id?: string | null): CombatRow | null {
@@ -754,6 +774,37 @@ namespace XiannongCore.Combat {
       };
     }
 
+    function dungeonFailureRewardPlan(input: DungeonFailureRewardPlanInput | null = null): DungeonFailureRewardPlan {
+      const outcome = input?.outcome || "";
+      const overflowFailure = input?.mechanicId === "dsm_004" && finiteNumber(input?.overflow, 0) >= 4;
+      if (outcome === "boss_failed") {
+        return {
+          shouldRecord: true,
+          finished: true,
+          failureReason: "boss",
+          stampKind: "shard",
+          stampAmount: 2,
+        };
+      }
+      if (outcome === "retreat") {
+        const shouldRecord = !truthyFlag(input?.finished) && finiteNumber(input?.progress, 0) > 0 && !truthyFlag(input?.alreadyCleared);
+        return {
+          shouldRecord,
+          finished: true,
+          failureReason: shouldRecord ? overflowFailure ? "overflow" : "retreat" : "",
+          stampKind: "shard",
+          stampAmount: shouldRecord ? truthyFlag(input?.bossReady) ? 2 : 1 : 0,
+        };
+      }
+      return {
+        shouldRecord: true,
+        finished: true,
+        failureReason: overflowFailure ? "overflow" : "battle",
+        stampKind: "shard",
+        stampAmount: overflowFailure ? 2 : finiteNumber(input?.floor, 1) >= 3 ? 2 : 1,
+      };
+    }
+
     return {
       bossSkillsFor,
       bossPhaseForPercent,
@@ -773,6 +824,7 @@ namespace XiannongCore.Combat {
       dungeonBossExchangePlan,
       dungeonBossExchangeStatePlan,
       dungeonBossClearPlan,
+      dungeonFailureRewardPlan,
     };
   }
 }
