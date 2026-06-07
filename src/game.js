@@ -17241,6 +17241,10 @@ function applyConfiguredEventAction(action, context = {}) {
     addLog("作物成精", "泥里探出一个胖乎乎的萝卜脑袋。大胖萝卜精加入洞天。");
     return null;
   }
+  if (action.kind === "log_spirit_ui_unlock") {
+    addLog("精怪伙伴栏开放", `${context.eventName || "第一只精怪入队"}：伙伴栏、岗位和互动入口已经点亮，下一步可以让精怪接手 3x3 浇水。`);
+    return null;
+  }
   if (action.kind === "mark_boss_defeated") {
     state.defeatedBosses.add(action.bossId);
     return null;
@@ -17684,6 +17688,27 @@ function executeConfiguredEvent(event, source = "runtime") {
     if (actionPlan?.applies) applyConfiguredEventActionPlan(actionPlan, { eventName });
     else unlockSpirit();
     addLog("配置事件", `${eventName}：第一只精怪已按事件表入队。`);
+    return true;
+  }
+
+  if (actionKind === "unlock_spirit_ui" || (!actionKind && executeGroup.includes("unlock_spirit_ui"))) {
+    const actionPlan = runtime?.configuredEventSpiritUiUnlockActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      firstUnlock: !state.completed.has("spirit_ui_unlocked") && !state.completed.has("spirit_panel_unlocked"),
+      completedFlags: ["spirit_ui_unlocked", "spirit_panel_unlocked", "spirit"],
+      cue: "成就解锁",
+      actions: [
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: "spirit_ui_unlocked" },
+        { kind: "complete_flag", flag: "spirit_panel_unlocked" },
+        { kind: "complete_flag", flag: "spirit" },
+        { kind: "play_cue", cue: "成就解锁" },
+        { kind: "log_spirit_ui_unlock" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan, { eventName });
     return true;
   }
 

@@ -1978,6 +1978,8 @@ var XiannongCore;
                     return "start_main_quest";
                 if (executeGroup.includes("birth_first_spirit"))
                     return "birth_first_spirit";
+                if (executeGroup.includes("unlock_spirit_ui"))
+                    return "unlock_spirit_ui";
                 if (executeGroup.includes("cutscene"))
                     return "cutscene";
                 if (executeGroup.includes("unlock_herb_valley"))
@@ -2173,6 +2175,32 @@ var XiannongCore;
                     shouldSummon,
                     spiritId,
                     job,
+                    completedFlags,
+                    cue,
+                    actions,
+                };
+            }
+            function configuredEventSpiritUiUnlockActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "unlock_spirit_ui";
+                const firstUnlock = applies
+                    && !setHas(state.completed, "spirit_ui_unlocked")
+                    && !setHas(state.completed, "spirit_panel_unlocked");
+                const completedFlags = applies ? ["spirit_ui_unlocked", "spirit_panel_unlocked", "spirit"] : [];
+                const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+                const actions = applies
+                    ? [
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
+                        { kind: "play_cue", cue },
+                        { kind: "log_spirit_ui_unlock" },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    firstUnlock,
                     completedFlags,
                     cue,
                     actions,
@@ -3073,6 +3101,7 @@ var XiannongCore;
                 configuredEventSideQuestActionPlan,
                 configuredEventMainQuestActionPlan,
                 configuredEventFirstSpiritBirthActionPlan,
+                configuredEventSpiritUiUnlockActionPlan,
                 configuredEventCutsceneActionPlan,
                 configuredEventShopTutorialActionPlan,
                 configuredEventHuSihaiArrivalActionPlan,
