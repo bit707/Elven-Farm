@@ -86,6 +86,20 @@ namespace XiannongCore.Farming {
     pondAutoWater?: boolean;
   }
 
+  export interface NightWeatherGrowthPlanInput {
+    weather?: FarmingRow | null;
+    farmGrowthBonus?: number;
+    waterCareBonus?: number;
+  }
+
+  export interface NightWeatherGrowthPlan {
+    waterBonus: number;
+    weatherGrowthModifier: number;
+    farmGrowthBonus: number;
+    waterCareBonus: number;
+    growthModifier: number;
+  }
+
   export type NightCropCareSource = "manual" | "rain" | "pond" | "finale_water" | "finale_farm" | "";
 
   export interface NightCropGrowthPlan {
@@ -175,6 +189,7 @@ namespace XiannongCore.Farming {
     seedProjectedHarvestSpec(crop?: FarmingRow | null, plot?: FarmingPlot | null): SeedProjectedHarvestSpec;
     harvestQualitySpec(crop?: FarmingRow | null, plot?: FarmingPlot | null, amount?: number, affinity?: CropSolarAffinity | null): HarvestQualitySpec;
     cropWorldGrowthVisualSpec(crop?: FarmingRow | null, plot?: FarmingPlot | null, plotIndex?: number, day?: number): CropWorldGrowthVisualSpec | null;
+    nightWeatherGrowthPlan(input: NightWeatherGrowthPlanInput): NightWeatherGrowthPlan;
     nightCropGrowthPlan(input: NightCropGrowthInput): NightCropGrowthPlan;
     nightCropStatePlan(input: NightCropStatePlanInput): NightCropStatePlan;
     harvestYieldPlan(input: HarvestYieldPlanInput): HarvestYieldPlan;
@@ -360,6 +375,21 @@ namespace XiannongCore.Farming {
       };
     }
 
+    function nightWeatherGrowthPlan(input: NightWeatherGrowthPlanInput): NightWeatherGrowthPlan {
+      const weather = input.weather || {};
+      const waterBonus = Number(weather.water_bonus || 0);
+      const weatherGrowthModifier = Number(weather.crop_growth_modifier || 1);
+      const farmGrowthBonus = Number(input.farmGrowthBonus || 0);
+      const waterCareBonus = Number(input.waterCareBonus || 0);
+      return {
+        waterBonus,
+        weatherGrowthModifier,
+        farmGrowthBonus,
+        waterCareBonus,
+        growthModifier: weatherGrowthModifier + farmGrowthBonus,
+      };
+    }
+
     function nightCropGrowthPlan(input: NightCropGrowthInput): NightCropGrowthPlan {
       const plot = input.plot;
       const crop = input.crop || (plot.cropId ? cropForHarvestTarget(plot.cropId) : null);
@@ -473,6 +503,7 @@ namespace XiannongCore.Farming {
       seedProjectedHarvestSpec,
       harvestQualitySpec,
       cropWorldGrowthVisualSpec,
+      nightWeatherGrowthPlan,
       nightCropGrowthPlan,
       nightCropStatePlan,
       harvestYieldPlan,

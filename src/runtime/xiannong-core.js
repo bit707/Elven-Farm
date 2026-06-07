@@ -848,6 +848,20 @@ var XiannongCore;
                     badge: yieldBonus.amount > 0 ? `${affinity.label || "Term"}+${yieldBonus.amount}` : affinity.label || stageLabel,
                 };
             }
+            function nightWeatherGrowthPlan(input) {
+                const weather = input.weather || {};
+                const waterBonus = Number(weather.water_bonus || 0);
+                const weatherGrowthModifier = Number(weather.crop_growth_modifier || 1);
+                const farmGrowthBonus = Number(input.farmGrowthBonus || 0);
+                const waterCareBonus = Number(input.waterCareBonus || 0);
+                return {
+                    waterBonus,
+                    weatherGrowthModifier,
+                    farmGrowthBonus,
+                    waterCareBonus,
+                    growthModifier: weatherGrowthModifier + farmGrowthBonus,
+                };
+            }
             function nightCropGrowthPlan(input) {
                 const plot = input.plot;
                 const crop = input.crop || (plot.cropId ? cropForHarvestTarget(plot.cropId) : null);
@@ -956,6 +970,7 @@ var XiannongCore;
                 seedProjectedHarvestSpec,
                 harvestQualitySpec,
                 cropWorldGrowthVisualSpec,
+                nightWeatherGrowthPlan,
                 nightCropGrowthPlan,
                 nightCropStatePlan,
                 harvestYieldPlan,

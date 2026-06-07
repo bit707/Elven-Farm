@@ -61945,9 +61945,20 @@ function sleep() {
   const afterTermId = currentTermId();
   const weather = currentWeatherConfig();
   updatePondWaterLevelByWeather(weather);
-  const waterBonus = Number(weather.water_bonus || 0);
   const finaleEffects = spiritFinaleEffectSummary();
-  const growthModifier = Number(weather.crop_growth_modifier || 1) + finaleEffects.farmGrowthBonus;
+  const weatherGrowthPlan = farmingRuntime()?.nightWeatherGrowthPlan({
+    weather,
+    farmGrowthBonus: finaleEffects.farmGrowthBonus,
+    waterCareBonus: finaleEffects.waterCareBonus,
+  }) || {
+    waterBonus: Number(weather.water_bonus || 0),
+    weatherGrowthModifier: Number(weather.crop_growth_modifier || 1),
+    farmGrowthBonus: Number(finaleEffects.farmGrowthBonus || 0),
+    waterCareBonus: Number(finaleEffects.waterCareBonus || 0),
+    growthModifier: Number(weather.crop_growth_modifier || 1) + Number(finaleEffects.farmGrowthBonus || 0),
+  };
+  const waterBonus = weatherGrowthPlan.waterBonus;
+  const growthModifier = weatherGrowthPlan.growthModifier;
   const gardenTaskLevel = spiritJobTaskEffectLevel("garden");
   const gardenMoodBonus = gardenTaskLevel >= 5 ? 8 : gardenTaskLevel >= 3 ? 4 : 0;
   const gardenStaminaBonus = gardenTaskLevel >= 5 ? 6 : gardenTaskLevel >= 3 ? 3 : 0;
