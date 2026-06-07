@@ -10,6 +10,7 @@ const requiredFiles = [
   "src/core/data/runtime-data.ts",
   "src/core/persistence/save-runtime.ts",
   "src/core/quests/quest-runtime.ts",
+  "src/core/shop/shop-runtime.ts",
   "src/runtime/xiannong-core.js",
   "runtime-data/runtime-data.json",
   "tools/build-runtime-data.mjs",
@@ -2894,6 +2895,7 @@ const desktopShellPreload = readFileSync("desktop-shell/preload.cjs", "utf8");
 const desktopShellTemplate = readFileSync("desktop-shell/package.template.json", "utf8");
 const runtimeDataScript = readFileSync("tools/build-runtime-data.mjs", "utf8");
 const questRuntimeTs = readFileSync("src/core/quests/quest-runtime.ts", "utf8");
+const shopRuntimeTs = readFileSync("src/core/shop/shop-runtime.ts", "utf8");
 const coreRuntimeJs = readFileSync("src/runtime/xiannong-core.js", "utf8");
 const runtimeDataManifest = JSON.parse(readFileSync("runtime-data/runtime-data.json", "utf8"));
 const packageJson = readFileSync("package.json", "utf8");
@@ -2942,7 +2944,7 @@ if (!runtimeDataManifest.contentHash || Object.keys(runtimeDataManifest.files ||
   throw new Error("Runtime JSON manifest must include a content hash and all gameplay CSV tables");
 }
 
-for (const coreTerm of ["XiannongCore.Data", "createRuntimeDataLoader", "XiannongCore.Persistence", "createSaveRuntime", "XiannongStorage", "XiannongCore.Quests", "createQuestRuntime"]) {
+for (const coreTerm of ["XiannongCore.Data", "createRuntimeDataLoader", "XiannongCore.Persistence", "createSaveRuntime", "XiannongStorage", "XiannongCore.Quests", "createQuestRuntime", "XiannongCore.Shop", "createShopRuntime"]) {
   if (!coreRuntimeJs.includes(coreTerm) && !game.includes(coreTerm)) {
     throw new Error(`Generated core runtime or game bridge missing: ${coreTerm}`);
   }
@@ -2984,6 +2986,18 @@ for (const questRuntimeTerm of [
   "finishClaimedQuestReward",
 ]) {
   if (!game.includes(questRuntimeTerm)) throw new Error(`Quest TypeScript runtime bridge missing: ${questRuntimeTerm}`);
+}
+
+for (const shopRuntimeTerm of [
+  "function shopRuntime()",
+  "globalThis.XiannongCore.Shop.createShopRuntime",
+  "runtime.customerPriceRule(customer)",
+  "runtime.customerProfile(customer)",
+  "runtime.shopReputationScore()",
+  "runtime.customerViewFor(customer, segment)",
+  "runtime.customerBudget(customer, segment)",
+]) {
+  if (!game.includes(shopRuntimeTerm)) throw new Error(`Shop TypeScript runtime bridge missing: ${shopRuntimeTerm}`);
 }
 
 for (const questCoreSourceTerm of [
@@ -3078,6 +3092,38 @@ for (const questCoreRuntimeTerm of [
   "hooks.formatSideQuestRewardPreview",
 ]) {
   if (!coreRuntimeJs.includes(questCoreRuntimeTerm)) throw new Error(`Generated quest runtime missing quest term: ${questCoreRuntimeTerm}`);
+}
+
+for (const shopCoreSourceTerm of [
+  "namespace XiannongCore.Shop",
+  "export interface ShopRuntime",
+  "customerPriceRule(customer",
+  "customerProfile(customer",
+  "shopReputationScore()",
+  "customerViewFor(customer",
+  "customerBudget(customer",
+  "data.priceRulesByArchetype?.get",
+  "data.customerProfilesBy?.get",
+  "preferred_tags: compactJoin",
+  "Math.round(Math.max(baseBudget, csvBudget) * budgetRate)",
+]) {
+  if (!shopRuntimeTs.includes(shopCoreSourceTerm)) throw new Error(`Shop TypeScript source missing shop runtime term: ${shopCoreSourceTerm}`);
+}
+
+for (const shopCoreRuntimeTerm of [
+  "XiannongCore.Shop",
+  "function createShopRuntime",
+  "function customerPriceRule",
+  "function customerProfile",
+  "function shopReputationScore",
+  "function customerViewFor",
+  "function customerBudget",
+  "data.priceRulesByArchetype?.get",
+  "data.customerProfilesBy?.get",
+  "preferred_tags: compactJoin",
+  "Math.round(Math.max(baseBudget, csvBudget) * budgetRate)",
+]) {
+  if (!coreRuntimeJs.includes(shopCoreRuntimeTerm)) throw new Error(`Generated shop runtime missing shop term: ${shopCoreRuntimeTerm}`);
 }
 
 for (const desktopSaveTerm of ["xiannong:save-json", "registerJsonSaveIpc", "SAVE_DIR_NAME", "savePathForProfile", "XiannongStorage", "writeProfile", "readProfile", "desktop-json-save-v1"]) {

@@ -15593,6 +15593,27 @@ function checklistSummary(entries, evaluator) {
   };
 }
 
+let shopRuntimeCache = null;
+let shopRuntimeCacheState = null;
+let shopRuntimeCacheDataReady = null;
+
+function shopRuntime() {
+  if (!globalThis.XiannongCore?.Shop?.createShopRuntime) return null;
+  if (shopRuntimeCache && shopRuntimeCacheState === state && shopRuntimeCacheDataReady === state.dataReady) return shopRuntimeCache;
+  shopRuntimeCacheState = state;
+  shopRuntimeCacheDataReady = state.dataReady;
+  shopRuntimeCache = globalThis.XiannongCore.Shop.createShopRuntime(
+    state,
+    {
+      shopPriceRules: data.shopPriceRules,
+      customerProfiles: data.customerProfiles,
+      priceRulesByArchetype: data.priceRulesByArchetype,
+      customerProfilesBy: data.customerProfilesBy,
+    },
+  );
+  return shopRuntimeCache;
+}
+
 let questRuntimeCache = null;
 let questRuntimeCacheState = null;
 
@@ -20418,6 +20439,8 @@ function themeMatchScore(goods, theme) {
 }
 
 function customerPriceRule(customer) {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.customerPriceRule(customer);
   return data.priceRulesByArchetype.get(customer.archetype) || data.shopPriceRules[0];
 }
 
@@ -20497,14 +20520,20 @@ function matchCustomerGoodLegacy(goods, customer, ecologyGarden = null) {
 }
 
 function customerProfile(customer) {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.customerProfile(customer);
   return data.customerProfilesBy.get(customer.archetype) || {};
 }
 
 function shopReputationScore() {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.shopReputationScore();
   return state.fame * 100;
 }
 
 function customerViewFor(customer, segment) {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.customerViewFor(customer, segment);
   const profile = customerProfile(customer);
   return {
     ...customer,
@@ -20521,6 +20550,8 @@ function customerViewFor(customer, segment) {
 }
 
 function customerBudget(customer, segment) {
+  const runtime = shopRuntime();
+  if (runtime) return runtime.customerBudget(customer, segment);
   const profile = customerProfile(customer);
   const baseBudget = Number(profile.base_budget || 0);
   const csvBudget = Number(customer.budget_max || customer.budget_min || 0);

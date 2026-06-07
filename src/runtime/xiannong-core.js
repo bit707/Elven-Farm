@@ -746,3 +746,67 @@ var XiannongCore;
         Quests.createQuestRuntime = createQuestRuntime;
     })(Quests = XiannongCore.Quests || (XiannongCore.Quests = {}));
 })(XiannongCore || (XiannongCore = {}));
+var XiannongCore;
+(function (XiannongCore) {
+    var Shop;
+    (function (Shop) {
+        function rowByKey(rows, key, value) {
+            return rows.find((row) => row[key] === value) || null;
+        }
+        function customerArchetype(customer) {
+            return customer?.archetype || customer?.archetype_id || "";
+        }
+        function compactJoin(values) {
+            return values.filter(Boolean).join("|");
+        }
+        function createShopRuntime(state, data) {
+            function customerPriceRule(customer) {
+                const archetype = customerArchetype(customer);
+                return (archetype ? data.priceRulesByArchetype?.get(archetype) : null)
+                    || rowByKey(data.shopPriceRules, "customer_archetype", archetype)
+                    || data.shopPriceRules[0]
+                    || null;
+            }
+            function customerProfile(customer) {
+                const archetype = customerArchetype(customer);
+                return (archetype ? data.customerProfilesBy?.get(archetype) : null)
+                    || rowByKey(data.customerProfiles, "archetype_id", archetype)
+                    || {};
+            }
+            function shopReputationScore() {
+                return Number(state.fame || 0) * 100;
+            }
+            function customerViewFor(customer, segment = null) {
+                const source = customer || {};
+                const profile = customerProfile(source);
+                return {
+                    ...source,
+                    preferred_tags: compactJoin([
+                        source.preferred_tags,
+                        profile.preferred_tags,
+                        segment?.preferred_tags_extra,
+                    ]),
+                    disliked_tags: compactJoin([
+                        profile.disliked_tags,
+                        segment?.disliked_tags_extra,
+                    ]),
+                };
+            }
+            function customerBudget(customer, segment = null) {
+                const profile = customerProfile(customer);
+                const baseBudget = Number(profile.base_budget || 0);
+                const csvBudget = Number(customer?.budget_max || customer?.budget_min || 0);
+                const budgetRate = Number(segment?.budget_rate || 1);
+                return Math.round(Math.max(baseBudget, csvBudget) * budgetRate);
+            }
+            return {
+                customerPriceRule,
+                customerProfile,
+                shopReputationScore,
+                customerViewFor,
+                customerBudget,
+            };
+        }
+        Shop.createShopRuntime = createShopRuntime;
+    })(Shop = XiannongCore.Shop || (XiannongCore.Shop = {}));
+})(XiannongCore || (XiannongCore = {}));
