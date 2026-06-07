@@ -158,6 +158,20 @@ namespace XiannongCore.Farming {
     mature: false;
   }
 
+  export interface HarvestProgressPlanInput {
+    harvestBefore?: number;
+    harvestAfter?: number;
+    qualityBefore?: number;
+    qualityAfter?: number;
+    threshold?: number;
+  }
+
+  export interface HarvestProgressPlan {
+    threshold: number;
+    harvestReady: boolean;
+    qualityReady: boolean;
+  }
+
   export interface PlantStatePlanInput {
     crop?: FarmingRow | null;
     seedItemId?: string;
@@ -206,6 +220,7 @@ namespace XiannongCore.Farming {
     nightCropStatePlan(input: NightCropStatePlanInput): NightCropStatePlan;
     harvestYieldPlan(input: HarvestYieldPlanInput): HarvestYieldPlan;
     harvestStatePlan(input: HarvestStatePlanInput): HarvestStatePlan;
+    harvestProgressPlan(input: HarvestProgressPlanInput): HarvestProgressPlan;
     plantStatePlan(input: PlantStatePlanInput): PlantStatePlan;
     waterStatePlan(input: WaterStatePlanInput): WaterStatePlan;
   }
@@ -487,6 +502,19 @@ namespace XiannongCore.Farming {
       };
     }
 
+    function harvestProgressPlan(input: HarvestProgressPlanInput): HarvestProgressPlan {
+      const threshold = Math.max(1, Number(input.threshold || 5));
+      const harvestBefore = Number(input.harvestBefore || 0);
+      const harvestAfter = Number(input.harvestAfter || 0);
+      const qualityBefore = Number(input.qualityBefore || 0);
+      const qualityAfter = Number(input.qualityAfter || 0);
+      return {
+        threshold,
+        harvestReady: harvestBefore < threshold && harvestAfter >= threshold,
+        qualityReady: qualityBefore < threshold && qualityAfter >= threshold,
+      };
+    }
+
     function plantStatePlan(input: PlantStatePlanInput): PlantStatePlan {
       const crop = input.crop || {};
       const cropId = String(crop.crop_id || "");
@@ -531,6 +559,7 @@ namespace XiannongCore.Farming {
       nightCropStatePlan,
       harvestYieldPlan,
       harvestStatePlan,
+      harvestProgressPlan,
       plantStatePlan,
       waterStatePlan,
     };

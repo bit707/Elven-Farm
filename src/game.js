@@ -55321,12 +55321,23 @@ function harvest() {
     }
   }
   if (crop.crop_id === BAIZHI_CROP_ID && baizhiQuestGuidanceActive()) {
-    if (harvestBefore < 5 && harvestAfter >= 5) {
+    const harvestProgressPlan = farmingRuntime()?.harvestProgressPlan({
+      harvestBefore,
+      harvestAfter,
+      qualityBefore,
+      qualityAfter,
+      threshold: 5,
+    }) || {
+      threshold: 5,
+      harvestReady: harvestBefore < 5 && harvestAfter >= 5,
+      qualityReady: qualityBefore < 5 && qualityAfter >= 5,
+    };
+    if (harvestProgressPlan.harvestReady) {
       state.completed.add("baizhi_shihu_harvest_ready");
       triggerBaizhiQuestStageFeedback("harvest_ready");
       addLog("石斛备齐", "基础石斛已经备够 5 株，去医馆见白芷，把试药要求再说清楚。");
     }
-    if (qualityBefore < 5 && qualityAfter >= 5) {
+    if (harvestProgressPlan.qualityReady) {
       state.completed.add("baizhi_shihu_quality_ready");
       triggerBaizhiQuestStageFeedback("quality_ready");
       addLog("良品备齐", "白芷要的那批良品石斛已经凑齐，医馆和药谷的后续线索都能接上了。");

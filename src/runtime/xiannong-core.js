@@ -942,6 +942,18 @@ var XiannongCore;
                     mature: false,
                 };
             }
+            function harvestProgressPlan(input) {
+                const threshold = Math.max(1, Number(input.threshold || 5));
+                const harvestBefore = Number(input.harvestBefore || 0);
+                const harvestAfter = Number(input.harvestAfter || 0);
+                const qualityBefore = Number(input.qualityBefore || 0);
+                const qualityAfter = Number(input.qualityAfter || 0);
+                return {
+                    threshold,
+                    harvestReady: harvestBefore < threshold && harvestAfter >= threshold,
+                    qualityReady: qualityBefore < threshold && qualityAfter >= threshold,
+                };
+            }
             function plantStatePlan(input) {
                 const crop = input.crop || {};
                 const cropId = String(crop.crop_id || "");
@@ -984,6 +996,7 @@ var XiannongCore;
                 nightCropStatePlan,
                 harvestYieldPlan,
                 harvestStatePlan,
+                harvestProgressPlan,
                 plantStatePlan,
                 waterStatePlan,
             };
