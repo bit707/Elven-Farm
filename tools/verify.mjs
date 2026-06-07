@@ -3041,6 +3041,8 @@ for (const shopRuntimeTerm of [
   "shopSettlementRules: data.shopSettlementRules",
   "runtime.shopSeasonRules(season)",
   "runtime.shopSeasonLeadKey(map)",
+  "shopRuntime()?.shopSeasonScorePlan({ parts, ledgerBonus })",
+  "parts: scoredParts",
 ]) {
   if (!game.includes(shopRuntimeTerm)) throw new Error(`Shop TypeScript runtime bridge missing: ${shopRuntimeTerm}`);
 }
@@ -3251,6 +3253,12 @@ for (const shopCoreSourceTerm of [
   "shopSeasonRules(season",
   "data.shopSettlementRules",
   "shopSeasonLeadKey(counts",
+  "export interface ShopSeasonScorePlanInput",
+  "export interface ShopSeasonScorePlan",
+  "shopSeasonScorePlan(input",
+  "weighted: raw * Number(part.rule?.weight || 0)",
+  "Math.round(parts.reduce",
+  "score: Math.round(baseScore * (1 + ledgerBonus))",
   "ecology_product: 20",
   "route_rare: 18",
   "recover_sp: 13",
@@ -3339,6 +3347,10 @@ for (const shopCoreRuntimeTerm of [
   "data.shopSettlementRules",
   "function shopSeasonLeadKey",
   "Object.entries(counts || {})",
+  "function shopSeasonScorePlan",
+  "weighted: raw * Number(part.rule?.weight || 0)",
+  "Math.round(parts.reduce",
+  "score: Math.round(baseScore * (1 + ledgerBonus))",
   "ecology_product: 20",
   "route_rare: 18",
   "recover_sp: 13",

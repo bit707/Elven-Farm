@@ -47,6 +47,7 @@ namespace XiannongCore.Shop {
     shopSeasonCycleKey(input?: ShopSeasonCycleKeyInput | null): string;
     shopSeasonRules(season?: ShopRow | null): ShopRow[];
     shopSeasonLeadKey(counts?: ShopNumericCounts | null): string;
+    shopSeasonScorePlan(input?: ShopSeasonScorePlanInput | null): ShopSeasonScorePlan;
     shopSeasonRewards(season?: ShopRow | null): ShopRow[];
     shopSeasonRank(score?: number | string | null, season?: ShopRow | null): ShopRow;
   }
@@ -213,6 +214,29 @@ namespace XiannongCore.Shop {
     season?: ShopRow | null;
     cycleIndex?: number | string | null;
     day?: number | string | null;
+  }
+
+  export interface ShopSeasonScorePartInput {
+    rule: ShopRow;
+    raw?: number | string;
+  }
+
+  export interface ShopSeasonScorePart {
+    rule: ShopRow;
+    raw: number;
+    weighted: number;
+  }
+
+  export interface ShopSeasonScorePlanInput {
+    parts?: ShopSeasonScorePartInput[] | null;
+    ledgerBonus?: number | string | null;
+  }
+
+  export interface ShopSeasonScorePlan {
+    score: number;
+    baseScore: number;
+    ledgerBonus: number;
+    parts: ShopSeasonScorePart[];
   }
 
   export interface PricedGoodOptions {
@@ -738,6 +762,25 @@ namespace XiannongCore.Shop {
         .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))[0]?.[0] || "";
     }
 
+    function shopSeasonScorePlan(input: ShopSeasonScorePlanInput | null = null): ShopSeasonScorePlan {
+      const parts = (Array.isArray(input?.parts) ? input.parts : []).map((part) => {
+        const raw = Math.max(0, Math.min(100, Number(part.raw || 0)));
+        return {
+          rule: part.rule,
+          raw,
+          weighted: raw * Number(part.rule?.weight || 0),
+        };
+      });
+      const baseScore = Math.round(parts.reduce((sum, part) => sum + part.weighted, 0) * 12);
+      const ledgerBonus = Number(input?.ledgerBonus || 0);
+      return {
+        score: Math.round(baseScore * (1 + ledgerBonus)),
+        baseScore,
+        ledgerBonus,
+        parts,
+      };
+    }
+
     function shopSeasonRewards(season: ShopRow | null = shopSeasonCycleInfo().season): ShopRow[] {
       const seasonId = season?.season_id || "";
       return (Array.isArray(data.shopRankRewards) ? data.shopRankRewards : [])
@@ -786,6 +829,7 @@ namespace XiannongCore.Shop {
       shopSeasonCycleKey,
       shopSeasonRules,
       shopSeasonLeadKey,
+      shopSeasonScorePlan,
       shopSeasonRewards,
       shopSeasonRank,
     };

@@ -1458,6 +1458,24 @@ var XiannongCore;
                 return Object.entries(counts || {})
                     .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))[0]?.[0] || "";
             }
+            function shopSeasonScorePlan(input = null) {
+                const parts = (Array.isArray(input?.parts) ? input.parts : []).map((part) => {
+                    const raw = Math.max(0, Math.min(100, Number(part.raw || 0)));
+                    return {
+                        rule: part.rule,
+                        raw,
+                        weighted: raw * Number(part.rule?.weight || 0),
+                    };
+                });
+                const baseScore = Math.round(parts.reduce((sum, part) => sum + part.weighted, 0) * 12);
+                const ledgerBonus = Number(input?.ledgerBonus || 0);
+                return {
+                    score: Math.round(baseScore * (1 + ledgerBonus)),
+                    baseScore,
+                    ledgerBonus,
+                    parts,
+                };
+            }
             function shopSeasonRewards(season = shopSeasonCycleInfo().season) {
                 const seasonId = season?.season_id || "";
                 return (Array.isArray(data.shopRankRewards) ? data.shopRankRewards : [])
@@ -1504,6 +1522,7 @@ var XiannongCore;
                 shopSeasonCycleKey,
                 shopSeasonRules,
                 shopSeasonLeadKey,
+                shopSeasonScorePlan,
                 shopSeasonRewards,
                 shopSeasonRank,
             };

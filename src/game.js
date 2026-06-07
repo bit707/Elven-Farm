@@ -26800,15 +26800,20 @@ function shopMetricValue(part, stats = currentShopSeasonStats(), seasonDay = sta
 function shopSeasonScore(season = currentShopSeason(), stats = currentShopSeasonStats(), seasonDay = state.day) {
   const parts = shopSeasonRules(season).map((rule) => {
     const raw = shopMetricValue(rule.score_part, stats, seasonDay);
-    const weighted = raw * Number(rule.weight || 0);
-    return { rule, raw, weighted };
+    return { rule, raw };
   });
-  const baseScore = Math.round(parts.reduce((sum, part) => sum + part.weighted, 0) * 12);
   const cycle = shopSeasonCycleInfo(seasonDay);
   const cycleKey = shopSeasonCycleKey(season || cycle.season, cycle.cycleIndex);
   const ledgerBonus = shuqiLegacyLedgerActive() ? Number(state.shopStats?.seasonScoreBoosts?.[cycleKey] || 0) : 0;
+  const runtimePlan = shopRuntime()?.shopSeasonScorePlan({ parts, ledgerBonus });
+  if (runtimePlan) return runtimePlan;
+  const scoredParts = parts.map((part) => ({
+    ...part,
+    weighted: part.raw * Number(part.rule.weight || 0),
+  }));
+  const baseScore = Math.round(scoredParts.reduce((sum, part) => sum + part.weighted, 0) * 12);
   const score = Math.round(baseScore * (1 + ledgerBonus));
-  return { score, baseScore, ledgerBonus, parts };
+  return { score, baseScore, ledgerBonus, parts: scoredParts };
 }
 
 function shopSeasonRank(score, season = currentShopSeason()) {
