@@ -48,6 +48,7 @@ namespace XiannongCore.Shop {
     shopSeasonRules(season?: ShopRow | null): ShopRow[];
     shopSeasonLeadKey(counts?: ShopNumericCounts | null): string;
     shopSeasonScorePlan(input?: ShopSeasonScorePlanInput | null): ShopSeasonScorePlan;
+    shopSeasonSettlementPlan(input?: ShopSeasonSettlementPlanInput | null): ShopSeasonSettlementPlan;
     shopSeasonRewards(season?: ShopRow | null): ShopRow[];
     shopSeasonRank(score?: number | string | null, season?: ShopRow | null): ShopRow;
     shopSeasonRewardClaimPlan(input?: ShopSeasonRewardClaimPlanInput | null): ShopSeasonRewardClaimPlan;
@@ -240,7 +241,9 @@ namespace XiannongCore.Shop {
     parts: ShopSeasonScorePart[];
   }
 
-  export interface ShopSeasonPendingReward {
+  export interface ShopSeasonRankReward {
+    rank_tier?: string;
+    score_min?: number | string;
     reward_type?: string;
     reward_param?: string;
     reward_count?: number | string;
@@ -249,12 +252,68 @@ namespace XiannongCore.Shop {
     [key: string]: unknown;
   }
 
+  export type ShopSeasonPendingReward = ShopSeasonRankReward;
+
+  export interface ShopSeasonSettlementStats {
+    itemSales?: ShopNumericCounts | null;
+    customerVisits?: ShopNumericCounts | null;
+    themeUsage?: ShopNumericCounts | null;
+    stockWarnings?: number | string;
+    stockSafeSessions?: number | string;
+  }
+
+  export interface ShopSeasonSettlementPart {
+    scorePart: string;
+    displayName: string;
+    raw: number;
+    weight: number;
+    note?: string;
+  }
+
   export interface ShopSeasonPendingSettlement {
     seasonId?: string;
+    seasonName?: string;
     cycleIndex?: number | string;
-    reward?: ShopSeasonPendingReward | null;
+    cycleStartDay?: number;
+    cycleEndDay?: number;
+    baseScore?: number;
+    ledgerBonus?: number;
+    score?: number;
+    rankTier?: string;
+    titleLine?: string;
+    focusTags?: string[];
+    parts?: ShopSeasonSettlementPart[];
+    bestSellerItemId?: string;
+    bestSellerCount?: number;
+    topThemeId?: string;
+    mainCustomer?: string;
+    weakPart?: string;
+    advice?: string;
+    stockWarnings?: number;
+    stockSafeSessions?: number;
+    memoryPageTitle?: string;
+    reward?: ShopSeasonRankReward | null;
     rewardClaimed?: boolean;
     [key: string]: unknown;
+  }
+
+  export interface ShopSeasonSettlementPlanInput {
+    endedInfo?: ShopSeasonCycleInfo | null;
+    endedDay?: number | string | null;
+    stats?: ShopSeasonSettlementStats | null;
+    settlement?: ShopSeasonScorePlan | null;
+    rank?: ShopSeasonRankReward | null;
+    titleLine?: string | null;
+    advice?: string | null;
+    memoryPageTitle?: string | null;
+  }
+
+  export interface ShopSeasonSettlementPlan {
+    pending: ShopSeasonPendingSettlement | null;
+    weakPart: ShopSeasonScorePart | null;
+    bestSellerItemId: string;
+    topThemeId: string;
+    mainCustomer: string;
   }
 
   export interface ShopSeasonRewardClaimPlanInput {
@@ -818,6 +877,65 @@ namespace XiannongCore.Shop {
       };
     }
 
+    function shopSeasonSettlementPlan(input: ShopSeasonSettlementPlanInput | null = null): ShopSeasonSettlementPlan {
+      const endedInfo = input?.endedInfo || null;
+      const season = endedInfo?.season || null;
+      const settlement = input?.settlement || null;
+      const rank = input?.rank || null;
+      if (!endedInfo || !season || !settlement || !rank) {
+        return {
+          pending: null,
+          weakPart: null,
+          bestSellerItemId: "",
+          topThemeId: "",
+          mainCustomer: "",
+        };
+      }
+      const stats = input?.stats || {};
+      const weakPart = settlement.parts.slice().sort((a, b) => a.raw - b.raw)[0] || null;
+      const bestSellerItemId = shopSeasonLeadKey(stats.itemSales);
+      const topThemeId = shopSeasonLeadKey(stats.themeUsage);
+      const mainCustomer = shopSeasonLeadKey(stats.customerVisits);
+      const pending: ShopSeasonPendingSettlement = {
+        seasonId: season.season_id || "",
+        seasonName: season.season_name || "",
+        cycleIndex: endedInfo.cycleIndex,
+        cycleStartDay: endedInfo.startDay,
+        cycleEndDay: Number(input?.endedDay || 0),
+        baseScore: settlement.baseScore || settlement.score,
+        ledgerBonus: settlement.ledgerBonus || 0,
+        score: settlement.score,
+        rankTier: String(rank.rank_tier || "c").toLowerCase(),
+        titleLine: String(input?.titleLine || ""),
+        focusTags: splitTags(season.score_focus_tags),
+        parts: settlement.parts.map((part) => ({
+          scorePart: part.rule.score_part || "",
+          displayName: part.rule.display_name || "",
+          raw: Math.round(part.raw),
+          weight: Number(part.rule.weight || 0),
+          note: part.rule.note,
+        })),
+        bestSellerItemId,
+        bestSellerCount: Number(stats.itemSales?.[bestSellerItemId] || 0),
+        topThemeId,
+        mainCustomer,
+        weakPart: weakPart?.rule?.display_name || "",
+        advice: String(input?.advice || ""),
+        stockWarnings: Number(stats.stockWarnings || 0),
+        stockSafeSessions: Number(stats.stockSafeSessions || 0),
+        memoryPageTitle: String(input?.memoryPageTitle || ""),
+        reward: { ...rank },
+        rewardClaimed: false,
+      };
+      return {
+        pending,
+        weakPart,
+        bestSellerItemId,
+        topThemeId,
+        mainCustomer,
+      };
+    }
+
     function shopSeasonRewards(season: ShopRow | null = shopSeasonCycleInfo().season): ShopRow[] {
       const seasonId = season?.season_id || "";
       return (Array.isArray(data.shopRankRewards) ? data.shopRankRewards : [])
@@ -889,6 +1007,7 @@ namespace XiannongCore.Shop {
       shopSeasonRules,
       shopSeasonLeadKey,
       shopSeasonScorePlan,
+      shopSeasonSettlementPlan,
       shopSeasonRewards,
       shopSeasonRank,
       shopSeasonRewardClaimPlan,

@@ -1476,6 +1476,64 @@ var XiannongCore;
                     parts,
                 };
             }
+            function shopSeasonSettlementPlan(input = null) {
+                const endedInfo = input?.endedInfo || null;
+                const season = endedInfo?.season || null;
+                const settlement = input?.settlement || null;
+                const rank = input?.rank || null;
+                if (!endedInfo || !season || !settlement || !rank) {
+                    return {
+                        pending: null,
+                        weakPart: null,
+                        bestSellerItemId: "",
+                        topThemeId: "",
+                        mainCustomer: "",
+                    };
+                }
+                const stats = input?.stats || {};
+                const weakPart = settlement.parts.slice().sort((a, b) => a.raw - b.raw)[0] || null;
+                const bestSellerItemId = shopSeasonLeadKey(stats.itemSales);
+                const topThemeId = shopSeasonLeadKey(stats.themeUsage);
+                const mainCustomer = shopSeasonLeadKey(stats.customerVisits);
+                const pending = {
+                    seasonId: season.season_id || "",
+                    seasonName: season.season_name || "",
+                    cycleIndex: endedInfo.cycleIndex,
+                    cycleStartDay: endedInfo.startDay,
+                    cycleEndDay: Number(input?.endedDay || 0),
+                    baseScore: settlement.baseScore || settlement.score,
+                    ledgerBonus: settlement.ledgerBonus || 0,
+                    score: settlement.score,
+                    rankTier: String(rank.rank_tier || "c").toLowerCase(),
+                    titleLine: String(input?.titleLine || ""),
+                    focusTags: splitTags(season.score_focus_tags),
+                    parts: settlement.parts.map((part) => ({
+                        scorePart: part.rule.score_part || "",
+                        displayName: part.rule.display_name || "",
+                        raw: Math.round(part.raw),
+                        weight: Number(part.rule.weight || 0),
+                        note: part.rule.note,
+                    })),
+                    bestSellerItemId,
+                    bestSellerCount: Number(stats.itemSales?.[bestSellerItemId] || 0),
+                    topThemeId,
+                    mainCustomer,
+                    weakPart: weakPart?.rule?.display_name || "",
+                    advice: String(input?.advice || ""),
+                    stockWarnings: Number(stats.stockWarnings || 0),
+                    stockSafeSessions: Number(stats.stockSafeSessions || 0),
+                    memoryPageTitle: String(input?.memoryPageTitle || ""),
+                    reward: { ...rank },
+                    rewardClaimed: false,
+                };
+                return {
+                    pending,
+                    weakPart,
+                    bestSellerItemId,
+                    topThemeId,
+                    mainCustomer,
+                };
+            }
             function shopSeasonRewards(season = shopSeasonCycleInfo().season) {
                 const seasonId = season?.season_id || "";
                 return (Array.isArray(data.shopRankRewards) ? data.shopRankRewards : [])
@@ -1547,6 +1605,7 @@ var XiannongCore;
                 shopSeasonRules,
                 shopSeasonLeadKey,
                 shopSeasonScorePlan,
+                shopSeasonSettlementPlan,
                 shopSeasonRewards,
                 shopSeasonRank,
                 shopSeasonRewardClaimPlan,

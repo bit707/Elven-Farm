@@ -26872,11 +26872,22 @@ function settleShopSeasonCycle(endedDay = state.day - 1) {
 
   const settlement = shopSeasonScore(endedInfo.season, stats, endedDay);
   const rank = shopSeasonRank(settlement.score, endedInfo.season);
-  const weakPart = settlement.parts.slice().sort((a, b) => a.raw - b.raw)[0] || null;
-  const bestSellerItemId = shopSeasonLeadKey(stats.itemSales);
-  const topThemeId = shopSeasonLeadKey(stats.themeUsage);
-  const mainCustomer = shopSeasonLeadKey(stats.customerVisits);
-  const pending = {
+  const weakPartFallback = settlement.parts.slice().sort((a, b) => a.raw - b.raw)[0] || null;
+  const settlementPlan = shopRuntime()?.shopSeasonSettlementPlan({
+    endedInfo,
+    endedDay,
+    stats,
+    settlement,
+    rank,
+    titleLine: shopSeasonTitle(rank.rank_tier),
+    advice: shopSeasonAdviceForPart(weakPartFallback),
+    memoryPageTitle: shuqiLedgerMemoryPageForCycle(shopSeasonCycleKey(endedInfo.season, endedInfo.cycleIndex))?.title || "",
+  });
+  const weakPart = settlementPlan?.weakPart || weakPartFallback;
+  const bestSellerItemId = settlementPlan?.bestSellerItemId || shopSeasonLeadKey(stats.itemSales);
+  const topThemeId = settlementPlan?.topThemeId || shopSeasonLeadKey(stats.themeUsage);
+  const mainCustomer = settlementPlan?.mainCustomer || shopSeasonLeadKey(stats.customerVisits);
+  const pending = settlementPlan?.pending || {
     seasonId: endedInfo.season.season_id,
     seasonName: endedInfo.season.season_name,
     cycleIndex: endedInfo.cycleIndex,
@@ -26900,13 +26911,14 @@ function settleShopSeasonCycle(endedDay = state.day - 1) {
     topThemeId,
     mainCustomer,
     weakPart: weakPart?.rule?.display_name || "",
-    advice: shopSeasonAdviceForPart(weakPart),
+    advice: "",
     stockWarnings: Number(stats.stockWarnings || 0),
     stockSafeSessions: Number(stats.stockSafeSessions || 0),
     memoryPageTitle: shuqiLedgerMemoryPageForCycle(shopSeasonCycleKey(endedInfo.season, endedInfo.cycleIndex))?.title || "",
     reward: { ...rank },
     rewardClaimed: false,
   };
+  pending.advice = pending.advice || shopSeasonAdviceForPart(weakPart);
   state.shopStats.pendingSettlement = pending;
   state.shopStats.history.unshift(cloneShopSeasonSettlement(pending));
   state.shopStats.history = state.shopStats.history.slice(0, 8);
