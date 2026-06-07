@@ -3006,6 +3006,8 @@ for (const questRuntimeTerm of [
   "runtime?.configuredEventSpiritManorStartActionPlan(event)",
   "runtime?.configuredEventSpiritManorOverviewActionPlan(event)",
   "runtime?.configuredEventFactionOrderStartActionPlan(event)",
+  "runtime?.configuredEventFireRuinUnlockActionPlan(event)",
+  "runtime?.configuredEventFireRuinStartActionPlan(event)",
   "runtime?.configuredEventGenericUnlockActionPlan(event)",
   "applyConfiguredEventActionPlan(actionPlan)",
   "applyConfiguredEventAction(action",
@@ -3274,6 +3276,8 @@ for (const questCoreSourceTerm of [
   "export interface ConfiguredEventSpiritManorStartActionPlan",
   "export interface ConfiguredEventSpiritManorOverviewActionPlan",
   "export interface ConfiguredEventFactionOrderStartActionPlan",
+  "export interface ConfiguredEventFireRuinUnlockActionPlan",
+  "export interface ConfiguredEventFireRuinStartActionPlan",
   "export interface ConfiguredEventGenericUnlockActionPlan",
   "configuredEventSideQuestActionPlan(event",
   "configuredEventMainQuestActionPlan(event",
@@ -3285,6 +3289,8 @@ for (const questCoreSourceTerm of [
   "configuredEventSpiritManorStartActionPlan(event",
   "configuredEventSpiritManorOverviewActionPlan(event",
   "configuredEventFactionOrderStartActionPlan(event",
+  "configuredEventFireRuinUnlockActionPlan(event",
+  "configuredEventFireRuinStartActionPlan(event",
   "configuredEventGenericUnlockActionPlan(event",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -3381,6 +3387,8 @@ for (const questCoreRuntimeTerm of [
   "function configuredEventSpiritManorStartActionPlan",
   "function configuredEventSpiritManorOverviewActionPlan",
   "function configuredEventFactionOrderStartActionPlan",
+  "function configuredEventFireRuinUnlockActionPlan",
+  "function configuredEventFireRuinStartActionPlan",
   "function configuredEventGenericUnlockActionPlan",
   "kind: \"trigger_event\"",
   "kind: \"activate_side_quest\"",
@@ -5833,6 +5841,15 @@ if (!mainQuest0302Condition || mainQuest0302Condition.expression !== "quest_stat
 }
 if (!eventMain0306 || eventMain0306.trigger_type !== "on_enter_area" || eventMain0306.trigger_param !== "area_ruin_fire" || eventMain0306.condition_group !== "fire_ruin_unlocked" || eventMain0306.execute_group !== "exec_start_ruin_fire") {
   throw new Error("Entering Fire Ruin must trigger configured event_main_0306");
+}
+if (!game.includes('executeGroup.includes("start_ruin_fire")')
+  || !game.includes("runtime?.configuredEventFireRuinStartActionPlan(event)")
+  || !game.includes('kind: "log_fire_ruin_start"')
+  || !questRuntimeTs.includes("function configuredEventFireRuinStartActionPlan")
+  || !questRuntimeTs.includes("shouldUnlock")
+  || !questRuntimeTs.includes('groupId: dialogueGroup')
+  || !questRuntimeTs.includes("constants.fireRuinAreaId")) {
+  throw new Error("Fire Ruin entry must run through a TypeScript configured-event action plan with unlock fallback, area entry, dialogue, and logging");
 }
 if (!fireRuinBoss || fireRuinBoss.defeat_event_id !== "event_main_0307") {
   throw new Error("Chiyan Xiehou boss must resolve through event_main_0307");

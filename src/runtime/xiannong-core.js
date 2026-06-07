@@ -2437,6 +2437,61 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventFireRuinStartActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "start_ruin_fire";
+                const alreadyUnlocked = setHas(state.completed, constants.fireRuinUnlockFlag)
+                    || setHas(state.triggeredEvents, constants.fireRuinUnlockEventId);
+                const shouldUnlock = applies && !alreadyUnlocked;
+                const completedFlags = applies
+                    ? [
+                        ...(shouldUnlock ? [constants.fireRuinUnlockFlag] : []),
+                        constants.fireRuinAreaId,
+                    ]
+                    : [];
+                const areaId = applies ? constants.fireRuinAreaId : "";
+                const dialogueGroup = applies ? "dialogue_main_0306_fire_ruin" : "";
+                const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+                const actions = applies
+                    ? [
+                        ...(shouldUnlock ? [
+                            { kind: "trigger_event", eventId: constants.fireRuinUnlockEventId },
+                            { kind: "complete_flag", flag: constants.fireRuinUnlockFlag },
+                            { kind: "add_npc_favor", npcId: "npc_hu_sihai", amount: 10, source: "\u70bd\u7802\u65e7\u91c7\u8def" },
+                            { kind: "apply_fire_ruin_unlock_world_change" },
+                            {
+                                kind: "trigger_chapter3_trade_feedback",
+                                phase: "unlock",
+                                eventNameKey: "event_name_main_0305",
+                                fallbackName: "\u70bd\u7802\u7ebf\u7d22\u5230\u624b",
+                            },
+                            {
+                                kind: "log_fire_ruin_unlock",
+                                eventNameKey: "event_name_main_0305",
+                                fallbackName: "\u70bd\u7802\u7ebf\u7d22\u5230\u624b",
+                            },
+                        ] : []),
+                        { kind: "trigger_event", eventId: plan.eventId },
+                        { kind: "complete_flag", flag: constants.fireRuinAreaId },
+                        { kind: "trigger_chapter3_trade_feedback", phase: "entry_area" },
+                        { kind: "queue_dialogue_group", groupId: dialogueGroup },
+                        { kind: "play_cue", cue },
+                        { kind: "log_fire_ruin_start" },
+                    ]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    shouldUnlock,
+                    unlockEventId: constants.fireRuinUnlockEventId,
+                    completedFlags,
+                    areaId,
+                    dialogueGroup,
+                    cue,
+                    actions,
+                };
+            }
             function configuredEventGenericUnlockActionPlan(event) {
                 const plan = configuredEventExecutionPlan(event);
                 const applies = plan.actionKind === "generic_unlock";
@@ -2551,6 +2606,7 @@ var XiannongCore;
                 configuredEventSpiritManorOverviewActionPlan,
                 configuredEventFactionOrderStartActionPlan,
                 configuredEventFireRuinUnlockActionPlan,
+                configuredEventFireRuinStartActionPlan,
                 configuredEventGenericUnlockActionPlan,
             };
         }

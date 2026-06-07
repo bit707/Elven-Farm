@@ -17280,7 +17280,7 @@ function applyConfiguredEventAction(action, context = {}) {
     return null;
   }
   if (action.kind === "trigger_chapter3_trade_feedback") {
-    triggerChapter3TradeFeedback(action.phase, context.eventName);
+    triggerChapter3TradeFeedback(action.phase, action.eventNameKey ? localize(action.eventNameKey, action.fallbackName || context.eventName) : context.eventName);
     return null;
   }
   if (action.kind === "start_faction_order_chapter_if_needed") {
@@ -17321,7 +17321,12 @@ function applyConfiguredEventAction(action, context = {}) {
     return null;
   }
   if (action.kind === "log_fire_ruin_unlock") {
-    addLog("炽砂线索到手", `${context.eventName}：胡四海把通往炽砂遗迹的旧采路摊给了你，秘境面板已经能看到这条火线。`);
+    const eventName = action.eventNameKey ? localize(action.eventNameKey, action.fallbackName || context.eventName) : context.eventName;
+    addLog("炽砂线索到手", `${eventName}：胡四海把通往炽砂遗迹的旧采路摊给了你，秘境面板已经能看到这条火线。`);
+    return null;
+  }
+  if (action.kind === "log_fire_ruin_start") {
+    addLog("炽砂遗迹", `${context.eventName}：旧采路尽头的残阵热浪还没死透，带回 ${itemName(FIRE_CORE_ITEM_ID)} 才算真正把这条火线接稳。`);
     return null;
   }
   if (action.kind === "check_quest_rewards") {
@@ -17637,7 +17642,38 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "start_ruin_fire" || (!actionKind && executeGroup.includes("start_ruin_fire"))) {
-    startFireRuinExpedition(eventName);
+    const fireRuinWasUnlocked = state.completed.has(FIRE_RUIN_UNLOCK_FLAG) || state.triggeredEvents.has(FIRE_RUIN_UNLOCK_EVENT_ID);
+    const actionPlan = runtime?.configuredEventFireRuinStartActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      shouldUnlock: !fireRuinWasUnlocked,
+      unlockEventId: FIRE_RUIN_UNLOCK_EVENT_ID,
+      completedFlags: [
+        ...(!fireRuinWasUnlocked ? [FIRE_RUIN_UNLOCK_FLAG] : []),
+        FIRE_RUIN_AREA_ID,
+      ],
+      areaId: FIRE_RUIN_AREA_ID,
+      dialogueGroup: "dialogue_main_0306_fire_ruin",
+      cue: "成就解锁",
+      actions: [
+        ...(!fireRuinWasUnlocked ? [
+          { kind: "trigger_event", eventId: FIRE_RUIN_UNLOCK_EVENT_ID },
+          { kind: "complete_flag", flag: FIRE_RUIN_UNLOCK_FLAG },
+          { kind: "add_npc_favor", npcId: "npc_hu_sihai", amount: 10, source: "炽砂旧采路" },
+          { kind: "apply_fire_ruin_unlock_world_change" },
+          { kind: "trigger_chapter3_trade_feedback", phase: "unlock", eventNameKey: "event_name_main_0305", fallbackName: "炽砂线索到手" },
+          { kind: "log_fire_ruin_unlock", eventNameKey: "event_name_main_0305", fallbackName: "炽砂线索到手" },
+        ] : []),
+        { kind: "trigger_event", eventId: event.event_id || "" },
+        { kind: "complete_flag", flag: FIRE_RUIN_AREA_ID },
+        { kind: "trigger_chapter3_trade_feedback", phase: "entry_area" },
+        { kind: "queue_dialogue_group", groupId: "dialogue_main_0306_fire_ruin" },
+        { kind: "play_cue", cue: "成就解锁" },
+        { kind: "log_fire_ruin_start" },
+      ],
+    };
+    applyConfiguredEventActionPlan(actionPlan, { eventName });
     return true;
   }
 
