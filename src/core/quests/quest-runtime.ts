@@ -207,6 +207,7 @@ namespace XiannongCore.Quests {
     configuredEventSideQuestActionPlan(event: ConfiguredTriggerRow): ConfiguredEventSideQuestActionPlan;
     configuredEventMainQuestActionPlan(event: ConfiguredTriggerRow): ConfiguredEventMainQuestActionPlan;
     configuredEventCutsceneActionPlan(event: ConfiguredTriggerRow): ConfiguredEventCutsceneActionPlan;
+    configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan;
   }
 
   export interface QuestRewardClaimResult {
@@ -286,6 +287,13 @@ namespace XiannongCore.Quests {
     applies: boolean;
     eventId: string;
     dialogueGroup: string;
+    actions: ConfiguredEventExecutionAction[];
+  }
+
+  export interface ConfiguredEventGenericUnlockActionPlan {
+    applies: boolean;
+    eventId: string;
+    executeGroup: string;
     actions: ConfiguredEventExecutionAction[];
   }
 
@@ -1034,6 +1042,20 @@ namespace XiannongCore.Quests {
       };
     }
 
+    function configuredEventGenericUnlockActionPlan(event: ConfiguredTriggerRow): ConfiguredEventGenericUnlockActionPlan {
+      const plan = configuredEventExecutionPlan(event);
+      const applies = plan.actionKind === "generic_unlock";
+      const actions: ConfiguredEventExecutionAction[] = applies
+        ? [{ kind: "trigger_event", eventId: plan.eventId }]
+        : [];
+      return {
+        applies,
+        eventId: plan.eventId,
+        executeGroup: plan.executeGroup,
+        actions,
+      };
+    }
+
     function rewardPoolEntries(poolId: string): RewardPoolRow[] {
       return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
     }
@@ -1128,6 +1150,7 @@ namespace XiannongCore.Quests {
       configuredEventSideQuestActionPlan,
       configuredEventMainQuestActionPlan,
       configuredEventCutsceneActionPlan,
+      configuredEventGenericUnlockActionPlan,
     };
   }
 }

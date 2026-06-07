@@ -17374,6 +17374,13 @@ function executeConfiguredEvent(event, source = "runtime") {
   }
 
   if (actionKind === "generic_unlock" || (!actionKind && (executeGroup.includes("unlock") || executeGroup.includes("spawn") || executeGroup.includes("open")))) {
+    const actionPlan = runtime?.configuredEventGenericUnlockActionPlan(event) || {
+      applies: true,
+      eventId: event.event_id || "",
+      executeGroup,
+      actions: [{ kind: "trigger_event", eventId: event.event_id || "" }],
+    };
+    applyConfiguredEventActionPlan(actionPlan);
     addLog("配置解锁", `${eventName}：${executeGroup}`);
     return true;
   }

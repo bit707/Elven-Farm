@@ -2159,6 +2159,19 @@ var XiannongCore;
                     actions,
                 };
             }
+            function configuredEventGenericUnlockActionPlan(event) {
+                const plan = configuredEventExecutionPlan(event);
+                const applies = plan.actionKind === "generic_unlock";
+                const actions = applies
+                    ? [{ kind: "trigger_event", eventId: plan.eventId }]
+                    : [];
+                return {
+                    applies,
+                    eventId: plan.eventId,
+                    executeGroup: plan.executeGroup,
+                    actions,
+                };
+            }
             function rewardPoolEntries(poolId) {
                 return data.rewardPools.filter((entry) => entry.reward_pool_id === poolId);
             }
@@ -2252,6 +2265,7 @@ var XiannongCore;
                 configuredEventSideQuestActionPlan,
                 configuredEventMainQuestActionPlan,
                 configuredEventCutsceneActionPlan,
+                configuredEventGenericUnlockActionPlan,
             };
         }
         Quests.createQuestRuntime = createQuestRuntime;
