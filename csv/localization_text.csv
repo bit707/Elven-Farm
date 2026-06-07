@@ -143,6 +143,8 @@ quest_main_0301_desc,quest_desc,建成百怪大院，让越来越多的精怪真
 quest_main_0302_desc,quest_desc,完成门派采办首单，追入炽砂遗迹，击败赤魇蝎后并带回能归阵的炽炎火精。,第三章说明
 quest_main_0401_desc,quest_desc,九曜大旱来临，先保住凡仙镇，再想办法救回天时。,第四章说明
 quest_main_0402_desc,quest_desc,收集重建节气大阵所需的关键枢石、火精与神珠。,第四章说明
+item_name_special_lingmai_shuishi_1,name,灵脉枢石·旧桥,第一章断桥修复后取得的第一枚枢石
+desc_special_lingmai_shuishi_1,desc,旧桥接回后从桥基水纹里浮出的枢石，证明洞天第一条断掉的灵脉已经重新认路。,第一章枢石描述
 quest_main_0403_desc,quest_desc,击败噬灵螟母，建成节气大阵，培育万年蟠桃，迎来最终盛宴。,第四章说明
 dialogue_system_default_001,dialogue,愿你今日的每一分劳作，都能换来明日的收成。,系统默认语
 dialogue_main_0001_001,dialogue,又白跑一趟。说是收灵谷，结果连摊位都轮不上我。,序章夜路

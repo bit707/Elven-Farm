@@ -37936,7 +37936,7 @@ function buildStructure(buildingId) {
       if (index < 6) plot.watered = true;
     });
   }
-  if (buildingId === "build_broken_bridge_repair") state.canalRepaired = true;
+  if (buildingId === "build_broken_bridge_repair") completeCanalRepairFromBridge("build");
   if (buildingId === "build_fishpond_lv1") {
     syncPondState();
     state.pondState.unlocked = true;
@@ -61041,26 +61041,50 @@ function recordCanalRestoration(expandedPlots = []) {
   return entry;
 }
 
-function repairCanal() {
-  if (state.canalRepaired) return addLog("灵渠已修复", "第一段灵渠已经重新流动。");
-  if (state.gold < 120) return addLog("灵石不足", "修复第一段灵渠需要 120 灵石。");
+function grantMainQuestReward(questId = "") {
+  const quest = data.quests.find((entry) => entry.quest_id === questId);
+  if (!quest || state.claimedQuestRewards.has(questId)) return [];
+  const rewards = rewardPoolEntries(quest.complete_reward_group)
+    .filter((entry) => conditionMet(entry.condition_group || "always_true"))
+    .map((entry) => applyRewardEntry(entry));
+  state.claimedQuestRewards.add(questId);
+  state.missionDone.add(questId);
+  state.completed.add(questId);
+  return rewards;
+}
 
-  state.gold -= 120;
+function completeCanalRepairFromBridge(source = "button") {
   state.fame += 3;
   state.canalRepaired = true;
   state.builtBuildings.add("build_broken_bridge_repair");
   const expandedPlots = expandCanalFields();
   const restoration = recordCanalRestoration(expandedPlots);
+  const rewards = grantMainQuestReward("quest_main_0103_duanqiao_jiumu");
   triggerCanalRestorationFeedback(restoration, expandedPlots);
   complete("repair");
-  recordDailyIntentProgress("build", `修复灵渠，新增 ${expandedPlots.length} 格灵田`, {
+  complete("chapter_1_bridge_repaired");
+  recordDailyIntentProgress("build", `修复断桥与灵渠，新增 ${expandedPlots.length} 格灵田`, {
     amount: 6,
-    rewardText: `${restoration.unlockedSeedName} 解锁 · 声望 +3`,
+    rewardText: `${restoration.unlockedSeedName} 解锁 · ${rewards.join("、") || "第一枚灵脉枢石入手"} · 声望 +3`,
     target: "build_broken_bridge_repair",
   });
   pulseAtPlot(expandedPlots[0] || selectedPlot(), "repair");
   playCue("灵渠复流");
-  addLog("灵渠复流", `${restoration.detail} 新水路映出凡仙镇的灯，洞天边界往外推开了一截。明天第一步：把 ${restoration.unlockedSeedName} 播进新水田。${restoration.secondSpiritClue ? ` 夜水里还浮起了${restoration.secondSpiritClue}的线索。` : ""}`);
+  addLog(
+    source === "build" ? "断桥修复" : "灵渠复流",
+    `${restoration.detail} 断桥重新接上后，后山矿路与水线一起亮起。${rewards.length ? ` 主线奖励：${rewards.join("、")}。` : ""}明天第一步：把 ${restoration.unlockedSeedName} 播进新水田。${restoration.secondSpiritClue ? ` 夜水里还浮起了${restoration.secondSpiritClue}的线索。` : ""}`,
+  );
+  return restoration;
+}
+
+function repairCanal() {
+  if (state.canalRepaired) return addLog("灵渠已修复", "第一段灵渠已经重新流动。");
+  const bridge = data.buildingsById.get("build_broken_bridge_repair");
+  if (!bridge) return addLog("断桥配置缺失", "建筑配置表中没有找到断桥修复项。");
+  if (!canBuild(bridge)) return addLog("材料不足", `${buildingName(bridge)} 需要 ${costText(bridge)}。`);
+
+  spendBuildCost(bridge);
+  completeCanalRepairFromBridge("button");
   render();
 }
 

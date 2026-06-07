@@ -3864,6 +3864,10 @@ const mainQuest0101Rewards = rewardPools.filter((entry) => entry.reward_pool_id 
 const mainQuest0102 = quests.find((entry) => entry.quest_id === "quest_main_0102_tonghuo_chuming");
 const mainQuestSteps0102 = questSteps.filter((entry) => entry.quest_id === "quest_main_0102_tonghuo_chuming");
 const copperHoeRecipe = recipes.find((entry) => entry.recipe_id === "recipe_tool_copper_set");
+const mainQuest0103 = quests.find((entry) => entry.quest_id === "quest_main_0103_duanqiao_jiumu");
+const mainQuestSteps0103 = questSteps.filter((entry) => entry.quest_id === "quest_main_0103_duanqiao_jiumu");
+const mainQuest0103Rewards = rewardPools.filter((entry) => entry.reward_pool_id === mainQuest0103?.complete_reward_group);
+const bridgeRepairBuilding = buildings.find((entry) => entry.building_id === "build_broken_bridge_repair");
 const sideQuest0101Rewards = rewardPools.filter((entry) => entry.reward_pool_id === sideQuest0101?.complete_reward_group);
 const reliefSideQuest = sideQuests.find((entry) => entry.quest_id === "quest_side_0401_relief_supply");
 const reliefSideRewards = rewardPools.filter((entry) => entry.reward_pool_id === reliefSideQuest?.complete_reward_group);
@@ -4444,6 +4448,18 @@ if (copperHoeRecipe.unlock_type !== "chapter" || copperHoeRecipe.unlock_param !=
 if (!game.includes("function storyRecipeForTarget") || !game.includes('item_tool_copper_hoe: "recipe_tool_copper_set"')) {
   throw new Error("Story compass must route the copper hoe objective to its crafting recipe");
 }
+if (!mainQuest0103 || !mainQuestSteps0103.some((step) => step.objective_type === "collect" && step.target_id === "item_ore_iron_raw") || !mainQuestSteps0103.some((step) => step.objective_type === "build" && step.target_id === "build_broken_bridge_repair")) {
+  throw new Error("Main quest 0103 must collect early raw iron and build the broken bridge repair");
+}
+if (!bridgeRepairBuilding || Number(bridgeRepairBuilding.cost_wood || 0) < 50 || Number(bridgeRepairBuilding.cost_metal || 0) < 10 || bridgeRepairBuilding.unlock_param !== "quest_main_0103_duanqiao_jiumu") {
+  throw new Error("Broken bridge repair must remain a chapter-one quest building with wood and metal costs");
+}
+if (!mainQuest0103Rewards.some((entry) => entry.reward_type === "item" && entry.reward_param === "item_special_lingmai_shuishi_1")) {
+  throw new Error("Main quest 0103 must reward the first Lingmai pivot stone");
+}
+if (!game.includes("completeCanalRepairFromBridge") || !game.includes('grantMainQuestReward("quest_main_0103_duanqiao_jiumu")')) {
+  throw new Error("Broken bridge repair must grant quest reward and reuse the canal restoration runtime");
+}
 if (!sideQuest0101 || sideQuestSteps0101.length < 2 || !sideQuestTrigger0101) {
   throw new Error("Side quest 0101 must include base, steps, and trigger rows");
 }
@@ -4469,8 +4485,14 @@ if (!jingzheSideTrigger || jingzheSideTrigger.trigger_type !== "on_term_change" 
   throw new Error("Configured side quest runtime must include Jingzhe term condition trigger");
 }
 if (!qingyunMine || qingyunMine.boss_id !== "boss_liejia_muwei") throw new Error("Missing first dungeon: area_mine_qingyun");
+if (qingyunMine.unlock_condition_group !== "quest_main_0102_step_1_done") {
+  throw new Error("Qingyun mine must unlock after the copper-hoe/pest step, not after bridge completion");
+}
 if (mineEnemies.length < 3) throw new Error("Insufficient mine enemy entries");
 if (mineLoot.length < 3) throw new Error("Insufficient mine loot pool entries");
+if (!mineLoot.some((loot) => loot.item_id === "item_ore_iron_raw" && loot.condition_group === "always_true")) {
+  throw new Error("Mine loot must provide raw iron before the bridge is complete");
+}
 for (const loot of mineLoot) {
   if (!itemIds.has(loot.item_id)) throw new Error(`Mine loot references missing item: ${loot.item_id}`);
 }

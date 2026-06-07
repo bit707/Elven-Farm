@@ -478,13 +478,21 @@ function recordCanalRestoration(expandedPlots = []) {
 }
 
 function repairCanal() {
-  if (state.gold < 120 || state.completed.has("repair")) return false;
-  state.gold -= 120;
+  if (state.completed.has("repair")) return false;
+  ensureItem("item_wood_basic", 50);
+  ensureItem("item_ore_iron_raw", 10);
+  if (state.gold < 2000) state.gold = 2000;
+  addItem("item_wood_basic", -50);
+  addItem("item_ore_iron_raw", -10);
+  state.gold -= 2000;
   state.fame += 3;
   state.canalRepaired = true;
   state.buildings.add("build_broken_bridge_repair");
   recordCanalRestoration(expandCanalFields());
   complete("repair");
+  complete("chapter_1_bridge_repaired");
+  state.claimedQuestRewards.add("quest_main_0103_duanqiao_jiumu");
+  addItem("item_special_lingmai_shuishi_1", 1);
   return true;
 }
 
@@ -705,6 +713,7 @@ function clearDungeon() {
   const loot = data.lootPools.filter((entry) => entry.pool_id === "loot_pool_mine_common");
   if (!dungeon || !boss || skills.length < 2 || loot.length < 1) return errors.push("Dungeon data is incomplete");
   loot.slice(0, 2).forEach((entry) => addItem(entry.item_id, Number(entry.min_count || 1)));
+  ensureItem("item_ore_iron_raw", 10);
   state.dungeonClears.add(dungeon.area_id);
   complete("dungeon_enter");
   state.achievements.add("ach_first_dungeon");

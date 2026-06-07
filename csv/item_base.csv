@@ -89,6 +89,7 @@ item_metal_xuantie,item_name_metal_xuantie,material,3,999,50,100,false,0,icon_me
 item_cloth_liuyunsi,item_name_cloth_liuyunsi,material,2,999,35,70,false,0,icon_cloth_liuyunsi,desc_cloth_liuyunsi,"cloth|fiber"
 item_gold_generic,item_name_gold_generic,currency,0,999999,1,1,false,0,icon_gold_generic,desc_gold_generic,"currency|gold"
 item_water_supply_relief,item_name_water_supply_relief,special,3,99,0,0,false,0,icon_water_supply_relief,desc_water_supply_relief,"quest|relief|water|drought"
+item_special_lingmai_shuishi_1,item_name_special_lingmai_shuishi_1,special,4,1,0,0,false,0,icon_special_lingmai_shuishi_1,desc_special_lingmai_shuishi_1,"special|array|quest|chapter1|pivot_stone"
 item_spirit_core_4,item_name_spirit_core_4,special,5,4,0,0,false,0,icon_spirit_core_4,desc_spirit_core_4,"special|array|quest|solar_core"
 item_special_huojing,item_name_special_huojing,special,5,10,0,0,false,0,icon_special_huojing,desc_special_huojing,"special|fire|quest"
 item_special_dinghai_shenzhu,item_name_special_dinghai_shenzhu,special,5,10,0,0,false,0,icon_special_dinghai,desc_special_dinghai,"special|water|quest"
