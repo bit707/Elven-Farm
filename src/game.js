@@ -41072,44 +41072,52 @@ function useDungeonMechanicAction() {
   const support = dungeonMechanicSupportLevel(mechanic);
   const solutionSpec = dungeonSpiritSolutionSpec(run, mechanic, dungeon);
   const solutionText = dungeonSpiritSolutionLogText(solutionSpec, "attune");
+  const actionPlan = dungeonRuntime()?.dungeonMechanicActionPlan({
+    mechanicId: mechanic.dungeon_id,
+    mechanicState,
+    support,
+    currentHp: run.hp,
+  });
+  const nextActionState = actionPlan?.nextState || null;
+  const actionValue = (key, fallback) => nextActionState?.[key] ?? fallback;
   let detail = spec.detail;
   switch (mechanic.dungeon_id) {
     case "dsm_001":
-      mechanicState.resonanceTurn = true;
-      mechanicState.pillarsLit = Math.min(3, mechanicState.pillarsLit + (support >= 2 ? 2 : 1));
+      mechanicState.resonanceTurn = Boolean(actionValue("resonanceTurn", true));
+      mechanicState.pillarsLit = Number(actionValue("pillarsLit", Math.min(3, mechanicState.pillarsLit + (support >= 2 ? 2 : 1))));
       detail = `你踩着雷前那一瞬把雷木柱又点亮了一段，当前 ${mechanicState.pillarsLit}/3。`;
       break;
     case "dsm_002":
-      mechanicState.waterLevel = 1;
-      mechanicState.sluicesAligned = Math.min(3, mechanicState.sluicesAligned + 1 + (support >= 2 ? 1 : 0));
+      mechanicState.waterLevel = Number(actionValue("waterLevel", 1));
+      mechanicState.sluicesAligned = Number(actionValue("sluicesAligned", Math.min(3, mechanicState.sluicesAligned + 1 + (support >= 2 ? 1 : 0))));
       detail = `你先把闸口调回平水，又接上了 ${mechanicState.sluicesAligned}/3 段回渠。`;
       break;
     case "dsm_003":
-      mechanicState.cadence = 1;
-      mechanicState.listened = Math.min(3, mechanicState.listened + 1 + (support >= 2 ? 1 : 0));
+      mechanicState.cadence = Number(actionValue("cadence", 1));
+      mechanicState.listened = Number(actionValue("listened", Math.min(3, mechanicState.listened + 1 + (support >= 2 ? 1 : 0))));
       detail = `你停下听准虫鸣正拍，已认清 ${mechanicState.listened}/3 段林道节奏。`;
       break;
     case "dsm_004":
-      mechanicState.overflow = Math.max(0, mechanicState.overflow - (support >= 2 ? 3 : 2));
-      run.hp = Math.min(100, run.hp + 4 + support);
+      mechanicState.overflow = Number(actionValue("overflow", Math.max(0, mechanicState.overflow - (support >= 2 ? 3 : 2))));
+      run.hp = actionPlan?.hpAfter === null || actionPlan?.hpAfter === undefined ? Math.min(100, run.hp + 4 + support) : Number(actionPlan.hpAfter);
       detail = `你把最躁的满溢先压了下去，当前只剩 ${mechanicState.overflow}/5，自己也缓回一些气。`;
       break;
     case "dsm_005":
-      mechanicState.verifiedPaths = Math.min(3, mechanicState.verifiedPaths + 1 + (support >= 2 ? 1 : 0));
+      mechanicState.verifiedPaths = Number(actionValue("verifiedPaths", Math.min(3, mechanicState.verifiedPaths + 1 + (support >= 2 ? 1 : 0))));
       detail = `你顺着倒影先验出一段真路，已确认 ${mechanicState.verifiedPaths}/3 段。`;
       break;
     case "dsm_006":
-      mechanicState.coldStacks = Math.max(0, mechanicState.coldStacks - (support >= 2 ? 3 : 2));
-      run.hp = Math.min(100, run.hp + 3);
+      mechanicState.coldStacks = Number(actionValue("coldStacks", Math.max(0, mechanicState.coldStacks - (support >= 2 ? 3 : 2))));
+      run.hp = actionPlan?.hpAfter === null || actionPlan?.hpAfter === undefined ? Math.min(100, run.hp + 3) : Number(actionPlan.hpAfter);
       detail = `你把暖火先烧起来，霜寒压回 ${mechanicState.coldStacks}/4 层，呼吸也顺了点。`;
       break;
     case "dsm_007":
-      mechanicState.routeMarks = Math.min(3, mechanicState.routeMarks + 1 + (support >= 2 ? 1 : 0));
-      mechanicState.windShift = 0;
+      mechanicState.routeMarks = Number(actionValue("routeMarks", Math.min(3, mechanicState.routeMarks + 1 + (support >= 2 ? 1 : 0))));
+      mechanicState.windShift = Number(actionValue("windShift", 0));
       detail = `你先压住叶脉把旧路记牢了，当前已留住 ${mechanicState.routeMarks}/3 段路标。`;
       break;
     case "dsm_008":
-      mechanicState.lanternChain = Math.min(7, mechanicState.lanternChain + 2 + (support >= 2 ? 1 : 0));
+      mechanicState.lanternChain = Number(actionValue("lanternChain", Math.min(7, mechanicState.lanternChain + 2 + (support >= 2 ? 1 : 0))));
       detail = `你把断开的灯火链又续亮了几盏，当前已接到 ${mechanicState.lanternChain}/7。`;
       break;
     default:

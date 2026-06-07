@@ -90,6 +90,15 @@ namespace XiannongCore.Combat {
     changed: Array<keyof DungeonMechanicState>;
   }
 
+  export interface DungeonMechanicActionPlanInput extends DungeonMechanicEffectsInput {
+    currentHp?: number | string | null;
+  }
+
+  export interface DungeonMechanicActionPlan extends DungeonMechanicAdvancePlan {
+    hpAfter: number | null;
+    hpDelta: number;
+  }
+
   export interface DungeonExplorePlanInput {
     enemy?: CombatRow | null;
     hazardPressure?: number | string | null;
@@ -147,6 +156,7 @@ namespace XiannongCore.Combat {
     bossHpPercent(input?: BossHpPercentInput | null): number;
     dungeonMechanicEffects(input?: DungeonMechanicEffectsInput | null): Required<DungeonMechanicEffects>;
     dungeonMechanicAdvancePlan(input?: DungeonMechanicAdvancePlanInput | null): DungeonMechanicAdvancePlan;
+    dungeonMechanicActionPlan(input?: DungeonMechanicActionPlanInput | null): DungeonMechanicActionPlan;
     dungeonExplorePlan(input?: DungeonExplorePlanInput | null): DungeonExplorePlan;
     dungeonBossExchangePlan(input?: DungeonBossExchangePlanInput | null): DungeonBossExchangePlan;
   }
@@ -398,6 +408,57 @@ namespace XiannongCore.Combat {
       };
     }
 
+    function dungeonMechanicActionPlan(input: DungeonMechanicActionPlanInput | null = null): DungeonMechanicActionPlan {
+      const mechanicId = input?.mechanicId || "";
+      const support = Number(input?.support || 0);
+      const nextState: DungeonMechanicState = {
+        ...(input?.mechanicState || {}),
+      };
+      let hpDelta = 0;
+      switch (mechanicId) {
+        case "dsm_001":
+          nextState.resonanceTurn = true;
+          nextState.pillarsLit = Math.min(3, mechanicValue(nextState, "pillarsLit") + (support >= 2 ? 2 : 1));
+          break;
+        case "dsm_002":
+          nextState.waterLevel = 1;
+          nextState.sluicesAligned = Math.min(3, mechanicValue(nextState, "sluicesAligned") + 1 + (support >= 2 ? 1 : 0));
+          break;
+        case "dsm_003":
+          nextState.cadence = 1;
+          nextState.listened = Math.min(3, mechanicValue(nextState, "listened") + 1 + (support >= 2 ? 1 : 0));
+          break;
+        case "dsm_004":
+          nextState.overflow = Math.max(0, mechanicValue(nextState, "overflow") - (support >= 2 ? 3 : 2));
+          hpDelta = 4 + support;
+          break;
+        case "dsm_005":
+          nextState.verifiedPaths = Math.min(3, mechanicValue(nextState, "verifiedPaths") + 1 + (support >= 2 ? 1 : 0));
+          break;
+        case "dsm_006":
+          nextState.coldStacks = Math.max(0, mechanicValue(nextState, "coldStacks") - (support >= 2 ? 3 : 2));
+          hpDelta = 3;
+          break;
+        case "dsm_007":
+          nextState.routeMarks = Math.min(3, mechanicValue(nextState, "routeMarks") + 1 + (support >= 2 ? 1 : 0));
+          nextState.windShift = 0;
+          break;
+        case "dsm_008":
+          nextState.lanternChain = Math.min(7, mechanicValue(nextState, "lanternChain", 1) + 2 + (support >= 2 ? 1 : 0));
+          break;
+        default:
+          break;
+      }
+      const currentHp = input?.currentHp === undefined || input?.currentHp === null ? null : Number(input.currentHp);
+      const hpAfter = currentHp === null || !Number.isFinite(currentHp) ? null : Math.min(100, currentHp + hpDelta);
+      return {
+        nextState,
+        changed: changedKeys(input?.mechanicState || {}, nextState),
+        hpAfter,
+        hpDelta,
+      };
+    }
+
     function dungeonExplorePlan(input: DungeonExplorePlanInput | null = null): DungeonExplorePlan {
       const effects = input?.mechanicEffects || null;
       const enemyPower = Math.max(8,
@@ -472,6 +533,7 @@ namespace XiannongCore.Combat {
       bossHpPercent,
       dungeonMechanicEffects,
       dungeonMechanicAdvancePlan,
+      dungeonMechanicActionPlan,
       dungeonExplorePlan,
       dungeonBossExchangePlan,
     };
