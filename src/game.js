@@ -141,6 +141,10 @@ import {
   shopThoughtBubbleChainSpecWorld,
   shopThoughtBubbleChainStatusWorld,
   shopThoughtBubbleEntriesWorld,
+  shopThoughtShelfBridgeMarkupWorld,
+  shopThoughtShelfBridgeProductionRowsWorld,
+  shopThoughtShelfBridgeReportEntryWorld,
+  shopThoughtShelfBridgeSpecWorld,
 } from "./game/world/shop-analysis-world.js";
 import {
   shopThoughtRouteCaughtWorldAtCanvasPointWorld,
@@ -32441,110 +32445,44 @@ function shopThoughtBubbleChainSpec(opening = normalizeShopOpeningState(state.sh
 }
 
 function shopThoughtShelfBridgeReportEntry(entry = {}, index = 0, context = {}) {
-  const status = shopThoughtBubbleChainStatus(entry);
-  const ecologyGarden = context.ecologyGarden || ecologyCourtyardSummary();
-  const display = context.display || null;
-  const shelf = context.shelf || null;
-  const theme = context.theme || currentShelfTheme();
-  const goods = Array.isArray(context.goods) ? context.goods : sellableInventoryGoods();
-  const themeTags = splitTags(theme?.required_item_tags || "");
-  const shelfTags = Array.isArray(shelf?.desiredTags) ? shelf.desiredTags : [];
-  const entryItemId = entry.itemId || entry.item_id || entry.outputItemId || entry.targetItemId || "";
-  const focusTags = [...new Set([...(shelfTags || []), display?.hotTag, ...(themeTags || [])].filter(Boolean))];
-  const matchedGood = goods.find(({ itemId }) => itemId && itemId === entryItemId)
-    || goods.find(({ item, itemId }) => {
-      const tags = shopTagsForItem(item || itemId, ecologyGarden);
-      return focusTags.some((tag) => shopTagsOverlap(tags, [tag]));
-    })
-    || goods[0]
-    || null;
-  const matchedGoodTags = matchedGood ? shopTagsForItem(matchedGood.item || matchedGood.itemId, ecologyGarden) : [];
-  const matchedTags = [...new Set([
-    ...focusTags.filter((tag) => matchedGoodTags.length === 0 || shopTagsOverlap(matchedGoodTags, [tag])),
-    ...matchedGoodTags.filter((tag) => focusTags.length === 0 || focusTags.includes(tag)).slice(0, 2),
-  ].filter(Boolean))].slice(0, 3);
-  const tone = status.tone === "good"
-    ? "good"
-    : status.tone === "warn"
-      ? "warn"
-      : "focus";
-  const reasonLabel = entry.reason === "buy"
-    ? "成交复盘"
-    : ["price", "stock", "tag"].includes(entry.reason)
-      ? "犹豫复盘"
-      : entry.reason === "need"
-        ? "进门想法"
-        : status.label || "看货";
-  return {
-    key: `${entry.name || "customer"}:${entry.reason || "need"}:${entry.text || entry.detail || index}`,
-    customerName: entry.name || display?.customerTargets?.[index]?.name || "路过客",
-    statusLabel: status.label,
-    reasonLabel,
-    tone,
-    text: entry.text || entry.detail || display?.headline || "先看这位顾客在门口想什么。",
-    detail: entry.detail || entry.nextAction || status.advice || display?.advice || "把想法、标签和货架连成下一步。",
-    advice: entry.nextAction || status.advice || display?.advice || "先准备一件对口货，再手动开铺验证。",
-    matchedTags,
-    tagText: matchedTags.map(shopTagLabel).join(" / ") || display?.hotTagLabel || shelf?.title || "待试卖",
-    themeName: display?.themeName || theme?.note || state.shopShelfTheme || "旧铺主题",
-    itemId: matchedGood?.itemId || entryItemId || "",
-    itemName: matchedGood?.itemName || (matchedGood?.itemId ? itemName(matchedGood.itemId) : entry.itemName || display?.featuredGoods?.[0]?.itemName || "对口货"),
-  };
+  return shopThoughtShelfBridgeReportEntryWorld({
+    entry,
+    index,
+    context: {
+      ecologyGarden: context.ecologyGarden || ecologyCourtyardSummary(),
+      display: context.display || null,
+      shelf: context.shelf || null,
+      theme: context.theme || currentShelfTheme(),
+      goods: Array.isArray(context.goods) ? context.goods : sellableInventoryGoods(),
+    },
+    shopShelfTheme: state.shopShelfTheme,
+    thoughtBubbleChainStatus: shopThoughtBubbleChainStatus,
+    splitTags,
+    shopTagsForItem,
+    shopTagsOverlap,
+    shopTagLabel,
+    itemName,
+  });
 }
 
 function shopThoughtShelfBridgeProductionRows(itemId = "", itemLabel = "", tag = "", display = null, shelf = null) {
-  const safeItemName = itemLabel || (itemId ? itemName(itemId) : "对口货");
-  const restock = itemId
-    ? {
-      day: state.day,
-      itemId,
-      itemName: safeItemName,
-      note: "门口想法对口牌备货路线",
-    }
-    : null;
-  const candidates = restock ? shopRestockRouteCandidates(restock) : [];
-  const recipeCandidate = candidates.find((route) => route.action === "recipe")
-    || (() => {
-      const recipe = itemId ? bestRecipeForOutput(itemId) : null;
-      return recipe
-        ? {
-          type: "recipe",
-          label: recipeCraftReady(recipe) ? "可立即制作" : "工坊补货",
-          title: recipeName(recipe),
-          detail: `${recipeMachineHint(recipe)} · ${recipeInputStatus(recipe, 4) || "先看原料缺口"}`,
-          action: "recipe",
-          recipeId: recipe.recipe_id,
-        }
-        : null;
-    })();
-  const seedCandidate = candidates.find((route) => route.action === "seed")
-    || (() => {
-      const crop = itemId ? cropForHarvestTarget(itemId) : null;
-      if (!crop?.seed_item_id) return null;
-      return {
-        type: "seed",
-        label: "种植补货",
-        title: itemName(crop.seed_item_id),
-        detail: `${Number(crop.grow_days || 1)} 夜后可收 ${itemName(crop.crop_id || itemId)}，适合把对口标签补厚。`,
-        action: "seed",
-        seedId: crop.seed_item_id,
-      };
-    })();
-  const shopCandidate = candidates.find((route) => route.action === "shop")
-    || {
-      type: "stock",
-      label: "旧铺货签",
-      title: safeItemName,
-      detail: `围绕${display?.hotTagLabel || shelf?.tagLabel || shopTagLabel(tag) || "对口标签"}检查当前陈列。`,
-      action: "shop",
-      shopTag: tag || display?.hotTag || shelf?.desiredTags?.[0] || "",
-      itemId,
-    };
-  return [
-    recipeCandidate ? { ...recipeCandidate, buttonText: "先看配方" } : null,
-    seedCandidate ? { ...seedCandidate, buttonText: "先看种子" } : null,
-    shopCandidate ? { ...shopCandidate, buttonText: "先看旧铺货签" } : null,
-  ].filter(Boolean);
+  return shopThoughtShelfBridgeProductionRowsWorld({
+    itemId,
+    itemLabel,
+    tag,
+    display,
+    shelf,
+    day: state.day,
+    shopRestockRouteCandidates,
+    bestRecipeForOutput,
+    recipeCraftReady,
+    recipeName,
+    recipeMachineHint,
+    recipeInputStatus,
+    cropForHarvestTarget,
+    itemName,
+    shopTagLabel,
+  });
 }
 
 function shopThoughtShelfBridgeSpec({
@@ -32557,159 +32495,27 @@ function shopThoughtShelfBridgeSpec({
   shelf = shopWeatherShelfRecommendationSpec(weatherReaction, goods, ecologyGarden),
   entries = shopThoughtBubbleEntries(),
 } = {}) {
-  const syntheticEntry = display?.active || shelf?.active
-    ? {
-      name: "门口想法",
-      reason: display?.tone === "warn" || shelf?.tone === "warn" ? "tag" : "need",
-      text: display?.headline || shelf?.headline || "先把今日客意接到货架上。",
-      detail: display?.advice || shelf?.actionText || "看顾客想法、对口标签和备货路线。",
-    }
-    : null;
-  const sourceEntries = (Array.isArray(entries) && entries.length ? entries : [syntheticEntry]).filter(Boolean).slice(0, 3);
-  const rows = sourceEntries
-    .map((entry, index) => shopThoughtShelfBridgeReportEntry(entry, index, { display, shelf, theme, goods, ecologyGarden }))
-    .filter((row) => row.text);
-  const goodsById = new Map();
-  for (const good of display?.featuredGoods || []) {
-    if (!good?.itemName) continue;
-    goodsById.set(good.itemId || good.itemName, {
-      source: "陈列主题",
-      itemId: good.itemId || "",
-      itemName: good.itemName,
-      count: Number(good.count || 0),
-      tagText: good.tagText || display.hotTagLabel || "",
-      customerText: good.customerText || display.customerTargets?.map((target) => target.name).join(" / ") || "路过客",
-    });
-  }
-  for (const good of shelf?.topGoods || []) {
-    if (!good?.itemName) continue;
-    goodsById.set(good.itemId || good.itemName, {
-      source: "天气货签",
-      itemId: good.itemId || "",
-      itemName: good.itemName,
-      count: Number(good.count || 0),
-      tagText: good.tagText || shelf.title || "",
-      customerText: shelf.weatherName || "天气客意",
-    });
-  }
-  if (goodsById.size === 0) {
-    for (const good of goods.slice(0, 3)) {
-      const tags = shopTagsForItem(good.item || good.itemId, ecologyGarden).slice(0, 3);
-      goodsById.set(good.itemId, {
-        source: "可卖库存",
-        itemId: good.itemId,
-        itemName: good.itemName || itemName(good.itemId),
-        count: Number(good.count || 0),
-        tagText: tags.map(shopTagLabel).join(" / ") || "旧铺货",
-        customerText: "先试卖验证",
-      });
-    }
-  }
-  const goodsRows = [...goodsById.values()].slice(0, 4);
-  const tagCandidates = [...new Set([
-    ...rows.flatMap((row) => row.matchedTags || []),
-    display?.hotTag,
-    ...(shelf?.desiredTags || []),
-    ...splitTags(theme?.required_item_tags || ""),
-  ].filter(Boolean))];
-  const focusTag = tagCandidates[0] || "";
-  const leadGood = goodsRows[0] || null;
-  const leadRow = rows[0] || null;
-  const productionRows = shopThoughtShelfBridgeProductionRows(
-    leadGood?.itemId || leadRow?.itemId || "",
-    leadGood?.itemName || leadRow?.itemName || "",
-    focusTag,
+  return shopThoughtShelfBridgeSpecWorld({
+    day: state.day,
+    report: state.shopReport,
+    goods,
+    theme,
+    ecologyGarden,
     display,
     shelf,
-  );
-  const customerText = display?.customerTargets?.map((target) => target.name).filter(Boolean).join(" / ")
-    || rows.map((row) => row.customerName).filter(Boolean).slice(0, 2).join(" / ")
-    || "第一批路过客";
-  const summaryRows = [
-    { label: "今日先做什么", value: leadRow?.advice || display?.advice || shelf?.actionText || "先准备一件对口货。" },
-    { label: "对口标签", value: tagCandidates.slice(0, 3).map(shopTagLabel).join(" / ") || display?.hotTagLabel || "待试卖" },
-    { label: "陈列主题", value: display?.themeName || theme?.note || state.shopShelfTheme || "旧铺主题" },
-    { label: "更容易打动谁", value: customerText },
-    { label: "先摆哪件", value: leadGood ? `${leadGood.itemName} x${leadGood.count}` : leadRow?.itemName || "先补一件对口货" },
-  ];
-  const tone = rows.some((row) => row.tone === "warn") || display?.tone === "warn" || shelf?.tone === "warn"
-    ? "warn"
-    : goodsRows.length > 0
-      ? "good"
-      : "focus";
-  const active = rows.length > 0 || goodsRows.length > 0 || display?.active || shelf?.active || state.shopReport.length > 0;
-  if (!active) return null;
-  return {
-    active: true,
-    key: `${state.day}:${rows.map((row) => row.key).join("|")}:${leadGood?.itemId || ""}:${focusTag}`,
-    title: "门口想法对口牌",
-    headline: leadRow
-      ? `${leadRow.customerName}：${leadRow.text}`
-      : display?.headline || shelf?.headline || "先把门口想法、货架标签和备货路线对齐。",
-    tone,
-    rows,
-    goodsRows,
-    productionRows,
-    productionTitle: leadGood?.itemName || leadRow?.itemName || "对口货",
-    summaryRows,
-    safetyIntro: "只解释顾客想法、货架标签和备货路线",
-    safetyLimit: "不会自动换主题、开铺、调价、补货或消耗资源",
-  };
+    entries,
+    shopShelfTheme: state.shopShelfTheme,
+    shopThoughtShelfBridgeReportEntry,
+    shopThoughtShelfBridgeProductionRows,
+    splitTags,
+    shopTagsForItem,
+    shopTagLabel,
+    itemName,
+  });
 }
 
 function shopThoughtShelfBridgeMarkup(spec = shopThoughtShelfBridgeSpec()) {
-  if (!spec?.active) return "";
-  const summaryText = spec.summaryRows.map((row) => `
-    <b>${row.label}<small>${row.value}</small></b>
-  `).join("");
-  const rowsText = spec.rows.map((row) => `
-    <div class="shop-thought-shelf-row ${row.tone}">
-      <div class="shop-thought-shelf-row-head">
-        <b>${row.customerName} · ${row.statusLabel}</b>
-        <small>${row.reasonLabel}</small>
-      </div>
-      <span>${row.text}</span>
-      <small>${row.detail}</small>
-      <div class="shop-thought-shelf-chipline">
-        <em class="shop-thought-shelf-chip">对口标签 ${row.tagText}</em>
-        <em class="shop-thought-shelf-chip theme">陈列主题 ${row.themeName}</em>
-      </div>
-    </div>
-  `).join("");
-  const goodsText = spec.goodsRows.length
-    ? spec.goodsRows.map((good, index) => `
-      <div class="shop-thought-shelf-good ${index === 0 ? "feature" : ""}">
-        <b>${index === 0 ? "先摆哪件" : good.source} · ${good.itemName} x${good.count}</b>
-        <small>${good.tagText}</small>
-        <small>更容易打动谁：${good.customerText}</small>
-      </div>
-    `).join("")
-    : `<div class="shop-thought-shelf-good"><b>先摆哪件 · 待补对口货</b><small>先看配方、种子或旧铺货签，把第一件能解释顾客想法的货接上。</small></div>`;
-  const productionText = spec.productionRows.length
-    ? `
-      <div class="shop-thought-shelf-production">
-        <strong>备货路线 · ${spec.productionTitle}</strong>
-        ${spec.productionRows.map((route) => `
-          <div class="shop-thought-shelf-production-row ${route.type || route.action}">
-            <b>${route.label} · ${route.title}</b>
-            <span>${route.detail}</span>
-            <button type="button" data-shop-thought-shelf-route="${route.action}" data-shop-thought-shelf-recipe="${route.recipeId || ""}" data-shop-thought-shelf-seed="${route.seedId || ""}" data-shop-thought-shelf-tag="${route.shopTag || ""}" data-shop-thought-shelf-item="${route.itemId || ""}">${route.buttonText}</button>
-          </div>
-        `).join("")}
-      </div>
-    `
-    : `<small>今日暂无可定位备货路线，先看旧铺货签和现有库存。</small>`;
-  return `
-    <div class="shop-thought-shelf-bridge ${spec.tone}" data-shop-board="thought-shelf-bridge">
-      <strong>${spec.title}</strong>
-      <span>${spec.headline}</span>
-      <div class="shop-thought-shelf-summary">${summaryText}</div>
-      <div class="shop-thought-shelf-rows">${rowsText}</div>
-      <div class="shop-thought-shelf-goods">${goodsText}</div>
-      ${productionText}
-      <small>${spec.safetyIntro}；${spec.safetyLimit}。</small>
-    </div>
-  `;
+  return shopThoughtShelfBridgeMarkupWorld(spec);
 }
 
 function shopThoughtBubbleChainAtCanvasPoint(px, py) {
