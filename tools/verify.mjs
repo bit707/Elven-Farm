@@ -6,6 +6,42 @@ const requiredFiles = [
   "ARCHITECTURE_MIGRATION.md",
   "tsconfig.json",
   "src/game.js",
+  "src/game/assets.js",
+  "src/game/config.js",
+  "src/game/data-files.js",
+  "src/game/shared/canvas.js",
+  "src/game/shared/focus.js",
+  "src/game/shared/selectors.js",
+  "src/game/ui/asset-panel.js",
+  "src/game/ui/basic-panels.js",
+  "src/game/ui/build-panel.js",
+  "src/game/ui/crop-guidance.js",
+  "src/game/ui/day-summary-panel.js",
+  "src/game/ui/dungeon-panel.js",
+  "src/game/ui/final-support-panel.js",
+  "src/game/ui/goal-book-panel.js",
+  "src/game/ui/inventory-panel.js",
+  "src/game/ui/mission-panel.js",
+  "src/game/ui/narrative-panels.js",
+  "src/game/ui/order-risk-panels.js",
+  "src/game/ui/platform-panels.js",
+  "src/game/ui/plot-memory.js",
+  "src/game/ui/qa-panels.js",
+  "src/game/ui/relationship-panel.js",
+  "src/game/ui/selected-plot-panel.js",
+  "src/game/ui/shell-panels.js",
+  "src/game/ui/shop-panel.js",
+  "src/game/ui/shop-season-panel.js",
+  "src/game/ui/solar-trial-panel.js",
+  "src/game/ui/spirit-panel.js",
+  "src/game/ui/term-panel.js",
+  "src/game/ui/trade-route-panel.js",
+  "src/game/world/crop-growth-visual.js",
+  "src/game/world/crop-growth-memo.js",
+  "src/game/world/field-action-feedback.js",
+  "src/game/world/failure-codex.js",
+  "src/game/world/ready-order-world.js",
+  "src/game/world/solar-term-mood-plaque.js",
   "src/styles.css",
   "src/core/combat/dungeon-runtime.ts",
   "src/core/data/runtime-data.ts",
@@ -612,6 +648,39 @@ const requiredGameTerms = [
   "来帖续货清晨提醒",
   "昨天的口碑今天别断档",
   "清晨行动牌：来帖续货",
+  "shopThoughtRouteMorningFollowupSpec",
+  "shopThoughtRouteMorningFollowup",
+  "shop_thought_route",
+  "旧铺想法续路线",
+  "清晨行动牌：旧铺想法续路线",
+  "昨天门口的想法，今天先顺着一条线接住",
+  "只延续旧铺顾客想法、标签判断和备货路线，不会自动制作、播种、补货、开铺、调价或消耗资源",
+  "shopThoughtRouteMorningFollowupWorldSpec",
+  "shopThoughtRouteMorningFollowupWorldAtCanvasPoint",
+  "drawShopThoughtRouteMorningFollowupWorld",
+  "shopThoughtRouteMorningFollowupWorldFocus",
+  "shop_thought_route_morning_followup",
+  "旧铺想法续路线签 · 可点",
+  "今晨续线",
+  "先看入口",
+  "点选旧铺想法续路线签",
+  "shopThoughtRouteReadyMorningWorldSpec",
+  "shopThoughtRouteReadyMorningWorldAtCanvasPoint",
+  "drawShopThoughtRouteReadyMorningWorld",
+  "shopThoughtRouteReadyMorningWorldFocus",
+  "shop_thought_route_ready_morning",
+  "旧铺想法备妥签 · 可点",
+  "已备在手",
+  "手动验证",
+  "点选旧铺想法备妥签",
+  "shopThoughtRouteCaughtWorldSpec",
+  "shopThoughtRouteCaughtWorldAtCanvasPoint",
+  "drawShopThoughtRouteCaughtWorld",
+  "shopThoughtRouteCaughtWorldFocus",
+  "shop_thought_route_caught",
+  "旧铺想法接住签 · 可点",
+  "今日接住",
+  "点选旧铺想法接住签",
   "shopWordOfMouthMorningFollowupWorldSpec",
   "shopWordOfMouthMorningFollowupWorldAtCanvasPoint",
   "drawShopWordOfMouthMorningFollowupWorld",
@@ -665,6 +734,37 @@ const requiredGameTerms = [
   "诊断挂签 · 可点",
   "点选旧铺诊断挂签",
   "不会自动改价、补货或开铺",
+  "shopCustomerReasonCompassWorldSpec",
+  "shopCustomerReasonCompassWorldAtCanvasPoint",
+  "drawShopCustomerReasonCompassWorld",
+  "shopCustomerReasonCompassWorldFocus",
+  "type: \"customer_reason_compass\"",
+  "顾客三因罗盘 · 可点",
+  "为什么买",
+  "为什么犹豫/离店",
+  "明日怎么改",
+  "只定位旧铺三因复盘、顾客旅线和诊断牌，不会自动开铺、调价、补货、成交、交单或消耗资源",
+  "rareSpiritMemoryCompassPersona",
+  "rareSpiritMemoryCompassRows",
+  "rareSpiritMemoryCompassSpec",
+  "rareSpiritMemoryCompassMarkup",
+  "rareSpiritMemoryCompassWorldSpec",
+  "rareSpiritMemoryCompassWorldAtCanvasPoint",
+  "focusRareSpiritMemoryCompassWorldFromCanvas",
+  "drawRareSpiritMemoryCompassWorld",
+  "rareSpiritMemoryCompassWorldFocus",
+  "type: \"rare_spirit_memory_compass\"",
+  "稀有精怪伙伴记忆罗盘",
+  "伙伴肖像簿 · 可点",
+  "点选稀有伙伴肖像簿",
+  "六线人格",
+  "角色总览",
+  "今日神态",
+  "专属动作",
+  "回礼留痕",
+  "记忆钩子",
+  "只定位生活图鉴、事件卡或小剧场入口，不会自动触发事件、领取回礼、增加羁绊、招募、派工或消耗资源",
+  "只定位生活图鉴、事件卡、精怪面板或小剧场入口，不会自动触发事件、领取回礼、增加羁绊、招募、派工或消耗资源",
   "失败见闻册",
   "失败见闻/补救小票",
   "点选失败见闻",
@@ -2752,7 +2852,45 @@ for (const file of requiredFiles) {
   readFileSync(file, "utf8");
 }
 
-const game = readFileSync("src/game.js", "utf8");
+const game = [
+  readFileSync("src/game.js", "utf8"),
+  readFileSync("src/game/assets.js", "utf8"),
+  readFileSync("src/game/config.js", "utf8"),
+  readFileSync("src/game/data-files.js", "utf8"),
+  readFileSync("src/game/shared/canvas.js", "utf8"),
+  readFileSync("src/game/shared/focus.js", "utf8"),
+  readFileSync("src/game/shared/selectors.js", "utf8"),
+  readFileSync("src/game/ui/asset-panel.js", "utf8"),
+  readFileSync("src/game/ui/basic-panels.js", "utf8"),
+  readFileSync("src/game/ui/build-panel.js", "utf8"),
+  readFileSync("src/game/ui/crop-guidance.js", "utf8"),
+  readFileSync("src/game/ui/day-summary-panel.js", "utf8"),
+  readFileSync("src/game/ui/dungeon-panel.js", "utf8"),
+  readFileSync("src/game/ui/final-support-panel.js", "utf8"),
+  readFileSync("src/game/ui/goal-book-panel.js", "utf8"),
+  readFileSync("src/game/ui/inventory-panel.js", "utf8"),
+  readFileSync("src/game/ui/mission-panel.js", "utf8"),
+  readFileSync("src/game/ui/narrative-panels.js", "utf8"),
+  readFileSync("src/game/ui/order-risk-panels.js", "utf8"),
+  readFileSync("src/game/ui/platform-panels.js", "utf8"),
+  readFileSync("src/game/ui/plot-memory.js", "utf8"),
+  readFileSync("src/game/ui/qa-panels.js", "utf8"),
+  readFileSync("src/game/ui/relationship-panel.js", "utf8"),
+  readFileSync("src/game/ui/selected-plot-panel.js", "utf8"),
+  readFileSync("src/game/ui/shell-panels.js", "utf8"),
+  readFileSync("src/game/ui/shop-panel.js", "utf8"),
+  readFileSync("src/game/ui/shop-season-panel.js", "utf8"),
+  readFileSync("src/game/ui/solar-trial-panel.js", "utf8"),
+  readFileSync("src/game/ui/spirit-panel.js", "utf8"),
+  readFileSync("src/game/ui/term-panel.js", "utf8"),
+  readFileSync("src/game/ui/trade-route-panel.js", "utf8"),
+  readFileSync("src/game/world/crop-growth-visual.js", "utf8"),
+  readFileSync("src/game/world/crop-growth-memo.js", "utf8"),
+  readFileSync("src/game/world/field-action-feedback.js", "utf8"),
+  readFileSync("src/game/world/failure-codex.js", "utf8"),
+  readFileSync("src/game/world/ready-order-world.js", "utf8"),
+  readFileSync("src/game/world/solar-term-mood-plaque.js", "utf8"),
+].join("\n");
 const styles = readFileSync("src/styles.css", "utf8");
 const readme = readFileSync("README_GAME.md", "utf8");
 if (!readme.includes("主世界点击处理已纳入 `npm run verify` 安全审计")) {
@@ -4303,7 +4441,7 @@ for (const worldLandmarkTerm of ["worldLandmarkTargets", "worldLandmarkAtCanvasP
   if (!game.includes(worldLandmarkTerm) && !styles.includes(worldLandmarkTerm)) throw new Error(`World landmark interaction missing: ${worldLandmarkTerm}`);
 }
 
-for (const worldContentTerm of ["worldContentTargets", "worldContentAtCanvasPoint", "focusWorldContentFromCanvas", "点选陈设：", "点选天气小景：", "weatherLifeVignetteTargets", "weather_life_vignette", "年轮纪念碑", "名铺订单备货台", "post_mainline_goal_route", "post_mainline_route_station", "十小时年路灯牌", "年路小站", "点选年路：", "点选年路小站：", "data-shop-season-board", "data-year2-order-id"]) {
+for (const worldContentTerm of ["worldContentTargets", "worldContentAtCanvasPoint", "focusWorldContentFromCanvas", "点选陈设：", "点选天气小景：", "weatherLifeVignetteTargets", "weather_life_vignette", "年轮纪念碑", "名铺订单备货台", "post_mainline_goal_route", "post_mainline_today_route", "post_mainline_route_station", "十小时年路灯牌", "主线后今日路线", "点选主线后今日路线：", "年路小站", "点选年路：", "点选年路小站：", "data-shop-season-board", "data-year2-order-id"]) {
   if (!game.includes(worldContentTerm) && !styles.includes(worldContentTerm)) throw new Error(`World content interaction missing: ${worldContentTerm}`);
 }
 
@@ -4343,7 +4481,7 @@ for (const finalSupportUnlockFeedbackTerm of ["finalSupportUnlockFeedback: null"
   if (!game.includes(finalSupportUnlockFeedbackTerm) && !readme.includes(finalSupportUnlockFeedbackTerm)) throw new Error(`Final support unlock feedback missing: ${finalSupportUnlockFeedbackTerm}`);
 }
 
-for (const year2LifeWorldTerm of ["year2LifePlazaState", "year2LifePlazaTargets", "drawYear2LifePlaza", "drawYear2LifePlaza(ctx, width, height, livingState);", "freeplayGoalId", "点选年册：", "点选后日谈：", "点选商旗：", "自由目标年册", "后日谈共桌", "远路商旗台"]) {
+for (const year2LifeWorldTerm of ["year2LifePlazaState", "year2LifePlazaTargets", "drawYear2LifePlaza", "drawYear2LifePlaza(ctx, width, height, livingState);", "freeplayGoalId", "点选年册：", "点选后日谈：", "点选远行旗：", "自由目标年册", "后日谈共桌", "本周远行线"]) {
   if (!game.includes(year2LifeWorldTerm) && !styles.includes(year2LifeWorldTerm)) throw new Error(`Year-two life plaza interaction missing: ${year2LifeWorldTerm}`);
 }
 
@@ -4361,6 +4499,10 @@ for (const riskTerm of ["data.eventTriggers", "data.guideScripts", "event_trigge
 
 for (const dungeonTerm of ["data.dungeons", "data.enemies", "data.lootPools", "data.bosses", "data.bossSkills", "data.spiritSkills", "data.dungeonSolarMechanics", "dungeon_area.csv", "enemy_config.csv", "loot_pool.csv", "boss_config.csv", "boss_skill.csv", "spirit_skill.csv", "dungeon_solar_mechanic.csv", "data-dungeon-action", "dungeon_clear", "skillLog", "bossHp", "bossMaxHp", "lastEnemyId", "lastLoot", "combatMoment", "dungeonWorldChanges", "dungeonFailureInsights", "dungeonFailureInsightKey", "recordDungeonFailureInsight", "dungeonFailureInsightSummary", "dungeonBossFamiliarityMarkup", "bossFamiliarity", "bossBestPercent", "bossStrikeBonus", "bossSkillNames", "failureInsightBossStrikeBonus", "dungeonCompendium", "activeDungeonMemoryPage", "dungeonStampLabel", "grantDungeonCompendiumProgress", "solarTrialCompendiumSupport", "dungeonMemorySceneText", "dungeonMemoryCaption", "dungeonMemoryPageSpec", "dungeonCompendiumMemoryPages", "openDungeonMemoryPage", "closeDungeonMemoryPage", "drawDungeonCompendiumMonument", "rareSpiritClues", "applyDungeonWorldChange", "drawDungeonWorldChanges", "drawRareSpiritClueWisps", "activeHiddenRotationForDungeon", "dungeonRotationEntryEffect", "resolveDungeonRewardPool", "rewardPoolPreviewText", "rotationRareDropPool", "rotationBossId", "dungeonSpiritSolutionSpec", "dungeonSpiritSolutionMarkup", "dungeonMechanicSolutionTriptychSpec", "dungeonMechanicSolutionTriptychMarkup", "秘境节气解法三联牌", "场规怎么变", "精怪怎么解", "赢了改哪里", "dungeonSpiritSolutionLogText", "dungeonSpiritSolutionProfile", "精怪解法卡", "雷竹稳雷场", "月莲稳倒影", "灯影照隐藏路", "花铃安抚虫鸣", "书契标路线", "蜂蜜引虫群", "探索压力 -8", "dungeonMechanicSupportLevel", "createInitialDungeonMechanicState", "dungeonMechanicStatus", "dungeonMechanicHudSpec", "dungeonMechanicHudMarkup", "dungeonMechanicAtmosphereSpec", "drawDungeonMechanicAtmosphere", "drawActiveDungeonMechanicOverlay", "drawDungeonMechanicWorldCard", "drawDungeonFeedbackOverlay", "dungeonFeedback", "triggerDungeonFeedback", "activeDungeonFeedbackState", "dungeonAnimationActive", "bossSkillTargetLabel", "bossSkillCounterMove", "bossSkillCounterWindow", "bossSkillCounterSpiritHint", "dungeonBossCounterMarkup", "drawDungeonBossCounterCard", "读招应对", "反击窗口", "精怪援护", "dungeonBossTelegraphSpec", "dungeonMechanicEffects", "advanceDungeonMechanicState", "dungeonMechanicActionSpec", "useDungeonMechanicAction", "attune", "节气场域", "雷声场域", "水位线", "灯路影链", "借雷点柱", "续起长灯", "雷木柱", "长灯链", "满溢值", "霜寒层数", "失利见闻", "Boss 熟悉度", "最低压到", "节气印记", "回忆页", "年轮纪念碑"]) {
   if (!game.includes(dungeonTerm)) throw new Error(`Dungeon exploration path missing: ${dungeonTerm}`);
+}
+
+for (const dungeonMechanicStateTerm of ["function dungeonMechanicCleared", "function dungeonWorldChangeForMechanic", "entry.key === key", "entry.mechanicId === mechanic.dungeon_id", "dungeonMechanicCleared(dungeon, mechanic)", "dungeonWorldChangeForMechanic(dungeon, mechanic)"]) {
+  if (!game.includes(dungeonMechanicStateTerm)) throw new Error(`Dungeon mechanic-level state tracking missing: ${dungeonMechanicStateTerm}`);
 }
 
 for (const dungeonVisualTerm of ["dungeon-mechanic-card", "dungeon-mechanic-meter", "dungeon-mechanic-nodes", "dungeon-mechanic-tag", "dungeon-solution-triptych", "dungeon-solution-triptych-grid", "dungeon-solution-card", "dungeon-spirit-solution", "dungeon-spirit-solution-row", "dungeon-boss-skill", "dungeon-boss-counter", "dungeon-boss-counter-tags", "dungeon-boss-familiarity", "dungeon-failure-insight", "memory-page-card", "memory-page-tags", "memory-page-scene", "data-tone=\"thunder\"", "data-tone=\"lantern\""]) {
@@ -4511,15 +4653,51 @@ for (const spiritJobTaskTerm of ["completedSpiritJobTasks", "spiritJobTaskText",
   if (!game.includes(spiritJobTaskTerm) && !styles.includes(spiritJobTaskTerm)) throw new Error(`Spirit job task chain missing: ${spiritJobTaskTerm}`);
 }
 
-for (const year2GoalTerm of ["goalBookState", "syncGoalBookState", "year2GoalClaimed", "year2GoalReady", "claimYear2Goal", "claimFreeplayGoal", "goalClaimFeedback", "goalClaimFeedbackSpec", "triggerGoalClaimFeedback", "activeGoalClaimFeedback", "drawGoalClaimFeedback", "year2GoalWorldBoardSpec", "year2GoalWorldBoardAtCanvasPoint", "focusYear2GoalWorldBoardFromCanvas", "drawYear2GoalWorldBoard", "postMainlineTenHourGoalEvidenceSpec", "postMainlineTenHourGoalPass", "postMainlineTenHourGoalMarkup", "postMainlineTenHourWorldRouteSpec", "postMainlineRouteStationSpecs", "postMainlineRouteStationFocusSpec", "drawPostMainlineTenHourRouteWorld", "drawPostMainlineRouteStations", "focusPostMainlineTenHourGoalEvidence", "data-post-mainline-goal-route", "主线后十小时路线", "主线后十小时年路", "晨课铃", "远征风旗", "名铺月榜", "庭院图钉", "试炼石盘", "羁绊茶盏", "通关后至少10小时有明确目标", "rrg_009: postMainlineTenHourGoalPass()", "不会自动跳关、不会自动领取奖励，也不会消耗资源", "data-year2-goal", "data-freeplay-goal", "收进年鉴", "领取自由奖励", "主世界第二年目标年鉴", "点选第二年目标年鉴", "年鉴目标 · 可点", "年鉴落页", "自由目标兑现", "岗位修行结印", "稀有记忆收录"]) {
+for (const year2GoalTerm of ["goalBookState", "syncGoalBookState", "year2GoalClaimed", "year2GoalReady", "claimYear2Goal", "claimFreeplayGoal", "goalClaimFeedback", "goalClaimFeedbackSpec", "triggerGoalClaimFeedback", "activeGoalClaimFeedback", "drawGoalClaimFeedback", "year2GoalWorldBoardSpec", "year2GoalWorldBoardAtCanvasPoint", "focusYear2GoalWorldBoardFromCanvas", "drawYear2GoalWorldBoard", "postMainlineTodayRouteRowNode", "postMainlineTodayRouteFocusSpec", "postMainlineTodayRouteWorldSpec", "postMainlineTodayRouteWorldAtCanvasPoint", "focusPostMainlineTodayRouteWorldFromCanvas", "drawPostMainlineTodayRouteWorld", "postMainlineTenHourGoalEvidenceSpec", "postMainlineTenHourGoalPass", "postMainlineTenHourGoalMarkup", "postMainlineTenHourWorldRouteSpec", "postMainlineRouteStationSpecs", "postMainlineRouteStationFocusSpec", "drawPostMainlineTenHourRouteWorld", "drawPostMainlineRouteStations", "focusPostMainlineTenHourGoalEvidence", "data-post-mainline-goal-route", "主线后十小时路线", "主线后十小时年路", "主线后今日路线", "今天就有可落袋的事", "点击只定位年鉴页、自由目标卡或对应系统入口，不会自动领取奖励、推进时间、交单、开铺、开启试炼、发商队或消耗资源。", "晨课铃", "远征风旗", "名铺月榜", "庭院图钉", "试炼石盘", "羁绊茶盏", "通关后至少10小时有明确目标", "rrg_009: postMainlineTenHourGoalPass()", "不会自动跳关、不会自动领取奖励，也不会消耗资源", "data-year2-goal", "data-freeplay-goal", "收进年鉴", "领取自由奖励", "主世界第二年目标年鉴", "点选第二年目标年鉴", "年鉴目标 · 可点", "年鉴落页", "自由目标兑现", "岗位修行结印", "稀有记忆收录"]) {
   if (!game.includes(year2GoalTerm) && !styles.includes(year2GoalTerm)) {
     throw new Error(`Year-two goal book runtime missing: ${year2GoalTerm}`);
+  }
+}
+
+for (const postMainlineRhythmTerm of ["POST_MAINLINE_RHYTHM_LANES", "postMainlineRhythmRows", "postMainlineRhythmSpec", "postMainlineRhythmMarkup", "focusPostMainlineRhythmGoal", "post-mainline-rhythm-card", "post-mainline-rhythm-grid", "data-post-mainline-rhythm-focus", "后主线回游节奏", "今天 / 本周 / 本月 / 长期四段都已经接上", "今天", "本周", "本月", "长期", "日目标", "周目标", "月目标", "年目标", "为什么追：", "这里只定位对应目标卡或系统入口，不会自动领取奖励、推进时间、交单、派遣、开铺、开启试炼或消耗资源。"]) {
+  if (!game.includes(postMainlineRhythmTerm) && !styles.includes(postMainlineRhythmTerm)) {
+    throw new Error(`Post-mainline rhythm card missing: ${postMainlineRhythmTerm}`);
+  }
+}
+
+for (const postMainlineRhythmDaySummaryTerm of ["clonePostMainlineRhythmSpec", "postMainlineRhythmDaySummarySpec", "postMainlineRhythmDaySummaryMarkup", "day-summary-post-mainline-rhythm", "day-summary-post-mainline-row", "data-day-summary-post-mainline-rhythm-focus", "后主线生活回响", "今天总有一个值得看看的变化", "今天证据：", "今晚这一格为什么算数：", "回看这条线", "只定位对应目标卡或系统入口，不会自动领取奖励、推进时间、交单、派遣、开铺、开启试炼或消耗资源。"]) {
+  if (!game.includes(postMainlineRhythmDaySummaryTerm) && !styles.includes(postMainlineRhythmDaySummaryTerm)) {
+    throw new Error(`Post-mainline rhythm day-summary missing: ${postMainlineRhythmDaySummaryTerm}`);
+  }
+}
+
+for (const postMainlineEveningEchoTerm of ["postMainlineEveningEchoRows", "postMainlineEveningEchoSpec", "postMainlineEveningEchoMarkup", "focusPostMainlineEveningEcho", "day-summary-post-mainline-evening", "day-summary-post-mainline-evening-row", "data-day-summary-post-mainline-evening-action", "宴后生活小景", "晚上触发生活事件、精怪小剧场或同住后日谈", "同住后日谈", "精怪小剧场", "旧铺后话", "看同住后话", "翻开这页后话", "回看小剧场", "这里只定位已发生的小景回看入口，不会自动触发新事件、推进时间、播放未解锁对白、领取奖励或消耗资源。"]) {
+  if (!game.includes(postMainlineEveningEchoTerm) && !styles.includes(postMainlineEveningEchoTerm)) {
+    throw new Error(`Post-mainline evening echo missing: ${postMainlineEveningEchoTerm}`);
+  }
+}
+
+for (const postMainlineLongTailTerm of ["postMainlineLongTailResonanceRows", "postMainlineLongTailResonanceSpec", "postMainlineLongTailResonanceMarkup", "focusPostMainlineLongTailResonance", "day-summary-post-mainline-longtail", "day-summary-post-mainline-longtail-row", "data-day-summary-post-mainline-longtail-action", "长期留人回响", "把今天发生过的小景，翻译成玩家为什么明天还会想回来继续过这段日子。", "为什么今天这件事会留人：", "连续照应", "旧铺名声", "同住生活", "稀有伙伴", "回看照应线", "看旧铺名声", "看同住家况", "看伙伴记忆", "这里只定位长期线对应的图鉴、关系卡、旧铺名声或目标入口，不会自动推进时间、播放未解锁内容、领奖或消耗资源。"]) {
+  if (!game.includes(postMainlineLongTailTerm) && !styles.includes(postMainlineLongTailTerm)) {
+    throw new Error(`Post-mainline long-tail resonance missing: ${postMainlineLongTailTerm}`);
   }
 }
 
 for (const year2RecommendTerm of ["year2TodayRecommendationRows", "year2TodayRecommendationSpec", "year2TodayRecommendationMarkup", "focusYear2TodayRecommendation", "year2-today-recommend-card", "year2-today-recommend-grid", "data-year2-recommend-focus", "第二年今日推荐", "推荐 ${rows.length}/5", "只定位目标卡，不会自动领取奖励、推进时间、交付订单、派遣精怪、开铺、进入秘境或消耗资源"]) {
   if (!game.includes(year2RecommendTerm) && !styles.includes(year2RecommendTerm)) {
     throw new Error(`Year-two today recommendation missing: ${year2RecommendTerm}`);
+  }
+}
+
+for (const freeplayGuidanceTerm of ["freeplayGoalGuidanceSpec", "freeplayGoalRouteSpec", "freeplayGoalPriorityScore", "recommendedFreeplayGoals", "focusFreeplayGoalRoute", "data-freeplay-goal-route", "freeplay-guide", "freeplay-goal-guide", "freeplay-route-button", "只定位相关面板或目标卡，不会自动照料、派遣、开铺、开启试炼、推进时间或消耗资源"]) {
+  if (!game.includes(freeplayGuidanceTerm) && !styles.includes(freeplayGuidanceTerm)) {
+    throw new Error(`Freeplay guidance layer missing: ${freeplayGuidanceTerm}`);
+  }
+}
+
+for (const freeplayPanelGuideTerm of ["freeplayPanelGuideMarkup", "spiritFreeplayPanelGuideSpec", "tradeFreeplayPanelGuideSpec", "shopFreeplayPanelGuideSpec", "solarTrialFreeplayPanelGuideSpec", "ecologyFreeplayPanelGuideSpec", "handleFreeplayGuideAction", "data-freeplay-guide-action", "freeplay-panel-guide", "freeplay-panel-guide-actions", "freeplay-panel-guide-safety", "这里只定位精怪、羁绊与照料入口，不会自动摸摸、喂食、派工、领奖或消耗资源", "这里只定位赛季榜、月评和经营复盘，不会自动开铺、领奖、调价、补货或消耗资源"]) {
+  if (!game.includes(freeplayPanelGuideTerm) && !styles.includes(freeplayPanelGuideTerm)) {
+    throw new Error(`Freeplay panel guide missing: ${freeplayPanelGuideTerm}`);
   }
 }
 
@@ -4544,6 +4722,30 @@ for (const rareSpiritClueTrackerTerm of ["rareSpiritConditionHint", "rareSpiritC
 for (const daySummaryTerm of ["lastDaySummary", "nextDayAdvice", "createDaySummary", "renderDaySummaryPanel", "daySummaryPanel", "day-summary-card", "dailyCareChainSpec", "careChain", "careChainState", "createInitialCareChainState", "normalizeCareChainState", "recordCareChainStage", "careChainStageForStreak", "careChainStage", "careChainEcho", "careChainEchoSpec", "careChainEvent", "careChainRecentEvent", "feedback.careChainEvent", "careChainContinuationActionSpec", "careChainJournalRows", "focusCareChainRecentEvent", "data-care-chain-recent-event", "data-care-chain-journal-event", "care-chain-journal", "照应札记起笔", "洞天照应札记", "先续一条照应", "care_chain_recent_event", "care_chain", ".morning-action-row.care", "careChainStageEventSpec", "claimCareChainStageEvent", "claimedEventIds", "drawCareChainWorldBloom", "drawCareChainJournalStand", "care_chain_journal_stand", "care_chain_journal", "照应札记台", "点选札记", "drawCareChainSpiritEcho", "drawCareChainShopEcho", "day-summary-care-chain", "day-summary-care-chain-stage", "day-summary-care-chain-echo", "day-summary-care-chain-event", "洞天照应成线", "田里被照料", "精怪有动作", "铺前有回应", "连续照应", "今日照应起笔", "两日照应接上", "三日成线", "洞天生机有根", "凡仙镇也听见", "镇上也听见了", "洞天生机", "洞天照应事件", "照应阶段余温", "照应余温回看", "回看余温", "续上今日照应", "续昨日照应", "今日续线", "奖励入账", "生机传话", "生机回声", "精怪主动照应", "精怪开始主动", "三日照应成线", "凡仙镇听见了这条照应线", "洞天记住了这条照应线", "旧铺门前多了一条熟客踩亮的小路", "dailyIntentTrail", "dailyIntentMilestones", "dailyIntentMilestoneReward", "dailyIntentMilestoneLabel", "dailyIntentMilestoneTitle", "maybeClaimDailyIntentMilestone", "dailyIntentPrimaryForDay", "dailyIntentTrendSpec", "dailyIntentTrendReward", "maybeClaimDailyIntentTrendReward", "dailyIntentTrendMarkup", "dailyIntentMicroTaskCopy", "dailyIntentMicroTaskSpec", "dailyIntentMicroTaskMarkup", "dailyIntentMicroTaskReviewSpec", "dailyIntentMicroTaskMomentCopy", "maybeTriggerDailyIntentMicroTaskMoment", "focusDailyIntentMicroTask", "dailyIntentWorldSceneLabel", "dailyIntentWorldSceneTargets", "dailyIntentWorldSceneAtCanvasPoint", "focusDailyIntentWorldScene", "drawDailyIntentWorldScenes", "dailyIntentJournalRows", "dailyIntentActionForKey", "dailyIntentWeakestAction", "focusDailyIntentJournalAction", "recordDailyIntentProgress", "dailyIntentReviewSpec", "dailyIntentReviewMarkup", "dailyIntentReview", "day-summary-intent-review", "day-summary-intent-row", "day-summary-intent-trend", "day-summary-intent-micro-task", "daily-intent-journal", "daily-intent-trend", "daily-intent-trend-strip", "daily-intent-micro-task", "data-daily-intent-micro-task", "data-daily-intent-micro-action", "data-daily-intent-journal-action", "data-daily-intent-journal-key", "每日主轴手账", "今日主轴小事", "铺前小事", "工坊小事", "风灯小事", "红笺小事", "露痕小事", "铺前小事落笔", "工坊小事落笔", "风灯小事落笔", "红笺小事落笔", "露痕小事落笔", "连续主轴趋势", "主轴留痕小景", "铺前钱签", "工坊墨线", "秘境风灯", "镇上红笺", "田埂露痕", "连日主轴奖励", "昨日余温", "连日经营", "三日成线", "续走这条线", "换线补短板", "今日目标回顾", "今日主轴起势", "今日主轴连势", "今日主轴成势", "主轴阶段", "推进最明显", "换一条补短板", "今日足迹", "nightGrowthFeedback", "triggerNightGrowthFeedback", "drawNightGrowthFeedback", "nightGrowthRouteBadgeSpec", "drawNightGrowthRouteBadge", "activeMorningHarvestPlans", "drawMorningHarvestPlanFlags", "drawMorningHarvestPlanFlags(ctx, originX, originY, tile, gap);", "solarMorningSignTone", "solarMorningSignReading", "solarMorningSignSpec", "solarMorningSignMarkup", "focusSolarMorningSign", "drawSolarMorningSignBadge", "solarMorningSignAtCanvasPoint", "solarMorningSignSnapshot", "solarMorningSignSummaryText", "solarMorningSign: solarMorningSignSnapshot", "solar-morning-reading", "solar-morning-reading-row", "天时三读", "宜做", "忌犯", "转机", "day-summary-solar-morning", "今日天时复盘", "solar-morning-sign", "data-solar-morning-sign", "节气晨签", "已种适性", "morningActionBoardSpec", "morningActionBoardMarkup", "focusMorningAction", "drawMorningActionBoardCard", "morning-action-board", "data-morning-action", "清晨行动牌", "晨间排产", "订单可交", "定位补水", "sleepPrepChecklistSpec", "sleepPrepChecklistMarkup", "focusSleepPrepAction", "drawSleepPrepChecklistCard", "sleep-prep-checklist", "data-sleep-prep-action", "入夜前准备", "先收成熟作物", "处理节气风险", "旧铺可开张", "今日关系机会", "可以入夜", "useRoute", "workshopFocus", "completedWorkshopJobs", "harvestUseRoute", "maturedPlotActions", "focusDaySummaryMaturePlot", "data-day-summary-mature-plot", "day-summary-mature-list", "day-summary-mature-route", "定位收获", "明早先收", "day-summary-harvest-route", "收获去向", "工坊火候", "工坊出货", "夜间成长", "今夜新熟", "订单备货", "可入锅", "旧铺备货", "先入仓", "顾客短评", "回头客预告", "门口小景", "熟脸回门", "熟客带新客", "铺前市闻", "铺前来帖", "来帖小约", "镇上捎话", "day-summary-shop-town-errand", "data-shop-town-errand-action", "townLifeShopMoments", "data-town-shop-moment-id", "翻开这页后话", "旧铺后话", "熟客留言墙", "回头苗头", "旧铺日结", "雨水/灵池代顾", "daySummaryLanternWorldSpec", "daySummaryLanternWorldAtCanvasPoint", "focusDaySummaryLanternWorldFromCanvas", "drawDaySummaryLanternWorld", "日终灯笺", "只定位日终总结", "不会自动入夜", "明日建议"]) {
   if (!game.includes(daySummaryTerm) && !html.includes(daySummaryTerm) && !styles.includes(daySummaryTerm)) {
     throw new Error(`Day summary path missing: ${daySummaryTerm}`);
+  }
+}
+
+for (const automationDayLedgerTerm of ["automationDayLedgerReportText", "automationDayLedgerRows", "automationDayLedgerSpec", "automationDayLedgerMarkup", "focusDaySummaryAutomationLedger", "automationDayLedger", "day-summary-automation-ledger", "day-summary-automation-ledger-grid", "day-summary-automation-ledger-row", "data-day-summary-automation-line", "自动化日终流水账", "田里被接手 -> 后厂在烧 -> 入仓/补货 -> 旧铺/商队/巡灯", "田里被接手", "后厂在烧", "入仓/补货", "巡灯压风险", "商队/远路", "庭院托心情", "只定位自动化岗位线", "不会自动切岗、派工、排产、开铺、发商队、处理风险、入夜或消耗资源", "returnedDay || run.returnDay"]) {
+  if (!game.includes(automationDayLedgerTerm) && !styles.includes(automationDayLedgerTerm)) {
+    throw new Error(`Automation day ledger missing: ${automationDayLedgerTerm}`);
+  }
+}
+
+for (const buildReadabilityTerm of ["buildingCostRows", "buildingCostStatusSpec", "buildingRoleText", "buildingProgressText", "buildingNextStepText", "buildingActionLabel", "focusBuildCostSource", "buildingUiSpec", "canalRepairPrepSpec", "focusBuildStructure", "build-overview", "build-repair-prep", "build-readability-card", "build-overview-chips", "build-cost-grid", "build-cost-chip", "build-card-actions", "洞天建设总览", "灵渠修复预备账", "只定位修复入口、建设卡或补料来源，不会自动修渠、不会自动扣材料或推进时间。", "把资源缺口、建筑价值和补料路线放在同一页，避免只看到一排成本数字。", "data-build-focus", "data-build-cost-focus", "洞天建设：矿材来源", "洞天建设：清荒补料", "洞天建设：百怪大院材料线", "洞天建设：终阵材料线", "不会自动建造、修渠、扣材料或推进时间"]) {
+  if (!game.includes(buildReadabilityTerm) && !styles.includes(buildReadabilityTerm)) {
+    throw new Error(`Build readability layer missing: ${buildReadabilityTerm}`);
+  }
+}
+
+for (const missionCodexTerm of ["missionCropCodexRows", "missionCropCodexRowByKey", "focusMissionCropCodex", "focusMissionCropCodexAction", "focusMissionTaskCard", "missionCropCodexTaskActionsMarkup", "missionCropCodexGoalActionsMarkup", "quest_crop_qinghe_luzhu_qin", "quest_side_0205_qinghe_pond", "crop_luzhu_qin", "npc_qinghe", "mission-crop-codex", "mission-crop-codex-actions", "mission-codex-actions", "data-mission-codex-focus", "data-mission-codex-route", "任务作物图鉴", "看图鉴", "看种植线", "看精怪照料", "看青禾托付", "回任务页", "把任务页需要的作物，拆成“来源 / 节气 / 土层 / 照看线索 / 实际入口”一页看懂，补上主线、支线与图鉴页的跳转闭环。", "只定位任务卡、图鉴条目、种子栏或精怪栏，不会自动播种、派工、推进时间或消耗资源。", "只定位支线卡、图鉴条目、种子栏或青禾关系卡，不会自动承接支线、播种、交付、推进时间或消耗资源。"]) {
+  if (!game.includes(missionCodexTerm) && !styles.includes(missionCodexTerm)) {
+    throw new Error(`Mission codex bridge missing: ${missionCodexTerm}`);
+  }
+}
+
+for (const dungeonSeasonPrimerTerm of ["dungeonSeasonPrimerSpec", "dungeonSeasonPrimerMarkup", "focusDungeonSeasonPrimer", "data-dungeon-season-primer", "dungeon-season-primer", "dungeon-season-primer-grid", "dungeon-season-primer-row", "八境节气入境总览", "进入前先看场规、推荐精怪、奖励和外部变化", "把秘境从“能不能进”变成“为什么值得去、该带谁去、打完会改哪里”。", "只定位秘境卡，不会自动进入秘境、探索、顺应节气、挑战 Boss、领取奖励或消耗资源。"]) {
+  if (!game.includes(dungeonSeasonPrimerTerm) && !styles.includes(dungeonSeasonPrimerTerm)) {
+    throw new Error(`Dungeon season primer missing: ${dungeonSeasonPrimerTerm}`);
   }
 }
 
@@ -4615,6 +4817,10 @@ for (const solarTrialVisualTerm of ["recommendedSolarTrial", "drawYear2SolarTria
 
 for (const cropAffinityTerm of ["solar_term_bonus_tags", "season_list", "disaster_weakness_tags", "yieldBonus", "节气适性", "预计增收", "预计收获", "cropWorldGrowthVisualSpec", "drawCropWorldGrowthVisual", "新芽", "抽叶", "将熟", "可收", "spriteScale", "needsWater", "cropGrowthMemoWorldRows", "cropGrowthMemoWorldSpec", "cropGrowthMemoWorldAtCanvasPoint", "focusCropGrowthMemoWorldFromCanvas", "drawCropGrowthMemoWorld", "cropGrowthMemoWorldFocus", "田垄今日长势小札", "已种田块", "今日长势", "只定位田块、节气或去向入口", "不会自动浇水、收获、播种、入夜或消耗资源", "seed-restock-hint", "selectedPlotCard", "selected-plot-card", "selected-plot-card-action", "selected-plot-seed-route", "selected-plot-growing-route", "selected-plot-route-actions", "data-selected-plot-action", "data-plot-route-order", "data-plot-route-recipe", "data-plot-route-seed", "data-plot-route-shop", "plotRouteFocusTarget", "applyPlotRouteFocusTarget", "focusPlotRouteOrder", "focusPlotRouteRecipe", "focusPlotRouteSeed", "focusPlotRouteShop", "plot-route-focus-pulse", "data-order-card-id", "看订单", "看配方", "看种子", "看旧铺", "去向入口", "田地去向", "actionId", "selectedPlotCard.addEventListener", "fieldActionFeedbackSpec", "drawFieldActionFeedback", "drawGrowingCropUseRouteBadge", "growingCropUseRouteSpec", "harvestUseRouteSpec", "harvestUseRouteSafe", "harvestFeedback", "harvestFeedbackSpec", "activeHarvestFeedback", "drawHarvestFeedback", "harvestQualityStars", "qualityStars", "qualityLabel", "harvestText", "第一次收获", "收获入仓", "品质星级", "seedUseRouteSpec", "seedUseRouteSafe", "seedProjectedHarvestSpec", "lastHarvestUseRoute", "item-use-route", "item-use-route-status", "inventoryRouteStatusMarkup", "订单缺口", "配方原料", "工坊可下锅", "旧铺货签", "item-use-route-actions", "inventoryRouteActionsMarkup", "inventoryList.addEventListener", "data-inventory-route-order", "data-inventory-route-recipe", "data-inventory-route-shop", "背包去向", "live-use-route", "可入锅", "订单差这味", "旧铺可卖", "成熟后", "种后去向", "长成去向", "收后去向", "收获去向", "清开灵田", "种子入土", "水纹润开", "灵光入篓", "建议：", "执行：", "推荐", "已种适性", "田间提示", "term-item affinity", "termLearningCardSpec", "termLearningCardMarkup", "term-learning-card", "term-learning-grid", "种什么", "怎么浇", "卖什么", "避什么", "今日第一判断", "不会自动播种、浇水、收获、开铺或处理风险"]) {
   if (!game.includes(cropAffinityTerm) && !styles.includes(cropAffinityTerm)) throw new Error(`Crop solar affinity path missing: ${cropAffinityTerm}`);
+}
+
+for (const seasonalCropGuideTerm of ["seasonalCropGuideSpec", "seasonalCropGuideMarkup", "focusSeasonalCropGuideAction", "focusSeasonalCropGuideCard", "seasonalCropGuideKeyForTermId", "seasonal-crop-guide", "seasonal-crop-guide-actions", "solar-mood-stamp-guide", "data-seasonal-crop-guide", "data-seasonal-crop-action", "data-seasonal-crop-guide-focus", "seasonal_crop_guyu_chaya", "谷雨茶芽导览", "看灵茶配方", "看谷雨订单", "seasonal_crop_bailu_yiner", "白露凝香导览", "看白露试炼", "看书契会单", "白露礼宴榜", "年册礼卷", "seasonal-crop-guide.bailu", "seasonal_crop_dongzhi_festival", "冬至宴灯导览", "看冬至试炼", "看节庆会单", "冬至名铺榜", "书契会节庆礼单", "看今夜灯路", "seasonal-crop-guide.dongzhi", "看陆三笑关系", "查看白露导览", "查看冬至导览", "看节气作物导览", "节气印记 -> 节气作物导览", "第二年节气目标 -> 节气作物导览", "只定位节气面板、种子栏、配方栏、订单板或人物关系卡，不会自动播种、加工、交单、赠礼、推进时间或消耗资源。"]) {
+  if (!game.includes(seasonalCropGuideTerm) && !styles.includes(seasonalCropGuideTerm)) throw new Error(`Seasonal crop guide missing: ${seasonalCropGuideTerm}`);
 }
 
 for (const clearedPlotMemoryTerm of ["plotClearedVeinMemory", "selected-plot-vein-memory", "复苏灵纹", "第一处灵纹已经可见", "洞天灵息从这里回流 +1"]) {
@@ -4691,8 +4897,32 @@ for (const shopFirstCustomerThresholdTerm of ["shopFirstCustomerThresholdWorldFo
   if (!game.includes(shopFirstCustomerThresholdTerm) && !readme.includes(shopFirstCustomerThresholdTerm)) throw new Error(`Shop first-customer threshold bridge missing: ${shopFirstCustomerThresholdTerm}`);
 }
 
+for (const shopThoughtShelfBridgeTerm of ["shopThoughtShelfBridgeSpec", "shopThoughtShelfBridgeMarkup", "shopThoughtShelfBridgeReportEntry", "thought-shelf-bridge", "shop-thought-shelf-bridge", "shop-thought-shelf-row", "shop-thought-shelf-chip", "shop-thought-shelf-good", "shop-thought-shelf-production", "shop-thought-shelf-production-row", "门口想法对口牌", "今日先做什么", "对口标签", "陈列主题", "更容易打动谁", "先摆哪件", "先看配方", "先看种子", "先看旧铺货签", "只解释顾客想法、货架标签和备货路线", "不会自动换主题、开铺、调价、补货或消耗资源"]) {
+  if (!game.includes(shopThoughtShelfBridgeTerm) && !styles.includes(shopThoughtShelfBridgeTerm)) throw new Error(`Shop thought shelf bridge missing: ${shopThoughtShelfBridgeTerm}`);
+}
+
 for (const shopCustomerLessonMorningFollowupTerm of ["shopCustomerLessonMorningFollowupWorldFocus", "shopCustomerLessonMorningFollowupSafetyText", "shopCustomerLessonMorningFollowupSpec", "shopCustomerLessonMorningFollowupWorldSpec", "shopCustomerLessonMorningFollowupWorldAtCanvasPoint", "focusShopCustomerLessonMorningFollowupWorldFromCanvas", "drawShopCustomerLessonMorningFollowupWorld", "drawShopCustomerLessonMorningFollowupWorld(ctx", "shop_customer_lesson_morning_followup", "shop_customer_lesson", "旧铺明日改法灯", "旧铺明日改法灯 · 可点", "昨夜复盘", "今日先改", "手动开铺验证", "昨夜复盘 -> 今日先改 -> 手动开铺验证", "点选旧铺明日改法灯", "清晨行动牌：旧铺明日改法", "只定位旧铺复盘、顾客旅线和明日改法", "不会自动开铺、调价、补货、接客、成交、交单、扣库存或消耗资源"]) {
   if (!game.includes(shopCustomerLessonMorningFollowupTerm) && !readme.includes(shopCustomerLessonMorningFollowupTerm)) throw new Error(`Shop customer lesson morning followup missing: ${shopCustomerLessonMorningFollowupTerm}`);
+}
+
+for (const shopThoughtRouteMorningFollowupTerm of ["shopThoughtRouteMorningFollowupSpec", "shopThoughtRouteMorningFollowup", "shop_thought_route", "旧铺想法续路线", "清晨行动牌：旧铺想法续路线", "昨天门口的想法，今天先顺着一条线接住", "只延续旧铺顾客想法、标签判断和备货路线，不会自动制作、播种、补货、开铺、调价或消耗资源"]) {
+  if (!game.includes(shopThoughtRouteMorningFollowupTerm) && !readme.includes(shopThoughtRouteMorningFollowupTerm)) throw new Error(`Shop thought-route morning followup missing: ${shopThoughtRouteMorningFollowupTerm}`);
+}
+
+for (const shopThoughtRouteMorningFollowupWorldTerm of ["shopThoughtRouteMorningFollowupWorldSpec", "shopThoughtRouteMorningFollowupWorldAtCanvasPoint", "drawShopThoughtRouteMorningFollowupWorld", "shopThoughtRouteMorningFollowupWorldFocus", "type: \"shop_thought_route_morning_followup\"", "target?.type === \"shop_thought_route_morning_followup\"", "旧铺想法续路线签 · 可点", "今晨续线", "先看入口", "点选旧铺想法续路线签", "只延续旧铺顾客想法、标签判断和备货路线，不会自动制作、播种、补货、开铺、调价或消耗资源"]) {
+  if (!game.includes(shopThoughtRouteMorningFollowupWorldTerm) && !readme.includes(shopThoughtRouteMorningFollowupWorldTerm)) throw new Error(`Shop thought-route morning world followup missing: ${shopThoughtRouteMorningFollowupWorldTerm}`);
+}
+
+for (const shopThoughtRouteReadyMorningWorldTerm of ["shopThoughtRouteReadyMorningWorldSpec", "shopThoughtRouteReadyMorningWorldAtCanvasPoint", "drawShopThoughtRouteReadyMorningWorld", "shopThoughtRouteReadyMorningWorldFocus", "type: \"shop_thought_route_ready_morning\"", "target?.type === \"shop_thought_route_ready_morning\"", "旧铺想法备妥签 · 可点", "已备在手", "手动验证", "点选旧铺想法备妥签", "只确认这条想法路线已备到位并定位旧铺报告，不会自动上架、补货、开铺、接客、成交、改价或消耗库存"]) {
+  if (!game.includes(shopThoughtRouteReadyMorningWorldTerm) && !readme.includes(shopThoughtRouteReadyMorningWorldTerm)) throw new Error(`Shop thought-route ready morning world missing: ${shopThoughtRouteReadyMorningWorldTerm}`);
+}
+
+for (const shopThoughtRouteMissedWorldTerm of ["shopThoughtRouteMissedWorldSpec", "shopThoughtRouteMissedWorldAtCanvasPoint", "drawShopThoughtRouteMissedWorld", "shopThoughtRouteMissedWorldFocus", "type: \"shop_thought_route_missed\"", "target?.type === \"shop_thought_route_missed\"", "旧铺想法落空签 · 可点", "今日落空", "下一手", "点选旧铺想法落空签", "只回看这条想法路线今天卡在什么地方并定位旧铺报告，不会自动上架、开铺、接客、成交、改价、补货或消耗库存"]) {
+  if (!game.includes(shopThoughtRouteMissedWorldTerm) && !readme.includes(shopThoughtRouteMissedWorldTerm)) throw new Error(`Shop thought-route missed world missing: ${shopThoughtRouteMissedWorldTerm}`);
+}
+
+for (const shopThoughtRouteCaughtWorldTerm of ["shopThoughtRouteCaughtWorldSpec", "shopThoughtRouteCaughtWorldAtCanvasPoint", "drawShopThoughtRouteCaughtWorld", "shopThoughtRouteCaughtWorldFocus", "type: \"shop_thought_route_caught\"", "target?.type === \"shop_thought_route_caught\"", "旧铺想法接住签 · 可点", "今日接住", "点选旧铺想法接住签", "只回看这条想法路线如何接住成交并定位旧铺报告，不会自动上架、开铺、接客、成交、改价、补货或消耗库存"]) {
+  if (!game.includes(shopThoughtRouteCaughtWorldTerm) && !readme.includes(shopThoughtRouteCaughtWorldTerm)) throw new Error(`Shop thought-route caught world missing: ${shopThoughtRouteCaughtWorldTerm}`);
 }
 
 for (const shopCustomerLessonVerificationEchoTerm of ["shopCustomerLessonVerificationEchoWorldFocus", "shopCustomerLessonVerificationEchoSafetyText", "shopCustomerLessonVerificationEchoWorldSpec", "shopCustomerLessonVerificationEchoWorldAtCanvasPoint", "focusShopCustomerLessonVerificationEchoWorldFromCanvas", "drawShopCustomerLessonVerificationEchoWorld", "drawShopCustomerLessonVerificationEchoWorld(ctx", "shop_customer_lesson_verification_echo", "旧铺改法验证回响", "旧铺改法验证回响 · 可点", "昨夜改法", "今日开铺", "结果回响", "昨夜改法 -> 今日开铺 -> 结果回响", "点选旧铺改法验证回响", "只回看旧铺改法验证、顾客旅线和经营报告", "不会自动开铺、调价、补货、接客、成交、交单、扣库存或消耗资源"]) {
@@ -4719,7 +4949,7 @@ for (const shopReputationTerm of ["shopReputationStageSpec", "shopReputationStag
   if (!game.includes(shopReputationTerm) && !styles.includes(shopReputationTerm)) throw new Error(`Shop reputation stage path missing: ${shopReputationTerm}`);
 }
 
-for (const shopSeasonTerm of ["data.year2Orders", "data.shopSeasons", "data.shopSettlementRules", "data.shopRankRewards", "year2_order_config.csv", "year2_shop_season.csv", "year2_shop_settlement_rule.csv", "year2_shop_rank_reward.csv", "shopStats", "shopSeasonCycleInfo", "shopSeasonRewardText", "settleShopSeasonCycle", "claimShopSeasonReward", "data-shop-season-claim", "pendingSettlement", "activeBuffs", "shop-season-card", "shop-display-actions", "sale-row.compendium"]) {
+for (const shopSeasonTerm of ["data.year2Orders", "data.shopSeasons", "data.shopSettlementRules", "data.shopRankRewards", "year2_order_config.csv", "year2_shop_season.csv", "year2_shop_settlement_rule.csv", "year2_shop_rank_reward.csv", "shopStats", "shopSeasonCycleInfo", "shopSeasonRewardText", "settleShopSeasonCycle", "claimShopSeasonReward", "data-shop-season-claim", "pendingSettlement", "activeBuffs", "shop-season-card", "shop-display-actions", "sale-row.compendium", "shopSeasonReviewRows", "reviewRows", "shop-season-review", "shop-season-review-row", "本季最常来的客人", "这季最拖分的是", "下季最值得追的是"]) {
   if (!game.includes(shopSeasonTerm) && !styles.includes(shopSeasonTerm)) throw new Error(`Shop season path missing: ${shopSeasonTerm}`);
 }
 
@@ -4786,11 +5016,11 @@ for (const earlyNpcRoadmapTerm of ["EARLY_NPC_ROADMAP_LINES", "earlyNpcRoadmapSp
   if (!game.includes(earlyNpcRoadmapTerm) && !styles.includes(earlyNpcRoadmapTerm)) throw new Error(`Early NPC roadmap path missing: ${earlyNpcRoadmapTerm}`);
 }
 
-for (const cohabVisualTerm of ["cohabLifeSummary", "drawCohabLifeNote", "同住生活", "下一件小事", "余韵", "cohabLife: cohabLifeSummary(cohabRoutes)", "drawCohabLifeNote(ctx, livingState);", "cohabAfterglowWindowWorldFocus", "cohabAfterglowWindowPalette", "cohabAfterglowWindowSpec", "cohabAfterglowWindowAtCanvasPoint", "focusCohabAfterglowWindowFromCanvas", "同住后日谈窗灯", "最近小事", "余韵加成", "点选同住后日谈窗灯", "不会自动播放同住日常、推进周常、触发节庆事件、赠礼、接支线、交托付或消耗资源"]) {
+for (const cohabVisualTerm of ["cohabLifeSummary", "cohabRouteLifeSnapshot", "cohabMomentTitle", "cohabMomentWindowText", "drawCohabLifeNote", "同住生活", "下一件小事", "余韵", "cohabLife: cohabLifeSummary(cohabRoutes)", "drawCohabLifeNote(ctx, livingState);", "cohabAfterglowWindowWorldFocus", "cohabAfterglowWindowPalette", "cohabAfterglowWindowSpec", "cohabAfterglowWindowAtCanvasPoint", "focusCohabAfterglowWindowFromCanvas", "同住后日谈窗灯", "最近小事", "余韵加成", "点选同住后日谈窗灯", "不会自动播放同住日常、推进周常、触发节庆事件、赠礼、接支线、交托付或消耗资源"]) {
   if (!game.includes(cohabVisualTerm) && !readme.includes(cohabVisualTerm)) throw new Error(`Cohab life world visual missing: ${cohabVisualTerm}`);
 }
 
-for (const cohabInteractionTerm of ["playCohabDailyScene", "playCohabWeeklyEvent", "playCohabFestivalEvent", "data-cohab-daily", "data-cohab-weekly", "data-cohab-festival", "relationship-cohab-actions", "看同住日常", "推进周常", "节气小事", "cohab_daily_manual"]) {
+for (const cohabInteractionTerm of ["playCohabDailyScene", "playCohabWeeklyEvent", "playCohabFestivalEvent", "data-cohab-daily", "data-cohab-weekly", "data-cohab-festival", "relationship-cohab-snapshot", "relationship-cohab-chips", "relationship-cohab-actions", "今日家况", "看同住日常", "推进周常", "节气小事", "cohab_daily_manual"]) {
   if (!game.includes(cohabInteractionTerm) && !styles.includes(cohabInteractionTerm)) throw new Error(`Cohab life interaction missing: ${cohabInteractionTerm}`);
 }
 
@@ -4848,11 +5078,11 @@ for (const rareSpiritDaySummaryTheaterTerm of ["rareSpiritTheaterSummaryKey", "r
   if (!game.includes(rareSpiritDaySummaryTheaterTerm) && !styles.includes(rareSpiritDaySummaryTheaterTerm)) throw new Error(`Rare spirit day-summary theater echo missing: ${rareSpiritDaySummaryTheaterTerm}`);
 }
 
-for (const rareSpiritLifeCodexTerm of ["rareSpiritLifeCodexRows", "rareSpiritActionPromenadeRows", "rareSpiritActionPromenadeSpec", "rareSpiritActionPromenadeMarkup", "精怪生活图鉴", "生活进度", "稀有精怪专属动作巡演牌", "摇铃撒花", "测风引路", "递来月露", "影灯指路", "账页盖章", "抱罐巡锅", "只定位精怪、事件或回看入口", "不会自动触发事件、播放小剧场、领取回礼或消耗资源", "rare-life-codex", "rare-life-codex-tags", "rare-action-promenade", "rare-action-promenade-grid", "data-rare-action-line", "最近小剧场", "最近回礼", "生态共鸣", "事件可推", "focusLifeCodexTarget", "data-life-codex-focus", "data-life-codex-line", "data-life-codex-filter", "data-spirit-line", "data-rare-event-line", "data-theater-line", "scrollIntoView", "codex-focus-pulse", "定位精怪", "定位事件", "可推进优先", "待收录小剧场", "生态待养", "lifeCodexFilterMatches", "rare-life-codex-filter-bar"]) {
+for (const rareSpiritLifeCodexTerm of ["rareSpiritLifeCodexRows", "rareSpiritActionPromenadeRows", "rareSpiritActionPromenadeSpec", "rareSpiritActionPromenadeMarkup", "rareSpiritCharacterStageRows", "rareSpiritLifeSnapshot", "rareSpiritLifeSnapshotMarkup", "rareSpiritCharacterRowSpec", "rareSpiritCharacterShowcaseSpec", "rareSpiritCharacterShowcaseMarkup", "rareSpiritCompanionCardMarkup", "精怪生活图鉴", "生活进度", "稀有精怪专属动作巡演牌", "稀有伙伴肖像簿", "角色总览", "稀有陪伴卡", "生活回响", "今天在做什么", "离下一段记忆还差什么", "今天可能回礼", "长期为什么值得继续", "阶段链", "回礼留痕", "摇铃撒花", "测风引路", "递来月露", "影灯指路", "账页盖章", "抱罐巡锅", "只定位精怪、事件或回看入口", "不会自动触发事件、播放小剧场、领取回礼或消耗资源", "只定位生活图鉴、事件卡、精怪面板或小剧场入口，不会自动触发事件、领取回礼、增加羁绊、招募、派工或消耗资源", "rare-life-codex", "rare-life-codex-tags", "rare-action-promenade", "rare-action-promenade-grid", "rare-character-showcase", "rare-character-showcase-grid", "rare-character-stage-track", "rare-character-stage-chip", "rare-character-actions", "rare-spirit-life-snapshot", "rare-spirit-life-snapshot-grid", "rare-spirit-life-snapshot-cell", "spirit-rare-companion-card", "data-rare-action-line", "data-rare-character-line", "最近小剧场", "最近回礼", "生态共鸣", "事件可推", "focusLifeCodexTarget", "data-life-codex-focus", "data-life-codex-line", "data-life-codex-filter", "data-spirit-line", "data-rare-event-line", "data-theater-line", "scrollIntoView", "codex-focus-pulse", "定位精怪", "定位事件", "可推进优先", "待收录小剧场", "生态待养", "lifeCodexFilterMatches", "rare-life-codex-filter-bar"]) {
   if (!game.includes(rareSpiritLifeCodexTerm) && !styles.includes(rareSpiritLifeCodexTerm)) throw new Error(`Rare spirit life codex missing: ${rareSpiritLifeCodexTerm}`);
 }
 
-for (const spiritVisualTerm of ["spiritVisualProfile", "spiritJobStation", "spiritJobPersonaSpec", "drawSpiritJobEffect", "drawSpiritJobPersonaBubble", "spiritAutomationTrailSpec", "drawSpiritAutomationTrail", "drawSpiritAutomationTrail(ctx, spirit, station, index)", "spiritAutomationGroundTraceSpec", "spiritAutomationGroundTraceAnchor", "spiritAutomationGroundTraceAtCanvasPoint", "focusSpiritAutomationGroundTraceFromCanvas", "drawSpiritAutomationGroundTrace", "drawSpiritAutomationGroundTrace(ctx", "自动化收益留痕", "点选自动化收益留痕", "田水、灶火、货签、巡灯、旗路和庭院花息", "不会自动切岗、派工、排产、开铺、发商队、处理风险、入夜或消耗资源", "spiritStageNumber", "spiritWorkRangeSpec", "drawSpiritWorkRangeAura", "spiritEvolutionFeedback", "spiritEvolutionFeedbackSpec", "triggerSpiritEvolutionFeedback", "activeSpiritEvolutionFeedback", "drawSpiritEvolutionFeedback", "spiritFinaleFeedback", "spiritFinaleCompanionSpec", "spiritFinaleEffectSummary", "spiritFinaleEffectRows", "spiritFinaleEffectSnapshot", "spiritFinaleEffects", "farmGrowthBonus", "waterCareBonus", "workshopSpeedBonus", "patrolGuardBonus", "shopBudgetBonus", "festivalThemeBonus", "triggerSpiritFinaleFeedback", "replaySpiritFinaleFeedback", "data-spirit-finale-replay", "spirit-canvas-finale-ticket", "回看终章落定", "activeSpiritFinaleFeedback", "drawSpiritFinaleFeedback", "drawSpiritFinaleCompanionAnchor", "终章陪伴落定", "终章常驻", "终章伙伴常驻", "spirit-finale-memory-ticket", "spirit-finale-effect-card", "day-summary-spirit-finale", "shop-finale-boost", "workshop-finale-boost", "spirit_finale", "岗位进化回响", "进化完成", "spirit-work-range", "范围扩大", "工作范围已扩大", "二阶进化", "下一阶预览", "workRangeX", "workRangeY", "spiritCompanionCanvasSpec", "drawSpiritCompanionCareHint", "drawSpiritColony", "drawRareSpiritTheaterGlyph(ctx, lineId", "spirit-job-persona", "浇水灵珠", "灶火星屑", "招客话牌", "自动浇水轨迹", "工坊投料", "补货跑动", "巡灯扫线", "远征旗路", "庭院安抚波", "巡逻灯域", "庭院花息", "今日小剧场", "想吃东西", "陪伴稳定", "喂食会开心", "spirit_line_hualing", "spirit_line_leizhu", "spirit_line_yuelian", "spirit_line_dengying", "spirit_line_shuqi", "spirit_line_fengmi", "spirit-glyph", "视觉定位"]) {
+for (const spiritVisualTerm of ["spiritVisualProfile", "spiritVoiceTypeForMood", "spiritVoiceCandidates", "spiritVoiceMomentSpec", "spiritJobStation", "spiritJobPersonaSpec", "drawSpiritJobEffect", "drawSpiritJobPersonaBubble", "spiritAutomationTrailSpec", "drawSpiritAutomationTrail", "drawSpiritAutomationTrail(ctx, spirit, station, index)", "spiritAutomationGroundTraceSpec", "spiritAutomationGroundTraceAnchor", "spiritAutomationGroundTraceAtCanvasPoint", "focusSpiritAutomationGroundTraceFromCanvas", "drawSpiritAutomationGroundTrace", "drawSpiritAutomationGroundTrace(ctx", "自动化收益留痕", "点选自动化收益留痕", "田水、灶火、货签、巡灯、旗路和庭院花息", "不会自动切岗、派工、排产、开铺、发商队、处理风险、入夜或消耗资源", "spiritStageNumber", "spiritWorkRangeSpec", "drawSpiritWorkRangeAura", "spiritEvolutionFeedback", "spiritEvolutionFeedbackSpec", "triggerSpiritEvolutionFeedback", "activeSpiritEvolutionFeedback", "drawSpiritEvolutionFeedback", "spiritFinaleFeedback", "spiritFinaleCompanionSpec", "spiritFinaleEffectSummary", "spiritFinaleEffectRows", "spiritFinaleEffectSnapshot", "spiritFinaleEffects", "farmGrowthBonus", "waterCareBonus", "workshopSpeedBonus", "patrolGuardBonus", "shopBudgetBonus", "festivalThemeBonus", "triggerSpiritFinaleFeedback", "replaySpiritFinaleFeedback", "data-spirit-finale-replay", "spirit-canvas-finale-ticket", "回看终章落定", "activeSpiritFinaleFeedback", "drawSpiritFinaleFeedback", "drawSpiritFinaleCompanionAnchor", "终章陪伴落定", "终章常驻", "终章伙伴常驻", "spirit-finale-memory-ticket", "spirit-finale-effect-card", "day-summary-spirit-finale", "shop-finale-boost", "workshop-finale-boost", "spirit_finale", "岗位进化回响", "进化完成", "spirit-work-range", "范围扩大", "工作范围已扩大", "二阶进化", "下一阶预览", "workRangeX", "workRangeY", "spiritCompanionCanvasSpec", "drawSpiritCompanionCareHint", "drawSpiritColony", "drawRareSpiritTheaterGlyph(ctx, lineId", "spirit-job-persona", "浇水灵珠", "灶火星屑", "招客话牌", "自动浇水轨迹", "工坊投料", "补货跑动", "巡灯扫线", "远征旗路", "庭院安抚波", "巡逻灯域", "庭院花息", "今日小剧场", "想吃东西", "陪伴稳定", "喂食会开心", "今日短句", "工作短句", "开心短句", "spirit-voice-line", "spirit_line_hualing", "spirit_line_leizhu", "spirit_line_yuelian", "spirit_line_dengying", "spirit_line_shuqi", "spirit_line_fengmi", "spirit-glyph", "视觉定位"]) {
   if (!game.includes(spiritVisualTerm) && !styles.includes(spiritVisualTerm)) throw new Error(`Spirit visual colony path missing: ${spiritVisualTerm}`);
 }
 
@@ -4999,10 +5229,22 @@ const villager = customers.find((entry) => entry.customer_id === "customer_villa
 const waterwayCustomer = customers.find((entry) => entry.customer_id === "customer_waterway_broker");
 const xubo = npcs.find((entry) => entry.npc_id === "npc_xubo");
 const xuboSchedule = npcSchedules.find((entry) => entry.npc_id === "npc_xubo" && entry.area_id === "area_town_hall");
-const baizhiCohab = cohabEpilogues.find((entry) => entry.npc_id === "npc_baizhi");
-const baizhiWeekly = cohabWeeklyEvents.find((entry) => entry.epilogue_id === baizhiCohab?.epilogue_id);
-const baizhiFestival = cohabFestivalEvents.find((entry) => entry.epilogue_id === baizhiCohab?.epilogue_id);
-const baizhiCohabDialogue = cohabDialogueMaps.find((entry) => entry.epilogue_id === baizhiCohab?.epilogue_id);
+const cohabNpcIds = ["npc_baizhi", "npc_hu_sihai", "npc_atan", "npc_qinghe", "npc_shen_gudeng"];
+const cohabRoutes = cohabNpcIds.map((npcId) => {
+  const epilogue = cohabEpilogues.find((entry) => entry.npc_id === npcId) || null;
+  return {
+    npcId,
+    epilogue,
+    weekly: epilogue ? cohabWeeklyEvents.find((entry) => entry.epilogue_id === epilogue.epilogue_id) || null : null,
+    festival: epilogue ? cohabFestivalEvents.find((entry) => entry.epilogue_id === epilogue.epilogue_id) || null : null,
+    daily: epilogue ? cohabDialogueMaps.find((entry) => entry.epilogue_id === epilogue.epilogue_id && entry.repeat_cycle === "daily") || null : null,
+  };
+});
+const baizhiRoute = cohabRoutes.find((entry) => entry.npcId === "npc_baizhi") || null;
+const baizhiCohab = baizhiRoute?.epilogue || null;
+const baizhiWeekly = baizhiRoute?.weekly || null;
+const baizhiFestival = baizhiRoute?.festival || null;
+const baizhiCohabDialogue = baizhiRoute?.daily || null;
 const bossIntroShots = cutsceneTimeline.filter((entry) => entry.cutscene_id === "cutscene_boss_mingmu_intro");
 const finalArrayAssets = cutsceneAssets.filter((entry) => entry.cutscene_id === "cutscene_final_array_build");
 const sideBridgeBeats = sideQuestCutsceneBeats.filter((entry) => entry.map_id === "side_map_0101_01");
@@ -5281,6 +5523,7 @@ const yuelianEvolutionEvent = rareSpiritEvents.find((entry) => entry.entry_id ==
 const yuelianBondFinalEvent = rareSpiritEvents.find((entry) => entry.entry_id === "rsea_006");
 const dengyingEvolutionEvent = rareSpiritEvents.find((entry) => entry.entry_id === "rsea_008");
 const dengyingBondFinalEvent = rareSpiritEvents.find((entry) => entry.entry_id === "rsea_018");
+const rareSpiritVoiceLineIds = ["hualing", "leizhu", "yuelian", "dengying", "shuqi", "fengmi"];
 const hualingEvolutionDialogue = dialogues.filter((entry) => entry.dialogue_group_id === "dialogue_hualing_evolution");
 const hualingEvolutionLine001 = localization.find((entry) => entry.text_key === "dialogue_hualing_evolution_001");
 const hualingEvolutionLine002 = localization.find((entry) => entry.text_key === "dialogue_hualing_evolution_002");
@@ -5514,6 +5757,23 @@ if (!game.includes("dialogue_dengying_evolution") || !game.includes("rsea_008") 
 if (!game.includes("dialogue_dengying_bond_final") || !game.includes("rsea_018") || !game.includes("dengyingWinterLanternReady") || !game.includes("dengyingFestivalWarmthActive") || !game.includes("dengyingHiddenRevealSkill") || !game.includes("data-dengying-hidden-reveal") || !game.includes("hidden_reveal") || !game.includes("night_hidden_entry") || !game.includes("festival_customer_up") || !game.includes("season_shop_005")) {
   throw new Error("Lamp-shadow bond finale runtime must queue its dedicated dialogue, validate the winter lantern gate, and surface both the winter-shop and hidden-entry payoffs");
 }
+if (!game.includes("function spiritVoiceEntriesFor") || !game.includes('target.startsWith("spirit_line_")') || !game.includes('entry.spirit_id === lineId') || !game.includes('"二阶进化"')) {
+  throw new Error("Rare spirit voice runtime must support per-line voice fallback and expose the second-evolution label");
+}
+for (const lineId of rareSpiritVoiceLineIds) {
+  const voiceRows = spiritVoices.filter((entry) => entry.spirit_id === `spirit_line_${lineId}`);
+  if (voiceRows.length < 3) {
+    throw new Error(`Rare spirit voice data missing daily coverage for ${lineId}`);
+  }
+  for (const type of ["idle", "work", "happy"]) {
+    const voice = voiceRows.find((entry) => entry.voice_type === type);
+    if (!voice) throw new Error(`Rare spirit voice data missing ${type} line for ${lineId}`);
+    const text = localization.find((entry) => entry.text_key === voice.text_key);
+    if (!text?.zh_cn || String(text.zh_cn).length < 8) {
+      throw new Error(`Rare spirit voice localization missing authored ${type} line for ${lineId}`);
+    }
+  }
+}
 if (leizhuBondFinalDialogue.length !== 4 || !leizhuBondFinalDialogue.some((entry) => entry.speaker_id === "player") || !leizhuBondFinalDialogue.some((entry) => entry.speaker_id === "spirit_leizhu_03")) {
   throw new Error("Thunder-bamboo bond finale must ship a four-line player and third-form spirit dialogue exchange");
 }
@@ -5597,8 +5857,11 @@ if (!xubo) throw new Error("Missing demo NPC: npc_xubo");
 if (!xuboSchedule || Number(xuboSchedule.time_start) <= 0) {
   throw new Error("NPC schedule must place Xubo in town with a valid time range");
 }
-if (!baizhiCohab || !baizhiWeekly || !baizhiFestival || !baizhiCohabDialogue) {
-  throw new Error("Cohabitation data must connect Baizhi epilogue, weekly, festival, and dialogue rows");
+if (cohabRoutes.some((entry) => !entry.epilogue || !entry.weekly || !entry.festival || !entry.daily)) {
+  throw new Error("All five cohab routes must connect epilogue, weekly, festival, and daily dialogue rows");
+}
+if (!cohabRoutes.every((entry) => entry.daily.repeat_cycle === "daily" && entry.weekly.dialogue_group_id && entry.festival.dialogue_group_id)) {
+  throw new Error("Each cohab route must expose a daily replay map plus weekly/festival dialogue groups");
 }
 if (bossIntroShots.length < 5 || !bossIntroShots.some((entry) => entry.audio_key === "audio_boss_mingmu_reveal")) {
   throw new Error("Boss intro cutscene must have a multi-shot timeline with reveal audio");
@@ -6865,7 +7128,7 @@ const savePayload = {
   saveVersion: 2,
   saveMigratedFrom: 1,
   saveMigrationHistory: [{ id: "migration_002_spirit_longterm", from: 1, to: 2, module: "spirits", operation: "add_bond_and_mastery_maps" }],
-  saveSchemaReport: { version: 2, required: 15, covered: 15, missing: [] },
+  saveSchemaReport: { version: 2, required: 16, covered: 16, missing: [] },
   gold: 128,
   stamina: 92,
   fame: 2,
@@ -7228,6 +7491,12 @@ const savePayload = {
   },
   cohabState: {
     dailySeen: { "cohab_baizhi_01:on_day_start": 3 },
+    pendingWeekly: {
+      cohab_weekly_hu_01: { cycleKey: "week:0", source: "on_trade_return", day: 3 },
+    },
+    pendingFestival: {
+      cohab_festival_qinghe_01: { cycleKey: "festival:term_dongzhi", source: "on_term_change", termId: "term_dongzhi", day: 3 },
+    },
     weeklyClaims: { cohab_weekly_baizhi_01: "week:0" },
     festivalClaims: { cohab_festival_baizhi_01: "festival:term_dongzhi" },
     activeBuffs: {
@@ -7498,6 +7767,7 @@ const savePayload = {
     bossPhase: 1,
     bossShield: 0,
     turn: 2,
+    solarMechanicId: "dsm_001",
     skillLog: ["裂甲木卫 使用 地裂重锤"],
     loot: [],
     lastLoot: [{ itemId: "item_ore_copper", count: 2 }],
@@ -7703,7 +7973,14 @@ if (!restored.completed.includes("repair") || !restored.completed.includes("firs
 if (!restored.completedOrders.includes("order_demo_0002")) {
   throw new Error("Save payload cannot preserve the first canal follow-up order completion");
 }
-if (restored.cohabState.activeBuffs.buff_trade_margin_up.route !== "cohab_hu_01" || restored.cohabState.history[0].routeName !== "药庐同住") {
+if (
+  restored.cohabState.activeBuffs.buff_trade_margin_up.route !== "cohab_hu_01"
+  || restored.cohabState.history[0].routeName !== "药庐同住"
+  || restored.cohabState.pendingWeekly.cohab_weekly_hu_01.cycleKey !== "week:0"
+  || restored.cohabState.pendingWeekly.cohab_weekly_hu_01.source !== "on_trade_return"
+  || restored.cohabState.pendingFestival.cohab_festival_qinghe_01.cycleKey !== "festival:term_dongzhi"
+  || restored.cohabState.pendingFestival.cohab_festival_qinghe_01.source !== "on_term_change"
+) {
   throw new Error("Save payload cannot preserve cohab runtime state");
 }
 if (
@@ -7735,7 +8012,7 @@ if (!restored.resolvedRisks.includes("event_term_jingzhe_01") || restored.active
 if (!restored.dungeonClears.includes("area_mine_qingyun") || !restored.defeatedBosses.includes("boss_liejia_muwei")) {
   throw new Error("Save payload cannot preserve dungeon clear state");
 }
-if (restored.dungeon.turn !== 2 || restored.dungeon.skillLog.length === 0) {
+if (restored.dungeon.turn !== 2 || restored.dungeon.skillLog.length === 0 || restored.dungeon.solarMechanicId !== "dsm_001") {
   throw new Error("Save payload cannot preserve dungeon skill combat state");
 }
 if (restored.dungeon.bossHp !== 1120 || restored.dungeon.hazards[0].label !== "雷声震柱" || restored.dungeon.lastEnemyId !== "enemy_mine_rock_bug") {
@@ -7806,6 +8083,48 @@ if (!restored.builtBuildings.includes("build_mill_001") || !restored.unlockedMac
 }
 if (restored.spirits[0].job !== "expedition" || restored.spirits[0].jobLevels.expedition !== 1) {
   throw new Error("Save payload cannot preserve spirit job mastery state");
+}
+
+for (const finalBanquetAfterwordBridgeTerm of [
+  "finalBanquetAfterwordBridgeSpec",
+  "finalBanquetAfterwordBridgeMarkup",
+  "finalBanquetAfterwordBridgeWorldSpec",
+  "finalBanquetAfterwordBridgeWorldAtCanvasPoint",
+  "drawFinalBanquetAfterwordBridgeWorld",
+  "focusFinalBanquetAfterwordBridge",
+  "data-final-banquet-afterword-node",
+  "type: \"final_banquet_afterword_bridge\"",
+  "target.type === \"final_banquet_afterword_bridge\"",
+  "drawFinalBanquetAfterwordBridgeWorld(ctx",
+  "final-banquet-afterword-bridge",
+  "final-banquet-afterword-node",
+  "蟠桃宴后开卷桥",
+  "不会自动交单、领奖、开铺、推进时间、播放对白或消耗资源",
+]) {
+  if (!game.includes(finalBanquetAfterwordBridgeTerm) && !styles.includes(finalBanquetAfterwordBridgeTerm)) {
+    throw new Error(`Final banquet afterword bridge missing: ${finalBanquetAfterwordBridgeTerm}`);
+  }
+}
+
+for (const year2OpeningTerm of [
+  "year2ContentPlan: \"csv/year2_content_plan.csv\"",
+  "data.year2ContentPlan",
+  "year2ContentPlanById",
+  "year2OpeningTenDaySpec",
+  "year2OpeningTenDayMarkup",
+  "focusYear2OpeningTenDay",
+  "year2OpeningTenDayWorldSpec",
+  "drawYear2OpeningTenDayWorld",
+  "data-year2-opening-node",
+  "type: \"year2_opening_ten_day\"",
+  "target.type === \"year2_opening_ten_day\"",
+  "year2-opening-ten-day",
+  "第二年开年十日谱",
+  "不会自动交单、领奖、建造、开铺、发商队、开启试炼、推进时间或消耗资源",
+]) {
+  if (!game.includes(year2OpeningTerm) && !styles.includes(year2OpeningTerm)) {
+    throw new Error(`Year-two opening ten-day path missing: ${year2OpeningTerm}`);
+  }
 }
 
 console.log("Playable slice verification passed.");

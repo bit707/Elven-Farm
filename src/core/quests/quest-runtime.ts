@@ -310,6 +310,10 @@ namespace XiannongCore.Quests {
       flag: string;
     }
     | {
+      kind: "complete_progress";
+      flag: string;
+    }
+    | {
       kind: "spawn_first_pest_risk";
       termId: string;
       severity: number;
@@ -437,6 +441,7 @@ namespace XiannongCore.Quests {
     | {
       kind: "play_cue";
       cue: string;
+      audioKey?: string;
     }
     | {
       kind: "log_baizhi_chapter_finish";
@@ -1627,7 +1632,7 @@ namespace XiannongCore.Quests {
       const shouldSummon = applies && (state.spirits?.length || 0) === 0;
       const spiritId = applies ? "spirit_luobo_01" : "";
       const job = applies ? "farm" : "";
-      const completedFlags = shouldSummon ? ["spirit"] : [];
+      const completedFlags = shouldSummon ? ["spirit", "first_spirit_birth"] : [];
       const cue = shouldSummon ? "\u7b2c\u4e00\u6b21\u6210\u7cbe" : "";
       const actions: ConfiguredEventExecutionAction[] = applies
         ? [
@@ -1635,10 +1640,11 @@ namespace XiannongCore.Quests {
           ...(shouldSummon ? [
             { kind: "summon_first_spirit" as const, spiritId, job },
             { kind: "set_spirit_guaranteed" as const, value: true },
-            ...completedFlags.map((flag) => ({ kind: "complete_flag" as const, flag })),
             { kind: "trigger_spirit_join_feedback" as const, source: "first_join" },
-            { kind: "play_cue" as const, cue },
+            { kind: "play_cue" as const, cue, audioKey: "audio_spirit_birth" },
             { kind: "log_first_spirit_birth" as const },
+            { kind: "complete_progress" as const, flag: "spirit" },
+            { kind: "complete_flag" as const, flag: "first_spirit_birth" },
           ] : []),
         ]
         : [];
@@ -1662,7 +1668,7 @@ namespace XiannongCore.Quests {
         && !setHas(state.completed, "spirit_ui_unlocked")
         && !setHas(state.completed, "spirit_panel_unlocked");
       const completedFlags = applies ? ["spirit_ui_unlocked", "spirit_panel_unlocked", "spirit"] : [];
-      const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+      const cue = applies ? "\u6253\u5f00\u754c\u9762" : "";
       const actions: ConfiguredEventExecutionAction[] = applies
         ? [
           { kind: "trigger_event", eventId: plan.eventId },

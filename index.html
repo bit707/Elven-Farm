@@ -11,7 +11,7 @@
       <section class="stage" aria-label="洞天农场">
         <div class="skyline">
           <div>
-            <p class="eyebrow">Steam Vertical Slice · P0</p>
+            <p class="eyebrow">节气种田 · 精怪工坊 · 洞天经营</p>
             <h1>仙农洞天：精怪工坊</h1>
           </div>
           <img class="capsule-art" src="assets/capsule-main.svg" alt="仙农洞天主胶囊图" />
@@ -22,9 +22,9 @@
             </div>
         </div>
 
-        <section id="demoGuidePanel" class="demo-guide-panel" aria-label="试玩导演提示">
+        <section id="demoGuidePanel" class="demo-guide-panel" aria-label="开局引导提示">
           <div>
-            <p class="eyebrow">Demo Director</p>
+            <p class="eyebrow">开局引路</p>
             <h2 id="demoGuideTitle">先把第一块灵田点亮</h2>
             <p id="demoGuideText">点击灵田后，从右侧按钮开始播种、浇水、入夜，先跑通第一天的收获节奏。</p>
             <div id="demoGuideFirstSteps" class="demo-guide-first-steps" aria-label="新手前三步理解卡"></div>
@@ -49,6 +49,7 @@
               <button id="saveButton" type="button">存档</button>
               <button id="loadButton" type="button">读档</button>
               <button id="newGameButton" type="button">新开档</button>
+              <button id="year2YearbookButton" type="button">洞天年鉴</button>
             </div>
 
             <div class="settings-panel">
@@ -68,6 +69,7 @@
             </div>
 
             <div class="shop-control-panel">
+              <div id="year2YearbookQuickCard" class="year2-yearbook-quick-card" aria-live="polite"></div>
               <label class="setting-row" for="seedSelect">
                 <span>当前种子</span>
                 <select id="seedSelect"></select>
@@ -134,7 +136,7 @@
           <div id="storyPanel" class="story-panel"></div>
         </div>
         <div class="mission-column">
-          <h2>Demo 主线</h2>
+          <h2>主线任务</h2>
           <div id="missionPanel" class="mission-panel"></div>
         </div>
         <div class="quest-column">
@@ -178,15 +180,15 @@
           <div id="finalSupportPanel" class="final-support-panel"></div>
         </div>
         <div class="release-column">
-          <h2>发布检查</h2>
+          <h2>版本检查</h2>
           <div id="releasePanel" class="release-panel"></div>
         </div>
         <div class="platform-column">
-          <h2>Steamworks 平台</h2>
+          <h2>平台桥接</h2>
           <div id="platformPanel" class="platform-panel"></div>
         </div>
         <div class="achievement-column">
-          <h2>Steam 成就</h2>
+          <h2>成就与云存档</h2>
           <div id="achievementPanel" class="achievement-panel"></div>
         </div>
         <div class="acceptance-column">
@@ -202,7 +204,7 @@
           <div id="localizationPanel" class="localization-panel"></div>
         </div>
         <div class="community-column">
-          <h2>社区宣发</h2>
+          <h2>内容日历</h2>
           <div id="communityPanel" class="community-panel"></div>
         </div>
         <div class="condition-column">
@@ -230,7 +232,7 @@
           <div id="buildPanel" class="build-panel"></div>
         </div>
         <div class="asset-column">
-          <h2>Steam 素材预览</h2>
+          <h2>素材审计</h2>
           <div id="assetPanel" class="asset-panel"></div>
         </div>
       </section>

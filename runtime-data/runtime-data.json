@@ -4702,7 +4702,7 @@
         "weight",
         "note"
       ],
-      "rowCount": 18,
+      "rowCount": 36,
       "rows": [
         {
           "voice_id": "voice_luobo_idle_01",
@@ -4865,6 +4865,168 @@
           "text_key": "voice_bucao_final_01",
           "weight": "6",
           "note": "banquet finish"
+        },
+        {
+          "voice_id": "voice_hualing_idle_01",
+          "spirit_id": "spirit_line_hualing",
+          "voice_type": "idle",
+          "condition_group": "always_true",
+          "text_key": "voice_hualing_idle_01",
+          "weight": "10",
+          "note": "rare flower-bell idle"
+        },
+        {
+          "voice_id": "voice_hualing_work_01",
+          "spirit_id": "spirit_line_hualing",
+          "voice_type": "work",
+          "condition_group": "always_true",
+          "text_key": "voice_hualing_work_01",
+          "weight": "8",
+          "note": "rare flower-bell greeting"
+        },
+        {
+          "voice_id": "voice_hualing_happy_01",
+          "spirit_id": "spirit_line_hualing",
+          "voice_type": "happy",
+          "condition_group": "always_true",
+          "text_key": "voice_hualing_happy_01",
+          "weight": "8",
+          "note": "rare flower-bell return guest"
+        },
+        {
+          "voice_id": "voice_leizhu_idle_01",
+          "spirit_id": "spirit_line_leizhu",
+          "voice_type": "idle",
+          "condition_group": "always_true",
+          "text_key": "voice_leizhu_idle_01",
+          "weight": "10",
+          "note": "rare thunder-bamboo idle"
+        },
+        {
+          "voice_id": "voice_leizhu_work_01",
+          "spirit_id": "spirit_line_leizhu",
+          "voice_type": "work",
+          "condition_group": "always_true",
+          "text_key": "voice_leizhu_work_01",
+          "weight": "8",
+          "note": "rare thunder-bamboo escort"
+        },
+        {
+          "voice_id": "voice_leizhu_happy_01",
+          "spirit_id": "spirit_line_leizhu",
+          "voice_type": "happy",
+          "condition_group": "always_true",
+          "text_key": "voice_leizhu_happy_01",
+          "weight": "8",
+          "note": "rare thunder-bamboo smooth route"
+        },
+        {
+          "voice_id": "voice_yuelian_idle_01",
+          "spirit_id": "spirit_line_yuelian",
+          "voice_type": "idle",
+          "condition_group": "always_true",
+          "text_key": "voice_yuelian_idle_01",
+          "weight": "10",
+          "note": "rare moon-lotus idle"
+        },
+        {
+          "voice_id": "voice_yuelian_work_01",
+          "spirit_id": "spirit_line_yuelian",
+          "voice_type": "work",
+          "condition_group": "always_true",
+          "text_key": "voice_yuelian_work_01",
+          "weight": "8",
+          "note": "rare moon-lotus respite"
+        },
+        {
+          "voice_id": "voice_yuelian_happy_01",
+          "spirit_id": "spirit_line_yuelian",
+          "voice_type": "happy",
+          "condition_group": "always_true",
+          "text_key": "voice_yuelian_happy_01",
+          "weight": "8",
+          "note": "rare moon-lotus calm night"
+        },
+        {
+          "voice_id": "voice_dengying_idle_01",
+          "spirit_id": "spirit_line_dengying",
+          "voice_type": "idle",
+          "condition_group": "always_true",
+          "text_key": "voice_dengying_idle_01",
+          "weight": "10",
+          "note": "rare lamp-shadow idle"
+        },
+        {
+          "voice_id": "voice_dengying_work_01",
+          "spirit_id": "spirit_line_dengying",
+          "voice_type": "work",
+          "condition_group": "always_true",
+          "text_key": "voice_dengying_work_01",
+          "weight": "8",
+          "note": "rare lamp-shadow scouting"
+        },
+        {
+          "voice_id": "voice_dengying_happy_01",
+          "spirit_id": "spirit_line_dengying",
+          "voice_type": "happy",
+          "condition_group": "always_true",
+          "text_key": "voice_dengying_happy_01",
+          "weight": "8",
+          "note": "rare lamp-shadow lantern road"
+        },
+        {
+          "voice_id": "voice_shuqi_idle_01",
+          "spirit_id": "spirit_line_shuqi",
+          "voice_type": "idle",
+          "condition_group": "always_true",
+          "text_key": "voice_shuqi_idle_01",
+          "weight": "10",
+          "note": "rare ledger-sprite idle"
+        },
+        {
+          "voice_id": "voice_shuqi_work_01",
+          "spirit_id": "spirit_line_shuqi",
+          "voice_type": "work",
+          "condition_group": "always_true",
+          "text_key": "voice_shuqi_work_01",
+          "weight": "8",
+          "note": "rare ledger-sprite stock warning"
+        },
+        {
+          "voice_id": "voice_shuqi_happy_01",
+          "spirit_id": "spirit_line_shuqi",
+          "voice_type": "happy",
+          "condition_group": "always_true",
+          "text_key": "voice_shuqi_happy_01",
+          "weight": "8",
+          "note": "rare ledger-sprite smooth books"
+        },
+        {
+          "voice_id": "voice_fengmi_idle_01",
+          "spirit_id": "spirit_line_fengmi",
+          "voice_type": "idle",
+          "condition_group": "always_true",
+          "text_key": "voice_fengmi_idle_01",
+          "weight": "10",
+          "note": "rare honey-sprite idle"
+        },
+        {
+          "voice_id": "voice_fengmi_work_01",
+          "spirit_id": "spirit_line_fengmi",
+          "voice_type": "work",
+          "condition_group": "always_true",
+          "text_key": "voice_fengmi_work_01",
+          "weight": "8",
+          "note": "rare honey-sprite blending"
+        },
+        {
+          "voice_id": "voice_fengmi_happy_01",
+          "spirit_id": "spirit_line_fengmi",
+          "voice_type": "happy",
+          "condition_group": "always_true",
+          "text_key": "voice_fengmi_happy_01",
+          "weight": "8",
+          "note": "rare honey-sprite feast warmth"
         }
       ]
     },
@@ -5859,7 +6021,7 @@
         "priority",
         "note"
       ],
-      "rowCount": 10,
+      "rowCount": 11,
       "rows": [
         {
           "goal_id": "ygb_001",
@@ -5931,16 +6093,29 @@
           "goal_type": "seasonal",
           "display_slot": "month",
           "recommend_weight": "100",
-          "unlock_condition": "current_term==qingming",
-          "complete_condition": "complete_flower_shop_theme>=1",
+          "unlock_condition": "current_term==guyu",
+          "complete_condition": "completed_order_term_0001>=1",
           "reward_type": "clue",
           "reward_value": "rare_spirit_hualing",
           "estimated_minutes": "120",
           "priority": "P0",
-          "note": "节气限定目标"
+          "note": "谷雨春茶卖成后会把花铃系线索接进年鉴"
         },
         {
           "goal_id": "ygb_007",
+          "goal_type": "seasonal",
+          "display_slot": "month",
+          "recommend_weight": "100",
+          "unlock_condition": "current_term==bailu",
+          "complete_condition": "completed_solar_trial_trial_bailu_gift>=1",
+          "reward_type": "item",
+          "reward_value": "item_tea_story_blend",
+          "estimated_minutes": "120",
+          "priority": "P0",
+          "note": "白露凝香试会把礼线和岁事茶拼真正跑成一套"
+        },
+        {
+          "goal_id": "ygb_008",
           "goal_type": "seasonal",
           "display_slot": "month",
           "recommend_weight": "100",
@@ -5953,7 +6128,7 @@
           "note": "冬至灯影线"
         },
         {
-          "goal_id": "ygb_008",
+          "goal_id": "ygb_009",
           "goal_type": "collection",
           "display_slot": "longterm",
           "recommend_weight": "60",
@@ -5966,7 +6141,7 @@
           "note": "全稀有精怪收集"
         },
         {
-          "goal_id": "ygb_009",
+          "goal_id": "ygb_010",
           "goal_type": "relationship",
           "display_slot": "longterm",
           "recommend_weight": "75",
@@ -5979,7 +6154,7 @@
           "note": "满羁绊事件"
         },
         {
-          "goal_id": "ygb_010",
+          "goal_id": "ygb_011",
           "goal_type": "challenge",
           "display_slot": "longterm",
           "recommend_weight": "70",
@@ -5990,6 +6165,205 @@
           "estimated_minutes": "240",
           "priority": "P2",
           "note": "深度玩家挑战"
+        }
+      ]
+    },
+    "year2ContentPlan": {
+      "key": "year2ContentPlan",
+      "path": "csv/year2_content_plan.csv",
+      "columns": [
+        "content_id",
+        "content_name",
+        "content_type",
+        "unlock_condition_group",
+        "core_loop_tag",
+        "chapter_phase",
+        "repeat_cycle",
+        "reward_group",
+        "retention_goal",
+        "note"
+      ],
+      "rowCount": 15,
+      "rows": [
+        {
+          "content_id": "year2_sandbox_001",
+          "content_name": "洞天扩建与自由造景",
+          "content_type": "sandbox_build",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "core_loop_tag": "build_decorate",
+          "chapter_phase": "year2_start",
+          "repeat_cycle": "weekly",
+          "reward_group": "pool_reward_year2_build",
+          "retention_goal": "长线建造目标",
+          "note": "开放更大洞天区域与高级造景评分"
+        },
+        {
+          "content_id": "year2_shop_001",
+          "content_name": "名铺评级赛季",
+          "content_type": "season_system",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "core_loop_tag": "shop_mastery",
+          "chapter_phase": "year2_start",
+          "repeat_cycle": "monthly",
+          "reward_group": "pool_reward_year2_shop",
+          "retention_goal": "经营长期追求",
+          "note": "以月度评级推动店铺陈列与定价优化"
+        },
+        {
+          "content_id": "year2_trade_001",
+          "content_name": "跨界飞舟商路",
+          "content_type": "trade_meta",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "core_loop_tag": "interrealm_trade",
+          "chapter_phase": "year2_mid",
+          "repeat_cycle": "weekly",
+          "reward_group": "pool_reward_year2_trade",
+          "retention_goal": "高价值订单驱动",
+          "note": "开启跨界航线与稀有订单链"
+        },
+        {
+          "content_id": "year2_relationship_001",
+          "content_name": "同住后日谈与生活事件",
+          "content_type": "relationship_meta",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "core_loop_tag": "cohab_life",
+          "chapter_phase": "year2_start",
+          "repeat_cycle": "daily",
+          "reward_group": "pool_reward_year2_cohab",
+          "retention_goal": "情感留存",
+          "note": "高好感 NPC 进入同住与共同生活阶段"
+        },
+        {
+          "content_id": "year2_spirit_001",
+          "content_name": "三阶精怪共居生态",
+          "content_type": "spirit_meta",
+          "unlock_condition_group": "chapter_3_complete",
+          "core_loop_tag": "spirit_ecology",
+          "chapter_phase": "year2_start",
+          "repeat_cycle": "daily",
+          "reward_group": "pool_reward_year2_spirit",
+          "retention_goal": "精怪养成留存",
+          "note": "精怪宿舍协同与高级生态岗位"
+        },
+        {
+          "content_id": "year2_festival_001",
+          "content_name": "二十四节气年轮挑战",
+          "content_type": "festival_meta",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "core_loop_tag": "term_mastery",
+          "chapter_phase": "year2_start",
+          "repeat_cycle": "term",
+          "reward_group": "pool_reward_year2_term",
+          "retention_goal": "内容再消费",
+          "note": "第二年强化节气挑战与节庆连锁收益"
+        },
+        {
+          "content_id": "year2_dungeon_001",
+          "content_name": "隐藏秘境轮换",
+          "content_type": "explore_meta",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "core_loop_tag": "dungeon_rotation",
+          "chapter_phase": "year2_mid",
+          "repeat_cycle": "biweekly",
+          "reward_group": "pool_reward_year2_dungeon",
+          "retention_goal": "探索重复可玩性",
+          "note": "水系秘境和守阵残脉轮换开启"
+        },
+        {
+          "content_id": "year2_town_001",
+          "content_name": "凡仙镇共建委托",
+          "content_type": "town_meta",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "core_loop_tag": "town_rebuild",
+          "chapter_phase": "year2_mid",
+          "repeat_cycle": "weekly",
+          "reward_group": "pool_reward_year2_town",
+          "retention_goal": "社区成长反馈",
+          "note": "通过公共工程持续改变镇貌与功能"
+        },
+        {
+          "content_id": "year2_spirit_bond_001",
+          "content_name": "精怪终身羁绊",
+          "content_type": "spirit_bond",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "core_loop_tag": "spirit_bond",
+          "chapter_phase": "year2_start",
+          "repeat_cycle": "daily",
+          "reward_group": "pool_reward_goal_bond_first",
+          "retention_goal": "情感与养成留存",
+          "note": "三阶精怪继续开放 10 级羁绊和记忆事件"
+        },
+        {
+          "content_id": "year2_spirit_expedition_001",
+          "content_name": "精怪远征小队",
+          "content_type": "spirit_expedition",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "core_loop_tag": "spirit_expedition",
+          "chapter_phase": "year2_mid",
+          "repeat_cycle": "weekly",
+          "reward_group": "pool_reward_exp_yearwheel",
+          "retention_goal": "探索与经营留存",
+          "note": "派遣精怪处理商路秘境和镇建委托"
+        },
+        {
+          "content_id": "year2_ecology_combo_001",
+          "content_name": "主题生态庭院",
+          "content_type": "ecology_combo",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "core_loop_tag": "spirit_ecology",
+          "chapter_phase": "year2_start",
+          "repeat_cycle": "weekly",
+          "reward_group": "pool_reward_goal_ecology",
+          "retention_goal": "造景与经营留存",
+          "note": "通过精怪建筑作物组合形成可评分庭院"
+        },
+        {
+          "content_id": "year2_free_goal_001",
+          "content_name": "后主线自由目标册",
+          "content_type": "freeplay_goal",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "core_loop_tag": "freeplay_goal",
+          "chapter_phase": "year2_start",
+          "repeat_cycle": "monthly",
+          "reward_group": "pool_reward_goal_trial_all",
+          "retention_goal": "长期目标留存",
+          "note": "把日周月年目标统一展示为通关后追求"
+        },
+        {
+          "content_id": "year2_skyferry_001",
+          "content_name": "飞舟主航线",
+          "content_type": "trade_meta",
+          "unlock_condition_group": "npc_hu_sihai_favor_5",
+          "core_loop_tag": "interrealm_flagship",
+          "chapter_phase": "year2_end",
+          "repeat_cycle": "weekly",
+          "reward_group": "pool_reward_year2_trade",
+          "retention_goal": "高阶跨界循环",
+          "note": "以飞舟主航线承接顶级商路与跨界贵客订单"
+        },
+        {
+          "content_id": "year2_publicworks_001",
+          "content_name": "高阶公共工程共建",
+          "content_type": "town_meta",
+          "unlock_condition_group": "shop_rank_score>=1200",
+          "core_loop_tag": "town_publicworks",
+          "chapter_phase": "year2_end",
+          "repeat_cycle": "weekly",
+          "reward_group": "pool_reward_year2_town",
+          "retention_goal": "镇貌终局成长",
+          "note": "把镇上委托推进到能明显改变功能与景观的共建阶段"
+        },
+        {
+          "content_id": "year2_mastery_001",
+          "content_name": "终局自由目标总览",
+          "content_type": "freeplay_goal",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "core_loop_tag": "mastery_endgame",
+          "chapter_phase": "year2_end",
+          "repeat_cycle": "monthly",
+          "reward_group": "pool_reward_goal_bond_all",
+          "retention_goal": "多路线终局追求",
+          "note": "把名铺、生态庭院、年轮试炼与十灵同心整理成后段总目标"
         }
       ]
     },
@@ -6010,8 +6384,78 @@
         "rank_reward_tags",
         "note"
       ],
-      "rowCount": 5,
+      "rowCount": 24,
       "rows": [
+        {
+          "trial_id": "trial_lichun_seed",
+          "trial_name_key": "trial_name_lichun_seed",
+          "term_id": "term_lichun",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_luobo|spirit_line_shui|spirit_line_bucao",
+          "required_loop_tags": "spring_seed|earth_crop|basic_food",
+          "score_formula": "quality_score*0.45+spirit_score*0.3+order_score*0.25",
+          "reward_pool_id": "pool_reward_trial_guyu",
+          "rank_reward_tags": "decor|bond_exp|spring_seed",
+          "note": "lichun seed trial"
+        },
+        {
+          "trial_id": "trial_yushui_channels",
+          "trial_name_key": "trial_name_yushui_channels",
+          "term_id": "term_yushui",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_shui|spirit_line_yaoyuan|spirit_line_yuelian",
+          "required_loop_tags": "water_crop|growth_small|water_goods",
+          "score_formula": "quality_score*0.35+spirit_score*0.3+mark_score*0.35",
+          "reward_pool_id": "pool_reward_trial_guyu",
+          "rank_reward_tags": "decor|bond_exp|water_memory",
+          "note": "yushui channels trial"
+        },
+        {
+          "trial_id": "trial_jingzhe_patrol",
+          "trial_name_key": "trial_name_jingzhe_patrol",
+          "term_id": "term_jingzhe",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_suan|spirit_line_lajiao|spirit_line_dengying",
+          "required_loop_tags": "pest_sensitive|defense_goods|combat_spirit_up",
+          "score_formula": "risk_score*0.45+patrol_score*0.35+spirit_score*0.2",
+          "reward_pool_id": "pool_reward_trial_dashu",
+          "rank_reward_tags": "decor|bond_exp|patrol_tool",
+          "note": "jingzhe patrol trial"
+        },
+        {
+          "trial_id": "trial_chunfen_balance",
+          "trial_name_key": "trial_name_chunfen_balance",
+          "term_id": "term_chunfen",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_luobo|spirit_line_bucao|spirit_line_hualing",
+          "required_loop_tags": "balanced_growth|basic_goods|social_spirit_small",
+          "score_formula": "quality_score*0.35+shop_score*0.35+spirit_score*0.3",
+          "reward_pool_id": "pool_reward_trial_bailu",
+          "rank_reward_tags": "decor|bond_exp|balance_gift",
+          "note": "chunfen balance trial"
+        },
+        {
+          "trial_id": "trial_qingming_ritual",
+          "trial_name_key": "trial_name_qingming_ritual",
+          "term_id": "term_qingming",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_shuqi|spirit_line_hualing|spirit_line_yuelian",
+          "required_loop_tags": "wood_crop|ritual_goods|memory_spirit_small",
+          "score_formula": "display_score*0.35+mark_score*0.4+spirit_score*0.25",
+          "reward_pool_id": "pool_reward_trial_bailu",
+          "rank_reward_tags": "decor|bond_exp|ritual_memory",
+          "note": "qingming ritual trial"
+        },
         {
           "trial_id": "trial_guyu_herb",
           "trial_name_key": "trial_name_guyu_herb",
@@ -6025,6 +6469,76 @@
           "reward_pool_id": "pool_reward_trial_guyu",
           "rank_reward_tags": "decor|bond_exp|medicine_recipe",
           "note": "guyu herb trial"
+        },
+        {
+          "trial_id": "trial_lixia_workshop",
+          "trial_name_key": "trial_name_lixia_workshop",
+          "term_id": "term_lixia",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_lajiao|spirit_line_caikuang|spirit_line_bucao",
+          "required_loop_tags": "fire_crop|fire_goods|workshop_spirit_up",
+          "score_formula": "output_score*0.4+risk_score*0.25+quality_score*0.35",
+          "reward_pool_id": "pool_reward_trial_dashu",
+          "rank_reward_tags": "decor|bond_exp|workshop_heat",
+          "note": "lixia workshop trial"
+        },
+        {
+          "trial_id": "trial_xiaoman_granary",
+          "trial_name_key": "trial_name_xiaoman_granary",
+          "term_id": "term_xiaoman",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_luobo|spirit_line_shui|spirit_line_bucao",
+          "required_loop_tags": "yield_up|grain_goods|farm_spirit_small",
+          "score_formula": "quality_score*0.45+output_score*0.3+order_score*0.25",
+          "reward_pool_id": "pool_reward_trial_guyu",
+          "rank_reward_tags": "decor|bond_exp|granary_store",
+          "note": "xiaoman granary trial"
+        },
+        {
+          "trial_id": "trial_mangzhong_harvest",
+          "trial_name_key": "trial_name_mangzhong_harvest",
+          "term_id": "term_mangzhong",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_luobo|spirit_line_suan|spirit_line_shui",
+          "required_loop_tags": "seeding_efficiency|grain_goods|farm_spirit_up",
+          "score_formula": "quality_score*0.35+output_score*0.35+spirit_score*0.3",
+          "reward_pool_id": "pool_reward_trial_guyu",
+          "rank_reward_tags": "decor|bond_exp|harvest_mark",
+          "note": "mangzhong harvest trial"
+        },
+        {
+          "trial_id": "trial_xiazhi_coolshop",
+          "trial_name_key": "trial_name_xiazhi_coolshop",
+          "term_id": "term_xiazhi",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_shui|spirit_line_hualing|spirit_line_meishi",
+          "required_loop_tags": "summer_growth|cool_food|water_spirit_small",
+          "score_formula": "customer_score*0.4+shop_score*0.35+festival_score*0.25",
+          "reward_pool_id": "pool_reward_trial_dongzhi",
+          "rank_reward_tags": "decor|bond_exp|coolshop_brand",
+          "note": "xiazhi coolshop trial"
+        },
+        {
+          "trial_id": "trial_xiaoshu_refresh",
+          "trial_name_key": "trial_name_xiaoshu_refresh",
+          "term_id": "term_xiaoshu",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_shui|spirit_line_yuelian|spirit_line_bucao",
+          "required_loop_tags": "water_crop|cold_drink|water_spirit_up",
+          "score_formula": "quality_score*0.3+customer_score*0.35+display_score*0.35",
+          "reward_pool_id": "pool_reward_trial_bailu",
+          "rank_reward_tags": "decor|bond_exp|refresh_drink",
+          "note": "xiaoshu refresh trial"
         },
         {
           "trial_id": "trial_dashu_fire",
@@ -6041,6 +6555,34 @@
           "note": "dashu fire trial"
         },
         {
+          "trial_id": "trial_liqiu_firstgrain",
+          "trial_name_key": "trial_name_liqiu_firstgrain",
+          "term_id": "term_liqiu",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_luobo|spirit_line_hualing|spirit_line_shuqi",
+          "required_loop_tags": "autumn_grain|grain_goods|shop_spirit_small",
+          "score_formula": "quality_score*0.35+shop_score*0.3+order_score*0.35",
+          "reward_pool_id": "pool_reward_trial_bailu",
+          "rank_reward_tags": "decor|bond_exp|grain_banner",
+          "note": "liqiu first grain trial"
+        },
+        {
+          "trial_id": "trial_chushu_storage",
+          "trial_name_key": "trial_name_chushu_storage",
+          "term_id": "term_chushu",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_bucao|spirit_line_shuqi|spirit_line_dengying",
+          "required_loop_tags": "earth_crop|storage_goods|utility_spirit_small",
+          "score_formula": "output_score*0.4+display_score*0.25+risk_score*0.35",
+          "reward_pool_id": "pool_reward_trial_dashu",
+          "rank_reward_tags": "decor|bond_exp|storage_route",
+          "note": "chushu storage trial"
+        },
+        {
           "trial_id": "trial_bailu_gift",
           "trial_name_key": "trial_name_bailu_gift",
           "term_id": "term_bailu",
@@ -6055,6 +6597,90 @@
           "note": "bailu gift trial"
         },
         {
+          "trial_id": "trial_qiufen_medicine",
+          "trial_name_key": "trial_name_qiufen_medicine",
+          "term_id": "term_qiufen",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_yaoyuan|spirit_line_shui|spirit_line_luobo",
+          "required_loop_tags": "medicine_crop|medicine_goods|farm_spirit_small",
+          "score_formula": "quality_score*0.4+mark_score*0.25+spirit_score*0.35",
+          "reward_pool_id": "pool_reward_trial_guyu",
+          "rank_reward_tags": "decor|bond_exp|medicine_archive",
+          "note": "qiufen medicine trial"
+        },
+        {
+          "trial_id": "trial_hanlu_warmgoods",
+          "trial_name_key": "trial_name_hanlu_warmgoods",
+          "term_id": "term_hanlu",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_meishi|spirit_line_lajiao|spirit_line_dengying",
+          "required_loop_tags": "cold_sensitive|warming_goods|combat_spirit_small",
+          "score_formula": "customer_score*0.35+festival_score*0.25+patrol_score*0.4",
+          "reward_pool_id": "pool_reward_trial_dongzhi",
+          "rank_reward_tags": "decor|bond_exp|warming_goods",
+          "note": "hanlu warmgoods trial"
+        },
+        {
+          "trial_id": "trial_shuangjiang_frost",
+          "trial_name_key": "trial_name_shuangjiang_frost",
+          "term_id": "term_shuangjiang",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_lajiao|spirit_line_suan|spirit_line_shui",
+          "required_loop_tags": "frost_sensitive|warming_goods|fire_goods",
+          "score_formula": "risk_score*0.35+survival_score*0.35+output_score*0.3",
+          "reward_pool_id": "pool_reward_trial_dashu",
+          "rank_reward_tags": "decor|bond_exp|frost_guard",
+          "note": "shuangjiang frost trial"
+        },
+        {
+          "trial_id": "trial_lidong_storehouse",
+          "trial_name_key": "trial_name_lidong_storehouse",
+          "term_id": "term_lidong",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_bucao|spirit_line_shuqi|spirit_line_yuelian",
+          "required_loop_tags": "winter_crop|storage_goods|utility_spirit_small",
+          "score_formula": "output_score*0.35+display_score*0.3+mark_score*0.35",
+          "reward_pool_id": "pool_reward_trial_dahan",
+          "rank_reward_tags": "decor|bond_exp|winter_store",
+          "note": "lidong storehouse trial"
+        },
+        {
+          "trial_id": "trial_xiaoxue_icegoods",
+          "trial_name_key": "trial_name_xiaoxue_icegoods",
+          "term_id": "term_xiaoxue",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_shui|spirit_line_meishi|spirit_line_yuelian",
+          "required_loop_tags": "cold_crop|ice_goods|water_spirit_small",
+          "score_formula": "quality_score*0.3+customer_score*0.35+festival_score*0.35",
+          "reward_pool_id": "pool_reward_trial_dongzhi",
+          "rank_reward_tags": "decor|bond_exp|icegoods_banner",
+          "note": "xiaoxue icegoods trial"
+        },
+        {
+          "trial_id": "trial_daxue_snowkitchen",
+          "trial_name_key": "trial_name_daxue_snowkitchen",
+          "term_id": "term_daxue",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_meishi|spirit_line_lajiao|spirit_line_bucao",
+          "required_loop_tags": "cold_crop|warming_goods|farm_spirit_small",
+          "score_formula": "festival_score*0.35+output_score*0.3+customer_score*0.35",
+          "reward_pool_id": "pool_reward_trial_dongzhi",
+          "rank_reward_tags": "decor|bond_exp|snow_feast",
+          "note": "daxue snow kitchen trial"
+        },
+        {
           "trial_id": "trial_dongzhi_lantern",
           "trial_name_key": "trial_name_dongzhi_lantern",
           "term_id": "term_dongzhi",
@@ -6067,6 +6693,20 @@
           "reward_pool_id": "pool_reward_trial_dongzhi",
           "rank_reward_tags": "decor|bond_exp|festival_recipe",
           "note": "dongzhi lantern trial"
+        },
+        {
+          "trial_id": "trial_xiaohan_craft",
+          "trial_name_key": "trial_name_xiaohan_craft",
+          "term_id": "term_xiaohan",
+          "unlock_condition_group": "quest_main_0403_complete",
+          "prep_days": "1",
+          "challenge_days": "3",
+          "recommended_spirit_lines": "spirit_line_caikuang|spirit_line_lajiao|spirit_line_shuqi",
+          "required_loop_tags": "process_goods|medicine_goods|workshop_spirit_small",
+          "score_formula": "output_score*0.4+quality_score*0.3+risk_score*0.3",
+          "reward_pool_id": "pool_reward_trial_dahan",
+          "rank_reward_tags": "decor|bond_exp|winter_craft",
+          "note": "xiaohan craft trial"
         },
         {
           "trial_id": "trial_dahan_guard",
@@ -22190,7 +22830,7 @@
         "qa_priority",
         "note"
       ],
-      "rowCount": 15,
+      "rowCount": 19,
       "rows": [
         {
           "field_id": "save_meta_version",
@@ -22325,6 +22965,18 @@
           "note": "active expeditions"
         },
         {
+          "field_id": "save_cohab_runtime",
+          "module_path": "relationships",
+          "field_name": "cohab_runtime_state",
+          "data_type": "map",
+          "default_value": "empty",
+          "added_version": "4",
+          "persist_required": "true",
+          "migration_required": "true",
+          "qa_priority": "P1",
+          "note": "post story cohab pending/history state"
+        },
+        {
           "field_id": "save_freeplay_goal",
           "module_path": "statistics",
           "field_name": "freeplay_goal_progress",
@@ -22349,6 +23001,18 @@
           "note": "year2 shop ranking"
         },
         {
+          "field_id": "save_solar_trial_records",
+          "module_path": "statistics",
+          "field_name": "solar_trial_records",
+          "data_type": "map",
+          "default_value": "empty",
+          "added_version": "3",
+          "persist_required": "true",
+          "migration_required": "true",
+          "qa_priority": "P1",
+          "note": "year2 solar trial best records"
+        },
+        {
           "field_id": "save_localization_seen",
           "module_path": "events",
           "field_name": "seen_dialogue_flags",
@@ -22371,6 +23035,30 @@
           "migration_required": "false",
           "qa_priority": "P1",
           "note": "audio settings"
+        },
+        {
+          "field_id": "save_rare_spirit_progress",
+          "module_path": "spirits",
+          "field_name": "rare_spirit_progress_state",
+          "data_type": "map",
+          "default_value": "empty",
+          "added_version": "4",
+          "persist_required": "true",
+          "migration_required": "true",
+          "qa_priority": "P1",
+          "note": "earned rare spirit trigger counters"
+        },
+        {
+          "field_id": "save_trade_progress",
+          "module_path": "trade",
+          "field_name": "trade_progress_state",
+          "data_type": "map",
+          "default_value": "empty",
+          "added_version": "5",
+          "persist_required": "true",
+          "migration_required": "true",
+          "qa_priority": "P1",
+          "note": "year2 trade route mastery faction favor and story hints"
         }
       ]
     },
@@ -22388,7 +23076,7 @@
         "rollback_policy",
         "note"
       ],
-      "rowCount": 6,
+      "rowCount": 10,
       "rows": [
         {
           "migration_id": "migration_001_core_init",
@@ -22455,6 +23143,50 @@
           "validation_check": "volume_range_0_1",
           "rollback_policy": "use_global_default",
           "note": "audio settings compatibility"
+        },
+        {
+          "migration_id": "migration_007_solar_trial_records",
+          "from_version": "2",
+          "to_version": "3",
+          "affected_module": "statistics",
+          "operation": "add_solar_trial_best_records",
+          "default_fill": "derive_from_completed_trials",
+          "validation_check": "solar_trial_records_resolve",
+          "rollback_policy": "backup_before_write",
+          "note": "adds replayable solar trial best-rank records"
+        },
+        {
+          "migration_id": "migration_008_rare_spirit_progress",
+          "from_version": "3",
+          "to_version": "4",
+          "affected_module": "spirits|events",
+          "operation": "add_rare_spirit_progress_state",
+          "default_fill": "empty_state",
+          "validation_check": "rare_spirit_progress_resolve",
+          "rollback_policy": "backup_before_write",
+          "note": "adds earned rare spirit trigger counters"
+        },
+        {
+          "migration_id": "migration_009_cohab_runtime",
+          "from_version": "3",
+          "to_version": "4",
+          "affected_module": "relationships",
+          "operation": "add_cohab_runtime_state",
+          "default_fill": "empty_state",
+          "validation_check": "cohab_runtime_resolve",
+          "rollback_policy": "backup_before_write",
+          "note": "adds post story cohab pending/history persistence"
+        },
+        {
+          "migration_id": "migration_010_trade_progress",
+          "from_version": "4",
+          "to_version": "5",
+          "affected_module": "trade",
+          "operation": "add_trade_progress_state",
+          "default_fill": "empty_state",
+          "validation_check": "trade_progress_resolve",
+          "rollback_policy": "backup_before_write",
+          "note": "adds route mastery faction favor and story hint persistence"
         }
       ]
     },
@@ -23391,7 +24123,7 @@
         "zh_cn",
         "note"
       ],
-      "rowCount": 937,
+      "rowCount": 991,
       "rows": [
         {
           "text_key": "item_name_seed_qingya_baicai",
@@ -25074,9 +25806,27 @@
           "note": "二十四节气"
         },
         {
+          "text_key": "term_name_yushui",
+          "text_type": "term",
+          "zh_cn": "雨水",
+          "note": "二十四节气"
+        },
+        {
           "text_key": "term_name_jingzhe",
           "text_type": "term",
           "zh_cn": "惊蛰",
+          "note": "二十四节气"
+        },
+        {
+          "text_key": "term_name_chunfen",
+          "text_type": "term",
+          "zh_cn": "春分",
+          "note": "二十四节气"
+        },
+        {
+          "text_key": "term_name_qingming",
+          "text_type": "term",
+          "zh_cn": "清明",
           "note": "二十四节气"
         },
         {
@@ -25086,9 +25836,51 @@
           "note": "二十四节气"
         },
         {
+          "text_key": "term_name_lixia",
+          "text_type": "term",
+          "zh_cn": "立夏",
+          "note": "二十四节气"
+        },
+        {
+          "text_key": "term_name_xiaoman",
+          "text_type": "term",
+          "zh_cn": "小满",
+          "note": "二十四节气"
+        },
+        {
+          "text_key": "term_name_mangzhong",
+          "text_type": "term",
+          "zh_cn": "芒种",
+          "note": "二十四节气"
+        },
+        {
+          "text_key": "term_name_xiazhi",
+          "text_type": "term",
+          "zh_cn": "夏至",
+          "note": "二十四节气"
+        },
+        {
+          "text_key": "term_name_xiaoshu",
+          "text_type": "term",
+          "zh_cn": "小暑",
+          "note": "二十四节气"
+        },
+        {
           "text_key": "term_name_dashu",
           "text_type": "term",
           "zh_cn": "大暑",
+          "note": "二十四节气"
+        },
+        {
+          "text_key": "term_name_liqiu",
+          "text_type": "term",
+          "zh_cn": "立秋",
+          "note": "二十四节气"
+        },
+        {
+          "text_key": "term_name_chushu",
+          "text_type": "term",
+          "zh_cn": "处暑",
           "note": "二十四节气"
         },
         {
@@ -25098,15 +25890,57 @@
           "note": "二十四节气"
         },
         {
+          "text_key": "term_name_qiufen",
+          "text_type": "term",
+          "zh_cn": "秋分",
+          "note": "二十四节气"
+        },
+        {
+          "text_key": "term_name_hanlu",
+          "text_type": "term",
+          "zh_cn": "寒露",
+          "note": "二十四节气"
+        },
+        {
           "text_key": "term_name_shuangjiang",
           "text_type": "term",
           "zh_cn": "霜降",
           "note": "二十四节气"
         },
         {
+          "text_key": "term_name_lidong",
+          "text_type": "term",
+          "zh_cn": "立冬",
+          "note": "二十四节气"
+        },
+        {
+          "text_key": "term_name_xiaoxue",
+          "text_type": "term",
+          "zh_cn": "小雪",
+          "note": "二十四节气"
+        },
+        {
+          "text_key": "term_name_daxue",
+          "text_type": "term",
+          "zh_cn": "大雪",
+          "note": "二十四节气"
+        },
+        {
           "text_key": "term_name_dongzhi",
           "text_type": "term",
           "zh_cn": "冬至",
+          "note": "二十四节气"
+        },
+        {
+          "text_key": "term_name_xiaohan",
+          "text_type": "term",
+          "zh_cn": "小寒",
+          "note": "二十四节气"
+        },
+        {
+          "text_key": "term_name_dahan",
+          "text_type": "term",
+          "zh_cn": "大寒",
           "note": "二十四节气"
         },
         {
@@ -26136,6 +26970,114 @@
           "note": "布草终章"
         },
         {
+          "text_key": "voice_hualing_idle_01",
+          "text_type": "voice",
+          "zh_cn": "门口的风一甜，花铃就先替你招呼啦。",
+          "note": "花铃精待机"
+        },
+        {
+          "text_key": "voice_hualing_work_01",
+          "text_type": "voice",
+          "zh_cn": "这位客人脚步轻，我去把花香往前送半步。",
+          "note": "花铃精工作"
+        },
+        {
+          "text_key": "voice_hualing_happy_01",
+          "text_type": "voice",
+          "zh_cn": "你看，回头客闻着熟花香，又自己停在门前了。",
+          "note": "花铃精开心"
+        },
+        {
+          "text_key": "voice_leizhu_idle_01",
+          "text_type": "voice",
+          "zh_cn": "竹节还热着呢，今天这条路多半跑得顺。",
+          "note": "雷竹精待机"
+        },
+        {
+          "text_key": "voice_leizhu_work_01",
+          "text_type": "voice",
+          "zh_cn": "我先敲货角听听绳结，稳了再往雨里闯。",
+          "note": "雷竹精工作"
+        },
+        {
+          "text_key": "voice_leizhu_happy_01",
+          "text_type": "voice",
+          "zh_cn": "这一趟风雷都认路，货和人都能平安回门。",
+          "note": "雷竹精开心"
+        },
+        {
+          "text_key": "voice_yuelian_idle_01",
+          "text_type": "voice",
+          "zh_cn": "池面先静下来，大家的心才有地方落。",
+          "note": "月莲精待机"
+        },
+        {
+          "text_key": "voice_yuelian_work_01",
+          "text_type": "voice",
+          "zh_cn": "今夜少派一桩也好，让露气替它们慢慢回神。",
+          "note": "月莲精工作"
+        },
+        {
+          "text_key": "voice_yuelian_happy_01",
+          "text_type": "voice",
+          "zh_cn": "水脉记住了这份温柔，明早醒来会安静许多。",
+          "note": "月莲精开心"
+        },
+        {
+          "text_key": "voice_dengying_idle_01",
+          "text_type": "voice",
+          "zh_cn": "灯还亮着，我就先替你看住那一小段黑。",
+          "note": "灯影精待机"
+        },
+        {
+          "text_key": "voice_dengying_work_01",
+          "text_type": "voice",
+          "zh_cn": "你往前走，我把影子接过去，路就不会断。",
+          "note": "灯影精工作"
+        },
+        {
+          "text_key": "voice_dengying_happy_01",
+          "text_type": "voice",
+          "zh_cn": "今晚灯路连得真长呀，回来的人一眼就认得家门。",
+          "note": "灯影精开心"
+        },
+        {
+          "text_key": "voice_shuqi_idle_01",
+          "text_type": "voice",
+          "zh_cn": "别急着翻页，今天少赚的地方还在这行边上呢。",
+          "note": "书契精待机"
+        },
+        {
+          "text_key": "voice_shuqi_work_01",
+          "text_type": "voice",
+          "zh_cn": "缺货签我已经压好了，你照着补，客人就不容易走空。",
+          "note": "书契精工作"
+        },
+        {
+          "text_key": "voice_shuqi_happy_01",
+          "text_type": "voice",
+          "zh_cn": "这页账终于顺了，连回头客都像按着批注回来。",
+          "note": "书契精开心"
+        },
+        {
+          "text_key": "voice_fengmi_idle_01",
+          "text_type": "voice",
+          "zh_cn": "花蜜先别急着下锅，我再闻闻今天该亮哪一层甜。",
+          "note": "蜂蜜精待机"
+        },
+        {
+          "text_key": "voice_fengmi_work_01",
+          "text_type": "voice",
+          "zh_cn": "这一勺先提香，后一勺压回味，客人才会记住第一口。",
+          "note": "蜂蜜精工作"
+        },
+        {
+          "text_key": "voice_fengmi_happy_01",
+          "text_type": "voice",
+          "zh_cn": "院子里一暖起来，甜香就会把熟客和伙伴都引回桌边。",
+          "note": "蜂蜜精开心"
+        },
+        {
           "text_key": "side_quest_hint_map_01",
           "text_type": "ui_hint",
           "zh_cn": "支线对白映射已经接入，可以按任务步骤回查对应演出与文本。",
@@ -27006,9 +27948,69 @@
           "note": "生态组合名"
         },
         {
+          "text_key": "trial_name_lichun_seed",
+          "text_type": "name",
+          "zh_cn": "立春开畦试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_yushui_channels",
+          "text_type": "name",
+          "zh_cn": "雨水通渠试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_jingzhe_patrol",
+          "text_type": "name",
+          "zh_cn": "惊蛰巡畦试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_chunfen_balance",
+          "text_type": "name",
+          "zh_cn": "春分匀衡试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_qingming_ritual",
+          "text_type": "name",
+          "zh_cn": "清明留香试",
+          "note": "年轮试炼名"
+        },
+        {
           "text_key": "trial_name_guyu_herb",
           "text_type": "name",
           "zh_cn": "谷雨百草试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_lixia_workshop",
+          "text_type": "name",
+          "zh_cn": "立夏开炉试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_xiaoman_granary",
+          "text_type": "name",
+          "zh_cn": "小满盈仓试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_mangzhong_harvest",
+          "text_type": "name",
+          "zh_cn": "芒种抢晴试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_xiazhi_coolshop",
+          "text_type": "name",
+          "zh_cn": "夏至凉招试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_xiaoshu_refresh",
+          "text_type": "name",
+          "zh_cn": "小暑解渴试",
           "note": "年轮试炼名"
         },
         {
@@ -27018,15 +28020,69 @@
           "note": "年轮试炼名"
         },
         {
+          "text_key": "trial_name_liqiu_firstgrain",
+          "text_type": "name",
+          "zh_cn": "立秋尝新试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_chushu_storage",
+          "text_type": "name",
+          "zh_cn": "处暑收仓试",
+          "note": "年轮试炼名"
+        },
+        {
           "text_key": "trial_name_bailu_gift",
           "text_type": "name",
           "zh_cn": "白露凝香试",
           "note": "年轮试炼名"
         },
         {
+          "text_key": "trial_name_qiufen_medicine",
+          "text_type": "name",
+          "zh_cn": "秋分归药试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_hanlu_warmgoods",
+          "text_type": "name",
+          "zh_cn": "寒露暖客试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_shuangjiang_frost",
+          "text_type": "name",
+          "zh_cn": "霜降护畦试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_lidong_storehouse",
+          "text_type": "name",
+          "zh_cn": "立冬封藏试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_xiaoxue_icegoods",
+          "text_type": "name",
+          "zh_cn": "小雪冰市试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_daxue_snowkitchen",
+          "text_type": "name",
+          "zh_cn": "大雪暖灶试",
+          "note": "年轮试炼名"
+        },
+        {
           "text_key": "trial_name_dongzhi_lantern",
           "text_type": "name",
           "zh_cn": "冬至宴灯试",
+          "note": "年轮试炼名"
+        },
+        {
+          "text_key": "trial_name_xiaohan_craft",
+          "text_type": "name",
+          "zh_cn": "小寒炼作试",
           "note": "年轮试炼名"
         },
         {
@@ -29018,5 +30074,5 @@
       ]
     }
   },
-  "contentHash": "6e77a62aac98ac77045657855e85485546a65268a268238ac7c1acb4f8467a08"
+  "contentHash": "ec6c4d8de45606d6f138e3eb4fb23212001204917de4e88979e7661834f7f3f3"
 }

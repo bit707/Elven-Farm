@@ -10,7 +10,11 @@ save_spirit_bond,spirits,bond_level_map,map,empty,2,true,true,P0,post story spir
 save_spirit_mastery,spirits,job_mastery_map,map,empty,2,true,true,P1,spirit job mastery
 save_ecology_combo,buildings,ecology_combo_state,map,empty,2,true,true,P1,ecology combo ranking
 save_expedition_state,exploration,active_spirit_expeditions,array,empty,2,true,true,P1,active expeditions
+save_cohab_runtime,relationships,cohab_runtime_state,map,empty,4,true,true,P1,post story cohab pending/history state
 save_freeplay_goal,statistics,freeplay_goal_progress,map,empty,2,true,true,P1,post story goals
 save_shop_season,shop,year2_shop_season_state,map,empty,2,true,true,P1,year2 shop ranking
+save_solar_trial_records,statistics,solar_trial_records,map,empty,3,true,true,P1,year2 solar trial best records
 save_localization_seen,events,seen_dialogue_flags,string_array,empty,1,true,false,P2,seen dialogue flags
 save_audio_settings,settings,audio_bus_volume_map,map,default_audio_bus,1,true,false,P1,audio settings
+save_rare_spirit_progress,spirits,rare_spirit_progress_state,map,empty,4,true,true,P1,earned rare spirit trigger counters
+save_trade_progress,trade,trade_progress_state,map,empty,5,true,true,P1,year2 trade route mastery faction favor and story hints

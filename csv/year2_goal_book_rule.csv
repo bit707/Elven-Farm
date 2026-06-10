@@ -4,8 +4,9 @@ ygb_002,daily,today,95,shop_level>=3,complete_order_count>=1,currency,copper_120
 ygb_003,daily,today,90,expedition_unlocked,send_expedition_count>=1,item,route_clue_small,10,P1,引导远征
 ygb_004,weekly,week,80,job_mastery_unlocked,any_spirit_job_level>=3,title,job_apprentice_badge,60,P1,岗位熟练目标
 ygb_005,weekly,week,85,shop_season_active,shop_score>=1200,reputation,shop_rank_point_80,90,P1,名铺赛季目标
-ygb_006,seasonal,month,100,current_term==qingming,complete_flower_shop_theme>=1,clue,rare_spirit_hualing,120,P0,节气限定目标
-ygb_007,seasonal,month,100,current_term==dongzhi,complete_lantern_dungeon>=1,furniture,lantern_memory_stand,120,P0,冬至灯影线
-ygb_008,collection,longterm,60,rare_spirit_system_unlocked,rare_spirit_count>=6,title,rare_spirit_collector,300,P2,全稀有精怪收集
-ygb_009,relationship,longterm,75,bond_level_cap>=10,any_spirit_bond>=10,cutscene,bond_final_event,180,P1,满羁绊事件
-ygb_010,challenge,longterm,70,solar_trial_unlocked,solar_trial_rank_a_count>=5,furniture,yearwheel_monument,240,P2,深度玩家挑战
+ygb_006,seasonal,month,100,current_term==guyu,completed_order_term_0001>=1,clue,rare_spirit_hualing,120,P0,谷雨春茶卖成后会把花铃系线索接进年鉴
+ygb_007,seasonal,month,100,current_term==bailu,completed_solar_trial_trial_bailu_gift>=1,item,item_tea_story_blend,120,P0,白露凝香试会把礼线和岁事茶拼真正跑成一套
+ygb_008,seasonal,month,100,current_term==dongzhi,complete_lantern_dungeon>=1,furniture,lantern_memory_stand,120,P0,冬至灯影线
+ygb_009,collection,longterm,60,rare_spirit_system_unlocked,rare_spirit_count>=6,title,rare_spirit_collector,300,P2,全稀有精怪收集
+ygb_010,relationship,longterm,75,bond_level_cap>=10,any_spirit_bond>=10,cutscene,bond_final_event,180,P1,满羁绊事件
+ygb_011,challenge,longterm,70,solar_trial_unlocked,solar_trial_rank_a_count>=5,furniture,yearwheel_monument,240,P2,深度玩家挑战

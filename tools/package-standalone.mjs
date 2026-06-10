@@ -3,7 +3,10 @@ import { basename, dirname, join } from "node:path";
 
 const outDir = join("dist", "xiannong-dongtian-standalone");
 const outHtml = join(outDir, "index.html");
-const csvObjectPattern = /const DATA_FILES = \{([\s\S]*?)\};/;
+const dataFilesPath = "src/game/data-files.js";
+const gameJsPath = "src/game.js";
+const csvObjectPattern = /(?:export\s+)?const DATA_FILES = \{([\s\S]*?)\};/;
+const localGameModuleImportPattern = /^import\s+\{[^}]+\}\s+from\s+"(\.\/game\/[^"]+\.js)";\s*$/gm;
 const assetMimeByExt = new Map([
   [".svg", "image/svg+xml"],
   [".png", "image/png"],
@@ -22,10 +25,35 @@ function writeText(path, text) {
   writeFileSync(path, text, "utf8");
 }
 
-function parseDataFiles(gameJs) {
-  const match = gameJs.match(csvObjectPattern);
-  if (!match) throw new Error("Cannot locate DATA_FILES in src/game.js");
+function parseDataFiles(source, sourcePath) {
+  const match = source.match(csvObjectPattern);
+  if (!match) throw new Error(`Cannot locate DATA_FILES in ${sourcePath}`);
   return [...match[1].matchAll(/(\w+):\s*"([^"]+\.csv)"/g)].map(([, key, path]) => ({ key, path }));
+}
+
+function loadDataFiles() {
+  for (const sourcePath of [dataFilesPath, gameJsPath]) {
+    if (!existsSync(sourcePath)) continue;
+    const source = readText(sourcePath);
+    if (csvObjectPattern.test(source)) return parseDataFiles(source, sourcePath);
+  }
+  throw new Error(`Cannot locate DATA_FILES in ${dataFilesPath} or ${gameJsPath}`);
+}
+
+function standaloneModuleSource(importPath) {
+  const sourcePath = join("src", importPath.replace(/^\.\//, ""));
+  const moduleSource = readText(sourcePath).replace(/\bexport\s+(?=(const|let|var|function|class)\b)/g, "");
+  return `// Bundled from ${sourcePath.replaceAll("\\", "/")}\n${moduleSource.trim()}`;
+}
+
+function bundleGameJsForStandalone(gameJs) {
+  const moduleImports = [];
+  const entrySource = gameJs.replace(localGameModuleImportPattern, (_full, importPath) => {
+    moduleImports.push(importPath);
+    return "";
+  });
+  const modules = [...new Set(moduleImports)].map(standaloneModuleSource).join("\n\n");
+  return `${modules}\n\n${entrySource}`.replace(/\/\/# sourceMappingURL=.*$/gm, "");
 }
 
 function extname(path) {
@@ -90,8 +118,8 @@ mkdirSync(outDir, { recursive: true });
 const html = readText("index.html");
 const css = readText("src/styles.css");
 const coreJs = readText("src/runtime/xiannong-core.js");
-const gameJs = readText("src/game.js");
-const dataFiles = parseDataFiles(gameJs);
+const gameJs = bundleGameJsForStandalone(readText(gameJsPath));
+const dataFiles = loadDataFiles();
 const assets = listAssets();
 const runtimeDataPayload = JSON.parse(readText("runtime-data/runtime-data.json"));
 

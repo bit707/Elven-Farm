@@ -30,6 +30,7 @@ const include = [
   "csv/spirit_ecology_combo.csv",
   "csv/early_reward_pacing.csv",
   "csv/year2_goal_book_rule.csv",
+  "csv/year2_content_plan.csv",
   "csv/year2_solar_trial.csv",
   "csv/rare_spirit_event_action.csv",
   "csv/freeplay_goal.csv",

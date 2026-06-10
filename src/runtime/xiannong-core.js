@@ -2161,7 +2161,7 @@ var XiannongCore;
                 const shouldSummon = applies && (state.spirits?.length || 0) === 0;
                 const spiritId = applies ? "spirit_luobo_01" : "";
                 const job = applies ? "farm" : "";
-                const completedFlags = shouldSummon ? ["spirit"] : [];
+                const completedFlags = shouldSummon ? ["spirit", "first_spirit_birth"] : [];
                 const cue = shouldSummon ? "\u7b2c\u4e00\u6b21\u6210\u7cbe" : "";
                 const actions = applies
                     ? [
@@ -2169,10 +2169,11 @@ var XiannongCore;
                         ...(shouldSummon ? [
                             { kind: "summon_first_spirit", spiritId, job },
                             { kind: "set_spirit_guaranteed", value: true },
-                            ...completedFlags.map((flag) => ({ kind: "complete_flag", flag })),
                             { kind: "trigger_spirit_join_feedback", source: "first_join" },
-                            { kind: "play_cue", cue },
+                            { kind: "play_cue", cue, audioKey: "audio_spirit_birth" },
                             { kind: "log_first_spirit_birth" },
+                            { kind: "complete_progress", flag: "spirit" },
+                            { kind: "complete_flag", flag: "first_spirit_birth" },
                         ] : []),
                     ]
                     : [];
@@ -2195,7 +2196,7 @@ var XiannongCore;
                     && !setHas(state.completed, "spirit_ui_unlocked")
                     && !setHas(state.completed, "spirit_panel_unlocked");
                 const completedFlags = applies ? ["spirit_ui_unlocked", "spirit_panel_unlocked", "spirit"] : [];
-                const cue = applies ? "\u6210\u5c31\u89e3\u9501" : "";
+                const cue = applies ? "\u6253\u5f00\u754c\u9762" : "";
                 const actions = applies
                     ? [
                         { kind: "trigger_event", eventId: plan.eventId },

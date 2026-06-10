@@ -2,9 +2,10 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
+const dataFilesPath = "src/game/data-files.js";
 const gameJsPath = "src/game.js";
 const outPath = join("runtime-data", "runtime-data.json");
-const csvObjectPattern = /const DATA_FILES = \{([\s\S]*?)\};/;
+const csvObjectPattern = /(?:export\s+)?const DATA_FILES = \{([\s\S]*?)\};/;
 
 function readText(path) {
   if (!existsSync(path)) throw new Error(`Missing runtime data source: ${path}`);
@@ -18,10 +19,19 @@ function writeIfChanged(path, text) {
   return true;
 }
 
-function parseDataFiles(gameJs) {
-  const match = gameJs.match(csvObjectPattern);
-  if (!match) throw new Error("Cannot locate DATA_FILES in src/game.js");
+function parseDataFiles(source, sourcePath) {
+  const match = source.match(csvObjectPattern);
+  if (!match) throw new Error(`Cannot locate DATA_FILES in ${sourcePath}`);
   return [...match[1].matchAll(/(\w+):\s*"([^"]+\.csv)"/g)].map(([, key, path]) => ({ key, path }));
+}
+
+function loadDataFiles() {
+  for (const sourcePath of [dataFilesPath, gameJsPath]) {
+    if (!existsSync(sourcePath)) continue;
+    const source = readText(sourcePath);
+    if (csvObjectPattern.test(source)) return parseDataFiles(source, sourcePath);
+  }
+  throw new Error(`Cannot locate DATA_FILES in ${dataFilesPath} or ${gameJsPath}`);
 }
 
 function parseCsv(text) {
@@ -71,7 +81,7 @@ function stableJson(value) {
   return JSON.stringify(value);
 }
 
-const dataFiles = parseDataFiles(readText(gameJsPath));
+const dataFiles = loadDataFiles();
 const files = {};
 
 for (const { key, path } of dataFiles) {

@@ -1,311 +1,191 @@
-const DATA_FILES = {
-  items: "csv/item_base.csv",
-  crops: "csv/crop_config.csv",
-  recipes: "csv/recipe_config.csv",
-  buildings: "csv/building_config.csv",
-  machines: "csv/machine_config.csv",
-  spirits: "csv/spirit_base.csv",
-  spiritBondLevels: "csv/spirit_bond_level.csv",
-  spiritMoodParams: "csv/spirit_mood_param.csv",
-  spiritVoices: "csv/spirit_voice_bank.csv",
-  spiritEvents: "csv/spirit_event.csv",
-  spiritMemoryFlags: "csv/spirit_memory_flag.csv",
-  spiritJobMastery: "csv/spirit_job_mastery.csv",
-  spiritExpeditions: "csv/spirit_expedition.csv",
-  spiritEcologyCombos: "csv/spirit_ecology_combo.csv",
-  earlyRewardPacing: "csv/early_reward_pacing.csv",
-  year2GoalBook: "csv/year2_goal_book_rule.csv",
-  year2SolarTrials: "csv/year2_solar_trial.csv",
-  rareSpiritEvents: "csv/rare_spirit_event_action.csv",
-  freeplayGoals: "csv/freeplay_goal.csv",
-  quests: "csv/quest_base.csv",
-  questSteps: "csv/quest_step.csv",
-  sideQuests: "csv/side_quest_base.csv",
-  sideQuestSteps: "csv/side_quest_step.csv",
-  sideQuestTriggers: "csv/side_quest_event_trigger.csv",
-  customers: "csv/shop_customer.csv",
-  customerSegments: "csv/customer_segment_rule.csv",
-  customerBehavior: "csv/customer_behavior_param.csv",
-  customerStateFlow: "csv/customer_state_flow.csv",
-  customerProfiles: "csv/customer_archetype_profile.csv",
-  npcBarks: "csv/npc_bark.csv",
-  shopPriceRules: "csv/shop_price_rule.csv",
-  shopShelfThemes: "csv/shop_shelf_theme_bonus.csv",
-  shopFeedback: "csv/shop_customer_feedback_diagnosis.csv",
-  orders: "csv/order_config.csv",
-  year2Orders: "csv/year2_order_config.csv",
-  shopSeasons: "csv/year2_shop_season.csv",
-  shopSettlementRules: "csv/year2_shop_settlement_rule.csv",
-  shopRankRewards: "csv/year2_shop_rank_reward.csv",
-  rewardPools: "csv/reward_pool.csv",
-  favorRewards: "csv/favor_reward.csv",
-  npcs: "csv/npc_base.csv",
-  npcSchedules: "csv/npc_schedule.csv",
-  cohabEpilogues: "csv/cohab_epilogue.csv",
-  cohabWeeklyEvents: "csv/cohab_weekly_event.csv",
-  cohabFestivalEvents: "csv/cohab_festival_event.csv",
-  cohabDialogueMaps: "csv/cohab_dialogue_map.csv",
-  sideQuestDialogueMaps: "csv/side_quest_dialogue_map.csv",
-  cutsceneTimeline: "csv/cutscene_timeline.csv",
-  cutsceneAssets: "csv/cutscene_asset_manifest.csv",
-  sideQuestCutsceneBeats: "csv/side_quest_cutscene_beat.csv",
-  audioAssets: "csv/audio_asset_list.csv",
-  audioMixBuses: "csv/audio_mix_bus.csv",
-  finalSupportBundles: "csv/final_support_bundle.csv",
-  finalSupportStages: "csv/final_support_stage.csv",
-  dialogues: "csv/dialogue_group.csv",
-  dungeons: "csv/dungeon_area.csv",
-  enemies: "csv/enemy_config.csv",
-  lootPools: "csv/loot_pool.csv",
-  bosses: "csv/boss_config.csv",
-  bossSkills: "csv/boss_skill.csv",
-  spiritSkills: "csv/spirit_skill.csv",
-  dungeonSolarMechanics: "csv/dungeon_solar_mechanic.csv",
-  tradeRoutes: "csv/interrealm_trade_route.csv",
-  tradeRouteEvents: "csv/trade_route_event.csv",
-  tradeRouteRiskSupplies: "csv/trade_route_risk_supply.csv",
-  hiddenDungeonRotations: "csv/hidden_dungeon_rotation.csv",
-  eventTriggers: "csv/event_trigger.csv",
-  guideScripts: "csv/guide_script.csv",
-  solarTerms: "csv/solar_term_config.csv",
-  weather: "csv/weather_config.csv",
-  steamAssets: "csv/steam_asset_production_plan.csv",
-  achievements: "csv/achievement_config.csv",
-  demoQa: "csv/demo_qa_checklist.csv",
-  verticalSlice: "csv/vertical_slice_acceptance.csv",
-  releaseGates: "csv/release_readiness_gate.csv",
-  saveSchemaRegistry: "csv/save_schema_registry.csv",
-  saveMigrationPlan: "csv/save_migration_plan.csv",
-  localizationCoverage: "csv/localization_coverage_plan.csv",
-  communityContentCalendar: "csv/community_content_calendar.csv",
-  conditionGroups: "csv/condition_group.csv",
-  localization: "csv/localization_text.csv",
-};
+import { ASSET_SOURCES, CAPTURE_SCENES, STEAM_READY_ASSETS, assetSrc, embeddedCsvText } from "./game/assets.js";
+import {
+  ACHIEVEMENT_KEY,
+  BUILD_INFO,
+  CLOUD_SAVE_KEY,
+  ERROR_LOG_KEY,
+  PLATFORM_STATE_KEY,
+  SAVE_KEY,
+  SAVE_PROFILE_ID,
+  SAVE_SCHEMA_VERSION,
+  SETTINGS_KEY,
+  STEAMWORKS_BRIDGE,
+} from "./game/config.js";
+import { DATA_FILES } from "./game/data-files.js";
+import { drawCanvasCard } from "./game/shared/canvas.js";
+import { applyVisiblePanelColumns, pulseFocusElement } from "./game/shared/focus.js";
+import { selectorDataValue } from "./game/shared/selectors.js";
+import { renderAssetPanelUi } from "./game/ui/asset-panel.js";
+import { renderBuildPanelUi } from "./game/ui/build-panel.js";
+import { renderLogPanel, renderQuestListPanel, renderStoryPanel } from "./game/ui/basic-panels.js";
+import { renderDaySummaryPanelUi } from "./game/ui/day-summary-panel.js";
+import { renderDungeonPanelUi } from "./game/ui/dungeon-panel.js";
+import { renderFinalSupportPanelUi } from "./game/ui/final-support-panel.js";
+import { renderGoalBookPanelUi } from "./game/ui/goal-book-panel.js";
+import { renderInventoryPanelUi } from "./game/ui/inventory-panel.js";
+import { renderMissionPanelUi } from "./game/ui/mission-panel.js";
+import { renderCutscenePanelUi, renderDialoguePanelUi } from "./game/ui/narrative-panels.js";
+import { renderOrdersUi, renderRisksUi } from "./game/ui/order-risk-panels.js";
+import { renderAchievementPanelUi, renderPlatformPanelUi, renderReleasePanelUi } from "./game/ui/platform-panels.js";
+import {
+  cropGrowthMemoActionForRowUi,
+  cropGrowthMemoReasonUi,
+  cropGrowthMemoToneSpecUi,
+  drawSolarFieldDecisionBadgesUi,
+  seedSolarRecommendationUi,
+  solarFieldDecisionBoardSpecUi,
+  solarFieldDecisionBoardMarkupUi,
+  solarFieldSeedCandidateUi,
+} from "./game/ui/crop-guidance.js";
+import {
+  renderAcceptancePanelUi,
+  renderCommunityPanelUi,
+  renderConditionPanelUi,
+  renderLocalizationPanelUi,
+  renderSaveSchemaPanelUi,
+} from "./game/ui/qa-panels.js";
+import { renderRelationshipsPanelUi } from "./game/ui/relationship-panel.js";
+import {
+  renderDemoGuideProgressUi,
+  renderDemoGuideUi,
+  renderPanelTabsUi,
+  renderSelectedPlotCardUi,
+} from "./game/ui/shell-panels.js";
+import {
+  plotClearedVeinMemoryUi,
+  plotFirstSeedMemoryUi,
+  plotSpiritSproutMemoryUi,
+} from "./game/ui/plot-memory.js";
+import {
+  inventoryRouteActionsMarkupUi,
+  inventoryRouteStatusMarkupUi,
+  selectedPlotDetailSpecUi,
+  selectedPlotRouteActionsMarkupUi,
+  selectedPlotRouteActionSpecsUi,
+} from "./game/ui/selected-plot-panel.js";
+import { renderShopPanelUi } from "./game/ui/shop-panel.js";
+import { renderShopSeasonPanelUi } from "./game/ui/shop-season-panel.js";
+import { renderSolarTrialPanelUi } from "./game/ui/solar-trial-panel.js";
+import { renderSpiritPanelUi } from "./game/ui/spirit-panel.js";
+import {
+  renderTermPanelUi,
+  solarTermMoodSceneMarkupUi,
+  solarTermMoodSceneSpecUi,
+  termLearningCardMarkupUi,
+  termLearningCardSpecUi,
+  termLearningTagTextUi,
+  weatherWaterLearningTextUi,
+} from "./game/ui/term-panel.js";
+import { renderTradeRoutesPanelUi } from "./game/ui/trade-route-panel.js";
+import {
+  cropWorldGrowthVisualSpecFallback,
+  drawCropWorldGrowthVisualWorld,
+} from "./game/world/crop-growth-visual.js";
+import {
+  cropGrowthMemoWorldAtCanvasPointWorld,
+  cropGrowthMemoWorldRowsWorld,
+  cropGrowthMemoWorldSpecWorld,
+  drawCropGrowthMemoWorldWorld,
+} from "./game/world/crop-growth-memo.js";
+import {
+  drawPlantingAftercareWorldWorld,
+  drawSeedRestockBagWorldWorld,
+  plantingAftercareFeedbackSpecWorld,
+  plantingAftercareSafetyTextWorld,
+  plantingAftercareWorldAtCanvasPointWorld,
+  plantingAftercareWorldSpecWorld,
+  seedRestockBagFeedbackSpecWorld,
+  seedRestockBagSafetyTextWorld,
+  seedRestockBagWorldAtCanvasPointWorld,
+  seedRestockBagWorldSpecWorld,
+} from "./game/world/field-action-feedback.js";
+import {
+  drawFailureCodexWorldBoardWorld,
+  drawFailureMercyLanternWorldWorld,
+  drawFailureRecoveryRouteWorldWorld,
+  failureCodexWorldBoardAtCanvasPointWorld,
+  failureCodexWorldBoardSpecWorld,
+  failureCodexWorldPaletteWorld,
+  failureCodexWorldTargetSpecWorld,
+  failureCodexWorldToneWorld,
+  failureLearningTriptychMarkupWorld,
+  failureLearningTriptychSpecWorld,
+  failureMercyLanternWorldAtCanvasPointWorld,
+  failureMercyLanternWorldSpecWorld,
+  failureRecoveryRouteWorldAtCanvasPointWorld,
+  failureRecoveryRouteWorldRectWorld,
+  failureRecoveryRouteWorldSpecWorld,
+} from "./game/world/failure-codex.js";
+import {
+  drawOrderDeliveryEchoWorldWorld,
+  drawOrderRewardNextUseWorldWorld,
+  drawOrderRewardReinvestTrailWorldWorld,
+  drawReadyOrderSealWorldWorld,
+  drawReadyOrderWorldBoardWorld,
+  orderDeliveryEchoSafetyTextWorld,
+  orderDeliveryEchoSpecWorld,
+  orderDeliveryEchoWorldAtCanvasPointWorld,
+  orderDeliveryEchoWorldSpecWorld,
+  orderRewardNextUseSafetyTextWorld,
+  orderRewardNextUseWorldAtCanvasPointWorld,
+  orderRewardNextUseWorldSpecWorld,
+  orderRewardReinvestTrailSafetyTextWorld,
+  orderRewardReinvestTrailWorldAtCanvasPointWorld,
+  orderRewardReinvestTrailWorldSpecWorld,
+  readyOrderSealNodesWorld,
+  readyOrderSealSafetyTextWorld,
+  readyOrderSealWorldAtCanvasPointWorld,
+  readyOrderSealWorldSpecWorld,
+  readyOrderWorldBoardAtCanvasPointWorld,
+  readyOrderWorldBoardSpecWorld,
+  readyOrderWorldRowsWorld,
+} from "./game/world/ready-order-world.js";
+import {
+  drawSolarTermMoodWorldPlaqueWorld,
+  drawSolarTermMoodWorldRoutesWorld,
+  normalizeSolarTermMoodStampArchiveEntryWorld,
+  normalizeSolarTermMoodTrailEntryWorld,
+  recordSolarTermMoodTrailNextWorld,
+  solarTermMoodPaletteWorld,
+  solarTermMoodClampWorld,
+  solarTermMoodProgressSpecWorld,
+  solarTermMoodRouteAnchorWorld,
+  solarTermMoodRouteGlyphWorld,
+  solarTermMoodRouteKeyFromTrailWorld,
+  solarTermMoodRouteRectWorld,
+  solarTermMoodCompletionSealAtCanvasPointWorld,
+  solarTermMoodCompletionSealSpecWorld,
+  solarTermMoodDaySummaryInsightWorld,
+  solarTermMoodTrailForDayWorld,
+  solarTermMoodStampArchiveMarkupWorld,
+  solarTermMoodStampArchiveRowsWorld,
+  solarTermMoodStampArchiveSpecWorld,
+  solarTermMoodStampArchiveEntryForDayWorld,
+  solarTermMoodStampArchiveWorldRelicAtCanvasPointWorld,
+  solarTermMoodStampArchiveWorldRelicSpecWorld,
+  solarTermMoodShopDisplayCustomerEchoMarkupWorld,
+  solarTermMoodShopDisplayCustomerEchoSpecWorld,
+  solarTermMoodShopDisplayDaySummaryMarkupWorld,
+  solarTermMoodShopDisplayDaySummarySpecWorld,
+  solarTermMoodShopDisplayMarkupWorld,
+  solarTermMoodShopDisplayWorldAtCanvasPointWorld,
+  solarTermMoodShopDisplayWorldSpecWorld,
+  solarTermMoodShopDisplaySpecWorld,
+  solarTermMoodWorldPlaqueAtCanvasPointWorld,
+  solarTermMoodWorldPlaqueSpecWorld,
+  solarTermMoodWorldRouteAtCanvasPointWorld,
+  solarTermMoodWorldRouteTargetsWorld,
+  drawSolarTermMoodCompletionSealWorld,
+  drawSolarTermMoodStampArchiveWorldRelicWorld,
+  drawSolarTermMoodShopDisplayWorldWorld,
+} from "./game/world/solar-term-mood-plaque.js";
 
-const SAVE_KEY = "xiannong_dongtian_p0_save";
-const SAVE_PROFILE_ID = "profile_1";
-const SETTINGS_KEY = "xiannong_dongtian_settings";
-const ERROR_LOG_KEY = "xiannong_dongtian_error_log";
-const ACHIEVEMENT_KEY = "xiannong_dongtian_achievements";
-const CLOUD_SAVE_KEY = "xiannong_dongtian_steam_cloud_mirror";
-const PLATFORM_STATE_KEY = "xiannong_dongtian_platform_state";
-const SAVE_SCHEMA_VERSION = 2;
-const BUILD_INFO = {
-  version: "0.2.0-demo",
-  phase: "P0/P1 Demo Foundation",
-  steamAppId: "TBD",
-  buildDate: "2026-06-02",
-};
 const runtimeDataLoader = globalThis.XiannongCore?.Data?.createRuntimeDataLoader?.({
   manifestPath: "runtime-data/runtime-data.json",
 });
 const saveRuntime = globalThis.XiannongCore?.Persistence?.createSaveRuntime?.({
   desktopBridgeName: "XiannongStorage",
 });
-const STEAMWORKS_BRIDGE = {
-  adapterId: "steamworks-adapter-v1",
-  expectedGlobal: "XiannongSteamworks",
-  appId: BUILD_INFO.steamAppId,
-  cloudPath: "steam_cloud/xiannong_dongtian_profile.json",
-  overlayTarget: "store",
-  requiredFeatures: ["achievements", "remote_storage", "overlay", "stats"],
-};
-
-const CAPTURE_SCENES = {
-  start: {
-    label: "荒废洞天初始",
-    log: "Steam 截图预置：第 1 天荒田与草庐，展示从零开始。",
-    asset: "assets/screenshot-farm.svg",
-  },
-  spirit: {
-    label: "第一只精怪浇水",
-    log: "Steam 截图预置：萝卜精自动浇水，展示自动化卖点。",
-    asset: "assets/screenshot-spirit.svg",
-  },
-  shop: {
-    label: "旧铺开门经营",
-    log: "Steam 截图预置：顾客购买和反馈，展示店铺经营。",
-    asset: "assets/screenshot-shop.svg",
-  },
-  term: {
-    label: "节气影响农田",
-    log: "Steam 截图预置：切到谷雨节气，展示节气系统影响。",
-    asset: "assets/screenshot-term.svg",
-  },
-  ecology: {
-    label: "精怪生态庭院",
-    log: "Steam 截图预置：多精怪庭院和生态共鸣，展示后期长期养成。",
-    asset: "assets/screenshot-ecology.svg",
-  },
-  dungeon: {
-    label: "青云矿洞战斗",
-    log: "Steam 截图预置：精怪随行挑战裂甲木卫，展示秘境战斗和材料掉落。",
-    asset: "assets/screenshot-dungeon.svg",
-  },
-  trade: {
-    label: "跨界商路启航",
-    log: "Steam 截图预置：飞舟商队、补给风险和隐藏秘境轮换，展示长期经营。",
-    asset: "assets/screenshot-trade.svg",
-  },
-  finalSupport: {
-    label: "终章支援建阵",
-    log: "Steam 截图预置：NPC 支援与二十四节气大阵，展示主线终局目标。",
-    asset: "assets/screenshot-final-support.svg",
-  },
-};
-
-const ASSET_SOURCES = {
-  cropBailuobo: "assets/crop-bailuobo.svg",
-  cropBaicai: "assets/crop-baicai.svg",
-  spirit: "assets/spirit-luobo.svg",
-  shop: "assets/shop-sign.svg",
-  customer: "assets/customer-villager.svg",
-  controls: "assets/control-hints.svg",
-  npc_xubo: "assets/npc-xubo.svg",
-  npc_zhang_tieshan: "assets/npc-zhang-tieshan.svg",
-  npc_baizhi: "assets/npc-baizhi.svg",
-  npc_lu_sanxiao: "assets/npc-lu-sanxiao.svg",
-  npc_hu_sihai: "assets/npc-hu-sihai.svg",
-  npc_atan: "assets/npc-atan.svg",
-  npc_qinghe: "assets/npc-qinghe.svg",
-  npc_shen_gudeng: "assets/npc-shen-gudeng.svg",
-  farm: "assets/screenshot-farm.svg",
-  ecology: "assets/screenshot-ecology.svg",
-  dungeon: "assets/screenshot-dungeon.svg",
-  trade: "assets/screenshot-trade.svg",
-  finalSupport: "assets/screenshot-final-support.svg",
-};
-
-const STEAM_READY_ASSETS = [
-  {
-    id: "store_header_capsule",
-    type: "store_capsule",
-    label: "商店 Header Capsule",
-    size: "920x430",
-    path: "assets/steam-ready/png/store-header-capsule-920x430.png",
-    source: "assets/steam-ready/source-svg/store-header-capsule-920x430.svg",
-  },
-  {
-    id: "store_small_capsule",
-    type: "store_capsule",
-    label: "商店 Small Capsule",
-    size: "462x174",
-    path: "assets/steam-ready/png/store-small-capsule-462x174.png",
-    source: "assets/steam-ready/source-svg/store-small-capsule-462x174.svg",
-  },
-  {
-    id: "store_main_capsule",
-    type: "store_capsule",
-    label: "商店 Main Capsule",
-    size: "1232x706",
-    path: "assets/steam-ready/png/store-main-capsule-1232x706.png",
-    source: "assets/steam-ready/source-svg/store-main-capsule-1232x706.svg",
-  },
-  {
-    id: "store_vertical_capsule",
-    type: "store_capsule",
-    label: "商店 Vertical Capsule",
-    size: "748x896",
-    path: "assets/steam-ready/png/store-vertical-capsule-748x896.png",
-    source: "assets/steam-ready/source-svg/store-vertical-capsule-748x896.svg",
-  },
-  {
-    id: "library_capsule",
-    type: "library_asset",
-    label: "库 Capsule",
-    size: "600x900",
-    path: "assets/steam-ready/png/library-capsule-600x900.png",
-    source: "assets/steam-ready/source-svg/library-capsule-600x900.svg",
-  },
-  {
-    id: "library_header",
-    type: "library_asset",
-    label: "库 Header",
-    size: "920x430",
-    path: "assets/steam-ready/png/library-header-920x430.png",
-    source: "assets/steam-ready/source-svg/library-header-920x430.svg",
-  },
-  {
-    id: "library_hero",
-    type: "library_asset",
-    label: "库 Hero",
-    size: "3840x1240",
-    path: "assets/steam-ready/png/library-hero-3840x1240.png",
-    source: "assets/steam-ready/source-svg/library-hero-3840x1240.svg",
-  },
-  {
-    id: "screenshot_farm",
-    type: "screenshot",
-    label: "荒废洞天初始",
-    size: "1920x1080",
-    path: "assets/steam-ready/png/screenshot-farm-1920x1080.png",
-    source: "assets/steam-ready/source-svg/screenshot-farm-1920x1080.svg",
-  },
-  {
-    id: "screenshot_spirit",
-    type: "screenshot",
-    label: "第一只精怪浇水",
-    size: "1920x1080",
-    path: "assets/steam-ready/png/screenshot-spirit-1920x1080.png",
-    source: "assets/steam-ready/source-svg/screenshot-spirit-1920x1080.svg",
-  },
-  {
-    id: "screenshot_shop",
-    type: "screenshot",
-    label: "旧铺开门经营",
-    size: "1920x1080",
-    path: "assets/steam-ready/png/screenshot-shop-1920x1080.png",
-    source: "assets/steam-ready/source-svg/screenshot-shop-1920x1080.svg",
-  },
-  {
-    id: "screenshot_term",
-    type: "screenshot",
-    label: "节气影响农田",
-    size: "1920x1080",
-    path: "assets/steam-ready/png/screenshot-term-1920x1080.png",
-    source: "assets/steam-ready/source-svg/screenshot-term-1920x1080.svg",
-  },
-  {
-    id: "screenshot_ecology",
-    type: "screenshot",
-    label: "精怪生态庭院",
-    size: "1920x1080",
-    path: "assets/steam-ready/png/screenshot-ecology-1920x1080.png",
-    source: "assets/steam-ready/source-svg/screenshot-ecology-1920x1080.svg",
-  },
-  {
-    id: "screenshot_dungeon",
-    type: "screenshot",
-    label: "青云矿洞战斗",
-    size: "1920x1080",
-    path: "assets/steam-ready/png/screenshot-dungeon-1920x1080.png",
-    source: "assets/steam-ready/source-svg/screenshot-dungeon-1920x1080.svg",
-  },
-  {
-    id: "screenshot_trade",
-    type: "screenshot",
-    label: "跨界商路启航",
-    size: "1920x1080",
-    path: "assets/steam-ready/png/screenshot-trade-1920x1080.png",
-    source: "assets/steam-ready/source-svg/screenshot-trade-1920x1080.svg",
-  },
-  {
-    id: "screenshot_final_support",
-    type: "screenshot",
-    label: "终章支援建阵",
-    size: "1920x1080",
-    path: "assets/steam-ready/png/screenshot-final-support-1920x1080.png",
-    source: "assets/steam-ready/source-svg/screenshot-final-support-1920x1080.svg",
-  },
-];
-
-function embeddedCsvText(path) {
-  return globalThis.XIANNONG_EMBEDDED_CSV?.[path] ?? null;
-}
-
-function assetSrc(path) {
-  return globalThis.XIANNONG_EMBEDDED_ASSETS?.[path] ?? path;
-}
 
 const QUESTS = [
   { id: "clear", text: "清理第一处荒草，让洞天灵息回流" },
@@ -889,201 +769,53 @@ function failureCodexRows(limit = 4) {
 }
 
 function failureCodexWorldTone(entry = null) {
-  const tone = entry?.tone || entry?.type || "learn";
-  if (tone === "support" || entry?.type === "order") return "support";
-  if (tone === "shop" || entry?.type === "shop") return "shop";
-  if (tone === "boss" || entry?.type === "dungeon") return "dungeon";
-  if (entry?.type === "risk") return "risk";
-  return "learn";
+  return failureCodexWorldToneWorld(entry);
 }
 
 function failureCodexWorldPalette(entry = null) {
-  const palettes = {
-    support: { accent: "#b47d2f", soft: "rgba(246, 240, 182, 0.28)", fill: "rgba(255, 248, 232, 0.96)" },
-    shop: { accent: "#8f5f3f", soft: "rgba(224, 182, 109, 0.2)", fill: "rgba(255, 248, 232, 0.95)" },
-    risk: { accent: "#be4f37", soft: "rgba(190, 79, 55, 0.18)", fill: "rgba(255, 240, 232, 0.95)" },
-    dungeon: { accent: "#4d91a6", soft: "rgba(77, 145, 166, 0.18)", fill: "rgba(236, 248, 243, 0.95)" },
-    learn: { accent: "#286f58", soft: "rgba(202, 235, 210, 0.22)", fill: "rgba(248, 252, 247, 0.95)" },
-  };
-  return palettes[failureCodexWorldTone(entry)] || palettes.learn;
+  return failureCodexWorldPaletteWorld(entry);
 }
 
 function failureCodexWorldTargetSpec(entry = null) {
-  if (!entry) return {
-    selector: "#goalBookPanel",
-    fallbackSelector: "#goalBookPanel",
-    panelGroup: "core",
-    targetLabel: "失败见闻册",
-  };
-  if (entry.type === "order") {
-    const order = entry.sourceId ? allOrderConfigs().find((candidate) => candidate.order_id === entry.sourceId) : null;
-    return {
-      selector: entry.sourceId ? `[data-order-card-id="${selectorDataValue(entry.sourceId)}"]` : "#orderPanel",
-      fallbackSelector: "#orderPanel",
-      panelGroup: "core",
-      targetLabel: order ? orderTitle(order) : "订单板",
-    };
-  }
-  if (entry.type === "shop") {
-    return {
-      selector: '[data-shop-board="decision-ledger"]',
-      fallbackSelector: '[data-shop-board="opening"]',
-      panelGroup: "core",
-      targetLabel: "旧铺复盘",
-    };
-  }
-  if (entry.type === "risk") {
-    return {
-      selector: entry.sourceId ? `[data-risk-card-id="${selectorDataValue(entry.sourceId)}"]` : "#riskPanel",
-      fallbackSelector: "#riskPanel",
-      panelGroup: "systems",
-      targetLabel: "节气风险",
-    };
-  }
-  if (entry.type === "dungeon") {
-    const dungeonId = String(entry.sourceId || "").split(":")[0];
-    return {
-      selector: dungeonId ? `[data-dungeon-card-id="${selectorDataValue(dungeonId)}"]` : "#dungeonPanel",
-      fallbackSelector: "#dungeonPanel",
-      panelGroup: "systems",
-      targetLabel: "秘境面板",
-    };
-  }
-  if (entry.type === "trade") {
-    const routeId = String(entry.sourceId || "").split(":")[0];
-    return {
-      selector: routeId ? `[data-trade-route="${selectorDataValue(routeId)}"]` : "#spiritList",
-      fallbackSelector: "#spiritList",
-      panelGroup: "core",
-      targetLabel: "跨界商路与商队",
-    };
-  }
-  return {
-    selector: "#goalBookPanel",
-    fallbackSelector: "#goalBookPanel",
-    panelGroup: "core",
-    targetLabel: "失败见闻册",
-  };
+  return failureCodexWorldTargetSpecWorld({
+    entry,
+    allOrderConfigs,
+    orderTitle,
+    selectorDataValue,
+  });
 }
 
 function failureLearningTriptychSpec(rows = failureCodexRows(4), codex = syncFailureCodexState()) {
-  const safeRows = rows.filter(Boolean);
-  if (!safeRows.length) return null;
-  const top = safeRows[0];
-  const typeCounts = safeRows.reduce((counts, entry) => {
-    counts[entry.type] = Number(counts[entry.type] || 0) + 1;
-    return counts;
-  }, {});
-  const supportRows = safeRows.filter((entry) => entry.rewardText || entry.support);
-  const nextRows = safeRows.filter((entry) => entry.nextAction);
-  return {
-    active: true,
-    title: "失败学习三联牌",
-    headline: `${failureCodexTypeLabel(top.type)} · ${top.title}`,
-    top,
-    total: Number(codex.total || safeRows.length),
-    recent: safeRows.length,
-    typeCounts,
-    cards: [
-      {
-        key: "why",
-        label: "为什么没稳住",
-        title: top.problem || top.headline || "原因已经写进见闻册",
-        body: top.insight || "系统已经把这次卡住的点变成可复盘线索。",
-        detail: `${failureCodexTypeLabel(top.type)} · 第 ${top.day || state.day} 天`,
-        tone: "warn",
-      },
-      {
-        key: "support",
-        label: "带回了什么",
-        title: top.rewardText || top.support || "见闻和路线保留下来",
-        body: supportRows.length > 1
-          ? `最近 ${supportRows.length} 条见闻都有托底、线索或部分收益。`
-          : "即使没有完全成功，也不会把玩家推回空白状态。",
-        detail: "失败后仍获得线索或部分收益",
-        tone: "support",
-      },
-      {
-        key: "next",
-        label: "下一步怎么补",
-        title: top.nextAction || "先修一处最明确短板",
-        body: nextRows.length > 1
-          ? `还可继续处理 ${nextRows.slice(1, 3).map((entry) => failureCodexTypeLabel(entry.type)).join(" / ")} 的补救路线。`
-          : "优先按当前见闻定位到对应面板，再做一次更稳的尝试。",
-        detail: "只复盘和定位，不会自动领取托底、交付订单、开铺、处理风险、发商队、进入秘境或消耗资源。",
-        tone: "fix",
-      },
-    ],
-    chips: Object.entries(typeCounts).map(([type, count]) => ({
-      label: failureCodexTypeLabel(type),
-      count,
-    })),
-  };
+  return failureLearningTriptychSpecWorld({
+    rows,
+    codex,
+    day: state.day,
+    failureCodexTypeLabel,
+  });
 }
 
 function failureLearningTriptychMarkup(spec = failureLearningTriptychSpec()) {
-  if (!spec?.active) return "";
-  return `
-    <div class="goal-card failure-learning-triptych ${spec.top?.tone === "boss" ? "boss" : spec.top?.tone === "support" ? "ready" : "active"}">
-      <strong>${spec.title} · 最近 ${spec.recent}/${Math.max(4, spec.total)}</strong>
-      <span>${spec.headline}</span>
-      <div class="failure-learning-grid">
-        ${spec.cards.map((card) => `
-          <div class="failure-learning-card ${card.tone}" data-failure-learning-card="${card.key}">
-            <b>${card.label}</b>
-            <em>${card.title}</em>
-            <small>${card.body}</small>
-            <small>${card.detail}</small>
-          </div>
-        `).join("")}
-      </div>
-      <div class="failure-learning-chips">
-        ${spec.chips.map((chip) => `<span>${chip.label} ${chip.count}</span>`).join("")}
-      </div>
-    </div>
-  `;
+  return failureLearningTriptychMarkupWorld(spec);
 }
 
 function failureCodexWorldBoardSpec(width = 960, height = 640) {
-  const codex = syncFailureCodexState();
-  const rows = failureCodexRows(3);
-  if (!rows.length) return null;
-  const top = rows[0];
-  const palette = failureCodexWorldPalette(top);
-  const cardHeight = rows.length > 2 ? 164 : rows.length > 1 ? 144 : 122;
-  const rect = {
-    x: Math.max(24, width - 348),
-    y: Math.max(372, height - cardHeight - 24),
-    width: 318,
-    height: cardHeight,
-  };
-  return {
-    key: `${state.day}:${top.id}:${rows.length}`,
+  return failureCodexWorldBoardSpecWorld({
+    width,
+    height,
+    codex: syncFailureCodexState(),
+    rows: failureCodexRows(3),
     day: state.day,
-    codex,
-    rows,
-    top,
-    palette,
-    rect,
-    title: "失败见闻/补救小票",
-    headline: top.headline || top.title || "这次没有白走",
-    target: failureCodexWorldTargetSpec(top),
-    summary: `${failureCodexTypeLabel(top.type)} · ${top.title}`,
-    supportText: top.rewardText || top.support || "见闻已经写入账页",
-    nextAction: top.nextAction || "按见闻册调整下一步",
-  };
+    failureCodexTypeLabel,
+    failureCodexWorldTargetSpec,
+  });
 }
 
 function failureCodexWorldBoardAtCanvasPoint(px, py) {
-  const spec = failureCodexWorldBoardSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return failureCodexWorldBoardAtCanvasPointWorld({
+    px,
+    py,
+    spec: failureCodexWorldBoardSpec(),
+  });
 }
 
 function focusFailureCodexWorldBoardFromCanvas(spec = failureCodexWorldBoardSpec()) {
@@ -1104,57 +836,24 @@ function focusFailureCodexWorldBoardFromCanvas(spec = failureCodexWorldBoardSpec
 }
 
 function failureRecoveryRouteWorldRect(boardSpec = failureCodexWorldBoardSpec()) {
-  const width = 344;
-  const height = 96;
-  const boardRect = boardSpec?.rect;
-  if (!boardRect) return { x: 260, y: 506, width, height };
-  return {
-    x: Math.max(24, boardRect.x - width - 16),
-    y: Math.max(348, Math.min(640 - height - 20, boardRect.y + boardRect.height - height)),
-    width,
-    height,
-  };
+  return failureRecoveryRouteWorldRectWorld(boardSpec);
 }
 
 function failureRecoveryRouteWorldSpec(boardSpec = failureCodexWorldBoardSpec()) {
-  if (!boardSpec?.top) return null;
-  const entry = boardSpec.top;
-  const palette = failureCodexWorldPalette(entry);
-  const problem = entry.problem || entry.headline || "先看见这次卡住在哪里。";
-  const insight = entry.insight || "这次没有白走，系统已经留下可复盘线索。";
-  const nextAction = entry.nextAction || "下一步先改一处最明确的短板。";
-  const support = entry.rewardText || entry.support || "补救路线已写入见闻册。";
-  const steps = [
-    { key: "problem", label: "问题", title: "看见问题", text: problem, tone: "warn" },
-    { key: "insight", label: "线索", title: "学到线索", text: insight, tone: "learn" },
-    { key: "gentle_fix", label: "改法", title: "温和改法", text: nextAction, tone: "fix" },
-    { key: "support", label: "托底", title: "托底奖励", text: support, tone: "support" },
-  ];
-  return {
-    id: "failure_recovery_route_world",
-    key: `${state.day}:${entry.id}:${entry.type}:${entry.sourceId}:${support}`,
-    entry,
+  return failureRecoveryRouteWorldSpecWorld({
     boardSpec,
-    palette,
-    steps,
-    title: "失败托底路线图 · 可点",
-    headline: `${failureCodexTypeLabel(entry.type)} · ${entry.title}`,
-    summary: `${problem} -> ${nextAction}`,
-    target: failureCodexWorldTargetSpec(entry),
-    rect: failureRecoveryRouteWorldRect(boardSpec),
-  };
+    day: state.day,
+    failureCodexTypeLabel,
+    failureCodexWorldTargetSpec,
+  });
 }
 
 function failureRecoveryRouteWorldAtCanvasPoint(px, py) {
-  const spec = failureRecoveryRouteWorldSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return failureRecoveryRouteWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: failureRecoveryRouteWorldSpec(),
+  });
 }
 
 function focusFailureRecoveryRouteWorldFromCanvas(spec = failureRecoveryRouteWorldSpec()) {
@@ -1174,74 +873,21 @@ function focusFailureRecoveryRouteWorldFromCanvas(spec = failureRecoveryRouteWor
 }
 
 function failureMercyLanternWorldSpec(boardSpec = failureCodexWorldBoardSpec(), routeSpec = failureRecoveryRouteWorldSpec(boardSpec)) {
-  if (!routeSpec?.entry || !routeSpec?.rect) return null;
-  const entry = routeSpec.entry;
-  const palette = failureCodexWorldPalette(entry);
-  const rect = {
-    x: routeSpec.rect.x,
-    y: Math.max(250, routeSpec.rect.y - 78),
-    width: routeSpec.rect.width,
-    height: 68,
-  };
-  const nodes = [
-    {
-      key: "comfort",
-      glyph: "灯",
-      title: "先稳住",
-      text: entry.headline || "这次没有白走",
-      detail: "先把挫败转成一条可回看的灯签。",
-    },
-    {
-      key: "takeaway",
-      glyph: "记",
-      title: "带回了",
-      text: entry.rewardText || entry.support || entry.insight || "线索已入册",
-      detail: "失败后仍获得线索或部分收益。",
-    },
-    {
-      key: "retry",
-      glyph: "路",
-      title: "再试路",
-      text: entry.nextAction || "下一步先修一处短板",
-      detail: "只定位下一步，不替你执行。",
-    },
-  ];
-  nodes.forEach((node, index) => {
-    const x = rect.x + 54 + index * 104;
-    const y = rect.y + 40;
-    node.point = { x, y };
-    node.hit = { x: x - 38, y: y - 34, width: 76, height: 56 };
-  });
-  return {
-    key: `${state.day}:${entry.id}:${entry.type}:${entry.rewardText || entry.support || ""}`,
-    title: "失败不白走灯",
-    headline: `${failureCodexTypeLabel(entry.type)} · ${entry.title}`,
-    entry,
+  return failureMercyLanternWorldSpecWorld({
     boardSpec,
     routeSpec,
-    palette,
-    rect,
-    nodes,
-    target: failureCodexWorldTargetSpec(entry),
-    safety: "只安抚、解释和定位，不会自动领取托底、交付订单、开铺、处理风险、发商队、进入秘境、挑战 Boss 或消耗资源。",
-  };
+    day: state.day,
+    failureCodexTypeLabel,
+    failureCodexWorldTargetSpec,
+  });
 }
 
 function failureMercyLanternWorldAtCanvasPoint(px, py) {
-  const spec = failureMercyLanternWorldSpec();
-  if (!spec?.rect) return null;
-  const node = spec.nodes.find((entry) => {
-    const hit = entry.hit;
-    return px >= hit.x && px <= hit.x + hit.width && py >= hit.y && py <= hit.y + hit.height;
-  }) || null;
-  const { rect } = spec;
-  if (node || (px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height)) {
-    return {
-      ...spec,
-      focusNode: node || spec.nodes[0],
-    };
-  }
-  return null;
+  return failureMercyLanternWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: failureMercyLanternWorldSpec(),
+  });
 }
 
 function focusFailureMercyLanternWorldFromCanvas(spec = failureMercyLanternWorldAtCanvasPoint(-1, -1) || failureMercyLanternWorldSpec()) {
@@ -4543,9 +4189,13 @@ let firstTwoSpiritDuoWorldFocus = null;
 let spiritBondHeartlineWorldFocus = null;
 let spiritInteractionMemoryTriptychWorldFocus = null;
 let year2GoalWorldBoardFocus = null;
+let year2OpeningTenDayWorldFocus = null;
+let finalBanquetAfterwordBridgeWorldFocus = null;
 let postMainlineTenHourWorldFocus = null;
+let postMainlineTodayRouteWorldFocus = null;
 let grottoLifePulseWorldFocus = null;
 let shopCustomerForecastWorldFocus = null;
+let shopCustomerReasonCompassWorldFocus = null;
 let shopDiagnosisWorldBoardFocus = null;
 let shopTrialTheaterWorldFocus = null;
 let shopFirstCustomerThresholdWorldFocus = null;
@@ -4558,6 +4208,10 @@ let shopWordOfMouthSaleEchoWorldFocus = null;
 let shopWordOfMouthSaleReasonWorldFocus = null;
 let shopWordOfMouthFollowupRestockWorldFocus = null;
 let shopWordOfMouthMorningFollowupWorldFocus = null;
+let shopThoughtRouteMorningFollowupWorldFocus = null;
+let shopThoughtRouteReadyMorningWorldFocus = null;
+let shopThoughtRouteMissedWorldFocus = null;
+let shopThoughtRouteCaughtWorldFocus = null;
 let shopCustomerLessonMorningFollowupWorldFocus = null;
 let shopCustomerLessonVerificationEchoWorldFocus = null;
 let shopWordOfMouthRestockedMorningWorldFocus = null;
@@ -4598,6 +4252,7 @@ let dungeonSolarAtlasWorldFocus = null;
 let dungeonFirstMechanicTheaterFocus = null;
 let cutsceneWorldSlateFocus = null;
 let rareSpiritDailyStageWorldFocus = null;
+let rareSpiritMemoryCompassWorldFocus = null;
 let rareSpiritClueRoadsignWorldFocus = null;
 let rareSpiritIdentityPortraitWorldFocus = null;
 let hualingWelcomeDanceWorldFocus = null;
@@ -4716,6 +4371,7 @@ const data = {
   spiritEcologyCombos: [],
   earlyRewardPacing: [],
   year2GoalBook: [],
+  year2ContentPlan: [],
   year2SolarTrials: [],
   rareSpiritEvents: [],
   freeplayGoals: [],
@@ -4830,6 +4486,7 @@ const data = {
   priceRulesByArchetype: new Map(),
   shelfThemesByTag: new Map(),
   solarTrialsById: new Map(),
+  year2ContentPlanById: new Map(),
   conditionGroupsById: new Map(),
 };
 
@@ -5055,6 +4712,7 @@ async function loadData() {
   for (const weather of data.weather) data.weatherById.set(weather.weather_id, weather);
   for (const achievement of data.achievements) data.achievementsById.set(achievement.achievement_id, achievement);
   for (const trial of data.year2SolarTrials) data.solarTrialsById.set(trial.trial_id, trial);
+  for (const plan of data.year2ContentPlan) data.year2ContentPlanById.set(plan.content_id, plan);
   for (const guide of data.guideScripts) {
     const key = `${guide.trigger_type}:${guide.trigger_param}`;
     const list = data.guideScriptsByTrigger.get(key) || [];
@@ -5384,16 +5042,105 @@ function bondLevelFor(lineOrSpirit, expValue = null) {
   return Math.max(1, level || 1);
 }
 
+function spiritVoiceCandidateIds(spiritOrId) {
+  const spiritId = typeof spiritOrId === "string" ? spiritOrId : spiritOrId?.id;
+  const config = data.spirits.find((entry) => entry.spirit_id === spiritId);
+  const lineId = typeof spiritOrId === "string" && spiritOrId.startsWith("spirit_line_")
+    ? spiritOrId
+    : spiritOrId?.lineId || config?.spirit_line_id || spiritLine(spiritId);
+  const lineSpiritIds = data.spirits
+    .filter((entry) => entry.spirit_line_id === lineId)
+    .map((entry) => entry.spirit_id);
+  return [...new Set([spiritId, lineId, ...lineSpiritIds].filter(Boolean))];
+}
+
+function spiritVoiceConditionReady(voice) {
+  const condition = voice?.condition_group || "";
+  if (!condition || condition === "always_true") return true;
+  try {
+    return conditionMet(condition);
+  } catch {
+    return true;
+  }
+}
+
+function spiritVoiceEntriesFor(target, type = "") {
+  const lineId = typeof target === "string" && target.startsWith("spirit_line_")
+    ? target
+    : target?.lineId || data.spirits.find((entry) => entry.spirit_id === target)?.spirit_line_id || spiritLine(target?.id || target);
+  const ids = spiritVoiceCandidateIds(target);
+  const rank = new Map(ids.map((id, index) => [id, index]));
+  return data.spiritVoices
+    .filter((entry) => rank.has(entry.spirit_id) || entry.spirit_id === lineId)
+    .filter((entry) => !type || entry.voice_type === type)
+    .filter(spiritVoiceConditionReady)
+    .sort((a, b) => (rank.get(a.spirit_id) ?? 999) - (rank.get(b.spirit_id) ?? 999)
+      || Number(b.weight || 0) - Number(a.weight || 0));
+}
+
 function spiritVoice(spiritId, type) {
-  const voice = data.spiritVoices.find((entry) => entry.spirit_id === spiritId && entry.voice_type === type)
-    || data.spiritVoices.find((entry) => entry.spirit_id === spiritId);
+  const voice = spiritVoiceEntriesFor(spiritId, type)[0]
+    || spiritVoiceEntriesFor(spiritId, "idle")[0]
+    || spiritVoiceEntriesFor(spiritId)[0];
   return voice ? localize(voice.text_key, voice.text_key) : "咕。";
+}
+
+function spiritVoiceTypeForMood(spirit) {
+  const mood = Number(spirit?.mood || 0);
+  const hunger = Number(spirit?.hunger || 0);
+  const stamina = Number(spirit?.stamina || 0);
+  if (mood >= 78 && hunger >= 45) return "happy";
+  if (stamina >= 35 && hunger >= 30 && (Number(spirit?.assignments || 0) > 0 || (spirit?.job && spirit.job !== "idle"))) return "work";
+  return "idle";
+}
+
+function spiritVoiceCandidates(spirit) {
+  if (!spirit) return [];
+  const persona = spiritJobPersonaSpec(spirit, spirit.job || "farm");
+  return [
+    {
+      type: "idle",
+      label: "今日短句",
+      text: spiritVoice(spirit, "idle"),
+      detail: `状态 ${Math.round(Number(spirit.mood || 0))} 心情 / ${Math.round(Number(spirit.hunger || 0))} 饱腹`,
+    },
+    {
+      type: "work",
+      label: "工作短句",
+      text: spiritVoice(spirit, "work"),
+      detail: `${jobName(spirit.job || "farm")} · ${persona.shortLine}`,
+    },
+    {
+      type: "happy",
+      label: "开心短句",
+      text: spiritVoice(spirit, "happy"),
+      detail: `羁绊 Lv.${Number(spirit.bondLevel || 1)} · 喂食会开心`,
+    },
+  ];
+}
+
+function spiritVoiceMomentSpec(spirit) {
+  if (!spirit) return null;
+  const type = spiritVoiceTypeForMood(spirit);
+  const candidates = spiritVoiceCandidates(spirit);
+  const current = candidates.find((entry) => entry.type === type) || candidates[0];
+  const profile = spiritVisualProfile(spirit);
+  return {
+    type,
+    label: current?.label || "今日短句",
+    text: current?.text || spiritVoice(spirit, "idle"),
+    detail: current?.detail || "陪伴稳定",
+    candidates,
+    glyph: profile.glyph,
+    accent: profile.accent,
+    companionStable: Number(spirit.mood || 0) >= 60 && Number(spirit.hunger || 0) >= 40,
+  };
 }
 
 function spiritEventStageLabel(stage = "intro") {
   const labels = {
     intro: "初见",
-    evolve: "进化",
+    evolve: "二阶进化",
     final: "终章陪伴",
   };
   return labels[stage] || stage;
@@ -12840,6 +12587,190 @@ function claimFreeplayGoal(goalId) {
   render();
 }
 
+function freeplayGoalPriorityScore(goal) {
+  const target = Math.max(1, Number(goal.target_value || 1));
+  const progress = Math.min(metricProgress(goal.target_metric), target);
+  const readyBonus = freeplayGoalReady(goal) ? 120 : 0;
+  const cycleBonus = {
+    daily: 18,
+    weekly: 14,
+    monthly: 10,
+    permanent: 8,
+  }[goal.cycle_type] || 6;
+  const intentBonus = {
+    short_session: 20,
+    weekly_return: 18,
+    monthly_management: 16,
+    collection_drive: 14,
+    long_challenge: 12,
+    emotional_retention: 18,
+  }[goal.retention_intent] || 10;
+  return readyBonus + cycleBonus + intentBonus + ((progress / target) * 24) - (freeplayGoalEstimatedMinutes(goal) / 30);
+}
+
+function recommendedFreeplayGoals(limit = 4, intent = "", cycle = "") {
+  return (data.freeplayGoals || [])
+    .filter((goal) => freeplayGoalUnlocked(goal) && !freeplayGoalClaimed(goal))
+    .filter((goal) => !intent || goal.retention_intent === intent || goal.goal_type === intent)
+    .filter((goal) => !cycle || goal.cycle_type === cycle)
+    .sort((a, b) => freeplayGoalPriorityScore(b) - freeplayGoalPriorityScore(a))
+    .slice(0, limit);
+}
+
+function freeplayGoalRouteSpec(goals = recommendedFreeplayGoals(4)) {
+  if (!year2Unlocked() || !goals.length) return null;
+  const rows = goals.map((goal) => {
+    const target = Math.max(1, Number(goal.target_value || 1));
+    const progress = Math.min(metricProgress(goal.target_metric), target);
+    const ready = freeplayGoalReady(goal);
+    return {
+      goalId: goal.goal_id,
+      title: localize(goal.goal_name_key, goal.goal_id),
+      cycle: goal.cycle_type,
+      routeText: `${goal.retention_intent || goal.goal_type} · ${progress}/${target} · 预计 ${freeplayGoalEstimatedMinutes(goal)} 分钟`,
+      detail: goal.retention_intent || goal.goal_type,
+      rewardText: rewardPoolEntries(goal.reward_pool_id).slice(0, 2).map((entry) => applyRewardEntryPreview(entry)).join("、") || goal.reward_pool_id,
+      ready,
+      selector: `[data-freeplay-goal="${selectorDataValue(goal.goal_id)}"]`,
+      fallbackSelector: "#goalBookPanel",
+      panelGroup: goal.goal_type === "challenge" ? "systems" : goal.goal_type === "relationship" ? "story" : "core",
+    };
+  });
+  return {
+    active: rows.length > 0,
+    rows,
+    lead: rows[0],
+    safety: "只定位相关面板或目标卡，不会自动照料、派遣、开铺、开启试炼、推进时间或消耗资源",
+  };
+}
+
+function freeplayGoalGuidanceSpec(route = freeplayGoalRouteSpec()) {
+  if (!route?.rows?.length) return null;
+  return {
+    active: true,
+    title: "后主线自由目标导览",
+    headline: `推荐 ${route.rows.length} 条自由线 · 可兑现 ${route.rows.filter((row) => row.ready).length}`,
+    lead: route.lead,
+    rows: route.rows,
+    safety: route.safety,
+  };
+}
+
+function focusFreeplayGoalRoute(goalId = "") {
+  const route = freeplayGoalRouteSpec();
+  if (!route?.rows?.length) return addLog("自由目标导览", "还没有可用的自由目标路线，先推进第二年目标和后主线十小时路线。");
+  const row = route.rows.find((entry) => entry.goalId === goalId) || route.lead || route.rows[0];
+  queueStoryCompassFocusTarget({
+    selector: row.selector,
+    fallbackSelector: row.fallbackSelector,
+    label: `自由目标路线：${row.title}`,
+    log: `${row.title} 已经定位到自由目标卡。${row.routeText} · 奖励 ${row.rewardText}。${route.safety}`,
+    panelGroup: row.panelGroup || "core",
+    missingTitle: `自由目标路线：${row.title}`,
+    missingLog: "自由目标路线已经亮起，但当前对应目标卡没有找到；先确认目标册与自由目标区是否可见。",
+  });
+  return true;
+}
+
+function spiritFreeplayPanelGuideSpec() {
+  return {
+    key: "spirit",
+    title: "精怪 / 羁绊 / 照料",
+    selector: "#relationshipPanel",
+    fallbackSelector: "#goalBookPanel",
+    panelGroup: "story",
+    safety: "这里只定位精怪、羁绊与照料入口，不会自动摸摸、喂食、派工、领奖或消耗资源",
+  };
+}
+
+function tradeFreeplayPanelGuideSpec() {
+  return {
+    key: "trade",
+    title: "商路 / 订单 / 仓储",
+    selector: "#orderPanel",
+    fallbackSelector: "#goalBookPanel",
+    panelGroup: "core",
+    safety: "只定位相关面板或目标卡，不会自动照料、派遣、开铺、开启试炼、推进时间或消耗资源",
+  };
+}
+
+function shopFreeplayPanelGuideSpec() {
+  return {
+    key: "shop",
+    title: "赛季榜 / 月评 / 经营复盘",
+    selector: "#shopReport",
+    fallbackSelector: "#goalBookPanel",
+    panelGroup: "core",
+    safety: "这里只定位赛季榜、月评和经营复盘，不会自动开铺、领奖、调价、补货或消耗资源",
+  };
+}
+
+function solarTrialFreeplayPanelGuideSpec() {
+  return {
+    key: "trial",
+    title: "年轮试炼 / 秘境挑战",
+    selector: "#solarTrialPanel",
+    fallbackSelector: "#goalBookPanel",
+    panelGroup: "systems",
+    safety: "只定位相关面板或目标卡，不会自动照料、派遣、开铺、开启试炼、推进时间或消耗资源",
+  };
+}
+
+function ecologyFreeplayPanelGuideSpec() {
+  return {
+    key: "ecology",
+    title: "生态庭院 / 稀有收集",
+    selector: "#goalBookPanel",
+    fallbackSelector: "#goalBookPanel",
+    panelGroup: "core",
+    safety: "这里只定位精怪、羁绊与照料入口，不会自动摸摸、喂食、派工、领奖或消耗资源",
+  };
+}
+
+function freeplayPanelGuideMarkup() {
+  const guides = [
+    spiritFreeplayPanelGuideSpec(),
+    tradeFreeplayPanelGuideSpec(),
+    shopFreeplayPanelGuideSpec(),
+    solarTrialFreeplayPanelGuideSpec(),
+    ecologyFreeplayPanelGuideSpec(),
+  ].filter(Boolean);
+  if (!guides.length) return "";
+  return `
+    <div class="goal-card freeplay-panel-guide">
+      <strong>自由目标系统入口</strong>
+      <span>按留存意图把精怪、商路、旧铺、试炼和生态入口排到一起。</span>
+      <div class="freeplay-panel-guide-actions">
+        ${guides.map((guide) => `
+          <button type="button" data-freeplay-guide-action="${guide.key}">${guide.title}</button>
+        `).join("")}
+      </div>
+      <small class="freeplay-panel-guide-safety">${spiritFreeplayPanelGuideSpec().safety}</small>
+      <small class="freeplay-panel-guide-safety">${shopFreeplayPanelGuideSpec().safety}</small>
+    </div>
+  `;
+}
+
+function handleFreeplayGuideAction(action = "spirit") {
+  const guideMap = {
+    spirit: spiritFreeplayPanelGuideSpec(),
+    trade: tradeFreeplayPanelGuideSpec(),
+    shop: shopFreeplayPanelGuideSpec(),
+    trial: solarTrialFreeplayPanelGuideSpec(),
+    ecology: ecologyFreeplayPanelGuideSpec(),
+  };
+  const guide = guideMap[action] || guideMap.spirit;
+  return queueStoryCompassFocusTarget({
+    selector: guide.selector,
+    fallbackSelector: guide.fallbackSelector,
+    label: `自由目标入口：${guide.title}`,
+    log: `${guide.title} 已在对应面板高亮。${guide.safety}`,
+    panelGroup: guide.panelGroup || "core",
+    missingTitle: `自由目标入口：${guide.title}`,
+    missingLog: "自由目标入口暂时没有找到，先确认目标册与对应系统面板是否可见。",
+  });
+}
+
 function year2GoalPriorityScore(goal) {
   const progress = year2GoalProgress(goal);
   const target = Math.max(1, conditionTarget(goal.complete_condition));
@@ -12966,6 +12897,411 @@ function focusYear2TodayRecommendation(goalId = "") {
   });
 }
 
+const POST_MAINLINE_RHYTHM_LANES = [
+  { key: "today", label: "今天", shortTitle: "日目标" },
+  { key: "week", label: "本周", shortTitle: "周目标" },
+  { key: "month", label: "本月", shortTitle: "月目标" },
+  { key: "long", label: "长期", shortTitle: "年目标" },
+];
+
+function postMainlineRhythmRows() {
+  if (!year2Unlocked()) return [];
+  const todayRoute = postMainlineTodayRouteWorldSpec();
+  const todayFocus = postMainlineTodayRouteFocusSpec(todayRoute?.focusRow || null);
+  const weeklyGoal = recommendedYear2Goals("weekly", 1)[0];
+  const seasonalGoal = recommendedYear2Goals("seasonal", 1)[0]
+    || data.year2GoalBook.find((goal) => goal.goal_type === "seasonal" && year2GoalUnlocked(goal) && !year2GoalClaimed(goal));
+  const year2LongGoal = data.year2GoalBook.find((goal) => ["collection", "relationship", "challenge"].includes(goal.goal_type) && year2GoalUnlocked(goal) && !year2GoalClaimed(goal));
+  const freeplayLongGoal = data.freeplayGoals.find((goal) => goal.goal_type === "relationship")
+    || data.freeplayGoals.find((goal) => goal.goal_type === "collection")
+    || data.freeplayGoals.find((goal) => goal.goal_type === "challenge");
+  const longGoal = year2LongGoal || freeplayLongGoal;
+  const rareMemory = rareSpiritMemoryCompassSpec();
+  return POST_MAINLINE_RHYTHM_LANES.map((lane) => {
+    if (lane.key === "today" && todayRoute?.focusRow) {
+      return {
+        laneKey: lane.key,
+        label: lane.label,
+        shortTitle: lane.shortTitle,
+        title: todayRoute.focusRow.title,
+        summary: `${todayRoute.minutes} 分钟 · ${todayFocus.targetLabel}`,
+        reason: todayRoute.focusRow.detail || todayFocus.advice || "先把今天能落袋的一条推进起来。",
+        selector: todayFocus.selector,
+        fallbackSelector: todayFocus.fallbackSelector,
+        panelGroup: todayFocus.panelGroup || "core",
+        cta: "看今日路线",
+        stateClass: "ready",
+        worldKey: todayRoute.key,
+        routeKey: todayRoute.routeKey,
+      };
+    }
+    if (lane.key === "week" && weeklyGoal) {
+      return {
+        laneKey: lane.key,
+        label: lane.label,
+        shortTitle: lane.shortTitle,
+        title: year2GoalTitle(weeklyGoal),
+        summary: `${year2GoalWorldBoardScopeLabel(weeklyGoal)} · ${Math.min(year2GoalProgress(weeklyGoal), conditionTarget(weeklyGoal.complete_condition))}/${Math.max(1, conditionTarget(weeklyGoal.complete_condition))}`,
+        reason: weeklyGoal.note || "把本周能回收的节奏接起来，别让远行线断档。",
+        selector: `[data-year2-goal="${selectorDataValue(weeklyGoal.goal_id)}"]`,
+        fallbackSelector: "#goalBookPanel",
+        panelGroup: "core",
+        cta: "看本周回访",
+        stateClass: year2GoalReady(weeklyGoal) ? "ready" : "active",
+      };
+    }
+    if (lane.key === "month" && seasonalGoal) {
+      return {
+        laneKey: lane.key,
+        label: lane.label,
+        shortTitle: lane.shortTitle,
+        title: year2GoalTitle(seasonalGoal),
+        summary: `月目标 · ${year2GoalWorldBoardScopeLabel(seasonalGoal)} · ${Math.min(year2GoalProgress(seasonalGoal), conditionTarget(seasonalGoal.complete_condition))}/${Math.max(1, conditionTarget(seasonalGoal.complete_condition))}`,
+        reason: seasonalGoal.note || "把月榜、经营短板和节气订单排成一条会回来的线。",
+        selector: `[data-year2-goal="${selectorDataValue(seasonalGoal.goal_id)}"]`,
+        fallbackSelector: "#goalBookPanel",
+        panelGroup: "core",
+        cta: "看月度经营",
+        stateClass: year2GoalReady(seasonalGoal) ? "ready" : "active",
+      };
+    }
+    if (lane.key === "long") {
+      const longTitle = rareMemory?.title
+        || (year2LongGoal ? year2GoalTitle(year2LongGoal) : freeplayLongGoal?.goal_name_key ? localize(freeplayLongGoal.goal_name_key, freeplayLongGoal.goal_id) : "长期留存线");
+      const longSelector = rareMemory?.selector
+        || (year2LongGoal?.goal_id
+          ? `[data-year2-goal="${selectorDataValue(year2LongGoal.goal_id)}"]`
+          : freeplayLongGoal?.goal_id
+            ? `[data-freeplay-goal="${selectorDataValue(freeplayLongGoal.goal_id)}"]`
+            : "#goalBookPanel");
+      const longFallback = rareMemory?.fallbackSelector || "#goalBookPanel";
+      return {
+        laneKey: lane.key,
+        label: lane.label,
+        shortTitle: lane.shortTitle,
+        title: longTitle,
+        summary: rareMemory?.subtitle || "收藏、羁绊和挑战会慢慢堆出通关后的长期留下理由。",
+        reason: rareMemory?.leadName ? `顺着 ${rareMemory.leadName} 的记忆线继续追。` : "给通关后的生活留一条会不断回来的长线。",
+        selector: longSelector,
+        fallbackSelector: longFallback,
+        panelGroup: rareMemory ? "core" : "story",
+        cta: rareMemory ? "看伙伴记忆" : "看长期留存",
+        stateClass: "active",
+      };
+    }
+    return {
+      laneKey: lane.key,
+      label: lane.label,
+      shortTitle: lane.shortTitle,
+      title: "待补位",
+      summary: "先把主线后十小时路线接稳。",
+      reason: "四段节奏里这一格暂时还没有稳定入口。",
+      selector: "#goalBookPanel",
+      fallbackSelector: "#goalBookPanel",
+      panelGroup: "core",
+      cta: "看目标册",
+      stateClass: "active",
+    };
+  }).filter(Boolean);
+}
+
+function postMainlineRhythmSpec(rows = postMainlineRhythmRows()) {
+  if (!year2Unlocked() || rows.length === 0) return null;
+  const lead = rows[0];
+  return {
+    active: true,
+    title: "后主线回游节奏",
+    headline: "今天 / 本周 / 本月 / 长期四段都已经接上",
+    detail: lead ? `${lead.label} · ${lead.title}` : "通关后仍然能顺着目标往前走。",
+    rows,
+    lead,
+    safety: "这里只定位对应目标卡或系统入口，不会自动领取奖励、推进时间、交单、派遣、开铺、开启试炼或消耗资源。",
+  };
+}
+
+function postMainlineRhythmMarkup(spec = postMainlineRhythmSpec()) {
+  if (!spec?.active) return "";
+  return `
+    <div class="goal-card post-mainline-rhythm-card ${spec.rows.some((row) => row.stateClass === "ready") ? "ready" : "active"}">
+      <strong>${spec.title}</strong>
+      <span>${spec.headline}</span>
+      <div class="post-mainline-rhythm-grid">
+        ${spec.rows.map((row) => `
+          <div class="post-mainline-rhythm-row ${row.stateClass}">
+            <b>${row.label} · ${row.shortTitle} · ${row.title}</b>
+            <span>${row.summary}</span>
+            <small>为什么追：${row.reason}</small>
+            <button type="button" data-post-mainline-rhythm-focus="${row.laneKey}">${row.cta}</button>
+          </div>
+        `).join("")}
+      </div>
+      <small class="post-mainline-rhythm-safety">${spec.safety}</small>
+    </div>
+  `;
+}
+
+function focusPostMainlineRhythmGoal(laneKey = "") {
+  const spec = postMainlineRhythmSpec();
+  if (!spec?.rows?.length) return addLog("后主线回游节奏", "通关后的回游节奏已经整理完，继续看第二年目标年鉴或主线后今日路线。");
+  const row = spec.rows.find((candidate) => candidate.laneKey === laneKey) || spec.lead || spec.rows[0];
+  if (row.laneKey === "today") {
+    const todayRoute = postMainlineTodayRouteWorldSpec();
+    if (todayRoute?.key) {
+      postMainlineTodayRouteWorldFocus = { key: todayRoute.key, day: state.day, routeKey: todayRoute.routeKey };
+    }
+  }
+  queueStoryCompassFocusTarget({
+    selector: row.selector,
+    fallbackSelector: row.fallbackSelector,
+    panelGroup: row.panelGroup || "core",
+    label: `后主线回游节奏：${row.label}`,
+    log: `${row.label}节奏「${row.title}」已在对应入口高亮。${row.reason} ${spec.safety}`,
+    missingTitle: `后主线回游节奏：${row.label}`,
+    missingLog: "后主线回游节奏对应入口暂时没有找到，先确认目标册、自由目标卡或系统面板是否可见。",
+  });
+  return true;
+}
+
+function clonePostMainlineRhythmSpec(spec = postMainlineRhythmSpec()) {
+  if (!spec) return null;
+  return {
+    ...spec,
+    rows: (spec.rows || []).map((row) => ({ ...row })),
+    lead: spec.lead ? { ...spec.lead } : null,
+  };
+}
+
+function postMainlineRhythmDaySummarySpec(summary = state.lastDaySummary, rhythm = clonePostMainlineRhythmSpec()) {
+  if (!summary || !rhythm?.rows?.length) return null;
+  const rows = rhythm.rows
+    .slice(0, 3)
+    .map((row) => ({
+      ...row,
+      evidence: row.summary || row.title,
+      because: row.reason || rhythm.safety,
+      buttonLabel: "回看这条线",
+    }));
+  return {
+    active: rows.length > 0,
+    title: "后主线生活回响",
+    headline: "今天总有一个值得看看的变化",
+    evidenceTitle: "今天证据：",
+    becauseTitle: "今晚这一格为什么算数：",
+    rows,
+    safety: rhythm.safety,
+  };
+}
+
+function postMainlineRhythmDaySummaryMarkup(spec = postMainlineRhythmDaySummarySpec()) {
+  if (!spec?.active) return "";
+  return `
+    <div class="day-summary-post-mainline-rhythm">
+      <strong>${spec.title}</strong>
+      <span>${spec.headline}</span>
+      ${spec.rows.map((row) => `
+        <div class="day-summary-post-mainline-row ${row.stateClass || "active"}">
+          <b>${row.label} · ${row.title}</b>
+          <small>${spec.evidenceTitle}${row.evidence}</small>
+          <small>${spec.becauseTitle}${row.because}</small>
+          <button type="button" data-day-summary-post-mainline-rhythm-focus="${row.laneKey}">${row.buttonLabel}</button>
+        </div>
+      `).join("")}
+      <small>${spec.safety}</small>
+    </div>
+  `;
+}
+
+function postMainlineEveningEchoRows(summary = state.lastDaySummary) {
+  if (!summary) return [];
+  const rows = [];
+  const theater = (summary.rareSpiritTheaterRows || [])[0] || null;
+  if (theater) {
+    rows.push({
+      key: "theater",
+      label: "精怪小剧场",
+      title: `${theater.spiritName || "伙伴"} · ${theater.actionShort || "夜间小剧场"}`,
+      detail: theater.focusText || theater.quote || "晚上触发生活事件、精怪小剧场或同住后日谈",
+      buttonLabel: "回看小剧场",
+    });
+  }
+  const shopMoment = (summary.townLifeShopMoments || [])[0] || null;
+  if (shopMoment) {
+    rows.push({
+      key: "shop_moment",
+      label: "旧铺后话",
+      title: `${shopMoment.npcName || "镇民"} · ${shopMoment.title || "旧铺后话"}`,
+      detail: shopMoment.text || shopMoment.detail || "翻开这页后话",
+      buttonLabel: "翻开这页后话",
+    });
+  }
+  const cohabMoment = (summary.cohabMoments || [])[0] || null;
+  const cohabBuff = (summary.cohabBuffs || [])[0] || null;
+  if (cohabMoment || cohabBuff) {
+    rows.push({
+      key: "cohab",
+      label: "同住后日谈",
+      title: cohabMoment ? `${cohabMoment.routeName || "同住"} · ${cohabMoment.eventName}` : `${cohabBuff.routeName || "同住"} · 余韵`,
+      detail: cohabBuff ? `${cohabBuff.label}（至第 ${cohabBuff.expiresDay} 天）` : "看同住后话",
+      buttonLabel: "看同住后话",
+    });
+  }
+  return rows.slice(0, 3);
+}
+
+function postMainlineEveningEchoSpec(summary = state.lastDaySummary) {
+  const rows = postMainlineEveningEchoRows(summary);
+  if (!rows.length) return null;
+  return {
+    active: true,
+    title: "宴后生活小景",
+    headline: "晚上触发生活事件、精怪小剧场或同住后日谈",
+    rows,
+    safety: "这里只定位已发生的小景回看入口，不会自动触发新事件、推进时间、播放未解锁对白、领取奖励或消耗资源。",
+  };
+}
+
+function postMainlineEveningEchoMarkup(spec = postMainlineEveningEchoSpec()) {
+  if (!spec?.active) return "";
+  return `
+    <div class="day-summary-post-mainline-evening">
+      <strong>${spec.title}</strong>
+      <span>${spec.headline}</span>
+      ${spec.rows.map((row) => `
+        <div class="day-summary-post-mainline-evening-row">
+          <b>${row.label}</b>
+          <span>${row.title}</span>
+          <small>${row.detail}</small>
+          <button type="button" data-day-summary-post-mainline-evening-action="${row.key}">${row.buttonLabel}</button>
+        </div>
+      `).join("")}
+      <small>${spec.safety}</small>
+    </div>
+  `;
+}
+
+function focusPostMainlineEveningEcho(action = "theater") {
+  const spec = postMainlineEveningEchoSpec();
+  if (!spec?.rows?.length) return addLog("宴后生活小景", "今晚还没有可回看的生活小景，先继续把照应、同住或稀有小剧场接起来。");
+  const summary = state.lastDaySummary || {};
+  if (action === "theater") {
+    const theater = (summary.rareSpiritTheaterRows || [])[0] || null;
+    if (theater?.key) return replayRareSpiritTheaterFromSummary(theater.key);
+  }
+  if (action === "shop_moment") {
+    const shopMoment = (summary.townLifeShopMoments || [])[0] || null;
+    if (shopMoment?.npcId && shopMoment?.id) return openTownLifeShopMomentPage(shopMoment.npcId, shopMoment.id);
+  }
+  const row = spec.rows.find((entry) => entry.key === action) || spec.rows[0];
+  return queueStoryCompassFocusTarget({
+    selector: "#relationshipPanel",
+    fallbackSelector: "#daySummaryPanel",
+    label: row?.buttonLabel || "看同住后话",
+    log: `${row?.title || "宴后生活小景"} 已在相关入口高亮。${spec.safety}`,
+    panelGroup: "story",
+    missingTitle: "宴后生活小景",
+    missingLog: "宴后生活小景已经记录到日终总结里，但对应回看入口暂时没有找到。",
+  });
+}
+
+function postMainlineLongTailResonanceRows(summary = state.lastDaySummary) {
+  if (!summary) return [];
+  const rows = [];
+  if (summary.careChain) {
+    rows.push({
+      key: "care_chain",
+      label: "连续照应",
+      title: summary.careChain.title || "照应回看",
+      detail: "回看照应线",
+      buttonLabel: "回看照应线",
+    });
+  }
+  const reputationText = shopReputationStageSummaryText(summary.shopReputationStage || null);
+  if (reputationText) {
+    rows.push({
+      key: "shop_reputation",
+      label: "旧铺名声",
+      title: "旧铺名声",
+      detail: reputationText,
+      buttonLabel: "看旧铺名声",
+    });
+  }
+  const cohabBuff = (summary.cohabBuffs || [])[0] || null;
+  if (cohabBuff) {
+    rows.push({
+      key: "cohab",
+      label: "同住生活",
+      title: `${cohabBuff.routeName || "同住"} · ${cohabBuff.label}`,
+      detail: `至第 ${cohabBuff.expiresDay} 天`,
+      buttonLabel: "看同住家况",
+    });
+  }
+  const memory = rareSpiritMemoryCompassSpec();
+  if (memory) {
+    rows.push({
+      key: "rare_memory",
+      label: "稀有伙伴",
+      title: memory.title,
+      detail: memory.subtitle,
+      buttonLabel: "看伙伴记忆",
+    });
+  }
+  return rows.slice(0, 4);
+}
+
+function postMainlineLongTailResonanceSpec(summary = state.lastDaySummary) {
+  const rows = postMainlineLongTailResonanceRows(summary);
+  if (!rows.length) return null;
+  return {
+    active: true,
+    title: "长期留人回响",
+    headline: "把今天发生过的小景，翻译成玩家为什么明天还会想回来继续过这段日子。",
+    reasonTitle: "为什么今天这件事会留人：",
+    rows,
+    safety: "这里只定位长期线对应的图鉴、关系卡、旧铺名声或目标入口，不会自动推进时间、播放未解锁内容、领奖或消耗资源。",
+  };
+}
+
+function postMainlineLongTailResonanceMarkup(spec = postMainlineLongTailResonanceSpec()) {
+  if (!spec?.active) return "";
+  return `
+    <div class="day-summary-post-mainline-longtail">
+      <strong>${spec.title}</strong>
+      <span>${spec.headline}</span>
+      ${spec.rows.map((row) => `
+        <div class="day-summary-post-mainline-longtail-row">
+          <b>${row.label} · ${row.title}</b>
+          <small>${spec.reasonTitle}${row.detail}</small>
+          <button type="button" data-day-summary-post-mainline-longtail-action="${row.key}">${row.buttonLabel}</button>
+        </div>
+      `).join("")}
+      <small>${spec.safety}</small>
+    </div>
+  `;
+}
+
+function focusPostMainlineLongTailResonance(action = "care_chain") {
+  const spec = postMainlineLongTailResonanceSpec();
+  if (!spec?.rows?.length) return addLog("长期留人回响", "长期留人回响还没有结出稳定线索，先继续照应、同住或旧铺回访。");
+  const memory = rareSpiritMemoryCompassSpec();
+  if (action === "rare_memory" && memory) return focusRareSpiritMemoryCompassWorldFromCanvas(memory);
+  const routeMap = {
+    care_chain: { selector: "#daySummaryPanel", fallbackSelector: "#goalBookPanel", panelGroup: "core", label: "回看照应线" },
+    shop_reputation: { selector: "#shopReport", fallbackSelector: "#goalBookPanel", panelGroup: "core", label: "看旧铺名声" },
+    cohab: { selector: "#relationshipPanel", fallbackSelector: "#goalBookPanel", panelGroup: "story", label: "看同住家况" },
+    rare_memory: { selector: "#goalBookPanel", fallbackSelector: "#goalBookPanel", panelGroup: "core", label: "看伙伴记忆" },
+  };
+  const route = routeMap[action] || routeMap.care_chain;
+  return queueStoryCompassFocusTarget({
+    selector: route.selector,
+    fallbackSelector: route.fallbackSelector,
+    label: route.label,
+    log: `${route.label} 已经高亮。${spec.safety}`,
+    panelGroup: route.panelGroup,
+    missingTitle: "长期留人回响",
+    missingLog: "长期留人回响对应的入口暂时没有找到，先确认相关面板是否可见。",
+  });
+}
+
 function year2GoalWorldBoardScopeLabel(goal) {
   return {
     daily: "今日",
@@ -13082,6 +13418,608 @@ function focusYear2GoalWorldBoardFromCanvas(spec = year2GoalWorldBoardSpec()) {
     missingTitle: "点选第二年目标年鉴",
     missingLog: "第二年目标年鉴已经指向目标册，但对应目标卡暂时没有找到。先查看目标册与留存钩子面板。",
   });
+  return true;
+}
+
+const YEAR2_OPENING_TEN_DAY_CONTENT_IDS = [
+  "year2_shop_001",
+  "year2_free_goal_001",
+  "year2_sandbox_001",
+  "year2_relationship_001",
+  "year2_spirit_001",
+  "year2_festival_001",
+  "year2_spirit_bond_001",
+  "year2_spirit_expedition_001",
+  "year2_trade_001",
+  "year2_dungeon_001",
+];
+
+const YEAR2_OPENING_TEN_DAY_FALLBACK_ROWS = [
+  { content_id: "year2_opening_order", content_name: "宴后首周礼宴单", content_type: "season_system", unlock_condition_group: "quest_main_0403_complete", core_loop_tag: "shop_mastery", chapter_phase: "year2_start", repeat_cycle: "daily", reward_group: "pool_reward_year2_shop", retention_goal: "经营起步", note: "把蟠桃宴余温接到第一张第二年订单。" },
+  { content_id: "year2_opening_daily", content_name: "今日短目标排程", content_type: "freeplay_goal", unlock_condition_group: "quest_main_0403_complete", core_loop_tag: "freeplay_goal", chapter_phase: "year2_start", repeat_cycle: "daily", reward_group: "pool_reward_goal_trial_all", retention_goal: "短会话回流", note: "每天只挑一两件能落袋的事，避免通关后目标发散。" },
+  { content_id: "year2_opening_build", content_name: "洞天扩建与造景", content_type: "sandbox_build", unlock_condition_group: "quest_main_0403_complete", core_loop_tag: "build_decorate", chapter_phase: "year2_start", repeat_cycle: "weekly", reward_group: "pool_reward_year2_build", retention_goal: "长期建造表达", note: "把新空间、精怪宿舍和主题庭院排成一条建造线。" },
+  { content_id: "year2_opening_cohab", content_name: "同住后日谈", content_type: "relationship_meta", unlock_condition_group: "quest_main_0403_complete", core_loop_tag: "cohab_life", chapter_phase: "year2_start", repeat_cycle: "daily", reward_group: "pool_reward_year2_cohab", retention_goal: "情感留存", note: "让镇民、伙伴和洞天生活在通关后继续有回声。" },
+  { content_id: "year2_opening_spirit", content_name: "三阶精怪共居", content_type: "spirit_meta", unlock_condition_group: "quest_main_0403_complete", core_loop_tag: "spirit_ecology", chapter_phase: "year2_start", repeat_cycle: "daily", reward_group: "pool_reward_year2_spirit", retention_goal: "精怪养成", note: "精怪岗位、生态组合和小剧场继续支撑日常。" },
+  { content_id: "year2_opening_term", content_name: "二十四节气年轮挑战", content_type: "festival_meta", unlock_condition_group: "quest_main_0403_complete", core_loop_tag: "term_mastery", chapter_phase: "year2_start", repeat_cycle: "term", reward_group: "pool_reward_year2_term", retention_goal: "节气复玩", note: "用节气试炼和节庆订单把一年轮转重新拉起来。" },
+  { content_id: "year2_opening_bond", content_name: "精怪终身羁绊", content_type: "spirit_bond", unlock_condition_group: "quest_main_0403_complete", core_loop_tag: "spirit_bond", chapter_phase: "year2_start", repeat_cycle: "daily", reward_group: "pool_reward_goal_bond_first", retention_goal: "陪伴成长", note: "十级羁绊、记忆事件和伙伴生活图鉴接到长期陪伴。" },
+  { content_id: "year2_opening_expedition", content_name: "精怪远征小队", content_type: "spirit_expedition", unlock_condition_group: "quest_main_0403_complete", core_loop_tag: "spirit_expedition", chapter_phase: "year2_mid", repeat_cycle: "weekly", reward_group: "pool_reward_exp_yearwheel", retention_goal: "周回访", note: "远征、商路和秘境委托形成每周回来的理由。" },
+  { content_id: "year2_opening_trade", content_name: "跨界飞舟商路", content_type: "trade_meta", unlock_condition_group: "quest_main_0403_complete", core_loop_tag: "interrealm_trade", chapter_phase: "year2_mid", repeat_cycle: "weekly", reward_group: "pool_reward_year2_trade", retention_goal: "高价值订单", note: "把高级备货、贵客订单和外界航线排成经济长线。" },
+  { content_id: "year2_opening_dungeon", content_name: "隐藏秘境轮换", content_type: "explore_meta", unlock_condition_group: "quest_main_0403_complete", core_loop_tag: "dungeon_rotation", chapter_phase: "year2_mid", repeat_cycle: "biweekly", reward_group: "pool_reward_year2_dungeon", retention_goal: "探索复玩", note: "秘境轮换、图鉴印记和试炼挑战接成探索目标。" },
+];
+
+function year2OpeningTenDayPlanRows() {
+  const planned = YEAR2_OPENING_TEN_DAY_CONTENT_IDS
+    .map((id) => data.year2ContentPlanById.get(id))
+    .filter(Boolean);
+  const seen = new Set(planned.map((row) => row.content_id));
+  const extras = (data.year2ContentPlan || [])
+    .filter((row) => row?.content_id && !seen.has(row.content_id))
+    .filter((row) => String(row.chapter_phase || "").includes("year2") || conditionMet(row.unlock_condition_group || "quest_main_0403_complete"));
+  const rows = [...planned, ...extras];
+  for (const fallback of YEAR2_OPENING_TEN_DAY_FALLBACK_ROWS) {
+    if (rows.length >= 10) break;
+    if (!rows.some((row) => row.content_id === fallback.content_id)) rows.push(fallback);
+  }
+  return rows.slice(0, 10);
+}
+
+function year2OpeningTenDayRouteFor(row = {}, index = 0) {
+  const tag = `${row.content_id || ""} ${row.content_type || ""} ${row.core_loop_tag || ""}`.toLowerCase();
+  const base = {
+    selector: "#goalBookPanel",
+    fallbackSelector: "#goalBookPanel",
+    panelGroup: "core",
+    targetLabel: row.content_name || "第二年目标册",
+    stateClass: "active",
+  };
+  if (index === 0 || tag.includes("shop")) {
+    const firstWeek = year2FirstWeekStatus();
+    if (index === 0 && firstWeek.order) {
+      return {
+        selector: `[data-order-card-id="${selectorDataValue(firstWeek.order.order_id)}"]`,
+        fallbackSelector: "#orderPanel",
+        panelGroup: "core",
+        targetLabel: orderTitle(firstWeek.order),
+        stateClass: firstWeek.delivered ? "done" : firstWeek.ready ? "ready" : "active",
+        advice: firstWeek.delivered
+          ? "首周订单已经交付，可以转向名铺评分、今日目标和长线内容。"
+          : firstWeek.ready
+            ? "三件套已经备齐，去订单板手动确认是否交付。"
+            : "先补齐首周礼宴单需要的货物，再决定是否交付。",
+      };
+    }
+    return {
+      selector: '[data-shop-season-board="rank"]',
+      fallbackSelector: "#shopReport",
+      panelGroup: "core",
+      targetLabel: "名铺赛季榜",
+      stateClass: currentShopGoalScore() >= 900 ? "ready" : "active",
+      advice: "看名铺评分、货架主题和第二年订单，不会自动开铺或售卖。",
+    };
+  }
+  if (tag.includes("freeplay") || tag.includes("mastery")) {
+    const goal = recommendedYear2Goals("daily", 1)[0]
+      || recommendedYear2Goals("weekly", 1)[0]
+      || data.year2GoalBook.find((entry) => year2GoalUnlocked(entry));
+    return {
+      selector: goal ? `[data-year2-goal="${selectorDataValue(goal.goal_id)}"]` : ".post-mainline-goal-route",
+      fallbackSelector: "#goalBookPanel",
+      panelGroup: "core",
+      targetLabel: goal ? year2GoalTitle(goal) : "主线后十小时路线",
+      stateClass: goal && year2GoalReady(goal) ? "ready" : "active",
+      advice: "先挑今天能完成的短目标，再接本周和长期目标。",
+    };
+  }
+  if (tag.includes("build") || tag.includes("decorate") || tag.includes("sandbox")) {
+    return {
+      selector: "#buildPanel",
+      fallbackSelector: "#buildPanel",
+      panelGroup: "systems",
+      targetLabel: "洞天建造与造景",
+      stateClass: data.buildings.some((building) => !state.buildings[building.building_id]) ? "active" : "done",
+      advice: "只定位建造与造景面板，蓝图和材料仍需手动确认。",
+    };
+  }
+  if (tag.includes("cohab") || tag.includes("relationship") || tag.includes("town")) {
+    return {
+      selector: "#relationshipPanel",
+      fallbackSelector: "#relationshipPanel",
+      panelGroup: "story",
+      targetLabel: "同住后日谈与镇民关系",
+      stateClass: Object.values(state.npcFavor || {}).some((favor) => favorLevel(favor) >= 3) ? "ready" : "active",
+      advice: "看同住、镇民记忆和后日谈，不会自动播放对白或领取奖励。",
+    };
+  }
+  if (tag.includes("spirit_expedition") || tag.includes("expedition")) {
+    return {
+      selector: "#spiritList",
+      fallbackSelector: "#spiritList",
+      panelGroup: "core",
+      targetLabel: "精怪远征小队",
+      stateClass: state.spirits.length > 0 ? "active" : "pending",
+      advice: "只定位精怪栏和远征线索，不会自动发商队或派遣。",
+    };
+  }
+  if (tag.includes("interrealm") || tag.includes("trade")) {
+    const route = data.tradeRoutes.find((entry) => conditionMet(entry.unlock_condition_group)) || data.tradeRoutes[0];
+    return {
+      selector: route ? `[data-trade-route="${selectorDataValue(route.route_id)}"]` : "#spiritList",
+      fallbackSelector: "#spiritList",
+      panelGroup: "core",
+      targetLabel: route ? route.route_name : "跨界商路",
+      stateClass: route && conditionMet(route.unlock_condition_group) ? "active" : "pending",
+      advice: "只定位商路线卡，补给、探路和发商队都要手动确认。",
+    };
+  }
+  if (tag.includes("term") || tag.includes("festival")) {
+    const trial = data.year2SolarTrials.find((entry) => conditionMet(entry.unlock_condition_group)) || data.year2SolarTrials[0];
+    return {
+      selector: trial ? `[data-solar-trial="${selectorDataValue(trial.trial_id)}"]` : "#solarTrialPanel",
+      fallbackSelector: "#solarTrialPanel",
+      panelGroup: "systems",
+      targetLabel: trial ? solarTrialName(trial) : "年轮试炼",
+      stateClass: trial && conditionMet(trial.unlock_condition_group) ? "active" : "pending",
+      advice: "只定位节气试炼，不会自动开启试炼或推进日期。",
+    };
+  }
+  if (tag.includes("dungeon") || tag.includes("explore")) {
+    const dungeon = data.dungeons.find((entry) => conditionMet(entry.unlock_condition_group)) || data.dungeons[0];
+    return {
+      selector: dungeon ? `[data-dungeon-card-id="${selectorDataValue(dungeon.area_id)}"]` : "#dungeonPanel",
+      fallbackSelector: "#dungeonPanel",
+      panelGroup: "systems",
+      targetLabel: dungeon ? dungeonName(dungeon) : "隐藏秘境轮换",
+      stateClass: dungeon && state.dungeonClears.has(dungeon.area_id) ? "done" : "active",
+      advice: "只定位秘境图鉴和轮换入口，不会自动进入秘境。",
+    };
+  }
+  if (tag.includes("bond") || tag.includes("spirit") || tag.includes("ecology")) {
+    const spirit = state.spirits[0];
+    const ecologyGoal = ecologyCourtyardGoalRows().find((goal) => !goal.claimed && (goal.ready || goal.active));
+    return {
+      selector: spirit ? `[data-spirit-id="${selectorDataValue(spirit.id)}"]` : ecologyGoal ? `[data-ecology-goal="${selectorDataValue(ecologyGoal.comboId)}"]` : "#spiritList",
+      fallbackSelector: spirit ? "#spiritList" : "#goalBookPanel",
+      panelGroup: "core",
+      targetLabel: spirit ? `${spiritName(spirit)}羁绊` : ecologyGoal ? ecologyGoal.name : "精怪羁绊与生态庭院",
+      stateClass: spirit && (spirit.bondLevel || 0) >= 3 ? "ready" : state.spirits.length > 0 ? "active" : "pending",
+      advice: "只定位精怪、羁绊或生态目标，不会自动切岗、喂食或领奖。",
+    };
+  }
+  return {
+    ...base,
+    advice: row.note || "先把这一页放进第二年开局路线，之后再按目标手动推进。",
+  };
+}
+
+function year2OpeningTenDaySpec() {
+  const opened = year2Unlocked();
+  const planRows = year2OpeningTenDayPlanRows();
+  const nodes = planRows.map((row, index) => {
+    const route = year2OpeningTenDayRouteFor(row, index);
+    const unlocked = opened && conditionMet(row.unlock_condition_group || "quest_main_0403_complete");
+    const stateClass = !unlocked ? "pending" : route.stateClass || "active";
+    return {
+      key: row.content_id || `year2_opening_day_${index + 1}`,
+      dayIndex: index + 1,
+      dayLabel: `第${index + 1}日`,
+      title: row.content_name || `第二年第${index + 1}日`,
+      contentType: row.content_type || "year2_opening",
+      loopTag: row.core_loop_tag || "freeplay_goal",
+      phase: row.chapter_phase || "year2_start",
+      cycle: row.repeat_cycle || "daily",
+      rewardGroup: row.reward_group || "pool_reward_year2",
+      retentionGoal: row.retention_goal || "长期留存",
+      note: row.note || route.advice || "第二年开局节点已经写入十日谱。",
+      selector: route.selector,
+      fallbackSelector: route.fallbackSelector || "#goalBookPanel",
+      panelGroup: route.panelGroup || "core",
+      targetLabel: route.targetLabel,
+      advice: route.advice || row.note || "定位到对应入口后，再由玩家手动确认下一步。",
+      stateClass,
+      unlocked,
+    };
+  });
+  const unlockedCount = nodes.filter((node) => node.unlocked).length;
+  const readyCount = nodes.filter((node) => node.stateClass === "ready").length;
+  const doneCount = nodes.filter((node) => node.stateClass === "done").length;
+  const focusNode = nodes.find((node) => node.stateClass === "ready")
+    || nodes.find((node) => node.stateClass === "active")
+    || nodes[0]
+    || null;
+  return {
+    active: opened && nodes.length > 0,
+    opened,
+    key: `${state.day}:${opened ? 1 : 0}:${unlockedCount}:${readyCount}:${doneCount}:${focusNode?.key || "none"}`,
+    title: "第二年开年十日谱",
+    headline: opened
+      ? `十日开局 ${unlockedCount}/10 · 可处理 ${readyCount} · 已跑顺 ${doneCount}`
+      : "蟠桃宴后才会展开十日谱",
+    detail: opened
+      ? "用十个安全导航节点把宴后首周、今日目标、造景、名铺、精怪、节气、关系、远征、商路和秘境串成第二年开局。"
+      : "完成终章宴席后，第二年内容表会展开为十日安全路线。",
+    stateClass: doneCount >= 3 ? "done" : readyCount > 0 ? "ready" : opened ? "active" : "pending",
+    nodes,
+    focusNode,
+    unlockedCount,
+    readyCount,
+    doneCount,
+    safety: "不会自动交单、领奖、建造、开铺、发商队、开启试炼、推进时间或消耗资源",
+  };
+}
+
+function year2OpeningTenDayMarkup(spec = year2OpeningTenDaySpec()) {
+  if (!spec?.active) return "";
+  return `
+    <div class="year2-opening-ten-day ${spec.stateClass}">
+      <div class="year2-opening-ten-day-head">
+        <span>
+          <strong>${spec.title}</strong>
+          <small>${spec.headline} · ${spec.detail}</small>
+        </span>
+        <em>十日谱</em>
+      </div>
+      <div class="year2-opening-ten-day-grid">
+        ${spec.nodes.map((node) => `
+          <button type="button" class="year2-opening-ten-day-node ${node.stateClass}" data-year2-opening-node="${node.key}">
+            <b>${node.dayLabel} · ${node.cycle}</b>
+            <strong>${node.title}</strong>
+            <span>${node.retentionGoal} · ${node.targetLabel}</span>
+            <small>${node.note}</small>
+          </button>
+        `).join("")}
+      </div>
+      <small class="year2-opening-ten-day-safe">${spec.safety}。点击只是定位下一页。</small>
+    </div>
+  `;
+}
+
+function focusYear2OpeningTenDay(nodeKey = "", spec = year2OpeningTenDaySpec()) {
+  if (!spec?.active) {
+    addLog("第二年开年十日谱", "蟠桃大宴之后才会展开第二年开年十日谱。");
+    return false;
+  }
+  const node = spec.nodes.find((entry) => entry.key === nodeKey)
+    || spec.focusNode
+    || spec.nodes[0];
+  if (!node) return false;
+  year2OpeningTenDayWorldFocus = {
+    key: spec.key,
+    day: state.day,
+    nodeKey: node.key,
+  };
+  queueStoryCompassFocusTarget({
+    selector: node.selector,
+    fallbackSelector: node.fallbackSelector || "#goalBookPanel",
+    panelGroup: node.panelGroup || "core",
+    label: `第二年开年十日谱：${node.dayLabel}`,
+    log: `${node.title} 已定位到「${node.targetLabel}」。${node.advice}。${spec.safety}。`,
+    missingTitle: "第二年开年十日谱",
+    missingLog: `${node.title} 的入口暂时没有找到，先回到目标册查看十日谱。${spec.safety}。`,
+  });
+  return true;
+}
+
+function year2OpeningTenDayWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
+  const spec = year2OpeningTenDaySpec();
+  if (!spec?.active || state.dungeon) return null;
+  const rect = {
+    x: Math.max(24, Math.min(width - 350, 30)),
+    y: Math.max(172, Math.min(height - 188, 246)),
+    width: 338,
+    height: 166,
+  };
+  return {
+    ...spec,
+    type: "year2_opening_ten_day",
+    rect,
+    anchor: { x: 498, y: 518 },
+    focusNode: spec.focusNode || spec.nodes[0],
+  };
+}
+
+function year2OpeningTenDayWorldAtCanvasPoint(px, py) {
+  const target = year2OpeningTenDayWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
+  if (!target?.rect) return null;
+  const { rect } = target;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? target
+    : null;
+}
+
+function isYear2OpeningTenDayTarget(target) {
+  return Boolean(target && target.type === "year2_opening_ten_day");
+}
+
+function drawYear2OpeningTenDayWorld(ctx, spec = year2OpeningTenDayWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
+  if (!spec?.rect) return false;
+  const { rect, anchor } = spec;
+  const active = year2OpeningTenDayWorldFocus?.day === state.day
+    && year2OpeningTenDayWorldFocus?.key === spec.key;
+  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.34) * 2;
+  const cardY = rect.y + bob;
+  const accent = spec.readyCount > 0 ? "#b47d2f" : spec.doneCount > 1 ? "#286f58" : "#4d91a6";
+
+  ctx.save();
+  ctx.strokeStyle = active ? `${accent}dd` : `${accent}66`;
+  ctx.lineWidth = active ? 3 : 1.7;
+  ctx.setLineDash([10, 8]);
+  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 11;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y);
+  ctx.bezierCurveTo(anchor.x - 124, anchor.y - 96, rect.x + rect.width + 48, cardY + rect.height + 42, rect.x + rect.width - 14, cardY + rect.height - 10);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(241, 247, 235, 0.95)");
+  ctx.strokeStyle = active ? `${accent}ee` : `${accent}88`;
+  ctx.lineWidth = active ? 2.7 : 1.5;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}20`;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 54, 56, 15);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 21px Microsoft YaHei";
+  ctx.fillText("十", rect.x + 30, cardY + 49);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "800 12px Microsoft YaHei";
+  ctx.fillText(spec.title, rect.x + 82, cardY + 26);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 14px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 24), rect.x + 82, cardY + 48);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(spec.detail.slice(0, 38), rect.x + 82, cardY + 67);
+
+  const focusNode = spec.focusNode || spec.nodes[0];
+  if (focusNode) {
+    ctx.fillStyle = "rgba(255, 253, 245, 0.78)";
+    ctx.beginPath();
+    ctx.roundRect(rect.x + 16, cardY + 82, rect.width - 32, 22, 11);
+    ctx.fill();
+    ctx.fillStyle = accent;
+    ctx.font = "900 10px Microsoft YaHei";
+    ctx.fillText(`${focusNode.dayLabel} · ${focusNode.title}`.slice(0, 22), rect.x + 28, cardY + 97);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "800 9px Microsoft YaHei";
+    ctx.fillText((focusNode.targetLabel || "目标册").slice(0, 12), rect.x + rect.width - 98, cardY + 97);
+  }
+
+  spec.nodes.slice(0, 10).forEach((node, index) => {
+    const chipX = rect.x + 16 + (index % 5) * 61;
+    const chipY = cardY + 114 + Math.floor(index / 5) * 21;
+    const nodeAccent = node.stateClass === "ready" ? "#b47d2f" : node.stateClass === "done" ? "#286f58" : node.stateClass === "pending" ? "#8f5f3f" : "#4d91a6";
+    ctx.fillStyle = node.stateClass === "ready"
+      ? "rgba(224, 182, 109, 0.22)"
+      : node.stateClass === "done"
+        ? "rgba(40, 111, 88, 0.16)"
+        : "rgba(255, 253, 245, 0.74)";
+    ctx.beginPath();
+    ctx.roundRect(chipX, chipY, 55, 17, 8);
+    ctx.fill();
+    ctx.fillStyle = nodeAccent;
+    ctx.font = "900 9px Microsoft YaHei";
+    ctx.fillText(`${index + 1}`.padStart(2, "0"), chipX + 7, chipY + 12);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "800 8px Microsoft YaHei";
+    ctx.fillText(node.title.slice(0, 4), chipX + 22, chipY + 12);
+  });
+
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(spec.safety.slice(0, 32), rect.x + 18, cardY + rect.height - 8);
+  ctx.restore();
+  return true;
+}
+
+function finalBanquetAfterwordBridgeSpec() {
+  const opened = year2Unlocked();
+  const firstWeek = year2FirstWeekStatus();
+  const today = year2TodayRecommendationSpec();
+  const firstOrderTitle = firstWeek.order ? orderTitle(firstWeek.order) : "宴后第一周礼宴单";
+  const needStatus = firstWeek.needStatus;
+  const missingText = needStatus?.missing?.slice(0, 3).join("、") || "礼卷、宴食和灵酿";
+  const todayLead = today?.lead || null;
+  const rows = [
+    {
+      key: "first_week",
+      label: "首周",
+      title: firstWeek.delivered ? "宴后第一单已接好" : firstWeek.ready ? "宴后第一单可交" : "首周礼宴单待备齐",
+      detail: firstWeek.delivered
+        ? `${firstOrderTitle} 已经把通关后第一周接成稳定现金流。`
+        : firstWeek.ready
+          ? `${firstOrderTitle} 三件套已齐，去订单板手动交付即可起笔第二年。`
+          : `${firstOrderTitle} 还差 ${missingText}，先补货再把宴席余温接成第一单。`,
+      selector: firstWeek.order ? `[data-order-card-id="${selectorDataValue(firstWeek.order.order_id)}"]` : "#orderPanel",
+      fallbackSelector: "#orderPanel",
+      panelGroup: "core",
+      stateClass: firstWeek.delivered ? "done" : firstWeek.ready ? "ready" : "pending",
+    },
+    {
+      key: "today_route",
+      label: "今日",
+      title: todayLead ? todayLead.title : "第二年今日推荐",
+      detail: todayLead
+        ? `${todayLead.scope}目标 ${Math.min(todayLead.progress, todayLead.target)}/${todayLead.target}，奖励 ${todayLead.rewardText}。`
+        : "今日推荐会把精怪照料、店铺订单、远征和长期目标排成可执行顺序。",
+      selector: todayLead ? `[data-year2-goal="${selectorDataValue(todayLead.goalId)}"]` : ".year2-today-recommend-card",
+      fallbackSelector: "#goalBookPanel",
+      panelGroup: "core",
+      stateClass: todayLead?.ready ? "ready" : todayLead ? "done" : "pending",
+    },
+    {
+      key: "shop_season",
+      label: "名铺",
+      title: "名铺赛季和订单账页",
+      detail: "蟠桃宴后的旧铺不再只卖一两件货，赛季评分、顾客偏好和第二年订单会接成长期经营。",
+      selector: '[data-shop-season-board="orders"]',
+      fallbackSelector: "#shopReport",
+      panelGroup: "core",
+      stateClass: state.shopStats?.history?.length ? "done" : "ready",
+    },
+    {
+      key: "long_tail",
+      label: "长线",
+      title: "十小时路线与自由目标",
+      detail: "把短会话、周回访、名铺月度、收藏造景、试炼挑战和羁绊后日谈串成通关后的留存路线。",
+      selector: ".post-mainline-goal-route",
+      fallbackSelector: "#goalBookPanel",
+      panelGroup: "core",
+      stateClass: opened ? "ready" : "pending",
+    },
+  ];
+  return {
+    active: opened,
+    opened,
+    key: `${state.day}:${opened ? 1 : 0}:${firstWeek.delivered ? 1 : 0}:${firstWeek.ready ? 1 : 0}:${todayLead?.goalId || "no_goal"}`,
+    title: "蟠桃宴后开卷桥",
+    headline: opened ? "宴席余温已经接到第二年" : "蟠桃宴后才会正式开卷",
+    detail: opened
+      ? "从终章宴席直接接到首周订单、今日推荐、名铺赛季和长期留存，不让通关后目标断线。"
+      : "完成终章宴席后，这里会把第二年第一周和长期目标全部摊开。",
+    stateClass: !opened ? "pending" : firstWeek.delivered ? "pass" : firstWeek.ready ? "ready" : "active",
+    rows,
+    safety: "不会自动交单、领奖、开铺、推进时间、播放对白或消耗资源",
+  };
+}
+
+function finalBanquetAfterwordBridgeMarkup(spec = finalBanquetAfterwordBridgeSpec()) {
+  if (!spec?.active) return "";
+  return `
+    <div class="final-banquet-afterword-bridge ${spec.stateClass}">
+      <div class="final-banquet-afterword-head">
+        <span>
+          <strong>${spec.title}</strong>
+          <small>${spec.headline} · ${spec.detail}</small>
+        </span>
+        <em>宴后开卷</em>
+      </div>
+      <p>${spec.safety}</p>
+      <div class="final-banquet-afterword-grid">
+        ${spec.rows.map((row) => `
+          <button type="button" class="final-banquet-afterword-node ${row.stateClass}" data-final-banquet-afterword-node="${row.key}">
+            <b>${row.label}</b>
+            <strong>${row.title}</strong>
+            <span>${row.detail}</span>
+            <small>只定位到对应入口，后续由你手动确认。</small>
+          </button>
+        `).join("")}
+      </div>
+      <small>从终章宴席到第二年目标的桥，只负责开卷和定位，不会替你完成任何经营动作。</small>
+    </div>
+  `;
+}
+
+function finalBanquetAfterwordBridgeWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
+  const bridge = finalBanquetAfterwordBridgeSpec();
+  if (!bridge?.active || state.dungeon) return null;
+  const rect = {
+    x: Math.max(24, Math.min(width - 330, 604)),
+    y: Math.max(92, Math.min(height - 124, 414)),
+    width: 318,
+    height: 112,
+  };
+  return {
+    ...bridge,
+    type: "final_banquet_afterword_bridge",
+    rect,
+    anchor: { x: 384, y: 532 },
+    focusNode: bridge.rows.find((row) => row.stateClass === "ready") || bridge.rows[0],
+  };
+}
+
+function finalBanquetAfterwordBridgeWorldAtCanvasPoint(px, py) {
+  const spec = finalBanquetAfterwordBridgeWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? spec
+    : null;
+}
+
+function isFinalBanquetAfterwordBridgeTarget(target) {
+  return Boolean(target && target.type === "final_banquet_afterword_bridge");
+}
+
+function focusFinalBanquetAfterwordBridge(nodeKey = "", spec = finalBanquetAfterwordBridgeSpec()) {
+  if (!spec?.active) return false;
+  const row = spec.rows.find((entry) => entry.key === nodeKey) || spec.focusNode || spec.rows.find((entry) => entry.stateClass === "ready") || spec.rows[0];
+  if (!row) return false;
+  finalBanquetAfterwordBridgeWorldFocus = { key: spec.key, day: state.day, nodeKey: row.key };
+  queueStoryCompassFocusTarget({
+    selector: row.selector,
+    fallbackSelector: row.fallbackSelector || "#goalBookPanel",
+    panelGroup: row.panelGroup || "core",
+    label: `点选蟠桃宴后开卷桥：${row.label}`,
+    log: `${row.title} 已定位：${row.detail}。${spec.safety}。`,
+    missingTitle: "点选蟠桃宴后开卷桥",
+    missingLog: `${row.title} 对应入口暂时没有找到，先回到目标册查看蟠桃宴后开卷桥。${spec.safety}。`,
+  });
+  return true;
+}
+
+function drawFinalBanquetAfterwordBridgeWorld(ctx, spec = finalBanquetAfterwordBridgeWorldSpec(), motion = performance.now() / 1000) {
+  if (!spec?.rect) return false;
+  const { rect } = spec;
+  const active = finalBanquetAfterwordBridgeWorldFocus?.day === state.day
+    && finalBanquetAfterwordBridgeWorldFocus?.key === spec.key;
+  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 2.1) * 2.5;
+  const cardY = rect.y + bob;
+  ctx.save();
+  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.82)" : "rgba(224, 182, 109, 0.42)";
+  ctx.lineWidth = active ? 3 : 2;
+  ctx.setLineDash([8, 10]);
+  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 14;
+  ctx.beginPath();
+  ctx.moveTo(spec.anchor.x, spec.anchor.y);
+  ctx.bezierCurveTo(spec.anchor.x + 104, spec.anchor.y - 82, rect.x - 34, cardY + rect.height * 0.8, rect.x + 12, cardY + rect.height * 0.6);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.92)");
+  ctx.strokeStyle = active ? "rgba(180, 125, 47, 0.78)" : "rgba(180, 125, 47, 0.34)";
+  ctx.lineWidth = active ? 2.5 : 1.5;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, cardY + 1, rect.width - 2, rect.height - 2, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "#b47d2f";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, cardY + 15, 46, 38, 14);
+  ctx.fill();
+  ctx.fillStyle = "#fffdf5";
+  ctx.font = "900 17px Microsoft YaHei";
+  ctx.fillText("卷", rect.x + 29, cardY + 40);
+
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 14px Microsoft YaHei";
+  ctx.fillText(spec.title, rect.x + 76, cardY + 28);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "800 11px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 22), rect.x + 76, cardY + 47);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(spec.detail.slice(0, 31), rect.x + 16, cardY + 70);
+
+  spec.rows.slice(0, 4).forEach((row, index) => {
+    const chipX = rect.x + 16 + index * 72;
+    const chipY = cardY + 84;
+    ctx.fillStyle = row.stateClass === "ready" ? "rgba(224, 182, 109, 0.22)" : row.stateClass === "done" ? "rgba(40, 111, 88, 0.16)" : "rgba(255, 253, 245, 0.76)";
+    ctx.beginPath();
+    ctx.roundRect(chipX, chipY, 64, 18, 9);
+    ctx.fill();
+    ctx.fillStyle = row.stateClass === "ready" ? "#b47d2f" : row.stateClass === "done" ? "#286f58" : "#8f5f3f";
+    ctx.font = "800 10px Microsoft YaHei";
+    ctx.fillText(row.label.slice(0, 4), chipX + 10, chipY + 13);
+  });
+
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "700 9px Microsoft YaHei";
+  ctx.fillText(spec.safety.slice(0, 30), rect.x + 16, cardY + rect.height - 9);
+  ctx.restore();
   return true;
 }
 
@@ -13396,6 +14334,159 @@ function postMainlineRouteStationFocusSpec(station) {
     targetLabel: station.title,
     advice: station.detail,
   };
+}
+
+function postMainlineTodayRouteRowNode(row = null) {
+  if (!row) return null;
+  const station = postMainlineRouteStationSpecs()
+    .find((entry) => entry.routeKey === row.key) || {
+      routeKey: row.key,
+      label: row.title || "今日路线",
+      title: row.title || "主线后今日路线",
+      detail: row.detail || "先接起一条今天就能推进的路线。",
+      icon: "今",
+      panel: "目标册",
+      accent: "#b47d2f",
+    };
+  const focus = postMainlineTodayRouteFocusSpec(row);
+  return {
+    row,
+    routeKey: row.key || station.routeKey || "",
+    title: row.title || station.title || "主线后今日路线",
+    stationLabel: station.label || row.title || "今日路线",
+    panelLabel: station.panel || "目标册",
+    icon: station.icon || "今",
+    minutes: Number(row.minutes || 0),
+    detail: row.detail || focus.advice || "先定位一条今天就能推进的路线。",
+    selector: focus.selector,
+    fallbackSelector: focus.fallbackSelector,
+    panelGroup: focus.panelGroup || "core",
+    targetLabel: focus.targetLabel || row.title || "主线后目标册",
+    advice: focus.advice || row.detail || "先从最顺手的一条开始。",
+    accent: station.accent || "#b47d2f",
+  };
+}
+
+function postMainlineTodayRouteFocusSpec(row = null) {
+  const station = row
+    ? postMainlineRouteStationSpecs().find((entry) => entry.routeKey === row.key) || {
+      ...row,
+      routeKey: row.key,
+      label: row.title || "今日路线",
+    }
+    : null;
+  const base = postMainlineRouteStationFocusSpec(station);
+  return {
+    routeKey: row?.key || station?.routeKey || "",
+    routeTitle: row?.title || station?.title || "主线后今日路线",
+    selector: base.selector || "#goalBookPanel",
+    fallbackSelector: base.fallbackSelector || "#goalBookPanel",
+    panelGroup: base.panelGroup || "core",
+    targetLabel: base.targetLabel || row?.title || "主线后目标册",
+    advice: base.advice || row?.detail || "先定位一条今天就能推进的路线。",
+    safety: "点击只定位年鉴页、自由目标卡或对应系统入口，不会自动领取奖励、推进时间、交单、开铺、开启试炼、发商队或消耗资源。",
+  };
+}
+
+function postMainlineTodayRouteWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
+  const route = postMainlineTenHourWorldRouteSpec(width, height);
+  if (!route?.focusRow) return null;
+  const focus = postMainlineTodayRouteFocusSpec(route.focusRow);
+  const rowNode = postMainlineTodayRouteRowNode(route.focusRow);
+  if (!rowNode) return null;
+  const rows = route.routeRows
+    .slice(0, 3)
+    .map((row) => {
+      const node = postMainlineTodayRouteRowNode(row);
+      return node
+        ? {
+          ...node,
+          active: row.key === route.focusRow.key,
+        }
+        : null;
+    })
+    .filter(Boolean);
+  const cardWidth = 248;
+  const cardHeight = 118;
+  const x = Math.max(34, Math.min(width - cardWidth - 34, route.rect.x + 10));
+  const y = Math.max(168, Math.min(height - cardHeight - 42, route.rect.y + route.rect.height + 18));
+  return {
+    key: `${state.day}:${route.focusRow.key}:${route.totalMinutes}:${route.coverageDone}`,
+    title: "主线后今日路线",
+    headline: "今天就有可落袋的事",
+    routeKey: route.focusRow.key,
+    focusRow: route.focusRow,
+    rowNode,
+    rows,
+    selector: focus.selector,
+    fallbackSelector: focus.fallbackSelector,
+    panelGroup: focus.panelGroup,
+    targetLabel: focus.targetLabel,
+    advice: focus.advice,
+    safety: focus.safety,
+    minutes: rowNode.minutes,
+    coverageDone: route.coverageDone,
+    coverageTotal: route.coverageTotal,
+    totalMinutes: route.totalMinutes,
+    targetMinutes: route.targetMinutes,
+    rect: { x, y, width: cardWidth, height: cardHeight },
+    anchor: {
+      x: route.rect.x + route.rect.width - 34,
+      y: route.rect.y + route.rect.height + 10,
+    },
+  };
+}
+
+function postMainlineTodayRouteWorldAtCanvasPoint(px, py) {
+  const spec = postMainlineTodayRouteWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? {
+      id: "post_mainline_today_route",
+      type: "post_mainline_today_route",
+      label: spec.title,
+      selector: spec.selector,
+      fallbackSelector: spec.fallbackSelector,
+      routeKey: spec.routeKey,
+      postMainlineTodayRoute: spec,
+      rect,
+    }
+    : null;
+}
+
+function focusPostMainlineTodayRouteWorldFromCanvas(target = postMainlineTodayRouteWorldSpec()) {
+  const spec = target?.postMainlineTodayRoute || target;
+  if (!spec?.rowNode) return false;
+  const focus = spec.focus || postMainlineTodayRouteFocusSpec(spec.focusRow || spec.rowNode.row);
+  const routeSpec = postMainlineTenHourWorldRouteSpec();
+  postMainlineTodayRouteWorldFocus = {
+    key: spec.key,
+    day: state.day,
+    routeKey: spec.routeKey || spec.rowNode.routeKey || "",
+  };
+  if (routeSpec?.key) {
+    postMainlineTenHourWorldFocus = {
+      key: routeSpec.key,
+      day: state.day,
+      routeKey: spec.routeKey || spec.rowNode.routeKey || "",
+    };
+  }
+  queueStoryCompassFocusTarget({
+    selector: focus.selector,
+    fallbackSelector: focus.fallbackSelector,
+    label: "点选主线后今日路线",
+    log: `${spec.rowNode.title} 已接到「${focus.targetLabel}」。今天就有可落袋的事。${focus.advice} ${focus.safety}`,
+    panelGroup: focus.panelGroup || "core",
+    missingTitle: "点选主线后今日路线",
+    missingLog: `主线后今日路线已经亮起，但当前没有找到对应入口。${focus.safety}`,
+  });
+  addLog(
+    "点选主线后今日路线：主线后今日路线",
+    `${spec.rowNode.title} 今天就有可落袋的事。${focus.advice} ${focus.safety}`,
+  );
+  render();
+  return true;
 }
 
 function postMainlineTenHourGoalMarkup(spec = postMainlineTenHourGoalEvidenceSpec()) {
@@ -15506,6 +16597,173 @@ function rareSpiritActionPromenadeMarkup(spec = rareSpiritActionPromenadeSpec())
         `).join("")}
       </div>
       <small>已结缘 ${spec.ownedCount}/${spec.totalCount} · 可推进 ${spec.readyCount} · 待收录小剧场 ${spec.theaterNeedCount} · ${spec.safety}</small>
+    </div>
+  `;
+}
+
+function rareSpiritCharacterStageRows(row = null) {
+  if (!row) return [];
+  const firstMeet = row.events.find((event) => event.event_stage === "first_meet") || row.events[0] || null;
+  const evolution = row.events.find((event) => event.event_stage === "evolution") || null;
+  const bondFinal = row.events.find((event) => event.event_stage === "bond_final") || row.events[row.events.length - 1] || null;
+  return [
+    { key: "first", label: "初见", event: firstMeet },
+    { key: "evolution", label: "进化", event: evolution },
+    { key: "bond", label: "终章陪伴", event: bondFinal },
+  ].filter((stage) => stage.event).map((stage) => {
+    const done = rareSpiritEventDone(stage.event);
+    const ready = rareSpiritEventReady(stage.event);
+    return {
+      ...stage,
+      done,
+      ready,
+      stateClass: done ? "done" : ready ? "ready" : row.owned ? "active" : "locked",
+      title: rareSpiritStageLabel(stage.event.event_stage),
+      detail: done ? "已收录" : ready ? "事件可推" : rareSpiritConditionHint(stage.event),
+    };
+  });
+}
+
+function rareSpiritLifeSnapshot(row = null) {
+  if (!row) return null;
+  const profile = rareSpiritLifeProfile(row.lineId) || {};
+  const moment = row.ownedSpirit ? rareSpiritMomentForSpirit(row.ownedSpirit) : null;
+  const nextEvent = row.readyEvents[0] || row.events.find((event) => !rareSpiritEventDone(event)) || null;
+  const stageRows = rareSpiritCharacterStageRows(row);
+  const giftText = moment?.giftItemId
+    ? (rareSpiritInteractionGiftReady(row.ownedSpirit, "pet") || rareSpiritInteractionGiftReady(row.ownedSpirit, "feed")
+      ? `今天可能回礼：${moment.giftName}`
+      : `回礼留痕：${moment.giftName}`)
+    : row.latestGift
+      ? `最近回礼：${itemName(row.latestGift.itemId)}`
+      : "今天可能回礼：继续陪伴后再看";
+  return {
+    lineId: row.lineId,
+    spiritName: row.spiritName,
+    stateClass: row.stateClass,
+    title: `${row.spiritName} · 生活回响`,
+    doingText: moment
+      ? `今天在做什么：${moment.focus} · ${moment.actionShort || profile.actionShort || moment.action}`
+      : row.owned ? "今天在做什么：岗位小动作还在生成中" : "今天在做什么：还没正式结缘",
+    nextMemoryText: nextEvent
+      ? `离下一段记忆还差什么：${rareSpiritConditionHint(nextEvent)}`
+      : row.complete ? "离下一段记忆还差什么：这条阶段链已经收束，可回看小剧场。" : "离下一段记忆还差什么：继续提升羁绊、事件和生态共鸣。",
+    giftText,
+    longTailText: row.complete
+      ? "长期为什么值得继续：已成型的伙伴线会稳定提供小剧场、回礼留痕和生态共鸣。"
+      : row.needsEcology
+        ? "长期为什么值得继续：补齐生态共鸣后，伙伴会在庭院里留下更鲜明的生活动作。"
+        : "长期为什么值得继续：稀有伙伴会把经营、探索和日常陪伴串成可收藏的角色记忆。",
+    stageRows,
+    latestTheater: row.latestTheater,
+    latestGift: row.latestGift,
+    actionShort: profile.actionShort || moment?.actionShort || "专属动作",
+  };
+}
+
+function rareSpiritLifeSnapshotMarkup(snapshot = null, { compact = false } = {}) {
+  if (!snapshot) return "";
+  return `
+    <div class="rare-spirit-life-snapshot ${compact ? "compact" : ""}">
+      <div class="rare-spirit-life-snapshot-head">
+        <strong>${snapshot.title}</strong>
+        <span>${snapshot.actionShort}</span>
+      </div>
+      <div class="rare-spirit-life-snapshot-grid">
+        <div class="rare-spirit-life-snapshot-cell ${snapshot.stateClass}">
+          <b>生活回响</b>
+          <small>${snapshot.doingText}</small>
+        </div>
+        <div class="rare-spirit-life-snapshot-cell ${snapshot.stageRows.some((row) => row.ready) ? "ready" : snapshot.stageRows.every((row) => row.done) ? "done" : "locked"}">
+          <b>阶段链</b>
+          <small>${snapshot.nextMemoryText}</small>
+        </div>
+        <div class="rare-spirit-life-snapshot-cell ${snapshot.latestGift ? "done" : "ready"}">
+          <b>回礼留痕</b>
+          <small>${snapshot.giftText}</small>
+        </div>
+      </div>
+      <div class="rare-character-stage-track ${compact ? "compact" : ""}">
+        ${snapshot.stageRows.map((stage) => `
+          <span class="rare-character-stage-chip ${stage.stateClass}">
+            <b>${stage.label}</b>
+            <small>${stage.detail}</small>
+          </span>
+        `).join("")}
+      </div>
+      <small class="rare-spirit-life-snapshot-foot">${snapshot.longTailText}</small>
+    </div>
+  `;
+}
+
+function rareSpiritCharacterRowSpec(row = null) {
+  if (!row) return null;
+  const snapshot = rareSpiritLifeSnapshot(row);
+  const profile = rareSpiritLifeProfile(row.lineId) || {};
+  return {
+    lineId: row.lineId,
+    spiritName: row.spiritName,
+    owned: row.owned,
+    stateClass: row.complete ? "done" : row.readyEvents.length > 0 ? "ready" : row.owned ? "active" : "locked",
+    title: `${row.spiritName} · 稀有陪伴卡`,
+    subtitle: row.owned ? `角色总览 · 羁绊 Lv.${row.bondLevel} · 生活进度 ${row.progressText}` : `角色总览 · ${row.statusText}`,
+    actionShort: profile.actionShort || snapshot?.actionShort || "专属动作",
+    snapshot,
+    targetType: row.readyEvents.length > 0 ? "event" : row.owned ? row.theaterEntries.length > 0 ? "theater" : "spirit" : "codex",
+  };
+}
+
+function rareSpiritCharacterShowcaseSpec(rows = rareSpiritLifeCodexRows()) {
+  const characterRows = rows
+    .map(rareSpiritCharacterRowSpec)
+    .filter(Boolean)
+    .sort((a, b) => Number(b.stateClass === "ready") - Number(a.stateClass === "ready")
+      || Number(b.owned) - Number(a.owned)
+      || String(a.spiritName).localeCompare(String(b.spiritName)))
+    .slice(0, 6);
+  return {
+    active: characterRows.length > 0,
+    title: "稀有伙伴肖像簿",
+    headline: "角色总览 · 阶段链 · 生活回响",
+    rows: characterRows,
+    safety: "只定位生活图鉴、事件卡、精怪面板或小剧场入口，不会自动触发事件、领取回礼、增加羁绊、招募、派工或消耗资源",
+  };
+}
+
+function rareSpiritCharacterShowcaseMarkup(spec = rareSpiritCharacterShowcaseSpec()) {
+  if (!spec?.active) return "";
+  return `
+    <div class="goal-card rare-character-showcase">
+      <strong>${spec.title}</strong>
+      <span>${spec.headline}</span>
+      <div class="rare-character-showcase-grid">
+        ${spec.rows.map((row) => `
+          <div class="spirit-rare-companion-card ${row.stateClass}" data-rare-character-line="${row.lineId}">
+            <strong>${row.title}</strong>
+            <span>${row.subtitle}</span>
+            ${rareSpiritLifeSnapshotMarkup(row.snapshot, { compact: true })}
+            <div class="rare-character-actions">
+              <button type="button" data-life-codex-focus="${row.targetType}" data-life-codex-line="${row.lineId}">${row.targetType === "event" ? "定位事件" : row.targetType === "theater" ? "回看小剧场" : row.owned ? "定位精怪" : "查看线索"}</button>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+      <small>${spec.safety}</small>
+    </div>
+  `;
+}
+
+function rareSpiritCompanionCardMarkup(spirit = null) {
+  if (!spirit) return "";
+  const lineId = spirit.lineId || spiritLine(spirit.id);
+  const row = rareSpiritLifeCodexRows().find((candidate) => candidate.lineId === lineId);
+  const character = rareSpiritCharacterRowSpec(row);
+  if (!character) return "";
+  return `
+    <div class="spirit-rare-companion-card compact" data-rare-character-line="${lineId}">
+      <strong>稀有陪伴卡 · ${spirit.name}</strong>
+      <span>${character.subtitle} · ${character.actionShort}</span>
+      ${rareSpiritLifeSnapshotMarkup(character.snapshot, { compact: true })}
     </div>
   `;
 }
@@ -18445,6 +19703,156 @@ function sideQuestRouteActionLabel(quest) {
     enter_area: "定位地点",
   };
   return labels[step.objective_type] || "定位玩法入口";
+}
+
+function missionCropCodexRows() {
+  const qingheQuest = data.sideQuests.find((entry) => entry.quest_id === "quest_side_0205_qinghe_pond") || null;
+  const crop = data.cropsById.get("crop_luzhu_qin") || data.cropsBySeed.get("seed_luzhu_qin") || null;
+  const seedOwned = Number(state.inventory.seed_luzhu_qin || 0);
+  const cropOwned = Number(state.inventory.crop_luzhu_qin || 0);
+  const plantedCount = state.plots.filter((plot) => plot.cropId === "crop_luzhu_qin").length;
+  const waterPlots = state.plots.filter((plot) => !plot.debris && (plot.waterSoil || plot.newlyExpanded)).length;
+  const farmSpiritCount = state.spirits.filter((spirit) => (spirit.job || "farm") === "farm").length;
+  const pondControl = pondWaterControlUnlocked();
+  const pondSpec = pondWaterLevelSpec(state.pondState.waterLevel);
+  const progress = qingheQuest ? questProgress(qingheQuest, true) : { done: 0, total: 0 };
+  const accepted = Boolean(qingheQuest && (state.activeSideQuests.has(qingheQuest.quest_id) || qingheQuest.auto_accept === "true"));
+  const questDone = Boolean(qingheQuest && (state.claimedQuestRewards.has(qingheQuest.quest_id) || questRewardReady(qingheQuest, true) || progress.done >= progress.total && progress.total > 0));
+  const ready = state.canalRepaired || seedOwned > 0 || cropOwned > 0 || plantedCount > 0 || accepted || questDone || waterPlots > 0;
+  const done = questDone && (seedOwned > 0 || cropOwned > 0 || plantedCount > 0 || state.completed.has("recipe_recipe_water_crop_intro"));
+  return [
+    {
+      key: "quest_crop_qinghe_luzhu_qin",
+      questId: qingheQuest?.quest_id || "quest_side_0205_qinghe_pond",
+      cropId: crop?.crop_id || "crop_luzhu_qin",
+      seedId: crop?.seed_item_id || "seed_luzhu_qin",
+      npcId: "npc_qinghe",
+      cropName: cropName("crop_luzhu_qin"),
+      questName: qingheQuest ? questTitle(qingheQuest) : "青禾池塘线",
+      headline: qingheQuest
+        ? `${questTitle(qingheQuest)} · ${progress.done}/${progress.total} 步`
+        : "青禾的水生菜入口还在整理中",
+      sourceText: state.canalRepaired
+        ? "灵渠复流后会先放出露珠芹种子，灵池支线奖励再把水生菜入口讲清。"
+        : "先把断桥与灵渠修起来，露珠芹和水润田才会真正露面。",
+      termText: crop
+        ? `春季主种 · 节气偏好 ${String(crop.solar_term_bonus_tags || "qingming|bailu").split("|").join(" / ")}`
+        : "春季主种 · 清明 / 白露更合拍",
+      soilText: waterPlots > 0
+        ? `优先种在水润田或新水田，目前可用 ${waterPlots} 格。`
+        : "先用修渠和灵池把水润田打开，再种这口带水气的嫩菜。",
+      careText: pondControl
+        ? `${pondSpec.label}最适合看这口菜。${pondSpec.level === 1 ? "平水最稳露珠芹收成，今夜也会替水生田续水。" : pondSpec.summary}`
+        : `${farmSpiritCount > 0 ? `已有 ${farmSpiritCount} 位农田伙伴可接手照料。` : "先让一位精怪接上农田岗位。"}完成青禾池塘线后还能学会调水。`,
+      taskText: qingheQuest
+        ? `${questTitle(qingheQuest)} 当前 ${progress.done}/${progress.total} 步。${accepted ? "支线已承接，可顺着灵池与露珠芹继续走。" : "先和青禾谈话，把池塘支线接起来。"}`
+        : "先看青禾关系卡和池塘线，再把露珠芹接到旧铺水鲜链上。",
+      guideText: "把任务页需要的作物，拆成“来源 / 节气 / 土层 / 照看线索 / 实际入口”一页看懂，补上主线、支线与图鉴页的跳转闭环。",
+      taskSafety: "只定位任务卡、图鉴条目、种子栏或精怪栏，不会自动播种、派工、推进时间或消耗资源。",
+      npcSafety: "只定位支线卡、图鉴条目、种子栏或青禾关系卡，不会自动承接支线、播种、交付、推进时间或消耗资源。",
+      stateClass: done ? "done" : ready ? "ready" : "pending",
+    },
+  ];
+}
+
+function missionCropCodexRowByKey(rowKey = "") {
+  return missionCropCodexRows().find((row) => row.key === rowKey) || null;
+}
+
+function missionCropCodexTaskActionsMarkup(row) {
+  if (!row) return "";
+  return `
+    <div class="mission-card-actions mission-crop-codex-actions mission-codex-actions">
+      <button type="button" data-mission-codex-focus="${row.key}">看图鉴</button>
+      <button type="button" data-mission-codex-route="${row.key}" data-mission-codex-action="seed">看种植线</button>
+      <button type="button" data-mission-codex-route="${row.key}" data-mission-codex-action="spirit">看精怪照料</button>
+      <button type="button" data-mission-codex-route="${row.key}" data-mission-codex-action="npc">看青禾托付</button>
+    </div>
+  `;
+}
+
+function missionCropCodexGoalActionsMarkup(row) {
+  if (!row) return "";
+  return `
+    <div class="mission-card-actions mission-crop-codex-actions mission-codex-actions">
+      <button type="button" data-mission-codex-focus="${row.key}">看图鉴</button>
+      <button type="button" data-mission-codex-route="${row.key}" data-mission-codex-action="seed">看种植线</button>
+      <button type="button" data-mission-codex-route="${row.key}" data-mission-codex-action="spirit">看精怪照料</button>
+      <button type="button" data-mission-codex-route="${row.key}" data-mission-codex-action="npc">看青禾托付</button>
+      <button type="button" data-mission-codex-route="${row.key}" data-mission-codex-action="task">回任务页</button>
+    </div>
+  `;
+}
+
+function focusMissionTaskCard(questId = "", side = null) {
+  const sideQuest = data.sideQuests.find((entry) => entry.quest_id === questId) || null;
+  const mainQuest = data.quests.find((entry) => entry.quest_id === questId) || null;
+  const quest = sideQuest || mainQuest;
+  if (!quest) return addLog("任务作物图鉴", "对应任务卡暂时没有找到。");
+  const isSide = side === null ? Boolean(sideQuest) : Boolean(side);
+  const selector = isSide
+    ? `[data-side-quest-id="${selectorDataValue(questId)}"]`
+    : `[data-main-quest-id="${selectorDataValue(questId)}"]`;
+  const safety = isSide && questId === "quest_side_0205_qinghe_pond"
+    ? "只定位支线卡、图鉴条目、种子栏或青禾关系卡，不会自动承接支线、播种、交付、推进时间或消耗资源。"
+    : "只定位任务卡、图鉴条目、种子栏或精怪栏，不会自动播种、派工、推进时间或消耗资源。";
+  queueStoryCompassFocusTarget({
+    selector,
+    fallbackSelector: "#missionPanel",
+    label: `任务作物图鉴：${questTitle(quest)}`,
+    log: `${questTitle(quest)} 已在任务面板高亮。${safety}`,
+    panelGroup: "core",
+    missingTitle: `任务作物图鉴：${questTitle(quest)}`,
+    missingLog: `${questTitle(quest)} 对应任务卡暂时没有找到。${safety}`,
+  });
+  return true;
+}
+
+function focusMissionCropCodex(rowKey = "") {
+  const row = missionCropCodexRowByKey(rowKey);
+  if (!row) return addLog("任务作物图鉴", "这张任务作物图鉴暂时还没有整理出来。");
+  queueStoryCompassFocusTarget({
+    selector: `[data-mission-crop-codex="${selectorDataValue(row.key)}"]`,
+    fallbackSelector: "#goalBookPanel",
+    label: `任务作物图鉴：${row.cropName}`,
+    log: `${row.cropName} 的任务作物图鉴已在目标册高亮。${row.guideText}${row.taskSafety}`,
+    panelGroup: "core",
+    missingTitle: `任务作物图鉴：${row.cropName}`,
+    missingLog: `目标册里的 ${row.cropName} 图鉴条目暂时没有找到。${row.taskSafety}`,
+  });
+  return true;
+}
+
+function focusMissionCropCodexAction(rowKey = "", action = "seed") {
+  const row = missionCropCodexRowByKey(rowKey);
+  if (!row) return addLog("任务作物图鉴", "这条作物线暂时没有找到对应入口。");
+  if (action === "task") return focusMissionTaskCard(row.questId, true);
+  if (action === "seed") return focusPlotRouteSeed(row.seedId);
+  if (action === "spirit") {
+    queueStoryCompassFocusTarget({
+      selector: "#spiritList",
+      fallbackSelector: "#selectedPlotCard",
+      label: "任务作物图鉴：看精怪照料",
+      log: `${row.cropName} 的精怪照料入口已定位。农田岗位、代浇和水生菜照看都从这里看。${row.taskSafety}`,
+      panelGroup: "core",
+      missingTitle: "任务作物图鉴：看精怪照料",
+      missingLog: `精怪栏暂时没有找到。${row.taskSafety}`,
+    });
+    return true;
+  }
+  if (action === "npc") {
+    queueStoryCompassFocusTarget({
+      selector: `[data-npc-id="${selectorDataValue(row.npcId)}"]`,
+      fallbackSelector: ".relationship-panel",
+      label: "任务作物图鉴：看青禾托付",
+      log: `${npcName(row.npcId)} 的关系卡已高亮。顺着她的池塘线、水生菜和后续托付继续看。${row.npcSafety}`,
+      panelGroup: "story",
+      missingTitle: "任务作物图鉴：看青禾托付",
+      missingLog: `${npcName(row.npcId)} 的关系卡暂时没有找到。${row.npcSafety}`,
+    });
+    return true;
+  }
+  return focusMissionCropCodex(rowKey);
 }
 
 function queueSideQuestTaskCardFocus(quest, reason = "任务卡", detail = "") {
@@ -25752,6 +27160,17 @@ function shopCustomerForecastWorldSpec(
 
 function shopTrialPreviewSpec(goods = sellableInventoryGoods(), theme = currentShelfTheme()) {
   const opening = syncShopOpeningState();
+  const customerReasonCompass = shopCustomerReasonCompassWorldSpec();
+  if (customerReasonCompass) {
+    targets.push({
+      type: "customer_reason_compass",
+      label: customerReasonCompass.title,
+      selector: customerReasonCompass.selector,
+      fallbackSelector: customerReasonCompass.fallbackSelector,
+      customerReasonCompass,
+      rect: customerReasonCompass.rect,
+    });
+  }
   const firstSaleReceipt = shopFirstSaleReceiptWorldSpec(opening);
   if (firstSaleReceipt?.firstSale) {
     const lesson = shopFirstSaleLessonWorldSpec(opening);
@@ -27895,6 +29314,86 @@ function shopSeasonAdviceForPart(part) {
   return map[scorePart] || "沿着赛季重点继续补足短板。";
 }
 
+function shopSeasonReviewRows({
+  season = currentShopSeason(),
+  settlement = shopSeasonScore(season, currentShopSeasonStats()),
+  stats = currentShopSeasonStats(),
+  pending = state.shopStats?.pendingSettlement || null,
+} = {}) {
+  const weakestPart = pending?.parts?.length
+    ? pending.parts.slice().sort((a, b) => Number(a.raw || 0) - Number(b.raw || 0))[0]
+    : (settlement?.parts || []).slice().sort((a, b) => Number(a.raw || 0) - Number(b.raw || 0))[0] || null;
+  const weakPartName = pending?.weakPart
+    || weakestPart?.displayName
+    || weakestPart?.rule?.display_name
+    || "暂无明显短板";
+  const weakAdvice = pending?.advice
+    || (weakestPart?.rule ? shopSeasonAdviceForPart(weakestPart) : weakestPart?.note)
+    || "沿着赛季重点继续补足短板。";
+  const mainCustomerId = pending?.mainCustomer || shopSeasonLeadKey(stats?.customerVisits || {});
+  const mainCustomerCount = Number(stats?.customerVisits?.[mainCustomerId] || 0);
+  const mainCustomerText = mainCustomerId ? customerDisplayName(mainCustomerId) : "客群尚未稳定";
+  const topThemeId = pending?.topThemeId || shopSeasonLeadKey(stats?.themeUsage || {});
+  const topTheme = data.shelfThemesByTag.get(topThemeId) || null;
+  const bestSellerId = pending?.bestSellerItemId || shopSeasonLeadKey(stats?.itemSales || {});
+  const bestSellerText = bestSellerId ? `${itemName(bestSellerId)} x${pending?.bestSellerCount || Number(stats?.itemSales?.[bestSellerId] || 0)}` : "本季还没有形成爆款";
+  const nextOrder = year2OrderPreview(1)[0] || null;
+  const focusTags = splitTags(season?.score_focus_tags || "").slice(0, 3).map(shopTagLabel).join(" / ");
+  const nextChaseText = nextOrder
+    ? `${orderTitle(nextOrder)} · ${orderNeeds(nextOrder).slice(0, 2).map((need) => itemName(need.itemId)).join(" / ")}`
+    : topTheme
+      ? `${topTheme.note || topTheme.theme_tag} · ${focusTags || "赛季重点"}`
+      : focusTags || "先稳定当前名铺评分";
+  return [
+    {
+      key: "main_customer",
+      tone: mainCustomerId ? "good" : "focus",
+      label: "本季最常来的客人",
+      title: mainCustomerText,
+      detail: mainCustomerId
+        ? `${mainCustomerText}来过 ${mainCustomerCount || "多"} 次；${bestSellerText}最容易变成复购理由。`
+        : "本季来客还没形成稳定画像，先用开铺和陈列诊断多收几条反馈。",
+      actionLabel: "看顾客旅线",
+      selector: '[data-shop-board="customer-journey"]',
+    },
+    {
+      key: "weak_part",
+      tone: String(weakPartName).includes("暂无") ? "good" : "warn",
+      label: "这季最拖分的是",
+      title: weakPartName,
+      detail: weakAdvice,
+      actionLabel: "看评分短板",
+      selector: '[data-shop-season-board="rank"]',
+    },
+    {
+      key: "next_chase",
+      tone: "focus",
+      label: "下季最值得追的是",
+      title: nextChaseText,
+      detail: topTheme
+        ? `延续 ${topTheme.note || topTheme.theme_tag}，把${focusTags || "赛季重点"}和下一张订单提前备好。`
+        : "先把本季最稳定的主题、订单或节气标签保留下来，别让下季重新摸黑。",
+      actionLabel: nextOrder ? "看名铺订单" : "看赛季重点",
+      selector: nextOrder ? '[data-shop-season-board="orders"]' : '[data-shop-season-board="rank"]',
+    },
+  ];
+}
+
+function shopSeasonReviewMarkup(reviewRows = shopSeasonReviewRows()) {
+  if (!Array.isArray(reviewRows) || reviewRows.length === 0) return "";
+  return `
+    <div class="shop-season-review">
+      ${reviewRows.map((row) => `
+        <div class="shop-season-review-row ${row.tone || "focus"}">
+          <b>${row.label} · ${row.title}</b>
+          <span>${row.detail}</span>
+          <small>${row.actionLabel}</small>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
 function settleShopSeasonCycle(endedDay = state.day - 1) {
   state.shopStats = normalizeShopStats(state.shopStats);
   if (!shouldTrackShopSeason()) return null;
@@ -29615,82 +31114,32 @@ function drawWorkshopReadyOrderDispatchWorld(ctx, spec = workshopReadyOrderDispa
 }
 
 function readyOrderWorldRows(limit = 3) {
-  return visibleOrders()
-    .filter((order) => canDeliverOrder(order))
-    .map((order) => {
-      const needs = orderNeeds(order);
-      const rewardGold = Number(order.reward_gold || 0);
-      const rewardFame = Number(order.reward_fame || 0);
-      const rewardFavor = Number(order.reward_favor_value || 0);
-      const issuerId = order.issuer_id || order.reward_favor_npc || "";
-      const favorNpcId = order.reward_favor_npc || issuerId;
-      const npc = npcName(issuerId || favorNpcId) || "镇上来客";
-      const needText = needs
-        .slice(0, 2)
-        .map(({ itemId, count }) => `${itemName(itemId)} x${count}`)
-        .join(" / ");
-      const rewardText = [
-        rewardGold ? `${rewardGold} 灵石` : "",
-        rewardFame ? `声望 +${rewardFame}` : "",
-        rewardFavor ? `${npcName(favorNpcId)}好感 +${rewardFavor}` : "",
-      ].filter(Boolean).join(" / ") || "订单奖励";
-      const priority = rewardGold / 30
-        + rewardFame * 8
-        + rewardFavor * 5
-        + (String(order.order_id || "").startsWith("order_year2_") ? 24 : 0)
-        + (String(order.order_id || "").includes("story") ? 18 : 0)
-        + Math.max(0, 4 - needs.length);
-      return {
-        order,
-        orderId: order.order_id,
-        title: orderTitle(order),
-        npc,
-        needText: `${needText}${needs.length > 2 ? ` 等 ${needs.length} 项` : ""}`,
-        rewardText,
-        rewardGold,
-        rewardFame,
-        rewardFavor,
-        priority,
-      };
-    })
-    .sort((a, b) => b.priority - a.priority || a.title.localeCompare(b.title, "zh-Hans-CN"))
-    .slice(0, limit);
+  return readyOrderWorldRowsWorld({
+    limit,
+    orders: visibleOrders(),
+    canDeliverOrder,
+    orderNeeds,
+    itemName,
+    npcName,
+    orderTitle,
+  });
 }
 
 function readyOrderWorldBoardSpec(width = 960, height = 640) {
-  const rows = readyOrderWorldRows(3);
-  if (!rows.length) return null;
-  const top = rows[0];
-  const cardWidth = 312;
-  const cardHeight = 112 + rows.length * 22;
-  const x = Math.max(424, Math.min(width - cardWidth - 42, width - cardWidth - 54));
-  const y = Math.max(182, Math.min(height - cardHeight - 42, 226));
-  return {
-    key: `${state.day}:${rows.map((row) => row.orderId).join("|")}`,
+  return readyOrderWorldBoardSpecWorld({
+    width,
+    height,
+    rows: readyOrderWorldRows(3),
     day: state.day,
-    rows,
-    top,
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: 742, y: 384 },
-    title: "主世界可交订单",
-    headline: rows.length > 1 ? `${rows.length} 张订单已备齐` : "订单已备齐",
-    detail: `${top.title} · ${top.npc}`,
-    rewardText: top.rewardText,
-    needText: top.needText,
-    cta: "可交单 · 可点",
-  };
+  });
 }
 
 function readyOrderWorldBoardAtCanvasPoint(px, py) {
-  const spec = readyOrderWorldBoardSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return readyOrderWorldBoardAtCanvasPointWorld({
+    px,
+    py,
+    spec: readyOrderWorldBoardSpec(refs.world?.width || 960, refs.world?.height || 640),
+  });
 }
 
 function focusReadyOrderWorldBoardFromCanvas(spec = readyOrderWorldBoardSpec()) {
@@ -29702,168 +31151,40 @@ function focusReadyOrderWorldBoardFromCanvas(spec = readyOrderWorldBoardSpec()) 
 }
 
 function drawReadyOrderWorldBoard(ctx, spec = readyOrderWorldBoardSpec(ctx.canvas.width, ctx.canvas.height)) {
-  if (!spec?.rect) return false;
-  const { rect, rows, top, anchor } = spec;
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.95) * 2.4;
-  const cardY = rect.y + bob;
-  const active = readyOrderWorldBoardFocus?.day === state.day
-    && readyOrderWorldBoardFocus?.key === spec.key;
-
-  ctx.save();
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.9)" : "rgba(209, 154, 74, 0.58)";
-  ctx.lineWidth = active ? 3 : 1.8;
-  ctx.setLineDash([6, 7]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 13;
-  ctx.beginPath();
-  ctx.moveTo(rect.x + 36, cardY + rect.height - 8);
-  ctx.quadraticCurveTo(rect.x + 88, cardY + rect.height + 36, anchor.x, anchor.y);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.95)" : "rgba(180, 125, 47, 0.66)";
-  ctx.lineWidth = active ? 2.8 : 1.6;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = "rgba(224, 182, 109, 0.18)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 56, 52, 16);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(180, 125, 47, 0.72)";
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 56, 52, 16);
-  ctx.stroke();
-  ctx.fillStyle = "#b47d2f";
-  ctx.font = "900 22px Microsoft YaHei";
-  ctx.fillText("单", rect.x + 31, cardY + 47);
-  for (let coin = 0; coin < 3; coin += 1) {
-    const coinX = rect.x + 55 + coin * 10;
-    const coinY = cardY + 58 - coin * 5;
-    ctx.fillStyle = coin % 2 ? "#f5f0b6" : "#e0b66d";
-    ctx.beginPath();
-    ctx.arc(coinX, coinY, 5.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(143, 95, 63, 0.45)";
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(`${spec.cta} · ${spec.headline}`, rect.x + 84, cardY + 26);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 15px Microsoft YaHei";
-  ctx.fillText(spec.detail.slice(0, 20), rect.x + 84, cardY + 48);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(`奖励 ${spec.rewardText}`.slice(0, 34), rect.x + 84, cardY + 66);
-  ctx.fillStyle = "#286f58";
-  ctx.font = "800 10px Microsoft YaHei";
-  ctx.fillText(`货已齐：${spec.needText}`.slice(0, 36), rect.x + 84, cardY + 82);
-
-  rows.slice(0, 3).forEach((row, index) => {
-    const rowY = cardY + 108 + index * 22;
-    const primary = row.orderId === top.orderId;
-    ctx.fillStyle = primary ? "rgba(72, 168, 104, 0.16)" : "rgba(255, 253, 245, 0.7)";
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 16, rowY - 15, rect.width - 32, 18, 8);
-    ctx.fill();
-    ctx.fillStyle = primary ? "#286f58" : "#8f5f3f";
-    ctx.font = "900 10px Microsoft YaHei";
-    ctx.fillText(primary ? "先交" : "可交", rect.x + 28, rowY - 2);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 10px Microsoft YaHei";
-    ctx.fillText(row.title.slice(0, 13), rect.x + 64, rowY - 2);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "10px Microsoft YaHei";
-    ctx.fillText(row.rewardText.slice(0, 14), rect.x + 178, rowY - 2);
+  return drawReadyOrderWorldBoardWorld({
+    ctx,
+    spec,
+    reducedMotion: settings.reducedMotion,
+    day: state.day,
+    focus: readyOrderWorldBoardFocus,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 55, cardY + 12, 40, 18, 9);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + rect.width - 46, cardY + 25);
-  ctx.restore();
-  return true;
 }
 
 function readyOrderSealSafetyText() {
-  return "只定位订单卡和交付按钮，不会自动交单、扣除物品、发放奖励、推进剧情、开铺、入夜或消耗资源";
+  return readyOrderSealSafetyTextWorld();
 }
 
 function readyOrderSealNodes(row = null) {
-  if (!row) return [];
-  return [
-    {
-      key: "goods",
-      badge: "齐",
-      title: "货已齐",
-      detail: row.needText || "订单货物",
-      accent: "#286f58",
-    },
-    {
-      key: "seal",
-      badge: "封",
-      title: "打包封签",
-      detail: row.npc || "镇上来客",
-      accent: "#b47d2f",
-    },
-    {
-      key: "reward",
-      badge: "赏",
-      title: "手动交付",
-      detail: row.rewardText || "订单奖励",
-      accent: "#8f5f3f",
-    },
-  ];
+  return readyOrderSealNodesWorld(row);
 }
 
 function readyOrderSealWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
-  const board = readyOrderWorldBoardSpec(width, height);
-  if (!board?.top?.orderId) return null;
-  const top = board.top;
-  const cardWidth = 318;
-  const cardHeight = 114;
-  const x = Math.max(248, Math.min(width - cardWidth - 34, 330));
-  const y = Math.max(332, Math.min(height - cardHeight - 34, 372));
-  return {
-    key: `${state.day}:${top.orderId}:${top.needText}:${top.rewardText}:order_seal`,
+  return readyOrderSealWorldSpecWorld({
+    width,
+    height,
+    board: readyOrderWorldBoardSpec(width, height),
     day: state.day,
-    orderId: top.orderId,
-    orderTitle: top.title,
-    npc: top.npc,
-    rewardText: top.rewardText,
-    needText: top.needText,
-    title: "订单备齐封签小景 · 可点",
-    headline: `${top.title} 已能封签送出`,
-    detail: `${top.needText} 已备齐，交给 ${top.npc} 前先看订单卡确认。`,
-    routeText: "备齐货物 -> 打包封签 -> 手动交付",
-    selector: `[data-order-card-id="${selectorDataValue(top.orderId)}"]`,
-    fallbackSelector: "#orderPanel",
-    safety: readyOrderSealSafetyText(),
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: board.anchor.x, y: board.anchor.y },
-    packagePoint: { x: 748, y: 374 },
-    nodes: readyOrderSealNodes(top),
-  };
+    selectorDataValue,
+  });
 }
 
 function readyOrderSealWorldAtCanvasPoint(px, py) {
-  const spec = readyOrderSealWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return readyOrderSealWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: readyOrderSealWorldSpec(refs.world?.width || 960, refs.world?.height || 640),
+  });
 }
 
 function focusReadyOrderSealWorldFromCanvas(spec = readyOrderSealWorldSpec()) {
@@ -29878,128 +31199,15 @@ function focusReadyOrderSealWorldFromCanvas(spec = readyOrderSealWorldSpec()) {
 }
 
 function drawReadyOrderSealWorld(ctx, spec = readyOrderSealWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
-  if (!spec?.rect) return false;
-  const { rect, anchor, packagePoint } = spec;
-  const active = readyOrderSealWorldFocus?.day === state.day
-    && readyOrderSealWorldFocus?.key === spec.key;
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.15) * 2.6;
-  const cardY = rect.y + pulse * 0.45;
-
-  ctx.save();
-  ctx.strokeStyle = active ? "rgba(180, 125, 47, 0.86)" : "rgba(180, 125, 47, 0.52)";
-  ctx.lineWidth = active ? 3.2 : 2;
-  ctx.setLineDash([8, 9]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 14;
-  ctx.beginPath();
-  ctx.moveTo(packagePoint.x, packagePoint.y - 8);
-  ctx.quadraticCurveTo((packagePoint.x + rect.x + 42) / 2, cardY + 132, rect.x + 42, cardY + 78);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  for (let bead = 0; bead < 6; bead += 1) {
-    const t = settings.reducedMotion ? bead / 5 : (motion * 0.11 + bead * 0.17) % 1;
-    const beadX = packagePoint.x + (rect.x + 42 - packagePoint.x) * t;
-    const beadY = packagePoint.y - 8 + (cardY + 78 - packagePoint.y + 8) * t - Math.sin(t * Math.PI) * 26;
-    ctx.fillStyle = bead % 2 ? "rgba(246, 240, 182, 0.78)" : "rgba(202, 235, 210, 0.68)";
-    ctx.beginPath();
-    ctx.arc(beadX, beadY, 4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = "rgba(23, 35, 29, 0.14)";
-  ctx.beginPath();
-  ctx.ellipse(packagePoint.x + 2, packagePoint.y + 24, 46, 10, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "rgba(224, 182, 109, 0.92)";
-  ctx.strokeStyle = "rgba(143, 95, 63, 0.68)";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.roundRect(packagePoint.x - 34, packagePoint.y - 2 + pulse * 0.22, 68, 36, 9);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = "rgba(255, 253, 245, 0.78)";
-  ctx.fillRect(packagePoint.x - 24, packagePoint.y + 8 + pulse * 0.22, 48, 5);
-  ctx.fillStyle = "#be4f37";
-  ctx.beginPath();
-  ctx.arc(packagePoint.x + 24, packagePoint.y + 24 + pulse * 0.22, 10, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#fffdf5";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText("封", packagePoint.x + 20, packagePoint.y + 27 + pulse * 0.22);
-  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(packagePoint.x - 42, packagePoint.y - 32 + pulse * 0.2, 92, 22, 10);
-  ctx.fill();
-  ctx.fillStyle = "#286f58";
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("货已齐 · 待手动交付", packagePoint.x - 32, packagePoint.y - 17 + pulse * 0.2);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
-  ctx.strokeStyle = active ? "rgba(180, 125, 47, 0.9)" : "rgba(180, 125, 47, 0.66)";
-  ctx.lineWidth = active ? 2.8 : 1.7;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = "rgba(224, 182, 109, 0.2)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 58, 52, 16);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(180, 125, 47, 0.58)";
-  ctx.lineWidth = 1.2;
-  ctx.stroke();
-  ctx.fillStyle = "#b47d2f";
-  ctx.font = "900 22px Microsoft YaHei";
-  ctx.fillText("封", rect.x + 31, cardY + 48);
-  ctx.fillStyle = "#be4f37";
-  ctx.beginPath();
-  ctx.arc(rect.x + 56, cardY + 55, 8, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(spec.title.slice(0, 18), rect.x + 84, cardY + 23);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 21), rect.x + 84, cardY + 45);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "10px Microsoft YaHei";
-  ctx.fillText(`${spec.needText} · ${spec.npc} · ${spec.rewardText}`.slice(0, 38), rect.x + 84, cardY + 62);
-
-  const nodeY = cardY + 82;
-  spec.nodes.forEach((node, index) => {
-    const nodeX = rect.x + 14 + index * 98;
-    ctx.fillStyle = index === 1 ? `${node.accent}18` : "rgba(255, 253, 245, 0.78)";
-    ctx.strokeStyle = `${node.accent}52`;
-    ctx.lineWidth = active && index === 1 ? 1.8 : 1.1;
-    ctx.beginPath();
-    ctx.roundRect(nodeX, nodeY - 10, 86, 26, 11);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = node.accent;
-    ctx.beginPath();
-    ctx.arc(nodeX + 14, nodeY + 3, 9, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#fffdf5";
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(node.badge.slice(0, 1), nodeX + 10, nodeY + 6);
-    ctx.fillStyle = node.accent;
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(node.title.slice(0, 4), nodeX + 28, nodeY - 1);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(String(node.detail || "").slice(0, 8), nodeX + 28, nodeY + 12);
+  return drawReadyOrderSealWorldWorld({
+    ctx,
+    spec,
+    reducedMotion: settings.reducedMotion,
+    motion,
+    day: state.day,
+    focus: readyOrderSealWorldFocus,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 18, cardY + rect.height - 16, rect.width - 36, 12, 6);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText(`${spec.routeText} · ${spec.safety}`.slice(0, 47), rect.x + 26, cardY + rect.height - 7);
-  ctx.restore();
-  return true;
 }
 
 function orderCraftPrepWorldRows(limit = 3) {
@@ -33159,6 +34367,49 @@ function shopDiagnosisWorldBoardAtCanvasPoint(px, py) {
   ) ? spec : null;
 }
 
+function shopCustomerReasonCompassWorldSpec(
+  lesson = shopCustomerDayLessonSpec(),
+  journey = shopCustomerJourneySpec(),
+  diagnosis = shopDiagnosisWorldBoardSpec(),
+) {
+  if (!lesson?.active) return null;
+  const buyCard = lesson.cards?.find((card) => card.key === "buy_reason") || lesson.cards?.[0] || null;
+  const hesitateCard = lesson.cards?.find((card) => card.key === "hesitate_reason") || lesson.cards?.[1] || null;
+  const fixCard = lesson.cards?.find((card) => card.key === "tomorrow_fix") || lesson.cards?.[2] || null;
+  return {
+    key: `${lesson.key}:reason_compass`,
+    day: state.day,
+    title: "顾客三因罗盘 · 可点",
+    headline: lesson.headline || "把旧铺顾客三因复盘成一张能回看的罗盘。",
+    selector: '[data-shop-board="reason-cards"]',
+    fallbackSelector: '[data-shop-board="customer-journey"]',
+    rect: { x: 696, y: 338, width: 214, height: 126 },
+    anchor: { x: 640, y: 402 },
+    rows: [
+      { key: "buy", title: "为什么买", text: buyCard?.body || lesson.reviewLine || "先把最有力的成交原因说清楚。", accent: "#286f58" },
+      { key: "hesitate", title: "为什么犹豫/离店", text: hesitateCard?.body || lesson.blockerLine || journey?.blockerText || "把离店短板钉在旧铺报告上。", accent: "#be4f37" },
+      { key: "fix", title: "明日怎么改", text: fixCard?.body || diagnosis?.nextAction || lesson.nextAction || "先改最明显的一处短板。", accent: "#b47d2f" },
+    ],
+    safety: "只定位旧铺三因复盘、顾客旅线和诊断牌，不会自动开铺、调价、补货、成交、交单或消耗资源",
+  };
+}
+
+function shopCustomerReasonCompassWorldAtCanvasPoint(px, py) {
+  const spec = shopCustomerReasonCompassWorldSpec();
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? {
+      type: "customer_reason_compass",
+      label: spec.title,
+      selector: spec.selector,
+      fallbackSelector: spec.fallbackSelector,
+      customerReasonCompass: spec,
+      rect,
+    }
+    : null;
+}
+
 const SHOP_THOUGHT_BUBBLE_POSITIONS = [
   { x: 392, y: 318 },
   { x: 278, y: 292 },
@@ -33276,6 +34527,278 @@ function shopThoughtBubbleChainSpec(opening = normalizeShopOpeningState(state.sh
     selector: '[data-shop-board="customer-journey"]',
     fallbackSelector: '[data-shop-board="opening"]',
   };
+}
+
+function shopThoughtShelfBridgeReportEntry(entry = {}, index = 0, context = {}) {
+  const status = shopThoughtBubbleChainStatus(entry);
+  const ecologyGarden = context.ecologyGarden || ecologyCourtyardSummary();
+  const display = context.display || null;
+  const shelf = context.shelf || null;
+  const theme = context.theme || currentShelfTheme();
+  const goods = Array.isArray(context.goods) ? context.goods : sellableInventoryGoods();
+  const themeTags = splitTags(theme?.required_item_tags || "");
+  const shelfTags = Array.isArray(shelf?.desiredTags) ? shelf.desiredTags : [];
+  const entryItemId = entry.itemId || entry.item_id || entry.outputItemId || entry.targetItemId || "";
+  const focusTags = [...new Set([...(shelfTags || []), display?.hotTag, ...(themeTags || [])].filter(Boolean))];
+  const matchedGood = goods.find(({ itemId }) => itemId && itemId === entryItemId)
+    || goods.find(({ item, itemId }) => {
+      const tags = shopTagsForItem(item || itemId, ecologyGarden);
+      return focusTags.some((tag) => shopTagsOverlap(tags, [tag]));
+    })
+    || goods[0]
+    || null;
+  const matchedGoodTags = matchedGood ? shopTagsForItem(matchedGood.item || matchedGood.itemId, ecologyGarden) : [];
+  const matchedTags = [...new Set([
+    ...focusTags.filter((tag) => matchedGoodTags.length === 0 || shopTagsOverlap(matchedGoodTags, [tag])),
+    ...matchedGoodTags.filter((tag) => focusTags.length === 0 || focusTags.includes(tag)).slice(0, 2),
+  ].filter(Boolean))].slice(0, 3);
+  const tone = status.tone === "good"
+    ? "good"
+    : status.tone === "warn"
+      ? "warn"
+      : "focus";
+  const reasonLabel = entry.reason === "buy"
+    ? "成交复盘"
+    : ["price", "stock", "tag"].includes(entry.reason)
+      ? "犹豫复盘"
+      : entry.reason === "need"
+        ? "进门想法"
+        : status.label || "看货";
+  return {
+    key: `${entry.name || "customer"}:${entry.reason || "need"}:${entry.text || entry.detail || index}`,
+    customerName: entry.name || display?.customerTargets?.[index]?.name || "路过客",
+    statusLabel: status.label,
+    reasonLabel,
+    tone,
+    text: entry.text || entry.detail || display?.headline || "先看这位顾客在门口想什么。",
+    detail: entry.detail || entry.nextAction || status.advice || display?.advice || "把想法、标签和货架连成下一步。",
+    advice: entry.nextAction || status.advice || display?.advice || "先准备一件对口货，再手动开铺验证。",
+    matchedTags,
+    tagText: matchedTags.map(shopTagLabel).join(" / ") || display?.hotTagLabel || shelf?.title || "待试卖",
+    themeName: display?.themeName || theme?.note || state.shopShelfTheme || "旧铺主题",
+    itemId: matchedGood?.itemId || entryItemId || "",
+    itemName: matchedGood?.itemName || (matchedGood?.itemId ? itemName(matchedGood.itemId) : entry.itemName || display?.featuredGoods?.[0]?.itemName || "对口货"),
+  };
+}
+
+function shopThoughtShelfBridgeProductionRows(itemId = "", itemLabel = "", tag = "", display = null, shelf = null) {
+  const safeItemName = itemLabel || (itemId ? itemName(itemId) : "对口货");
+  const restock = itemId
+    ? {
+      day: state.day,
+      itemId,
+      itemName: safeItemName,
+      note: "门口想法对口牌备货路线",
+    }
+    : null;
+  const candidates = restock ? shopRestockRouteCandidates(restock) : [];
+  const recipeCandidate = candidates.find((route) => route.action === "recipe")
+    || (() => {
+      const recipe = itemId ? bestRecipeForOutput(itemId) : null;
+      return recipe
+        ? {
+          type: "recipe",
+          label: recipeCraftReady(recipe) ? "可立即制作" : "工坊补货",
+          title: recipeName(recipe),
+          detail: `${recipeMachineHint(recipe)} · ${recipeInputStatus(recipe, 4) || "先看原料缺口"}`,
+          action: "recipe",
+          recipeId: recipe.recipe_id,
+        }
+        : null;
+    })();
+  const seedCandidate = candidates.find((route) => route.action === "seed")
+    || (() => {
+      const crop = itemId ? cropForHarvestTarget(itemId) : null;
+      if (!crop?.seed_item_id) return null;
+      return {
+        type: "seed",
+        label: "种植补货",
+        title: itemName(crop.seed_item_id),
+        detail: `${Number(crop.grow_days || 1)} 夜后可收 ${itemName(crop.crop_id || itemId)}，适合把对口标签补厚。`,
+        action: "seed",
+        seedId: crop.seed_item_id,
+      };
+    })();
+  const shopCandidate = candidates.find((route) => route.action === "shop")
+    || {
+      type: "stock",
+      label: "旧铺货签",
+      title: safeItemName,
+      detail: `围绕${display?.hotTagLabel || shelf?.tagLabel || shopTagLabel(tag) || "对口标签"}检查当前陈列。`,
+      action: "shop",
+      shopTag: tag || display?.hotTag || shelf?.desiredTags?.[0] || "",
+      itemId,
+    };
+  return [
+    recipeCandidate ? { ...recipeCandidate, buttonText: "先看配方" } : null,
+    seedCandidate ? { ...seedCandidate, buttonText: "先看种子" } : null,
+    shopCandidate ? { ...shopCandidate, buttonText: "先看旧铺货签" } : null,
+  ].filter(Boolean);
+}
+
+function shopThoughtShelfBridgeSpec({
+  opening = syncShopOpeningState(),
+  goods = sellableInventoryGoods(),
+  theme = currentShelfTheme(),
+  ecologyGarden = ecologyCourtyardSummary(),
+  display = shopDisplayDiagnosisSpec(goods, theme, data.customers, ecologyGarden),
+  weatherReaction = shopWeatherCustomerReactionSpec({ opening }),
+  shelf = shopWeatherShelfRecommendationSpec(weatherReaction, goods, ecologyGarden),
+  entries = shopThoughtBubbleEntries(),
+} = {}) {
+  const syntheticEntry = display?.active || shelf?.active
+    ? {
+      name: "门口想法",
+      reason: display?.tone === "warn" || shelf?.tone === "warn" ? "tag" : "need",
+      text: display?.headline || shelf?.headline || "先把今日客意接到货架上。",
+      detail: display?.advice || shelf?.actionText || "看顾客想法、对口标签和备货路线。",
+    }
+    : null;
+  const sourceEntries = (Array.isArray(entries) && entries.length ? entries : [syntheticEntry]).filter(Boolean).slice(0, 3);
+  const rows = sourceEntries
+    .map((entry, index) => shopThoughtShelfBridgeReportEntry(entry, index, { display, shelf, theme, goods, ecologyGarden }))
+    .filter((row) => row.text);
+  const goodsById = new Map();
+  for (const good of display?.featuredGoods || []) {
+    if (!good?.itemName) continue;
+    goodsById.set(good.itemId || good.itemName, {
+      source: "陈列主题",
+      itemId: good.itemId || "",
+      itemName: good.itemName,
+      count: Number(good.count || 0),
+      tagText: good.tagText || display.hotTagLabel || "",
+      customerText: good.customerText || display.customerTargets?.map((target) => target.name).join(" / ") || "路过客",
+    });
+  }
+  for (const good of shelf?.topGoods || []) {
+    if (!good?.itemName) continue;
+    goodsById.set(good.itemId || good.itemName, {
+      source: "天气货签",
+      itemId: good.itemId || "",
+      itemName: good.itemName,
+      count: Number(good.count || 0),
+      tagText: good.tagText || shelf.title || "",
+      customerText: shelf.weatherName || "天气客意",
+    });
+  }
+  if (goodsById.size === 0) {
+    for (const good of goods.slice(0, 3)) {
+      const tags = shopTagsForItem(good.item || good.itemId, ecologyGarden).slice(0, 3);
+      goodsById.set(good.itemId, {
+        source: "可卖库存",
+        itemId: good.itemId,
+        itemName: good.itemName || itemName(good.itemId),
+        count: Number(good.count || 0),
+        tagText: tags.map(shopTagLabel).join(" / ") || "旧铺货",
+        customerText: "先试卖验证",
+      });
+    }
+  }
+  const goodsRows = [...goodsById.values()].slice(0, 4);
+  const tagCandidates = [...new Set([
+    ...rows.flatMap((row) => row.matchedTags || []),
+    display?.hotTag,
+    ...(shelf?.desiredTags || []),
+    ...splitTags(theme?.required_item_tags || ""),
+  ].filter(Boolean))];
+  const focusTag = tagCandidates[0] || "";
+  const leadGood = goodsRows[0] || null;
+  const leadRow = rows[0] || null;
+  const productionRows = shopThoughtShelfBridgeProductionRows(
+    leadGood?.itemId || leadRow?.itemId || "",
+    leadGood?.itemName || leadRow?.itemName || "",
+    focusTag,
+    display,
+    shelf,
+  );
+  const customerText = display?.customerTargets?.map((target) => target.name).filter(Boolean).join(" / ")
+    || rows.map((row) => row.customerName).filter(Boolean).slice(0, 2).join(" / ")
+    || "第一批路过客";
+  const summaryRows = [
+    { label: "今日先做什么", value: leadRow?.advice || display?.advice || shelf?.actionText || "先准备一件对口货。" },
+    { label: "对口标签", value: tagCandidates.slice(0, 3).map(shopTagLabel).join(" / ") || display?.hotTagLabel || "待试卖" },
+    { label: "陈列主题", value: display?.themeName || theme?.note || state.shopShelfTheme || "旧铺主题" },
+    { label: "更容易打动谁", value: customerText },
+    { label: "先摆哪件", value: leadGood ? `${leadGood.itemName} x${leadGood.count}` : leadRow?.itemName || "先补一件对口货" },
+  ];
+  const tone = rows.some((row) => row.tone === "warn") || display?.tone === "warn" || shelf?.tone === "warn"
+    ? "warn"
+    : goodsRows.length > 0
+      ? "good"
+      : "focus";
+  const active = rows.length > 0 || goodsRows.length > 0 || display?.active || shelf?.active || state.shopReport.length > 0;
+  if (!active) return null;
+  return {
+    active: true,
+    key: `${state.day}:${rows.map((row) => row.key).join("|")}:${leadGood?.itemId || ""}:${focusTag}`,
+    title: "门口想法对口牌",
+    headline: leadRow
+      ? `${leadRow.customerName}：${leadRow.text}`
+      : display?.headline || shelf?.headline || "先把门口想法、货架标签和备货路线对齐。",
+    tone,
+    rows,
+    goodsRows,
+    productionRows,
+    productionTitle: leadGood?.itemName || leadRow?.itemName || "对口货",
+    summaryRows,
+    safetyIntro: "只解释顾客想法、货架标签和备货路线",
+    safetyLimit: "不会自动换主题、开铺、调价、补货或消耗资源",
+  };
+}
+
+function shopThoughtShelfBridgeMarkup(spec = shopThoughtShelfBridgeSpec()) {
+  if (!spec?.active) return "";
+  const summaryText = spec.summaryRows.map((row) => `
+    <b>${row.label}<small>${row.value}</small></b>
+  `).join("");
+  const rowsText = spec.rows.map((row) => `
+    <div class="shop-thought-shelf-row ${row.tone}">
+      <div class="shop-thought-shelf-row-head">
+        <b>${row.customerName} · ${row.statusLabel}</b>
+        <small>${row.reasonLabel}</small>
+      </div>
+      <span>${row.text}</span>
+      <small>${row.detail}</small>
+      <div class="shop-thought-shelf-chipline">
+        <em class="shop-thought-shelf-chip">对口标签 ${row.tagText}</em>
+        <em class="shop-thought-shelf-chip theme">陈列主题 ${row.themeName}</em>
+      </div>
+    </div>
+  `).join("");
+  const goodsText = spec.goodsRows.length
+    ? spec.goodsRows.map((good, index) => `
+      <div class="shop-thought-shelf-good ${index === 0 ? "feature" : ""}">
+        <b>${index === 0 ? "先摆哪件" : good.source} · ${good.itemName} x${good.count}</b>
+        <small>${good.tagText}</small>
+        <small>更容易打动谁：${good.customerText}</small>
+      </div>
+    `).join("")
+    : `<div class="shop-thought-shelf-good"><b>先摆哪件 · 待补对口货</b><small>先看配方、种子或旧铺货签，把第一件能解释顾客想法的货接上。</small></div>`;
+  const productionText = spec.productionRows.length
+    ? `
+      <div class="shop-thought-shelf-production">
+        <strong>备货路线 · ${spec.productionTitle}</strong>
+        ${spec.productionRows.map((route) => `
+          <div class="shop-thought-shelf-production-row ${route.type || route.action}">
+            <b>${route.label} · ${route.title}</b>
+            <span>${route.detail}</span>
+            <button type="button" data-shop-thought-shelf-route="${route.action}" data-shop-thought-shelf-recipe="${route.recipeId || ""}" data-shop-thought-shelf-seed="${route.seedId || ""}" data-shop-thought-shelf-tag="${route.shopTag || ""}" data-shop-thought-shelf-item="${route.itemId || ""}">${route.buttonText}</button>
+          </div>
+        `).join("")}
+      </div>
+    `
+    : `<small>今日暂无可定位备货路线，先看旧铺货签和现有库存。</small>`;
+  return `
+    <div class="shop-thought-shelf-bridge ${spec.tone}" data-shop-board="thought-shelf-bridge">
+      <strong>${spec.title}</strong>
+      <span>${spec.headline}</span>
+      <div class="shop-thought-shelf-summary">${summaryText}</div>
+      <div class="shop-thought-shelf-rows">${rowsText}</div>
+      <div class="shop-thought-shelf-goods">${goodsText}</div>
+      ${productionText}
+      <small>${spec.safetyIntro}；${spec.safetyLimit}。</small>
+    </div>
+  `;
 }
 
 function shopThoughtBubbleChainAtCanvasPoint(px, py) {
@@ -34244,6 +35767,254 @@ function shopWordOfMouthMorningFollowupWorldAtCanvasPoint(px, py) {
     : null;
 }
 
+function shopThoughtRouteMorningFollowupSpec(entries = shopThoughtBubbleEntries()) {
+  const lead = (Array.isArray(entries) ? entries : [])
+    .find((entry) => entry && ["need", "price", "stock", "tag", "buy"].includes(entry.reason))
+    || (Array.isArray(entries) ? entries.find(Boolean) : null)
+    || null;
+  if (!lead) return null;
+  const itemId = lead.itemId || lead.goods?.[0]?.itemId || "";
+  const itemText = lead.itemName || (itemId ? itemName(itemId) : "") || lead.text || "对口货";
+  const customerText = lead.name || "门口来客";
+  const reasonTag = lead.tagShortText || state.shopOpeningState?.hotTagLabel || "今日客需";
+  const routeAction = lead.reason === "price"
+    ? "price"
+    : lead.reason === "tag"
+      ? "tag"
+      : lead.reason === "stock"
+        ? "stock"
+        : "review";
+  const routeLabel = routeAction === "price"
+    ? "价签路线"
+    : routeAction === "tag"
+      ? "标签路线"
+      : routeAction === "stock"
+        ? "备货路线"
+        : "先看入口";
+  return {
+    key: `${state.day}:${routeAction}:${itemId}:${reasonTag}:${customerText}`,
+    day: state.day,
+    title: "旧铺想法续路线",
+    actionTitle: "清晨行动牌：旧铺想法续路线",
+    headline: "昨天门口的想法，今天先顺着一条线接住",
+    customerName: customerText,
+    hotTagLabel: reasonTag,
+    reasonTag,
+    itemId,
+    itemName: itemText,
+    routeAction,
+    routeLabel,
+    routeTitle: itemText,
+    routeDetail: lead.detail || lead.nextAction || `先顺着${routeLabel}回看旧铺报告，再手动决定怎么接。`,
+    selector: "#shopReport",
+    fallbackSelector: '[data-shop-board="opening"]',
+    cta: "只延续旧铺顾客想法、标签判断和备货路线，不会自动制作、播种、补货、开铺、调价或消耗资源",
+  };
+}
+
+function shopThoughtRouteMorningFollowupWorldSpec(summary = shopThoughtRouteMorningFollowupSpec()) {
+  if (!summary) return null;
+  return {
+    key: `${summary.key}:morning_followup`,
+    day: state.day,
+    title: "旧铺想法续路线签 · 可点",
+    headline: summary.headline || "昨天门口的想法，今天先顺着一条线接住",
+    customerName: summary.customerName || "门口来客",
+    hotTagLabel: summary.hotTagLabel || summary.reasonTag || "今日客需",
+    reasonTag: summary.reasonTag || summary.hotTagLabel || "今日客需",
+    itemId: summary.itemId || "",
+    itemName: summary.itemName || "对口货",
+    routeAction: summary.routeAction || "review",
+    routeLabel: summary.routeLabel || "备货路线",
+    routeTitle: summary.routeTitle || summary.itemName || "对口货",
+    routeDetail: summary.routeDetail || "先看入口，再决定今天怎么接住。",
+    selector: summary.selector || "#shopReport",
+    fallbackSelector: summary.fallbackSelector || '[data-shop-board="opening"]',
+    rect: { x: 430, y: 126, width: 232, height: 118 },
+    anchor: { x: 160, y: 208 },
+    steps: [
+      { key: "follow", title: "今晨续线", text: summary.routeLabel || "备货路线", accent: "#4d91a6" },
+      { key: "entry", title: "先看入口", text: summary.routeDetail || "先看旧铺报告", accent: "#b47d2f" },
+      { key: "hold", title: "手动接住", text: summary.itemName || "对口货", accent: "#286f58" },
+    ],
+    cta: summary.cta || "只延续旧铺顾客想法、标签判断和备货路线，不会自动制作、播种、补货、开铺、调价或消耗资源",
+  };
+}
+
+function shopThoughtRouteMorningFollowupWorldAtCanvasPoint(px, py) {
+  const spec = shopThoughtRouteMorningFollowupWorldSpec();
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? {
+      type: "shop_thought_route_morning_followup",
+      label: spec.title,
+      selector: spec.selector,
+      fallbackSelector: spec.fallbackSelector,
+      shopThoughtRouteMorningFollowup: spec,
+      rect,
+    }
+    : null;
+}
+
+function shopThoughtRouteReadyMorningWorldSpec(summary = shopThoughtRouteMorningFollowupWorldSpec()) {
+  const morning = summary?.shopThoughtRouteMorningFollowup || summary;
+  const itemId = morning?.itemId || "";
+  if (!morning || !itemId) return null;
+  const have = Number(state.inventory[itemId] || 0);
+  if (have <= 0) return null;
+  return {
+    key: `${morning.key}:ready:${have}`,
+    day: state.day,
+    title: "旧铺想法备妥签 · 可点",
+    headline: "这条想法路线已经备到手边",
+    customerName: morning.customerName,
+    hotTagLabel: morning.hotTagLabel,
+    reasonTag: morning.reasonTag,
+    itemId,
+    itemName: morning.itemName || itemName(itemId),
+    have,
+    routeLabel: morning.routeLabel,
+    routeTitle: morning.routeTitle,
+    routeDetail: morning.routeDetail,
+    selector: morning.selector,
+    fallbackSelector: morning.fallbackSelector,
+    rect: { x: 432, y: 252, width: 232, height: 118 },
+    anchor: { x: morning.rect.x + morning.rect.width - 14, y: morning.rect.y + 62 },
+    steps: [
+      { key: "ready", title: "已备在手", text: `${morning.itemName} x${have}`, accent: "#286f58" },
+      { key: "route", title: "顺线回看", text: morning.routeLabel, accent: "#b47d2f" },
+      { key: "verify", title: "手动验证", text: "再决定开铺", accent: "#be4f37" },
+    ],
+    cta: "只确认这条想法路线已备到位并定位旧铺报告，不会自动上架、补货、开铺、接客、成交、改价或消耗库存",
+  };
+}
+
+function shopThoughtRouteReadyMorningWorldAtCanvasPoint(px, py) {
+  const spec = shopThoughtRouteReadyMorningWorldSpec();
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? {
+      type: "shop_thought_route_ready_morning",
+      label: spec.title,
+      selector: spec.selector,
+      fallbackSelector: spec.fallbackSelector,
+      shopThoughtRouteReadyMorning: spec,
+      rect,
+    }
+    : null;
+}
+
+function shopThoughtRouteCaughtWorldSpec(summary = shopThoughtRouteMorningFollowupWorldSpec()) {
+  const morning = summary?.shopThoughtRouteMorningFollowup || summary;
+  if (!morning) return null;
+  const reportIndex = state.shopReport.findIndex((entry) =>
+    entry.reason === "buy"
+    && (!morning.itemId || entry.itemId === morning.itemId));
+  if (reportIndex < 0) return null;
+  const reportEntry = state.shopReport[reportIndex];
+  const priceMatch = String(reportEntry?.text || "").match(/成交\s*(\d+)/);
+  const price = Number(priceMatch?.[1] || reportEntry?.price || 0);
+  const customerName = reportEntry?.name || morning.customerName || "门口来客";
+  return {
+    key: `${morning.key}:caught:${reportIndex}:${price}`,
+    day: state.day,
+    title: "旧铺想法接住签 · 可点",
+    headline: "昨天门口的想法，今天真的接住了",
+    customerName,
+    itemId: morning.itemId,
+    itemName: morning.itemName || itemName(morning.itemId),
+    price,
+    routeLabel: morning.routeLabel,
+    routeTitle: morning.routeTitle,
+    routeDetail: morning.routeDetail,
+    resultText: reportEntry?.text || `${customerName} 顺着这条想法路线买走了 ${morning.itemName}。`,
+    selector: "#shopReport",
+    fallbackSelector: '[data-shop-board="opening"]',
+    reportIndex,
+    rect: { x: 676, y: 188, width: 220, height: 114 },
+    anchor: { x: morning.rect.x + morning.rect.width + 12, y: morning.rect.y + 40 },
+    steps: [
+      { key: "caught", title: "今日接住", text: customerName, accent: "#286f58" },
+      { key: "result", title: "成交回响", text: morning.itemName || "对口货", accent: "#be4f37" },
+      { key: "route", title: "顺线复用", text: morning.routeLabel || "备货路线", accent: "#b47d2f" },
+    ],
+    cta: "只回看这条想法路线如何接住成交并定位旧铺报告，不会自动上架、开铺、接客、成交、改价、补货或消耗库存",
+  };
+}
+
+function shopThoughtRouteCaughtWorldAtCanvasPoint(px, py) {
+  const spec = shopThoughtRouteCaughtWorldSpec();
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? {
+      type: "shop_thought_route_caught",
+      label: spec.title,
+      selector: spec.selector,
+      fallbackSelector: spec.fallbackSelector,
+      shopThoughtRouteCaught: spec,
+      rect,
+    }
+    : null;
+}
+
+function shopThoughtRouteMissedWorldSpec(summary = shopThoughtRouteMorningFollowupWorldSpec()) {
+  const morning = summary?.shopThoughtRouteMorningFollowup || summary;
+  if (!morning || shopThoughtRouteCaughtWorldSpec(morning)) return null;
+  const reportEntry = [...state.shopReport].reverse().find((entry) =>
+    ["price", "stock", "tag"].includes(entry.reason)
+    && (!morning.itemId || !entry.itemId || entry.itemId === morning.itemId));
+  if (!reportEntry && !state.shopReport.length) return null;
+  const reasonLabel = reportEntry?.reason === "price"
+    ? "价签没接稳"
+    : reportEntry?.reason === "stock"
+      ? "备货断档了"
+      : reportEntry?.reason === "tag"
+        ? "标签没对上"
+        : "这条想法今天还没接住";
+  return {
+    key: `${morning.key}:missed:${reportEntry?.reason || "pending"}`,
+    day: state.day,
+    title: "旧铺想法落空签 · 可点",
+    headline: "这条想法路线今天还没接稳",
+    customerName: morning.customerName,
+    itemId: morning.itemId,
+    itemName: morning.itemName || itemName(morning.itemId),
+    routeLabel: morning.routeLabel,
+    routeTitle: morning.routeTitle,
+    routeDetail: morning.routeDetail,
+    selector: "#shopReport",
+    fallbackSelector: '[data-shop-board="opening"]',
+    reportIndex: reportEntry ? Number(state.shopReport.indexOf(reportEntry)) : -1,
+    rect: { x: 676, y: 314, width: 220, height: 114 },
+    anchor: { x: morning.rect.x + morning.rect.width + 10, y: morning.rect.y + morning.rect.height - 8 },
+    steps: [
+      { key: "missed", title: "今日落空", text: reasonLabel, accent: "#be4f37" },
+      { key: "next", title: "下一手", text: reportEntry?.detail || morning.routeDetail || "先看入口", accent: "#b47d2f" },
+      { key: "back", title: "回到旧铺", text: morning.routeLabel || "备货路线", accent: "#4d91a6" },
+    ],
+    cta: "只回看这条想法路线今天卡在什么地方并定位旧铺报告，不会自动上架、开铺、接客、成交、改价、补货或消耗库存",
+  };
+}
+
+function shopThoughtRouteMissedWorldAtCanvasPoint(px, py) {
+  const spec = shopThoughtRouteMissedWorldSpec();
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? {
+      type: "shop_thought_route_missed",
+      label: spec.title,
+      selector: spec.selector,
+      fallbackSelector: spec.fallbackSelector,
+      shopThoughtRouteMissed: spec,
+      rect,
+    }
+    : null;
+}
+
 function shopCustomerLessonMorningFollowupSafetyText() {
   return "只定位旧铺复盘、顾客旅线和明日改法，不会自动开铺、调价、补货、接客、成交、交单、扣库存或消耗资源";
 }
@@ -34995,6 +36766,69 @@ function drawShopWordOfMouthMorningFollowupWorld(ctx, spec = shopWordOfMouthMorn
   ctx.fillText("只回看续货复盘，不自动补货或开铺", rect.x + 15, cardY + rect.height - 7);
   ctx.restore();
   return true;
+}
+
+function drawShopThoughtRouteWorldCard(ctx, spec, focusState, motion = 0, accent = "#4d91a6") {
+  if (!spec?.rect) return false;
+  const { rect, anchor } = spec;
+  const focused = focusState?.day === state.day && focusState?.key === spec.key;
+  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 1.76) * 2;
+  const glow = settings.reducedMotion ? 0.34 : 0.34 + Math.sin(motion * 2.2) * 0.12;
+  const cardY = rect.y + pulse * 0.4;
+
+  ctx.save();
+  ctx.strokeStyle = focused ? `${accent}dd` : `${accent}77`;
+  ctx.lineWidth = focused ? 3.1 : 2;
+  ctx.setLineDash([6, 8]);
+  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 10;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y);
+  ctx.bezierCurveTo(anchor.x + 68, anchor.y - 12 + pulse, rect.x - 42, cardY + 26, rect.x + 18, cardY + 58);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = `rgba(248, 243, 232, ${0.96 - glow * 0.08})`;
+  ctx.strokeStyle = focused ? `${accent}ee` : `${accent}88`;
+  ctx.lineWidth = focused ? 2.6 : 1.8;
+  ctx.beginPath();
+  ctx.roundRect(rect.x, cardY, rect.width, rect.height, 18);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = accent;
+  ctx.font = "bold 16px 'Microsoft YaHei'";
+  ctx.fillText((spec.title || "旧铺想法续路线签 · 可点").slice(0, 18), rect.x + 18, cardY + 28);
+  ctx.fillStyle = "#243128";
+  ctx.font = "13px 'Microsoft YaHei'";
+  ctx.fillText((spec.headline || "").slice(0, 28), rect.x + 18, cardY + 50);
+
+  (spec.steps || []).slice(0, 3).forEach((step, index) => {
+    const rowY = cardY + 72 + index * 16;
+    ctx.fillStyle = step.accent || accent;
+    ctx.font = "bold 12px 'Microsoft YaHei'";
+    ctx.fillText((step.title || "").slice(0, 10), rect.x + 18, rowY);
+    ctx.fillStyle = "#465448";
+    ctx.font = "12px 'Microsoft YaHei'";
+    ctx.fillText((step.text || "").slice(0, 20), rect.x + 92, rowY);
+  });
+  ctx.restore();
+  return true;
+}
+
+function drawShopThoughtRouteMorningFollowupWorld(ctx, spec = shopThoughtRouteMorningFollowupWorldSpec(), motion = 0) {
+  return drawShopThoughtRouteWorldCard(ctx, spec, shopThoughtRouteMorningFollowupWorldFocus, motion, "#4d91a6");
+}
+
+function drawShopThoughtRouteReadyMorningWorld(ctx, spec = shopThoughtRouteReadyMorningWorldSpec(), motion = 0) {
+  return drawShopThoughtRouteWorldCard(ctx, spec, shopThoughtRouteReadyMorningWorldFocus, motion, "#286f58");
+}
+
+function drawShopThoughtRouteMissedWorld(ctx, spec = shopThoughtRouteMissedWorldSpec(), motion = 0) {
+  return drawShopThoughtRouteWorldCard(ctx, spec, shopThoughtRouteMissedWorldFocus, motion, "#be4f37");
+}
+
+function drawShopThoughtRouteCaughtWorld(ctx, spec = shopThoughtRouteCaughtWorldSpec(), motion = 0) {
+  return drawShopThoughtRouteWorldCard(ctx, spec, shopThoughtRouteCaughtWorldFocus, motion, "#7c9b43");
 }
 
 function drawShopCustomerLessonMorningFollowupWorld(ctx, spec = shopCustomerLessonMorningFollowupWorldSpec(), motion = 0) {
@@ -35773,6 +37607,52 @@ function shopCanvasTargets() {
       rect: wordOfMouthMorningFollowup.rect,
     });
   }
+  const thoughtRouteMorningFollowup = shopThoughtRouteMorningFollowupWorldSpec();
+  if (thoughtRouteMorningFollowup) {
+    targets.push({
+      type: "shop_thought_route_morning_followup",
+      label: thoughtRouteMorningFollowup.title,
+      selector: thoughtRouteMorningFollowup.selector,
+      fallbackSelector: thoughtRouteMorningFollowup.fallbackSelector,
+      shopThoughtRouteMorningFollowup: thoughtRouteMorningFollowup,
+      rect: thoughtRouteMorningFollowup.rect,
+    });
+  }
+  const thoughtRouteReadyMorning = shopThoughtRouteReadyMorningWorldSpec();
+  if (thoughtRouteReadyMorning) {
+    targets.push({
+      type: "shop_thought_route_ready_morning",
+      label: thoughtRouteReadyMorning.title,
+      selector: thoughtRouteReadyMorning.selector,
+      fallbackSelector: thoughtRouteReadyMorning.fallbackSelector,
+      shopThoughtRouteReadyMorning: thoughtRouteReadyMorning,
+      rect: thoughtRouteReadyMorning.rect,
+    });
+  }
+  const thoughtRouteCaught = shopThoughtRouteCaughtWorldSpec();
+  if (thoughtRouteCaught) {
+    targets.push({
+      type: "shop_thought_route_caught",
+      label: thoughtRouteCaught.title,
+      selector: thoughtRouteCaught.selector,
+      fallbackSelector: thoughtRouteCaught.fallbackSelector,
+      shopThoughtRouteCaught: thoughtRouteCaught,
+      entry: thoughtRouteCaught.reportIndex >= 0 ? state.shopReport[thoughtRouteCaught.reportIndex] : null,
+      rect: thoughtRouteCaught.rect,
+    });
+  }
+  const thoughtRouteMissed = shopThoughtRouteMissedWorldSpec();
+  if (thoughtRouteMissed) {
+    targets.push({
+      type: "shop_thought_route_missed",
+      label: thoughtRouteMissed.title,
+      selector: thoughtRouteMissed.selector,
+      fallbackSelector: thoughtRouteMissed.fallbackSelector,
+      shopThoughtRouteMissed: thoughtRouteMissed,
+      entry: thoughtRouteMissed.reportIndex >= 0 ? state.shopReport[thoughtRouteMissed.reportIndex] : null,
+      rect: thoughtRouteMissed.rect,
+    });
+  }
   const wordOfMouthRestockedMorning = shopWordOfMouthRestockedMorningWorldSpec();
   if (wordOfMouthRestockedMorning) {
     targets.push({
@@ -35933,6 +37813,9 @@ function focusShopFromCanvas(target = null) {
   const diagnosisBoard = target?.type === "shop_diagnosis_world"
     ? target.diagnosisBoard || shopDiagnosisWorldBoardSpec(opening)
     : null;
+  const customerReasonCompass = target?.type === "customer_reason_compass"
+    ? target.customerReasonCompass || shopCustomerReasonCompassWorldSpec()
+    : null;
   const trialTheater = target?.type === "shop_trial_theater"
     ? target.trialTheater || shopTrialTheaterWorldSpec(opening)
     : null;
@@ -35963,6 +37846,18 @@ function focusShopFromCanvas(target = null) {
   const wordOfMouthMorningFollowup = target?.type === "shop_word_of_mouth_morning_followup"
     ? target.shopWordOfMouthMorningFollowup || shopWordOfMouthMorningFollowupWorldSpec()
     : null;
+  const thoughtRouteMorningFollowup = target?.type === "shop_thought_route_morning_followup"
+    ? target.shopThoughtRouteMorningFollowup || shopThoughtRouteMorningFollowupWorldSpec()
+    : null;
+  const thoughtRouteReadyMorning = target?.type === "shop_thought_route_ready_morning"
+    ? target.shopThoughtRouteReadyMorning || shopThoughtRouteReadyMorningWorldSpec()
+    : null;
+  const thoughtRouteCaught = target?.type === "shop_thought_route_caught"
+    ? target.shopThoughtRouteCaught || shopThoughtRouteCaughtWorldSpec()
+    : null;
+  const thoughtRouteMissed = target?.type === "shop_thought_route_missed"
+    ? target.shopThoughtRouteMissed || shopThoughtRouteMissedWorldSpec()
+    : null;
   const wordOfMouthRestockedMorning = target?.type === "shop_word_of_mouth_restocked_morning"
     ? target.shopWordOfMouthRestockedMorning || shopWordOfMouthRestockedMorningWorldSpec()
     : null;
@@ -35984,6 +37879,11 @@ function focusShopFromCanvas(target = null) {
     shopDiagnosisWorldBoardFocus = { key: diagnosisBoard.key, day: state.day };
   } else {
     shopDiagnosisWorldBoardFocus = null;
+  }
+  if (customerReasonCompass) {
+    shopCustomerReasonCompassWorldFocus = { key: customerReasonCompass.key, day: state.day };
+  } else {
+    shopCustomerReasonCompassWorldFocus = null;
   }
   if (trialTheater) {
     shopTrialTheaterWorldFocus = { key: trialTheater.key, day: state.day };
@@ -36039,6 +37939,26 @@ function focusShopFromCanvas(target = null) {
     shopWordOfMouthMorningFollowupWorldFocus = { key: wordOfMouthMorningFollowup.key, day: state.day };
   } else {
     shopWordOfMouthMorningFollowupWorldFocus = null;
+  }
+  if (thoughtRouteMorningFollowup) {
+    shopThoughtRouteMorningFollowupWorldFocus = { key: thoughtRouteMorningFollowup.key, day: state.day };
+  } else {
+    shopThoughtRouteMorningFollowupWorldFocus = null;
+  }
+  if (thoughtRouteReadyMorning) {
+    shopThoughtRouteReadyMorningWorldFocus = { key: thoughtRouteReadyMorning.key, day: state.day };
+  } else {
+    shopThoughtRouteReadyMorningWorldFocus = null;
+  }
+  if (thoughtRouteCaught) {
+    shopThoughtRouteCaughtWorldFocus = { key: thoughtRouteCaught.key, day: state.day };
+  } else {
+    shopThoughtRouteCaughtWorldFocus = null;
+  }
+  if (thoughtRouteMissed) {
+    shopThoughtRouteMissedWorldFocus = { key: thoughtRouteMissed.key, day: state.day };
+  } else {
+    shopThoughtRouteMissedWorldFocus = null;
   }
   if (wordOfMouthRestockedMorning) {
     shopWordOfMouthRestockedMorningWorldFocus = { key: wordOfMouthRestockedMorning.key, day: state.day };
@@ -36250,6 +38170,55 @@ function focusShopFromCanvas(target = null) {
         text: step.text,
       })),
     } : null,
+    shopThoughtRouteMorningFollowup: thoughtRouteMorningFollowup ? {
+      key: thoughtRouteMorningFollowup.key,
+      title: thoughtRouteMorningFollowup.title,
+      headline: thoughtRouteMorningFollowup.headline,
+      customerName: thoughtRouteMorningFollowup.customerName,
+      itemName: thoughtRouteMorningFollowup.itemName,
+      routeLabel: thoughtRouteMorningFollowup.routeLabel,
+      routeDetail: thoughtRouteMorningFollowup.routeDetail,
+      steps: thoughtRouteMorningFollowup.steps.map((step) => ({
+        title: step.title,
+        text: step.text,
+      })),
+    } : null,
+    shopThoughtRouteReadyMorning: thoughtRouteReadyMorning ? {
+      key: thoughtRouteReadyMorning.key,
+      title: thoughtRouteReadyMorning.title,
+      headline: thoughtRouteReadyMorning.headline,
+      itemName: thoughtRouteReadyMorning.itemName,
+      have: thoughtRouteReadyMorning.have,
+      routeLabel: thoughtRouteReadyMorning.routeLabel,
+      steps: thoughtRouteReadyMorning.steps.map((step) => ({
+        title: step.title,
+        text: step.text,
+      })),
+    } : null,
+    shopThoughtRouteCaught: thoughtRouteCaught ? {
+      key: thoughtRouteCaught.key,
+      title: thoughtRouteCaught.title,
+      headline: thoughtRouteCaught.headline,
+      customerName: thoughtRouteCaught.customerName,
+      itemName: thoughtRouteCaught.itemName,
+      price: thoughtRouteCaught.price,
+      resultText: thoughtRouteCaught.resultText,
+      steps: thoughtRouteCaught.steps.map((step) => ({
+        title: step.title,
+        text: step.text,
+      })),
+    } : null,
+    shopThoughtRouteMissed: thoughtRouteMissed ? {
+      key: thoughtRouteMissed.key,
+      title: thoughtRouteMissed.title,
+      headline: thoughtRouteMissed.headline,
+      itemName: thoughtRouteMissed.itemName,
+      routeDetail: thoughtRouteMissed.routeDetail,
+      steps: thoughtRouteMissed.steps.map((step) => ({
+        title: step.title,
+        text: step.text,
+      })),
+    } : null,
     shopWordOfMouthRestockedMorning: wordOfMouthRestockedMorning ? {
       key: wordOfMouthRestockedMorning.key,
       title: wordOfMouthRestockedMorning.title,
@@ -36360,6 +38329,18 @@ function focusShopFromCanvas(target = null) {
   const wordOfMouthMorningFollowupLog = wordOfMouthMorningFollowup
     ? `点选来帖续货清晨灯：${wordOfMouthMorningFollowup.headline}。${wordOfMouthMorningFollowup.morningDetail} ${wordOfMouthMorningFollowup.steps.map((step) => `${step.title}：${step.text}`).join("；")}。这张清晨灯只定位旧铺报告和来帖续货复盘，不会自动制作、播种、补货、开铺、接客、成交、改价或消耗库存。`
     : "";
+  const thoughtRouteMorningFollowupLog = thoughtRouteMorningFollowup
+    ? `点选旧铺想法续路线签：${thoughtRouteMorningFollowup.actionTitle || "清晨行动牌：旧铺想法续路线"}。${thoughtRouteMorningFollowup.headline}。${thoughtRouteMorningFollowup.steps.map((step) => `${step.title}：${step.text}`).join("；")}。${thoughtRouteMorningFollowup.cta || "只延续旧铺顾客想法、标签判断和备货路线，不会自动制作、播种、补货、开铺、调价或消耗资源"}。`
+    : "";
+  const thoughtRouteReadyMorningLog = thoughtRouteReadyMorning
+    ? `点选旧铺想法备妥签：${thoughtRouteReadyMorning.itemName} 已备在手 ${thoughtRouteReadyMorning.have}。${thoughtRouteReadyMorning.steps.map((step) => `${step.title}：${step.text}`).join("；")}。只确认这条想法路线已备到位并定位旧铺报告，不会自动上架、补货、开铺、接客、成交、改价或消耗库存。`
+    : "";
+  const thoughtRouteCaughtLog = thoughtRouteCaught
+    ? `点选旧铺想法接住签：${thoughtRouteCaught.steps.map((step) => `${step.title}：${step.text}`).join("；")}。${thoughtRouteCaught.resultText}。只回看这条想法路线如何接住成交并定位旧铺报告，不会自动上架、开铺、接客、成交、改价、补货或消耗库存。`
+    : "";
+  const thoughtRouteMissedLog = thoughtRouteMissed
+    ? `点选旧铺想法落空签：${thoughtRouteMissed.steps.map((step) => `${step.title}：${step.text}`).join("；")}。只回看这条想法路线今天卡在什么地方并定位旧铺报告，不会自动上架、开铺、接客、成交、改价、补货或消耗库存。`
+    : "";
   const wordOfMouthRestockedMorningLog = wordOfMouthRestockedMorning
     ? `点选来帖续货备回签：${wordOfMouthRestockedMorning.itemName} 已备到 ${wordOfMouthRestockedMorning.have}/${wordOfMouthRestockedMorning.targetCount}。${wordOfMouthRestockedMorning.steps.map((step) => `${step.title}：${step.text}`).join("；")}。这里只确认库存已备回并定位旧铺报告，不会自动上架、补货、开铺、接客、成交、改价或消耗库存。`
     : "";
@@ -36378,6 +38359,9 @@ function focusShopFromCanvas(target = null) {
   const diagnosisLog = diagnosisBoard
     ? `点选旧铺诊断挂签：${diagnosisBoard.headline}。证据：${diagnosisBoard.evidence} 明日改法：${diagnosisBoard.nextAction}。这里只定位账页，不会自动改价、补货或开铺。`
     : "";
+  const customerReasonCompassLog = customerReasonCompass
+    ? `顾客三因罗盘 · 可点：${customerReasonCompass.rows.map((row) => `${row.title}：${row.text}`).join("；")}。${customerReasonCompass.safety}。`
+    : "";
   const trialTheaterLog = trialTheater
     ? `点选旧铺试营业小剧场：${trialTheater.headline}。${trialTheater.resultText}。原因：${trialTheater.reasonText} 下一步：${trialTheater.nextAction}。这里只定位旧铺报告，不会自动开铺、改价、补货或交付订单。`
     : "";
@@ -36386,7 +38370,7 @@ function focusShopFromCanvas(target = null) {
     : "";
   const log = reportEntry
     ? `${reportEntry.name} 的反馈已在经营报告里高亮：${reportEntry.text}${reportEntry.detail ? ` · ${reportEntry.detail}` : ""}`
-    : `${target?.label || "旧铺看板"}已在经营报告里高亮。${diagnosisLog || firstCustomerThresholdLog || trialTheaterLog || thoughtChainLog || returningTrailLog || wordOfMouthRestockCaughtLog || wordOfMouthRestockedMorningLog || wordOfMouthMorningFollowupLog || wordOfMouthFollowupRestockLog || wordOfMouthSaleReasonLog || wordOfMouthSaleEchoLog || firstSaleActionTrailLog || firstSaleKeepsakeLog || firstSaleLessonLog || forecastLog || firstSaleReceiptLog || leaveRecoveryLog || waterwayStandingOrderLog || waterwayReorderFollowupLog || waterwayBrowseLog || waterwayShelfLog || waterwayBrokerLog || journeyBoardLog || doorstepVignetteLog || (target?.type === "reputation" && reputationLog ? reputationLog : target?.type === "restock" && restockLog ? restockLog : boardLog)}`;
+    : `${target?.label || "旧铺看板"}已在经营报告里高亮。${customerReasonCompassLog || diagnosisLog || firstCustomerThresholdLog || trialTheaterLog || thoughtChainLog || returningTrailLog || thoughtRouteCaughtLog || thoughtRouteMissedLog || thoughtRouteReadyMorningLog || thoughtRouteMorningFollowupLog || wordOfMouthRestockCaughtLog || wordOfMouthRestockedMorningLog || wordOfMouthMorningFollowupLog || wordOfMouthFollowupRestockLog || wordOfMouthSaleReasonLog || wordOfMouthSaleEchoLog || firstSaleActionTrailLog || firstSaleKeepsakeLog || firstSaleLessonLog || forecastLog || firstSaleReceiptLog || leaveRecoveryLog || waterwayStandingOrderLog || waterwayReorderFollowupLog || waterwayBrowseLog || waterwayShelfLog || waterwayBrokerLog || journeyBoardLog || doorstepVignetteLog || (target?.type === "reputation" && reputationLog ? reputationLog : target?.type === "restock" && restockLog ? restockLog : boardLog)}`;
   if (settings.panelGroup !== "core") {
     settings.panelGroup = "core";
     saveSettings();
@@ -36427,6 +38411,20 @@ function focusShopRestockRoute(action = "", options = {}) {
   if (action === "shop") return focusPlotRouteShop(options.shopTag || "", options.itemId || shopRestockFocus?.itemId || "");
   addLog("旧铺补货路线", "这条补货路线暂时没有找到可定位的入口。");
   renderLogs();
+}
+
+function focusShopThoughtShelfBridgeRoute(action = "", options = {}) {
+  if (action === "recipe" || action === "seed" || action === "shop") {
+    return focusShopRestockRoute(action, options);
+  }
+  shopFocusTarget = {
+    selector: '[data-shop-board="thought-shelf-bridge"]',
+    fallbackSelector: "#shopReport",
+    missingTitle: "门口想法对口牌",
+    missingLog: "门口想法对口牌暂时没有找到，先确认核心试玩分组和旧铺经营面板是否可见。",
+  };
+  addLog("门口想法对口牌", "只解释顾客想法、货架标签和备货路线；不会自动换主题、开铺、调价、补货或消耗资源。");
+  render();
 }
 
 function applyShopWeatherShelfRestock(options = {}) {
@@ -36743,28 +38741,18 @@ function orderDeliveryFeedbackSpec(order, rewardGold = Number(order.reward_gold 
 }
 
 function orderDeliveryEchoSafetyText() {
-  return "只回看订单结果和定位订单板，不会再次交单、扣除物品、发放奖励、增加好感、推进剧情、开铺、入夜或消耗资源";
+  return orderDeliveryEchoSafetyTextWorld();
 }
 
 function orderDeliveryEchoSpec(feedback = state.orderDeliveryFeedback, order = null) {
-  if (!feedback?.orderId) return null;
-  return {
-    key: `${state.day}:${feedback.orderId}:delivery_echo`,
+  return orderDeliveryEchoSpecWorld({
+    feedback,
+    order,
     day: state.day,
-    orderId: feedback.orderId,
-    title: "订单交付回响留签 · 可点",
-    headline: feedback.firstOrder ? "第一单谢礼落袋" : `${feedback.npcLabel}把谢礼压在签下`,
-    orderTitle: feedback.title,
-    npcLabel: feedback.npcLabel || (order ? npcName(order.issuer_id || order.reward_favor_npc) : "镇上来客"),
-    rewardGold: Number(feedback.rewardGold || 0),
-    rewardFame: Number(feedback.rewardFame || 0),
-    favorGain: Number(feedback.favorGain || 0),
-    needText: feedback.needText || (order ? orderNeeds(order).map(({ itemId, count }) => `${itemName(itemId)} x${count}`).join(" / ") : ""),
-    response: feedback.response || "",
-    nextAdvice: feedback.nextAdvice || "",
-    safety: orderDeliveryEchoSafetyText(),
-    createdAt: performance.now(),
-  };
+    npcName,
+    orderNeeds,
+    itemName,
+  });
 }
 
 function recordOrderDeliveryEcho(feedback = state.orderDeliveryFeedback, order = null) {
@@ -36775,30 +38763,20 @@ function recordOrderDeliveryEcho(feedback = state.orderDeliveryFeedback, order =
 }
 
 function orderDeliveryEchoWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
-  const echo = state.orderDeliveryEcho;
-  if (!echo?.orderId || echo.day !== state.day) return null;
-  const cardWidth = 334;
-  const cardHeight = 132;
-  const x = Math.max(36, Math.min(width - cardWidth - 34, 54));
-  const y = Math.max(272, Math.min(height - cardHeight - 34, 334));
-  return {
-    ...echo,
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: 432, y: 350 },
-    ledgerPoint: { x: 248, y: 386 },
-  };
+  return orderDeliveryEchoWorldSpecWorld({
+    width,
+    height,
+    echo: state.orderDeliveryEcho,
+    day: state.day,
+  });
 }
 
 function orderDeliveryEchoWorldAtCanvasPoint(px, py) {
-  const spec = orderDeliveryEchoWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return orderDeliveryEchoWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: orderDeliveryEchoWorldSpec(refs.world?.width || 960, refs.world?.height || 640),
+  });
 }
 
 function focusOrderDeliveryEchoWorldFromCanvas(spec = orderDeliveryEchoWorldSpec()) {
@@ -36820,108 +38798,19 @@ function focusOrderDeliveryEchoWorldFromCanvas(spec = orderDeliveryEchoWorldSpec
 }
 
 function drawOrderDeliveryEchoWorld(ctx, spec = orderDeliveryEchoWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
-  if (!spec?.rect) return false;
-  const { rect, anchor, ledgerPoint } = spec;
-  const active = orderDeliveryEchoWorldFocus?.day === state.day
-    && orderDeliveryEchoWorldFocus?.key === spec.key;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.85) * 2.2;
-  const cardY = rect.y + bob;
-
-  ctx.save();
-  ctx.strokeStyle = active ? "rgba(190, 79, 55, 0.86)" : "rgba(180, 125, 47, 0.54)";
-  ctx.lineWidth = active ? 3 : 1.8;
-  ctx.setLineDash([7, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 12;
-  ctx.beginPath();
-  ctx.moveTo(anchor.x, anchor.y + 14);
-  ctx.quadraticCurveTo((anchor.x + rect.x + rect.width - 36) / 2, cardY + 172, rect.x + rect.width - 36, cardY + rect.height - 18);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  ctx.fillStyle = "rgba(23, 35, 29, 0.14)";
-  ctx.beginPath();
-  ctx.ellipse(ledgerPoint.x, ledgerPoint.y + 28, 54, 10, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "rgba(255, 253, 245, 0.94)";
-  ctx.strokeStyle = "rgba(180, 125, 47, 0.58)";
-  ctx.lineWidth = 1.6;
-  ctx.beginPath();
-  ctx.roundRect(ledgerPoint.x - 42, ledgerPoint.y - 10 + bob * 0.18, 84, 48, 10);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.fillRect(ledgerPoint.x - 26, ledgerPoint.y + 4 + bob * 0.18, 42, 3);
-  ctx.fillRect(ledgerPoint.x - 26, ledgerPoint.y + 15 + bob * 0.18, 34, 3);
-  ctx.fillStyle = "#be4f37";
-  ctx.beginPath();
-  ctx.arc(ledgerPoint.x + 24, ledgerPoint.y + 24 + bob * 0.18, 9, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#fffdf5";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText("收", ledgerPoint.x + 20, ledgerPoint.y + 27 + bob * 0.18);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
-  ctx.strokeStyle = active ? "rgba(190, 79, 55, 0.9)" : "rgba(180, 125, 47, 0.62)";
-  ctx.lineWidth = active ? 2.6 : 1.5;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = "rgba(190, 79, 55, 0.14)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 16, cardY + 16, 62, 56, 17);
-  ctx.fill();
-  ctx.fillStyle = "#be4f37";
-  ctx.font = "900 24px Microsoft YaHei";
-  ctx.fillText("谢", rect.x + 34, cardY + 52);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(spec.title.slice(0, 18), rect.x + 92, cardY + 26);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 20), rect.x + 92, cardY + 48);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "10px Microsoft YaHei";
-  ctx.fillText(`${spec.orderTitle} · ${spec.npcLabel}`.slice(0, 34), rect.x + 92, cardY + 64);
-
-  const chips = [
-    { label: `灵石 +${spec.rewardGold}`, color: "#8f5f3f", fill: "rgba(224, 182, 109, 0.18)" },
-    { label: `声望 +${spec.rewardFame}`, color: "#286f58", fill: "rgba(40, 111, 88, 0.14)" },
-    { label: `好感 +${spec.favorGain}`, color: "#be4f37", fill: "rgba(190, 79, 55, 0.12)" },
-  ].filter((chip, index) => index < 2 || spec.favorGain > 0);
-  chips.forEach((chip, index) => {
-    const chipX = rect.x + 18 + index * 102;
-    const chipY = cardY + 84;
-    ctx.fillStyle = chip.fill;
-    ctx.beginPath();
-    ctx.roundRect(chipX, chipY, 92, 22, 11);
-    ctx.fill();
-    ctx.fillStyle = chip.color;
-    ctx.font = "900 10px Microsoft YaHei";
-    ctx.fillText(chip.label.slice(0, 10), chipX + 10, chipY + 15);
+  return drawOrderDeliveryEchoWorldWorld({
+    ctx,
+    spec,
+    reducedMotion: settings.reducedMotion,
+    motion,
+    day: state.day,
+    focus: orderDeliveryEchoWorldFocus,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 18, cardY + rect.height - 20, rect.width - 36, 14, 7);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText(`回看订单板 · ${spec.safety}`.slice(0, 48), rect.x + 26, cardY + rect.height - 10);
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 50, cardY + 14, 36, 18, 9);
-  ctx.fill();
-  ctx.fillStyle = "#be4f37";
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + rect.width - 42, cardY + 27);
-  ctx.restore();
-  return true;
 }
 
 function orderRewardNextUseSafetyText() {
-  return "只定位下一步面板或选中种子/配方，不会自动买种、播种、加工、交单、上架、开铺、扣钱、扣材料、发奖励、入夜或消耗资源";
+  return orderRewardNextUseSafetyTextWorld();
 }
 
 function orderRewardNextUseSeedCandidate() {
@@ -37030,38 +38919,21 @@ function orderRewardNextUseCandidate() {
 }
 
 function orderRewardNextUseWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
-  const echo = state.orderDeliveryEcho;
-  if (!echo?.orderId || echo.day !== state.day) return null;
-  const candidate = orderRewardNextUseCandidate();
-  if (!candidate) return null;
-  const cardWidth = 316;
-  const cardHeight = 118;
-  const x = Math.max(586, Math.min(width - cardWidth - 34, 604));
-  const y = Math.max(382, Math.min(height - cardHeight - 32, 446));
-  return {
-    ...candidate,
-    key: `${state.day}:${echo.orderId}:${candidate.type}:${candidate.orderId || candidate.itemId || candidate.seedId || candidate.recipeId || "next"}`,
+  return orderRewardNextUseWorldSpecWorld({
+    width,
+    height,
+    echo: state.orderDeliveryEcho,
+    candidate: orderRewardNextUseCandidate(),
     day: state.day,
-    sourceOrderId: echo.orderId,
-    sourceOrderTitle: echo.orderTitle,
-    rewardText: `${Number(echo.rewardGold || 0)} 灵石 / 声望 +${Number(echo.rewardFame || 0)}`,
-    routeText: "回款入账 -> 补下一步 -> 手动确认",
-    safety: orderRewardNextUseSafetyText(),
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: 252, y: 404 },
-  };
+  });
 }
 
 function orderRewardNextUseWorldAtCanvasPoint(px, py) {
-  const spec = orderRewardNextUseWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return orderRewardNextUseWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: orderRewardNextUseWorldSpec(refs.world?.width || 960, refs.world?.height || 640),
+  });
 }
 
 function focusOrderRewardNextUseWorldFromCanvas(spec = orderRewardNextUseWorldSpec()) {
@@ -37105,145 +38977,37 @@ function focusOrderRewardNextUseWorldFromCanvas(spec = orderRewardNextUseWorldSp
 }
 
 function drawOrderRewardNextUseWorld(ctx, spec = orderRewardNextUseWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
-  if (!spec?.rect) return false;
-  const { rect, anchor } = spec;
-  const active = orderRewardNextUseWorldFocus?.day === state.day
-    && orderRewardNextUseWorldFocus?.key === spec.key;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.72) * 2.4;
-  const cardY = rect.y + bob;
-  const accent = spec.type === "shop" ? "#8f5f3f" : spec.type === "seed" ? "#286f58" : spec.type === "recipe" ? "#b47d2f" : "#be4f37";
-
-  ctx.save();
-  ctx.strokeStyle = active ? `${accent}dd` : `${accent}88`;
-  ctx.lineWidth = active ? 3 : 1.8;
-  ctx.setLineDash([8, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 12;
-  ctx.beginPath();
-  ctx.moveTo(anchor.x, anchor.y + 10);
-  ctx.quadraticCurveTo(rect.x + 26, cardY + rect.height + 34, rect.x + 42, cardY + rect.height - 16);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  for (let i = 0; i < 5; i += 1) {
-    const t = settings.reducedMotion ? i / 4 : (motion * 0.13 + i * 0.19) % 1;
-    const moteX = anchor.x + (rect.x + 42 - anchor.x) * t;
-    const moteY = anchor.y + 10 + (cardY + rect.height - 16 - anchor.y - 10) * t - Math.sin(t * Math.PI) * 24;
-    ctx.fillStyle = i % 2 ? "rgba(246, 240, 182, 0.75)" : `${accent}55`;
-    ctx.beginPath();
-    ctx.arc(moteX, moteY, 3.4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
-  ctx.strokeStyle = active ? `${accent}ee` : `${accent}88`;
-  ctx.lineWidth = active ? 2.6 : 1.5;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = `${accent}1f`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 16, cardY + 16, 58, 50, 16);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 21px Microsoft YaHei";
-  const icon = spec.type === "shop" ? "铺" : spec.type === "seed" ? "种" : spec.type === "recipe" ? "锅" : spec.type === "ready_order" ? "单" : "补";
-  ctx.fillText(icon, rect.x + 34, cardY + 49);
-
-  ctx.fillStyle = accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText("回款下一步 · 可点", rect.x + 88, cardY + 25);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(spec.title.slice(0, 18), rect.x + 88, cardY + 47);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "10px Microsoft YaHei";
-  ctx.fillText(`${spec.label} · ${spec.metric}`.slice(0, 34), rect.x + 88, cardY + 64);
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.82)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 18, cardY + 78, rect.width - 36, 20, 10);
-  ctx.fill();
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText(spec.detail.slice(0, 44), rect.x + 28, cardY + 92);
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 18, cardY + rect.height - 17, rect.width - 36, 12, 6);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText(`${spec.routeText} · ${spec.safety}`.slice(0, 48), rect.x + 26, cardY + rect.height - 8);
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 50, cardY + 13, 36, 18, 9);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + rect.width - 42, cardY + 26);
-  ctx.restore();
-  return true;
+  return drawOrderRewardNextUseWorldWorld({
+    ctx,
+    spec,
+    reducedMotion: settings.reducedMotion,
+    motion,
+    day: state.day,
+    focus: orderRewardNextUseWorldFocus,
+    drawCanvasCard,
+  });
 }
 
 function orderRewardReinvestTrailSafetyText() {
-  return "只定位订单板、旧铺、种子栏或配方栏，不会自动买种、播种、加工、交单、上架、开铺、扣钱、扣材料、发奖励、入夜或消耗资源";
+  return orderRewardReinvestTrailSafetyTextWorld();
 }
 
 function orderRewardReinvestTrailWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
-  const echo = state.orderDeliveryEcho;
-  if (!echo?.orderId || echo.day !== state.day) return null;
-  const candidate = orderRewardNextUseCandidate();
-  if (!candidate) return null;
-  const rewardGold = Number(echo.rewardGold || 0);
-  const rewardFame = Number(echo.rewardFame || 0);
-  if (rewardGold <= 0 && rewardFame <= 0) return null;
-  const cardWidth = 352;
-  const cardHeight = 122;
-  const x = Math.max(336, Math.min(width - cardWidth - 34, 396));
-  const y = Math.max(86, Math.min(height - cardHeight - 34, 128));
-  const investLabel = candidate.type === "ready_order"
-    ? "趁热接单"
-    : candidate.type === "shop"
-      ? "补旧铺头排"
-      : candidate.type === "seed"
-        ? "补种子袋"
-        : candidate.type === "recipe"
-          ? "补下一锅"
-          : "补订单缺口";
-  const nodes = [
-    { key: "income", badge: "账", title: "回款入账", detail: `${rewardGold} 灵石`, accent: "#b47d2f" },
-    { key: "invest", badge: "投", title: investLabel, detail: candidate.label || candidate.title, accent: candidate.type === "shop" ? "#8f5f3f" : candidate.type === "seed" ? "#286f58" : "#be4f37" },
-    { key: "confirm", badge: "手", title: "手动确认", detail: candidate.metric || "不自动执行", accent: "#4d9a6a" },
-  ];
-  return {
-    ...candidate,
-    key: `${state.day}:${echo.orderId}:${candidate.type}:${candidate.orderId || candidate.itemId || candidate.seedId || candidate.recipeId || "trail"}:${rewardGold}:${rewardFame}`,
+  return orderRewardReinvestTrailWorldSpecWorld({
+    width,
+    height,
+    echo: state.orderDeliveryEcho,
+    candidate: orderRewardNextUseCandidate(),
     day: state.day,
-    title: "回款再投入账串 · 可点",
-    headline: "这笔钱下一步怎么滚起来",
-    sourceOrderId: echo.orderId,
-    sourceOrderTitle: echo.orderTitle,
-    rewardText: `${rewardGold} 灵石 / 声望 +${rewardFame}`,
-    routeText: "回款入账 -> 再投入 -> 手动确认",
-    safety: orderRewardReinvestTrailSafetyText(),
-    nodes,
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: 254, y: 404 },
-  };
+  });
 }
 
 function orderRewardReinvestTrailWorldAtCanvasPoint(px, py) {
-  const spec = orderRewardReinvestTrailWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return orderRewardReinvestTrailWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: orderRewardReinvestTrailWorldSpec(refs.world?.width || 960, refs.world?.height || 640),
+  });
 }
 
 function focusOrderRewardReinvestTrailWorldFromCanvas(spec = orderRewardReinvestTrailWorldSpec()) {
@@ -37254,116 +39018,15 @@ function focusOrderRewardReinvestTrailWorldFromCanvas(spec = orderRewardReinvest
 }
 
 function drawOrderRewardReinvestTrailWorld(ctx, spec = orderRewardReinvestTrailWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
-  if (!spec?.rect) return false;
-  const { rect, anchor } = spec;
-  const active = orderRewardReinvestTrailWorldFocus?.day === state.day
-    && orderRewardReinvestTrailWorldFocus?.key === spec.key;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.48) * 2;
-  const shimmer = settings.reducedMotion ? 0.5 : (Math.sin(motion * 2.6) + 1) / 2;
-  const cardY = rect.y + bob;
-  const accent = spec.type === "shop" ? "#8f5f3f" : spec.type === "seed" ? "#286f58" : spec.type === "recipe" ? "#b47d2f" : "#be4f37";
-
-  ctx.save();
-  ctx.strokeStyle = active ? `${accent}dd` : `${accent}66`;
-  ctx.lineWidth = active ? 3 : 1.7;
-  ctx.setLineDash([6, 7]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 10;
-  ctx.beginPath();
-  ctx.moveTo(anchor.x + 4, anchor.y - 2);
-  ctx.quadraticCurveTo(rect.x + 36, cardY + rect.height + 24, rect.x + 56, cardY + rect.height - 12);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  for (let i = 0; i < 6; i += 1) {
-    const t = settings.reducedMotion ? i / 5 : (motion * 0.12 + i * 0.17) % 1;
-    const moteX = anchor.x + (rect.x + 56 - anchor.x) * t;
-    const moteY = anchor.y - 2 + (cardY + rect.height - 12 - anchor.y + 2) * t - Math.sin(t * Math.PI) * 30;
-    ctx.fillStyle = i % 2 ? "rgba(246, 240, 182, 0.72)" : `${accent}5f`;
-    ctx.beginPath();
-    ctx.arc(moteX, moteY, 2.8 + shimmer * 0.8, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
-  ctx.strokeStyle = active ? `${accent}ee` : `${accent}7a`;
-  ctx.lineWidth = active ? 2.7 : 1.5;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = `${accent}1f`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 56, 50, 16);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 21px Microsoft YaHei";
-  ctx.fillText("账", rect.x + 32, cardY + 48);
-  ctx.fillStyle = `rgba(255, 253, 245, ${0.5 + shimmer * 0.26})`;
-  ctx.beginPath();
-  ctx.arc(rect.x + 58, cardY + 25 - shimmer * 3, 5 + shimmer * 2, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(spec.title, rect.x + 86, cardY + 24);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 20), rect.x + 86, cardY + 46);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "10px Microsoft YaHei";
-  ctx.fillText(`${spec.rewardText} · ${spec.label || spec.metric}`.slice(0, 40), rect.x + 86, cardY + 63);
-
-  spec.nodes.forEach((node, index) => {
-    const nodeX = rect.x + 18 + index * 108;
-    const nodeY = cardY + 86;
-    ctx.fillStyle = `${node.accent}18`;
-    ctx.strokeStyle = `${node.accent}55`;
-    ctx.lineWidth = active && index === 1 ? 1.9 : 1.1;
-    ctx.beginPath();
-    ctx.roundRect(nodeX, nodeY - 10, 98, 27, 11);
-    ctx.fill();
-    ctx.stroke();
-    if (index < spec.nodes.length - 1) {
-      ctx.strokeStyle = `${accent}55`;
-      ctx.lineWidth = 1.3;
-      ctx.beginPath();
-      ctx.moveTo(nodeX + 98, nodeY + 3);
-      ctx.lineTo(nodeX + 108, nodeY + 3);
-      ctx.stroke();
-    }
-    ctx.fillStyle = node.accent;
-    ctx.beginPath();
-    ctx.arc(nodeX + 14, nodeY + 4, 9, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#fffdf5";
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(node.badge, nodeX + 10, nodeY + 7);
-    ctx.fillStyle = node.accent;
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(node.title.slice(0, 5), nodeX + 28, nodeY + 1);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(String(node.detail || "").slice(0, 10), nodeX + 28, nodeY + 12);
+  return drawOrderRewardReinvestTrailWorldWorld({
+    ctx,
+    spec,
+    reducedMotion: settings.reducedMotion,
+    motion,
+    day: state.day,
+    focus: orderRewardReinvestTrailWorldFocus,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 50, cardY + 13, 36, 18, 9);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + rect.width - 42, cardY + 26);
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 18, cardY + rect.height - 15, rect.width - 36, 11, 6);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText(`${spec.routeText} · ${spec.safety}`.slice(0, 56), rect.x + 26, cardY + rect.height - 7);
-
-  ctx.restore();
-  return true;
 }
 
 const BAIZHI_QUEST_ID = "quest_main_0202_baizhi_zhiqiu";
@@ -37959,158 +39622,53 @@ function growingCropUseRouteSpec(plot = selectedPlot()) {
 }
 
 function cropGrowthMemoToneSpec(tone = "season") {
-  return {
-    boost: { glyph: "宜", label: "节气适性", fill: "rgba(255, 248, 232, 0.96)", stroke: "#e0b66d", text: "#8f5f3f", glow: "rgba(246, 240, 182, 0.34)" },
-    season: { glyph: "顺", label: "顺季成长", fill: "rgba(237, 243, 223, 0.95)", stroke: "#48a868", text: "#286f58", glow: "rgba(202, 235, 210, 0.28)" },
-    water: { glyph: "水", label: "今日缺水", fill: "rgba(232, 246, 242, 0.95)", stroke: "#4d91a6", text: "#286f58", glow: "rgba(159, 209, 223, 0.3)" },
-    risk: { glyph: "险", label: "风险压苗", fill: "rgba(255, 240, 232, 0.96)", stroke: "#be4f37", text: "#8f3f2f", glow: "rgba(190, 79, 55, 0.22)" },
-    harvest: { glyph: "收", label: "已经可收", fill: "rgba(255, 248, 232, 0.96)", stroke: "#b47d2f", text: "#8f5f3f", glow: "rgba(246, 240, 182, 0.36)" },
-    offseason: { glyph: "偏", label: "偏季观察", fill: "rgba(255, 253, 245, 0.92)", stroke: "#8f5f3f", text: "#5d6f65", glow: "rgba(143, 95, 63, 0.15)" },
-  }[tone] || { glyph: "苗", label: "今日长势", fill: "rgba(255, 253, 245, 0.92)", stroke: "#5d6f65", text: "#17231d", glow: "rgba(93, 111, 101, 0.16)" };
+  return cropGrowthMemoToneSpecUi(tone);
 }
 
 function cropGrowthMemoReason(visual = null, route = null) {
-  if (!visual) return "先种下一块作物，田垄才会写出今日长势。";
-  if (visual.stage === "ripe") return `${visual.stageLabel}：已经成熟，收后可接 ${route?.targetName || route?.badge || "背包去向"}。`;
-  if (visual.needsWater) return `${visual.stageLabel}：今日未润，先补水才能把今晚成长接住。`;
-  if (visual.affinity?.state === "risk") return `${visual.stageLabel}：${visual.affinity.detail || "当前天时有风险，入夜前先照看。"}。`;
-  if (Number(visual.yieldBonus?.amount || 0) > 0) return `${visual.stageLabel}：${visual.affinity.detail} 预计多收 +${visual.yieldBonus.amount}。`;
-  if (visual.affinity?.state === "season") return `${visual.stageLabel}：当季顺长，约 ${visual.remaining} 夜后成熟。`;
-  return `${visual.stageLabel}：节气不算强项，稳水后继续观察。`;
+  return cropGrowthMemoReasonUi(visual, route);
 }
 
 function cropGrowthMemoActionForRow(row = null) {
-  if (!row) return { key: "plot", label: "看灵田", selector: "#selectedPlotCard", panelGroup: "core" };
-  if (row.tone === "harvest") return { key: "plot", label: "定位收获", selector: "#selectedPlotCard", panelGroup: "core" };
-  if (row.tone === "water") return { key: "plot", label: "定位补水", selector: "#selectedPlotCard", panelGroup: "core" };
-  if (row.tone === "risk") return { key: "term", label: "看风险", selector: "#riskPanel", fallbackSelector: "#termPanel", panelGroup: "systems" };
-  if (row.route?.orderId) return { key: "order", label: "看订单", selector: `[data-order-card-id="${selectorDataValue(row.route.orderId)}"]`, fallbackSelector: "#ordersList", panelGroup: "core" };
-  if (row.route?.recipeId) return { key: "recipe", label: "看配方", selector: "#recipeSelect", fallbackSelector: "#selectedPlotCard", panelGroup: "core" };
-  if (row.route?.type === "shop" || row.route?.shopTag) return { key: "shop", label: "看旧铺", selector: "#shopReport", fallbackSelector: "#shopReport", panelGroup: "core" };
-  return { key: "plot", label: "看灵田", selector: "#selectedPlotCard", fallbackSelector: "#selectedPlotCard", panelGroup: "core" };
+  return cropGrowthMemoActionForRowUi({
+    row,
+    selectorDataValue,
+  });
 }
 
 function cropGrowthMemoWorldRows(limit = 3) {
-  const rows = state.plots
-    .filter((plot) => plot.cropId)
-    .map((plot) => {
-      const crop = data.cropsById.get(plot.cropId);
-      if (!crop) return null;
-      const visual = cropWorldGrowthVisualSpec(crop, plot);
-      const route = growingCropUseRouteSpec(plot);
-      const tone = plot.mature
-        ? "harvest"
-        : visual?.affinity?.state === "risk"
-          ? "risk"
-          : visual?.needsWater
-            ? "water"
-            : Number(visual?.yieldBonus?.amount || 0) > 0
-              ? "boost"
-              : visual?.affinity?.state === "season"
-                ? "season"
-                : "offseason";
-      const palette = cropGrowthMemoToneSpec(tone);
-      const growDays = Math.max(1, Number(crop.grow_days || 1));
-      const age = Math.max(0, state.day - Number(plot.plantedDay || state.day));
-      const progress = plot.mature ? 1 : Math.max(0.08, Math.min(0.96, age / growDays));
-      const score = {
-        risk: 96,
-        harvest: 90,
-        water: 82,
-        boost: 76,
-        season: 56,
-        offseason: 42,
-      }[tone] || 36;
-      return {
-        key: `${plot.x},${plot.y}:${plot.cropId}:${tone}:${visual?.stage || "growing"}`,
-        plot,
-        crop,
-        route,
-        visual,
-        tone,
-        palette,
-        x: plot.x,
-        y: plot.y,
-        cropName: itemName(plot.cropId),
-        stageLabel: visual?.stageLabel || "生长",
-        title: `${itemName(plot.cropId)} · ${palette.label}`,
-        reason: cropGrowthMemoReason(visual, route),
-        progress,
-        progressText: plot.mature ? "可收" : `${Math.round(progress * 100)}%`,
-        action: cropGrowthMemoActionForRow({ tone, route }),
-        score: score + Number(visual?.yieldBonus?.amount || 0) * 5 + (plot.waterSoil ? 2 : 0),
-      };
-    })
-    .filter(Boolean)
-    .sort((a, b) => b.score - a.score || a.y - b.y || a.x - b.x);
-  return rows.slice(0, limit);
+  return cropGrowthMemoWorldRowsWorld({
+    limit,
+    state,
+    data,
+    itemName,
+    cropWorldGrowthVisualSpec,
+    growingCropUseRouteSpec,
+    cropGrowthMemoToneSpec,
+    cropGrowthMemoReason,
+    cropGrowthMemoActionForRow,
+  });
 }
 
 function cropGrowthMemoWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, originXInput = null, originYInput = null, tileInput = null, gapInput = null) {
   const rows = cropGrowthMemoWorldRows(3);
-  if (!rows.length) return null;
-  const { tile, gap, originX, originY } = gridMetrics();
-  const safeOriginX = Number(originXInput ?? originX);
-  const safeOriginY = Number(originYInput ?? originY);
-  const safeTile = Number(tileInput ?? tile);
-  const safeGap = Number(gapInput ?? gap);
-  const top = rows[0];
-  const point = {
-    x: safeOriginX + top.x * (safeTile + safeGap) + safeTile * 0.5,
-    y: safeOriginY + top.y * (safeTile + safeGap) + safeTile * 0.5,
-  };
-  const cardWidth = 332;
-  const cardHeight = rows.length > 1 ? 150 : 118;
-  const rect = {
-    x: Math.max(18, Math.min(width - cardWidth - 18, point.x + (point.x > width * 0.58 ? -cardWidth - 44 : 72))),
-    y: Math.max(52, Math.min(height - cardHeight - 30, point.y - 118)),
-    width: cardWidth,
-    height: cardHeight,
-  };
-  rows.forEach((row, index) => {
-    row.badgeRect = {
-      x: safeOriginX + row.x * (safeTile + safeGap) + safeTile * 0.5 - 27,
-      y: safeOriginY + row.y * (safeTile + safeGap) - 23,
-      width: 54,
-      height: 24,
-    };
-    row.cardRect = {
-      x: rect.x + 14,
-      y: rect.y + 48 + index * 28,
-      width: rect.width - 28,
-      height: 24,
-    };
-  });
-  return {
-    key: `${state.day}:${rows.map((row) => row.key).join("|")}:crop_growth_memo`,
-    day: state.day,
+  return cropGrowthMemoWorldSpecWorld({
+    width,
+    height,
+    originXInput,
+    originYInput,
+    tileInput,
+    gapInput,
     rows,
-    top,
-    point,
-    rect,
-    title: "田垄今日长势小札 · 可点",
-    subtitle: `${localize(currentTermConfig()?.term_name_key, currentTermId())} · 已种田块 ${rows.length} 处`,
-    safetyText: "只定位田块、节气或去向入口，不会自动浇水、收获、播种、入夜或消耗资源。",
-  };
+    metrics: gridMetrics(),
+    day: state.day,
+    termName: localize(currentTermConfig()?.term_name_key, currentTermId()),
+  });
 }
 
 function cropGrowthMemoWorldAtCanvasPoint(px, py) {
   const spec = cropGrowthMemoWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const badgeRow = spec.rows.find((row) => {
-    const rect = row.badgeRect;
-    return rect && px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
-  });
-  if (badgeRow) return { ...spec, activeRow: badgeRow, source: "badge" };
-  const cardRow = spec.rows.find((row) => {
-    const rect = row.cardRect;
-    return rect && px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
-  });
-  if (cardRow) return { ...spec, activeRow: cardRow, source: "row" };
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? { ...spec, activeRow: spec.top, source: "card" }
-    : null;
+  return cropGrowthMemoWorldAtCanvasPointWorld({ px, py, spec });
 }
 
 function focusCropGrowthMemoWorldFromCanvas(spec = cropGrowthMemoWorldSpec()) {
@@ -38151,133 +39709,15 @@ function focusCropGrowthMemoWorldFromCanvas(spec = cropGrowthMemoWorldSpec()) {
 }
 
 function drawCropGrowthMemoWorld(ctx, spec = cropGrowthMemoWorldSpec(ctx.canvas.width, ctx.canvas.height)) {
-  if (!spec?.rect || !spec.rows.length) return false;
-  const { rect, point, rows, top } = spec;
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.7) * 2;
-  const active = cropGrowthMemoWorldFocus?.day === state.day && cropGrowthMemoWorldFocus?.key === spec.key;
-  const activePlotKey = active ? cropGrowthMemoWorldFocus.plotKey : "";
-  const cardY = rect.y + bob;
-  const topPalette = top.palette || cropGrowthMemoToneSpec(top.tone);
-
-  ctx.save();
-  ctx.strokeStyle = active ? `${topPalette.stroke}dd` : `${topPalette.stroke}77`;
-  ctx.lineWidth = active ? 2.8 : 1.8;
-  ctx.setLineDash([7, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 10;
-  ctx.beginPath();
-  ctx.moveTo(point.x, point.y - 8);
-  ctx.quadraticCurveTo((point.x + rect.x) / 2, cardY + rect.height + 36, rect.x + 28, cardY + rect.height - 10);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  for (const [index, row] of rows.entries()) {
-    const badge = row.badgeRect;
-    const palette = row.palette || cropGrowthMemoToneSpec(row.tone);
-    const rowActive = activePlotKey === `${row.x},${row.y}`;
-    const badgeBob = settings.reducedMotion ? 0 : Math.sin(motion * 2.2 + index) * 1.8;
-    ctx.fillStyle = palette.glow;
-    ctx.beginPath();
-    ctx.ellipse(badge.x + badge.width / 2, badge.y + badge.height + 8, 34, 9, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = palette.fill;
-    ctx.strokeStyle = rowActive ? `${palette.stroke}ee` : `${palette.stroke}aa`;
-    ctx.lineWidth = rowActive ? 2.6 : 1.6;
-    ctx.beginPath();
-    ctx.roundRect(badge.x, badge.y + badgeBob, badge.width, badge.height, 10);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = palette.stroke;
-    ctx.beginPath();
-    ctx.arc(badge.x + 13, badge.y + badgeBob + 12, 8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#fffdf5";
-    ctx.font = "800 11px Microsoft YaHei";
-    ctx.textAlign = "center";
-    ctx.fillText(palette.glyph, badge.x + 13, badge.y + badgeBob + 16);
-    ctx.fillStyle = palette.text;
-    ctx.font = "800 10px Microsoft YaHei";
-    ctx.fillText(row.stageLabel.slice(0, 3), badge.x + 34, badge.y + badgeBob + 16);
-  }
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, topPalette.fill);
-  ctx.strokeStyle = active ? `${topPalette.stroke}dd` : `${topPalette.stroke}88`;
-  ctx.lineWidth = active ? 2.8 : 1.8;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = topPalette.stroke;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 42, 28, 12);
-  ctx.fill();
-  ctx.fillStyle = "#fffdf5";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.textAlign = "center";
-  ctx.fillText(topPalette.glyph, rect.x + 35, cardY + 34);
-  ctx.textAlign = "left";
-  ctx.fillStyle = topPalette.text;
-  ctx.font = "900 14px Microsoft YaHei";
-  ctx.fillText(spec.title, rect.x + 66, cardY + 25);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "700 11px Microsoft YaHei";
-  ctx.fillText(spec.subtitle, rect.x + 66, cardY + 41);
-
-  rows.forEach((row, index) => {
-    const rowY = cardY + 62 + index * 28;
-    const palette = row.palette || cropGrowthMemoToneSpec(row.tone);
-    const rowActive = activePlotKey === `${row.x},${row.y}`;
-    ctx.fillStyle = rowActive ? "rgba(255, 253, 245, 0.76)" : "rgba(255, 253, 245, 0.42)";
-    ctx.strokeStyle = rowActive ? `${palette.stroke}bb` : "rgba(23, 35, 29, 0.08)";
-    ctx.lineWidth = rowActive ? 1.5 : 1;
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 14, rowY - 14, rect.width - 28, 23, 10);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = palette.stroke;
-    ctx.font = "900 10px Microsoft YaHei";
-    ctx.fillText(palette.glyph, rect.x + 24, rowY + 2);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 11px Microsoft YaHei";
-    ctx.fillText(`${row.cropName} · ${row.stageLabel}`.slice(0, 16), rect.x + 42, rowY + 2);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "700 10px Microsoft YaHei";
-    ctx.fillText(row.progressText, rect.x + rect.width - 88, rowY + 2);
-    ctx.fillStyle = palette.stroke;
-    ctx.beginPath();
-    ctx.roundRect(rect.x + rect.width - 58, rowY - 8, 38, 12, 6);
-    ctx.fill();
-    ctx.fillStyle = "#fffdf5";
-    ctx.font = "800 9px Microsoft YaHei";
-    ctx.textAlign = "center";
-    ctx.fillText(row.action.label.slice(0, 4), rect.x + rect.width - 39, rowY + 1);
-    ctx.textAlign = "left";
-
-    ctx.fillStyle = "rgba(23, 35, 29, 0.16)";
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 42, rowY + 7, rect.width - 116, 4, 99);
-    ctx.fill();
-    ctx.fillStyle = palette.stroke;
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 42, rowY + 7, Math.max(10, (rect.width - 116) * row.progress), 4, 99);
-    ctx.fill();
+  return drawCropGrowthMemoWorldWorld({
+    ctx,
+    spec,
+    settings,
+    state,
+    cropGrowthMemoWorldFocus,
+    cropGrowthMemoToneSpec,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "700 10px Microsoft YaHei";
-  ctx.fillText(spec.safetyText.slice(0, 32), rect.x + 16, cardY + rect.height - 12);
-
-  if (!settings.reducedMotion) {
-    ctx.fillStyle = `${topPalette.stroke}55`;
-    for (let i = 0; i < 5; i += 1) {
-      ctx.beginPath();
-      ctx.arc(rect.x + rect.width - 24 - i * 14, cardY + 17 + Math.sin(motion * 2 + i) * 3, 2.2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  ctx.restore();
-  return true;
 }
 
 function baizhiQuestGuidanceActive() {
@@ -39493,6 +40933,235 @@ function costText(building) {
   return parts.join(" · ");
 }
 
+function buildingCostRows(building) {
+  if (!building) return [];
+  const cost = demoBuildCost(building);
+  const metalOwned = Number(state.inventory.item_metal_xuantie || 0)
+    + Number(state.inventory.item_ore_iron || 0)
+    + Number(state.inventory.item_ore_iron_raw || 0);
+  return [
+    {
+      key: "gold",
+      label: "灵石",
+      owned: Number(state.gold || 0),
+      need: Number(cost.gold || 0),
+      detail: "旧铺、订单和日结会把灵石滚回来。",
+      focusTitle: "洞天建设：经营筹资",
+    },
+    {
+      key: "wood",
+      label: "木材",
+      owned: Number(state.inventory.item_wood_basic || 0),
+      need: Number(cost.wood || 0),
+      detail: "清荒、主线奖励和日常补料最稳。",
+      focusTitle: "洞天建设：清荒补料",
+    },
+    {
+      key: "stone",
+      label: "石材",
+      owned: Number(state.inventory.item_stone_basic || 0),
+      need: Number(cost.stone || 0),
+      detail: "清荒、后山碎石点和日常补给会慢慢补齐。",
+      focusTitle: "洞天建设：清荒补料",
+    },
+    {
+      key: "metal",
+      label: building.building_id === SPIRIT_MANOR_BUILDING_ID ? itemName("item_metal_xuantie") : "金属",
+      owned: metalOwned,
+      need: Number(cost.metal || 0),
+      detail: "矿洞、秘境和远路会把矿材送回来。",
+      focusTitle: "洞天建设：矿材来源",
+    },
+    {
+      key: "special",
+      label: cost.specialItem ? itemName(cost.specialItem) : "",
+      owned: cost.specialItem ? Number(state.inventory[cost.specialItem] || 0) : 0,
+      need: Number(cost.specialCount || 0),
+      detail: building.building_id === SPIRIT_MANOR_BUILDING_ID
+        ? "阿檀的蓝图会把百怪大院的特殊材料线接出来。"
+        : building.building_id === CHAPTER_4_FINAL_ARRAY_BUILDING_ID
+          ? "终章协力、阵材和阵心钥物会一起汇到节气阵。"
+          : "这项特殊材料通常跟主线、支线或系统入口绑定。",
+      focusTitle: building.building_id === SPIRIT_MANOR_BUILDING_ID
+        ? "洞天建设：百怪大院材料线"
+        : building.building_id === CHAPTER_4_FINAL_ARRAY_BUILDING_ID
+          ? "洞天建设：终阵材料线"
+          : "洞天建设：特殊材料线",
+    },
+  ]
+    .filter((row) => row.need > 0)
+    .map((row) => ({
+      ...row,
+      missing: Math.max(0, Number(row.need || 0) - Number(row.owned || 0)),
+      ready: Number(row.owned || 0) >= Number(row.need || 0),
+    }));
+}
+
+function buildingCostStatusSpec(building) {
+  const rows = buildingCostRows(building);
+  const built = Boolean(building && state.builtBuildings.has(building.building_id));
+  const blockedRows = rows.filter((row) => !row.ready);
+  const ready = !built && blockedRows.length === 0;
+  return {
+    rows,
+    built,
+    ready,
+    done: rows.filter((row) => row.ready).length,
+    total: rows.length,
+    blockedRows,
+    missingText: blockedRows.map((row) => `${row.label}差 ${row.missing}`).join("、"),
+    summary: rows.map((row) => `${row.label} ${Math.min(row.owned, row.need)}/${row.need}`).join(" · "),
+    stateClass: built ? "built" : ready ? "ready" : "locked",
+  };
+}
+
+function buildingRoleText(building) {
+  if (!building) return "把洞天功能位接得更顺，让资源不只停在材料表上。";
+  const machine = data.machinesByBuilding.get(building.building_id);
+  if (building.building_id === "build_broken_bridge_repair") return "把后山矿路、新水田和第二只精怪线一起接上。";
+  if (building.building_id === "build_fishpond_lv1") return "把灵池、水位、夜间照料和月莲生活线接起来。";
+  if (building.building_id === SPIRIT_MANOR_BUILDING_ID) return "把宿舍、岗位牌和情绪看板接成第三章自动化核心。";
+  if (building.building_id === CHAPTER_4_FINAL_ARRAY_BUILDING_ID) return "把终章支援、万年蟠桃和年后目标压进同一座节气阵。";
+  if (machine) return `解锁 ${machineName(machine)}，让工坊把原料抬成更值钱的货。`;
+  if (building.category === "farm") return "扩地、修渠或补生产设施，让田里和后山一起提速。";
+  if (building.category === "spirit") return "让精怪岗位、羁绊和自动化更稳定。";
+  return "补齐洞天功能位，把种田、工坊、旧铺和主线推进接得更顺。";
+}
+
+function buildingProgressText(building, status = buildingCostStatusSpec(building)) {
+  if (!building) return "";
+  if (status.built) return "已建成，作用已经接入洞天日常。";
+  if (status.total === 0) return "当前不需要额外材料。";
+  if (status.ready) return `材料 ${status.done}/${status.total} 项齐备，可立即动工。`;
+  return `材料 ${status.done}/${status.total} 项到位，缺口 ${status.missingText || "待补齐"}。`;
+}
+
+function buildingNextStepText(building, status = buildingCostStatusSpec(building)) {
+  if (!building) return "先回到建设面板确认这条线。";
+  if (status.built) return "先看建设卡和相关系统，确认它已经怎样改变田里、工坊或主线。";
+  if (status.ready) {
+    if (building.building_id === "build_broken_bridge_repair") return "木石已经齐了，下一步把断桥与第一段灵渠接回去。";
+    if (building.building_id === CHAPTER_4_FINAL_ARRAY_BUILDING_ID) return "阵材已经齐备，下一步把终章阵台真正立起来。";
+    return "材料已齐，下一步按图施工，把这格功能落进洞天。";
+  }
+  const blocked = status.blockedRows[0];
+  if (!blocked) return "先补齐最缺的一项材料，再回来按图施工。";
+  if (blocked.focusTitle === "洞天建设：矿材来源") return "先从矿路和秘境补齐金属，再回来落这座建筑。";
+  if (blocked.focusTitle === "洞天建设：清荒补料") return "先清荒补木石，顺手把洞天前期资源线再理一遍。";
+  if (blocked.focusTitle === "洞天建设：百怪大院材料线") return "先顺着阿檀和百怪大院蓝图，把特殊材料线补齐。";
+  if (blocked.focusTitle === "洞天建设：终阵材料线") return "先把终章协力和阵材线接稳，节气阵就能真正立起来。";
+  return "先补齐最缺的一项材料，再回来按图施工。";
+}
+
+function buildingActionLabel(building, built = Boolean(building && state.builtBuildings.has(building.building_id)), ready = Boolean(building && canBuild(building))) {
+  if (!building) return "看建设卡";
+  if (built) return building.building_id === "build_broken_bridge_repair" ? "已修复" : "已建成";
+  if (!ready) {
+    if (building.building_id === "build_broken_bridge_repair") return "先补料再修渠";
+    if (building.building_id === CHAPTER_4_FINAL_ARRAY_BUILDING_ID) return "阵材未齐";
+    return "材料未齐";
+  }
+  if (building.building_id === "build_broken_bridge_repair") return "修复灵渠";
+  if (building.building_id === SPIRIT_MANOR_BUILDING_ID) return "按蓝图建造";
+  if (building.building_id === CHAPTER_4_FINAL_ARRAY_BUILDING_ID) return "搭起终阵";
+  return "现在建造";
+}
+
+function buildingUiSpec(building) {
+  if (!building) return null;
+  const status = buildingCostStatusSpec(building);
+  const machine = data.machinesByBuilding.get(building.building_id);
+  return {
+    buildingId: building.building_id,
+    title: buildingName(building),
+    subtitle: `${building.category} · ${building.function_tags || "基础功能"}${machine ? ` · 解锁 ${machineName(machine)}` : ""}`,
+    built: status.built,
+    ready: status.ready,
+    stateClass: status.stateClass,
+    roleText: buildingRoleText(building),
+    progressText: buildingProgressText(building, status),
+    nextStepText: buildingNextStepText(building, status),
+    actionLabel: buildingActionLabel(building, status.built, status.ready),
+    costRows: status.rows,
+    costStatus: status,
+    safety: "不会自动建造、修渠、扣材料或推进时间。",
+  };
+}
+
+function canalRepairPrepSpec() {
+  const building = data.buildingsById.get("build_broken_bridge_repair");
+  if (!building) return null;
+  const ui = buildingUiSpec(building);
+  return {
+    ...ui,
+    title: "灵渠修复预备账",
+    headline: ui.built
+      ? "第一段水脉已经复流，新水田和后山矿路都打开了"
+      : ui.ready
+        ? "木石已经齐备，下一步就能把断桥与灵渠接回去"
+        : "先把木石补齐，再把后山矿路、水田和精怪线一起点亮",
+    safety: "只定位修复入口、建设卡或补料来源，不会自动修渠、不会自动扣材料或推进时间。",
+  };
+}
+
+function focusBuildStructure(buildingId = "") {
+  const building = data.buildingsById.get(buildingId) || null;
+  if (!building) return addLog("洞天建设", "这张建设卡暂时没有找到。");
+  const ui = buildingUiSpec(building);
+  queueStoryCompassFocusTarget({
+    selector: `[data-build-id="${selectorDataValue(buildingId)}"]`,
+    fallbackSelector: "#buildPanel",
+    label: `洞天建设：${ui.title}`,
+    log: `${ui.title} 已在建设面板高亮。${ui.roleText} 当前 ${ui.progressText} 下一步：${ui.nextStepText} ${ui.safety}`,
+    panelGroup: "systems",
+    missingTitle: `洞天建设：${ui.title}`,
+    missingLog: `建设面板暂时没有找到 ${ui.title}。${ui.safety}`,
+  });
+  return true;
+}
+
+function focusBuildCostSource(sourceKey = "gold", buildingId = "") {
+  const building = data.buildingsById.get(buildingId) || null;
+  if (!building) return addLog("洞天建设", "这条补料来源暂时没有找到对应建筑。");
+  const ui = buildingUiSpec(building);
+  const row = ui.costRows.find((entry) => entry.key === sourceKey) || ui.costRows[0];
+  if (!row) return focusBuildStructure(buildingId);
+  const safety = "不会自动建造、修渠、扣材料或推进时间。";
+  const missingText = row.missing > 0 ? `还差 ${row.missing}。` : "当前这项已经齐备。";
+  let selector = "#shopReport";
+  let fallbackSelector = "#buildPanel";
+  let panelGroup = "core";
+  let label = row.focusTitle || `洞天建设：${row.label}`;
+  let log = `${ui.title} 的 ${row.label}来源已定位。${missingText}${row.detail}${safety}`;
+  if (label === "洞天建设：矿材来源") {
+    selector = "#dungeonPanel";
+    panelGroup = "systems";
+    log = `${ui.title} 的矿材来源已定位。${missingText}矿洞、秘境和远路会把金属慢慢送回来。${safety}`;
+  } else if (label === "洞天建设：清荒补料") {
+    selector = "#selectedPlotCard";
+    log = `${ui.title} 的清荒补料入口已定位。${missingText}朽木和碎石主要从清荒、前期奖励和零碎补料里攒出来。${safety}`;
+  } else if (label === "洞天建设：百怪大院材料线") {
+    selector = "#relationshipPanel";
+    fallbackSelector = "#goalBookPanel";
+    panelGroup = "story";
+    log = `${ui.title} 的百怪大院材料线已定位。${missingText}先看阿檀、蓝图和中期精怪管理线，再回来落院。${safety}`;
+  } else if (label === "洞天建设：终阵材料线") {
+    selector = "#finalSupportPanel";
+    panelGroup = "systems";
+    log = `${ui.title} 的终阵材料线已定位。${missingText}先把终章协力、阵材和阵心钥物接稳，再回来搭阵。${safety}`;
+  }
+  queueStoryCompassFocusTarget({
+    selector,
+    fallbackSelector,
+    label,
+    log,
+    panelGroup,
+    missingTitle: label,
+    missingLog: `${label} 对应入口暂时没有找到。${safety}`,
+  });
+  return true;
+}
+
 function spendBuildCost(building) {
   const cost = demoBuildCost(building);
   state.gold -= cost.gold || 0;
@@ -40088,8 +41757,10 @@ function dungeonMechanicSolutionTriptychSpec(
   const recommendedText = splitTags(mechanic.recommended_spirits || "").join(" / ") || "随行精怪";
   const stampSummary = dungeonCompendiumEntrySummary(dungeonCompendiumEntry(dungeon, mechanic));
   const failureSummary = dungeonFailureInsightSummary(dungeonFailureInsight(dungeon, mechanic));
-  const cleared = Boolean(state.dungeonClears.has(dungeon.area_id));
-  const change = (state.dungeonWorldChanges || []).find((entry) => entry.dungeonId === dungeon.area_id) || null;
+  const cleared = dungeonMechanicCleared(dungeon, mechanic);
+  const change = dungeonWorldChangeForMechanic(dungeon, mechanic)
+    || (state.dungeonWorldChanges || []).find((entry) => entry.dungeonId === dungeon.area_id)
+    || null;
   const tone = dungeonMechanicTone(mechanic);
   const progressText = hud?.progressText || status?.summary || mechanic.field_rule || "节气场规正在改变路线。";
   const solutionBody = activeSolution
@@ -43022,7 +44693,7 @@ function dungeonDayEchoSpec(run = state.dungeon, dungeon = currentDungeonConfig(
   const stampEntry = extras.stampGain?.entry || dungeonCompendiumEntry(dungeon, mechanic);
   const stampSummary = dungeonCompendiumEntrySummary(stampEntry);
   const worldChange = extras.aftermath?.change
-    || (state.dungeonWorldChanges || []).find((entry) => entry.dungeonId === dungeon.area_id && entry.mechanicId === mechanic.dungeon_id)
+    || dungeonWorldChangeForMechanic(dungeon, mechanic)
     || null;
   const rewardText = dungeonDayEchoRewardText(outcome, extras, dungeon, mechanic);
   const solutionText = activeSolution
@@ -43322,6 +44993,21 @@ function dungeonMemoryCaption(entry = {}) {
   return entry.externalChange || entry.rewardHint || entry.puzzleHint || "这段见闻已经被收进洞天年鉴。";
 }
 
+function dungeonMechanicCleared(dungeon, mechanic) {
+  if (!dungeon || !mechanic) return false;
+  return state.dungeonClears.has(dungeon.area_id)
+    || (state.dungeonWorldChanges || []).some((entry) =>
+      entry.mechanicId === mechanic.dungeon_id
+      && entry.dungeonId === dungeon.area_id);
+}
+
+function dungeonWorldChangeForMechanic(dungeon, mechanic) {
+  if (!dungeon || !mechanic) return null;
+  return (state.dungeonWorldChanges || []).find((entry) =>
+    entry.mechanicId === mechanic.dungeon_id
+    && entry.dungeonId === dungeon.area_id) || null;
+}
+
 function dungeonMemoryPageSpec(entry = null) {
   if (!entry) return null;
   const resonance = solarTrialCompendiumSupport({ term_id: entry.termId });
@@ -43364,6 +45050,108 @@ function closeDungeonMemoryPage() {
   if (!state.activeDungeonMemoryPage) return;
   state.activeDungeonMemoryPage = null;
   render();
+}
+
+function dungeonSeasonPrimerSpec(dungeons = availableDungeons(), term = currentTermConfig(), weather = currentWeatherConfig()) {
+  const revealedRotation = dengyingRevealedRotation();
+  const lanternState = syncDengyingLanternState();
+  const revealUsedToday = Number(lanternState.revealUsedDay || 0) === state.day;
+  const compendium = dungeonCompendiumProgress();
+  const dungeonTypeText = {
+    mine: "矿洞",
+    herb: "药谷",
+    ruin: "遗迹",
+    nest: "巢穴",
+  };
+  const rows = (dungeons || []).map((dungeon) => {
+    const mechanic = currentDungeonMechanic(dungeon);
+    if (!dungeon || !mechanic) return null;
+    const bossId = dungeonBossId(dungeon);
+    const tone = dungeonMechanicTone(mechanic);
+    const recommendedText = splitTags(mechanic.recommended_spirits || "").join(" / ") || "随行精怪";
+    const rewardText = String(mechanic.main_reward || "节气材料 / 稀有线索").replace(/\|/g, " / ");
+    const fieldRule = mechanic.field_rule || "节气场规正在改变入口节奏。";
+    const puzzleText = mechanic.puzzle_core || "先看路线，再决定推进与撤离。";
+    const stampSummary = dungeonCompendiumEntrySummary(dungeonCompendiumEntry(dungeon, mechanic));
+    const failureSummary = dungeonFailureInsightSummary(dungeonFailureInsight(dungeon, mechanic));
+    const worldChange = dungeonWorldChangeForMechanic(dungeon, mechanic)
+      || (state.dungeonWorldChanges || []).find((entry) => entry.dungeonId === dungeon.area_id)
+      || null;
+    const rotation = activeHiddenRotationForDungeon(dungeon);
+    const rewardPreview = rotation?.rare_drop_pool ? rewardPoolPreviewText(rotation.rare_drop_pool) : "";
+    const bossSkillText = bossSkillsFor(bossId).slice(0, 2).map(skillName).join(" / ") || "待配置";
+    const rowRevealed = revealedRotation?.area_id === dungeon.area_id;
+    const cleared = dungeonMechanicCleared(dungeon, mechanic);
+    const currentChangeText = worldChange?.title || mechanic.external_change || "洞天生态变化";
+    const noteText = rowRevealed
+      ? `今夜灯影已照亮隐藏入口${revealUsedToday ? "，现在去看卡面即可。" : "，点进去前先看场规和奖励焦点。"}`
+      : failureSummary
+        ? `${failureSummary.title}：${failureSummary.detail}`
+        : stampSummary
+          ? `印记进度：${stampSummary.title}`
+          : "点击定位秘境卡";
+    return {
+      key: dungeon.area_id,
+      dungeonId: dungeon.area_id,
+      dungeonName: dungeonName(dungeon),
+      tone,
+      cleared,
+      today: rowRevealed || Boolean(rotation && !cleared),
+      kicker: `${mechanic.solar_term || state.term || "节气"} · ${dungeonTypeText[dungeon.dungeon_type] || dungeon.dungeon_type || "秘境"}`,
+      title: `${dungeonName(dungeon)} · Boss ${bossName(bossId)}`,
+      summary: `${fieldRule} · ${puzzleText}`,
+      detail: `推荐 ${recommendedText} · 奖励 ${rewardText} · ${worldChange ? `已生效 ${worldChange.title}` : `打完会改 ${currentChangeText}`}${rewardPreview ? ` · 隐藏奖励 ${rewardPreview}` : ""}`,
+      actionText: `${noteText} · Boss 看招 ${bossSkillText}`,
+      guideText: `场规 ${fieldRule}；推荐 ${recommendedText}；奖励 ${rewardText}；${worldChange ? `当前已生效 ${worldChange.title}` : `打完会改 ${currentChangeText}`}。`,
+      safety: "只定位秘境卡，不会自动进入秘境、探索、顺应节气、挑战 Boss、领取奖励或消耗资源。",
+    };
+  }).filter(Boolean);
+  const termName = localize(term?.term_name_key, term?.term_id || currentTermId());
+  const weatherName = localize(weather?.weather_name_key, weather?.weather_id || state.weatherId || "天气");
+  return {
+    active: rows.length > 0,
+    title: "八境节气入境总览",
+    headline: "进入前先看场规、推荐精怪、奖励和外部变化",
+    detail: `把秘境从“能不能进”变成“为什么值得去、该带谁去、打完会改哪里”。${termName} · ${weatherName}，已收录 ${compendium.unlocked}/${compendium.total} 枚节气印记，已通关 ${compendium.cleared} 处秘境。`,
+    safety: "只定位秘境卡，不会自动进入秘境、探索、顺应节气、挑战 Boss、领取奖励或消耗资源。",
+    termName,
+    weatherName,
+    rows,
+    today: rows.some((row) => row.today),
+    cleared: rows.length > 0 && rows.every((row) => row.cleared),
+  };
+}
+
+function dungeonSeasonPrimerMarkup(spec = dungeonSeasonPrimerSpec()) {
+  if (!spec?.active) return "";
+  return `
+    <div class="dungeon-card dungeon-season-primer ${spec.cleared ? "cleared" : ""} ${spec.today ? "today" : ""}">
+      <div class="dungeon-season-primer-head">
+        <span>
+          <strong>${spec.title}</strong>
+          <small>${spec.headline}</small>
+        </span>
+        <em>${spec.termName} · ${spec.weatherName}</em>
+      </div>
+      <div class="dungeon-season-primer-detail">${spec.detail}</div>
+      <div class="dungeon-season-primer-grid">
+        ${spec.rows.map((row) => `
+          <button
+            type="button"
+            class="dungeon-season-primer-row ${row.tone} ${row.cleared ? "cleared" : ""} ${row.today ? "today" : ""}"
+            data-dungeon-season-primer="${selectorDataValue(row.key)}"
+          >
+            <b>${row.kicker}</b>
+            <span>${row.title}</span>
+            <small>${row.summary}</small>
+            <small>${row.detail}</small>
+            <i>${row.actionText}</i>
+          </button>
+        `).join("")}
+      </div>
+      <div class="dungeon-season-primer-safe">${spec.safety}</div>
+    </div>
+  `;
 }
 
 function dungeonWorldVisualType(mechanic, dungeon) {
@@ -43561,6 +45349,22 @@ function focusDungeonWorldChangeLandmarkFromCanvas(row = null) {
     panelGroup: "systems",
     missingTitle: "秘境外部变化小景",
     missingLog: "秘境面板暂时没有找到；洞天改景签只负责回看，不会自动进入秘境或消耗资源。",
+  });
+  return true;
+}
+
+function focusDungeonSeasonPrimer(rowKey = "") {
+  const spec = dungeonSeasonPrimerSpec();
+  const row = spec.rows.find((entry) => entry.key === rowKey) || spec.rows[0];
+  if (!row) return addLog("八境节气入境总览", "当前还没有可定位的秘境卡。");
+  queueStoryCompassFocusTarget({
+    selector: `[data-dungeon-card-id="${selectorDataValue(row.dungeonId)}"]`,
+    fallbackSelector: "#dungeonPanel",
+    label: `八境节气入境总览：${row.dungeonName}`,
+    log: `${row.dungeonName} 已在秘境面板高亮。${row.guideText}${row.safety}`,
+    panelGroup: "systems",
+    missingTitle: `八境节气入境总览：${row.dungeonName}`,
+    missingLog: `${row.dungeonName} 对应的秘境卡暂时没有找到。${row.safety}`,
   });
   return true;
 }
@@ -47825,6 +49629,57 @@ function triggerCohabFestivalEvents(termId = currentTermId()) {
   return triggered;
 }
 
+function cohabMomentTitle(moment = null, route = null) {
+  if (moment?.eventName) return `${moment.routeName || route?.route_name || "同住生活"} · ${moment.eventName}`;
+  if (route) return `${route.route_name || "同住生活"} · 已安家`;
+  return "同住生活 · 家中有了新动静";
+}
+
+function cohabMomentWindowText(life = null) {
+  const latest = life?.latest || null;
+  const buff = life?.activeBuff || null;
+  if (latest && buff) return `${cohabMomentTitle(latest)}；余韵 ${buff.label} 至第 ${buff.expiresDay} 天。`;
+  if (latest) return `${cohabMomentTitle(latest)}；下一件小事等关系卡继续亮起。`;
+  if (buff) return `同住生活余韵 ${buff.label} 正在生效，持续到第 ${buff.expiresDay} 天。`;
+  return "同住生活已经接入庭院，下一件小事会随日常、周常或节气慢慢出现。";
+}
+
+function cohabRouteLifeSnapshot(routes = cohabUnlockedRoutes(), life = null) {
+  syncCohabState();
+  const latest = life?.latest || (state.cohabState.history || [])[0] || null;
+  const activeBuff = life?.activeBuff || Object.entries(state.cohabState.activeBuffs || {})
+    .map(([buffId, info]) => ({
+      buffId,
+      label: cohabBuffSpec(buffId).label,
+      routeId: info.route || "",
+      routeName: data.cohabById.get(info.route)?.route_name || "",
+      expiresDay: Number(info.expiresDay || state.day),
+      value: Number(info.value || 0),
+    }))
+    .sort((a, b) => a.expiresDay - b.expiresDay)[0] || null;
+  const nextRoute = life?.nextRoute || routes.find((epilogue) => !latest || epilogue.epilogue_id !== latest.epilogueId) || routes[0] || null;
+  const nextEvent = life?.nextEvent || (nextRoute ? festivalEventFor(nextRoute.epilogue_id) || nextCohabEvent(nextRoute.epilogue_id) : null);
+  const latestRoute = latest?.epilogueId ? data.cohabById.get(latest.epilogueId) : nextRoute;
+  const latestTitle = latest ? cohabMomentTitle(latest, latestRoute) : `${routes.map((epilogue) => epilogue.route_name).slice(0, 2).join(" / ") || "同住生活"} 已安家`;
+  const nextTitle = nextEvent
+    ? `${nextRoute?.route_name || "同住生活"} · ${nextEvent.event_name || nextEvent.scene_key || "日常"}`
+    : "等下一次日夜流转";
+  const buffTitle = activeBuff ? `${activeBuff.label} 至第 ${activeBuff.expiresDay} 天` : "暂无余韵，先把日常过成节奏";
+  return {
+    routeCount: routes.length,
+    routeNames: routes.map((epilogue) => epilogue.route_name),
+    latest,
+    latestRoute,
+    latestTitle,
+    activeBuff,
+    nextRoute,
+    nextEvent,
+    nextTitle,
+    buffTitle,
+    windowText: cohabMomentWindowText({ latest, activeBuff, nextRoute, nextEvent }),
+  };
+}
+
 function cohabLifeSummary(routes = cohabUnlockedRoutes()) {
   syncCohabState();
   const latest = (state.cohabState.history || [])[0] || null;
@@ -47840,13 +49695,17 @@ function cohabLifeSummary(routes = cohabUnlockedRoutes()) {
     .sort((a, b) => a.expiresDay - b.expiresDay)[0] || null;
   const nextRoute = routes.find((epilogue) => !latest || epilogue.epilogue_id !== latest.epilogueId) || routes[0] || null;
   const nextEvent = nextRoute ? festivalEventFor(nextRoute.epilogue_id) || nextCohabEvent(nextRoute.epilogue_id) : null;
-  return {
+  const life = {
     routeCount: routes.length,
     routeNames: routes.map((epilogue) => epilogue.route_name),
     latest,
     activeBuff,
     nextRoute,
     nextEvent,
+  };
+  return {
+    ...life,
+    snapshot: cohabRouteLifeSnapshot(routes, life),
   };
 }
 
@@ -47861,6 +49720,7 @@ function cohabAfterglowWindowPalette(life = null) {
 function cohabAfterglowWindowSpec(livingState = currentLivingWorldState(), canvasWidth = refs.world?.width || 960, canvasHeight = refs.world?.height || 640) {
   const life = livingState?.cohabLife || cohabLifeSummary();
   if (!life || life.routeCount <= 0) return null;
+  const snapshot = life.snapshot || cohabRouteLifeSnapshot(cohabUnlockedRoutes(), life);
   const latest = life.latest || null;
   const buff = life.activeBuff || null;
   const nextRoute = life.nextRoute || (latest?.epilogueId ? data.cohabById.get(latest.epilogueId) : null) || cohabUnlockedRoutes()[0] || null;
@@ -47877,15 +49737,9 @@ function cohabAfterglowWindowSpec(livingState = currentLivingWorldState(), canva
     height,
   };
   const nodeWidth = Math.floor((width - 44) / 3);
-  const latestText = latest
-    ? `${latest.routeName || "同住"} · ${latest.eventName}`
-    : `${life.routeNames.slice(0, 2).join(" / ")} 已安家`;
-  const nextText = nextEvent
-    ? `${nextRoute?.route_name || "同住"} · ${nextEvent.event_name || nextEvent.scene_key || "日常"}`
-    : "等下一次日夜流转";
-  const buffText = buff
-    ? `${buff.label} 至第 ${buff.expiresDay} 天`
-    : "暂无余韵，先把日常过成节奏";
+  const latestText = snapshot.latestTitle;
+  const nextText = snapshot.nextTitle;
+  const buffText = snapshot.buffTitle;
   const nodes = [
     {
       key: "latest",
@@ -47933,13 +49787,14 @@ function cohabAfterglowWindowSpec(livingState = currentLivingWorldState(), canva
     rect,
     nodes,
     palette,
+    snapshot,
     latest,
     buff,
     nextRoute,
     nextEvent,
     routeCount: life.routeCount,
     headline: latestText,
-    detail: latest ? `第 ${latest.day} 天 · ${latest.rewardText || "日常对话"}` : `今日院里多了 ${life.routeNames[0] || "熟悉的人"} 的动静`,
+    detail: latest ? `第 ${latest.day} 天 · ${latest.rewardText || snapshot.windowText || "日常对话"}` : snapshot.windowText || `今日院里多了 ${life.routeNames[0] || "熟悉的人"} 的动静`,
     safety: "这里只定位同住关系卡，不会自动播放同住日常、推进周常、触发节庆事件、赠礼、接支线、交托付或消耗资源。",
   };
 }
@@ -50813,26 +52668,17 @@ function drawFirstSeedWorld(ctx, spec = firstSeedWorldSpec(), motion = performan
 }
 
 function plantingAftercareSafetyText() {
-  return "只定位已播田块、补水按钮或入夜按钮，不会自动浇水、入夜、播种、扣除体力、推进天数或消耗资源";
+  return plantingAftercareSafetyTextWorld();
 }
 
 function plantingAftercareFeedbackSpec(plot = null, crop = null, seedRoute = null) {
-  if (!plot || !crop) return null;
-  return {
-    key: `${state.day}:${plot.x}_${plot.y}:${crop.seed_item_id}:${crop.crop_id}:plant_aftercare`,
+  return plantingAftercareFeedbackSpecWorld({
+    plot,
+    crop,
+    seedRoute,
     day: state.day,
-    plot: { x: plot.x, y: plot.y },
-    seedId: crop.seed_item_id,
-    seedName: itemName(crop.seed_item_id),
-    cropId: crop.crop_id,
-    cropName: itemName(crop.crop_id),
-    growDays: Number(crop.grow_days || 1),
-    routeLabel: seedRoute?.badge || seedRoute?.label || "生产循环",
-    routeDetail: seedRoute?.targetName || seedRoute?.detail || seedRoute?.logText || "先补水，再入夜成长",
-    watered: Boolean(plot.watered),
-    routeText: "种子落土 -> 补水 -> 入夜成长",
-    safety: plantingAftercareSafetyText(),
-  };
+    itemName,
+  });
 }
 
 function recordPlantingAftercareFeedback(plot = null, crop = null, seedRoute = null) {
@@ -50846,40 +52692,20 @@ function plantingAftercareWorldSpec(width = refs.world?.width || 960, height = r
   const feedback = state.plantingAftercareFeedback;
   if (!feedback?.plot || feedback.day !== state.day) return null;
   const plot = state.plots.find((entry) => entry.x === feedback.plot.x && entry.y === feedback.plot.y);
-  if (!plot?.cropId || plot.cropId !== feedback.cropId) return null;
   const metrics = originX == null || originY == null || tile == null || gap == null ? gridMetrics() : { originX, originY, tile, gap };
-  const plotRect = {
-    x: metrics.originX + plot.x * (metrics.tile + metrics.gap),
-    y: metrics.originY + plot.y * (metrics.tile + metrics.gap),
-    width: metrics.tile,
-    height: metrics.tile,
-  };
-  const cardWidth = 306;
-  const cardHeight = 112;
-  const cardX = Math.max(28, Math.min(width - cardWidth - 28, plotRect.x + metrics.tile + 28));
-  const cardY = Math.max(116, Math.min(height - cardHeight - 30, plotRect.y - 54));
-  const action = plot.watered ? "入夜成长" : "先补水";
-  const selector = plot.watered ? "#sleepButton" : "#waterButton";
-  return {
-    ...feedback,
-    key: `${feedback.key}:${plot.watered ? "watered" : "dry"}`,
-    watered: Boolean(plot.watered),
-    action,
-    selector,
-    fallbackSelector: "#selectedPlotCard",
-    rect: { x: cardX, y: cardY, width: cardWidth, height: cardHeight },
-    plotRect,
-    anchor: { x: plotRect.x + plotRect.width / 2, y: plotRect.y + plotRect.height * 0.42 },
-  };
+  return plantingAftercareWorldSpecWorld({
+    width,
+    height,
+    feedback,
+    day: state.day,
+    metrics,
+    plot,
+  });
 }
 
 function plantingAftercareWorldAtCanvasPoint(px, py) {
   const spec = plantingAftercareWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect || !spec.plotRect) return null;
-  const { rect, plotRect } = spec;
-  const onCard = px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
-  const onPlot = px >= plotRect.x && px <= plotRect.x + plotRect.width && py >= plotRect.y && py <= plotRect.y + plotRect.height;
-  return onCard || onPlot ? spec : null;
+  return plantingAftercareWorldAtCanvasPointWorld({ px, py, spec });
 }
 
 function focusPlantingAftercareWorldFromCanvas(spec = plantingAftercareWorldSpec()) {
@@ -50902,97 +52728,15 @@ function focusPlantingAftercareWorldFromCanvas(spec = plantingAftercareWorldSpec
 }
 
 function drawPlantingAftercareWorld(ctx, spec = plantingAftercareWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
-  if (!spec?.rect || !spec.plotRect) return false;
-  const { rect, plotRect, anchor } = spec;
-  const active = plantingAftercareWorldFocus?.day === state.day
-    && plantingAftercareWorldFocus?.key === spec.key;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.95) * 2.1;
-  const shimmer = settings.reducedMotion ? 0.45 : (Math.sin(motion * 2.6) + 1) / 2;
-  const accent = spec.watered ? "#4d91a6" : "#286f58";
-  const cardY = rect.y + bob;
-
-  ctx.save();
-  ctx.fillStyle = spec.watered ? "rgba(159, 209, 223, 0.18)" : `rgba(202, 235, 210, ${0.18 + shimmer * 0.1})`;
-  ctx.beginPath();
-  ctx.roundRect(plotRect.x + 8, plotRect.y + 8, plotRect.width - 16, plotRect.height - 16, 14);
-  ctx.fill();
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.9)" : `${accent}88`;
-  ctx.lineWidth = active ? 3 : 2;
-  ctx.beginPath();
-  ctx.ellipse(anchor.x, anchor.y + 18, plotRect.width * 0.26, plotRect.height * 0.1, 0, 0, Math.PI * 2);
-  ctx.stroke();
-
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.86)" : `${accent}72`;
-  ctx.lineWidth = active ? 2.7 : 1.7;
-  ctx.setLineDash([6, 7]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 11;
-  ctx.beginPath();
-  ctx.moveTo(anchor.x + 18, anchor.y - 8);
-  ctx.quadraticCurveTo((anchor.x + rect.x) / 2, cardY + rect.height + 22, rect.x + 34, cardY + rect.height - 14);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.92)" : `${accent}82`;
-  ctx.lineWidth = active ? 2.5 : 1.4;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = `${accent}1f`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 16, cardY + 16, 58, 50, 16);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 22px Microsoft YaHei";
-  ctx.fillText(spec.watered ? "润" : "芽", rect.x + 34, cardY + 50);
-  ctx.fillStyle = accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText("落土补水签 · 可点", rect.x + 88, cardY + 25);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(`${spec.cropName}刚落土`.slice(0, 18), rect.x + 88, cardY + 47);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "10px Microsoft YaHei";
-  ctx.fillText(`${spec.routeLabel} · ${spec.growDays} 夜成长 · ${spec.action}`.slice(0, 36), rect.x + 88, cardY + 64);
-
-  const steps = [
-    { title: "落土", value: spec.seedName, color: "#286f58" },
-    { title: "补水", value: spec.watered ? "已润" : "待补", color: "#4d91a6" },
-    { title: "入夜", value: "手动", color: "#8f5f3f" },
-  ];
-  steps.forEach((step, index) => {
-    const stepX = rect.x + 18 + index * 96;
-    const stepY = cardY + 78;
-    ctx.fillStyle = `${step.color}1b`;
-    ctx.beginPath();
-    ctx.roundRect(stepX, stepY, 86, 22, 11);
-    ctx.fill();
-    ctx.fillStyle = step.color;
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(step.title, stepX + 8, stepY + 9);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(String(step.value || "").slice(0, 8), stepX + 8, stepY + 19);
+  return drawPlantingAftercareWorldWorld({
+    ctx,
+    spec,
+    focus: plantingAftercareWorldFocus,
+    day: state.day,
+    reducedMotion: settings.reducedMotion,
+    motion,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 18, cardY + rect.height - 15, rect.width - 36, 11, 6);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText(`${spec.routeText} · ${spec.safety}`.slice(0, 48), rect.x + 26, cardY + rect.height - 7);
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 50, cardY + 13, 36, 18, 9);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + rect.width - 42, cardY + 26);
-  ctx.restore();
-  return true;
 }
 
 function manualWaterAfterglowSafetyText() {
@@ -51345,44 +53089,25 @@ function drawGrottoVeinWorldChain(ctx, spec = grottoVeinWorldChainSpec(), motion
 }
 
 function renderDemoGuideProgress(guide) {
-  const reward = earlyRewardPacingGuideSpec();
-  refs.demoGuideProgress.classList.toggle("reward-live", reward.mode === "live");
-  refs.demoGuideProgress.classList.toggle("reward-complete", reward.mode === "complete");
-  refs.demoGuideProgress.replaceChildren();
-
-  const loopLine = document.createElement("span");
-  loopLine.className = "demo-guide-progress-line core-loop";
-  loopLine.textContent = `核心循环 ${guide.completedSteps}/${guide.totalSteps} · ${guide.advice}`;
-  refs.demoGuideProgress.append(loopLine);
-
-  const rewardLine = document.createElement("span");
-  rewardLine.className = `demo-guide-progress-line early-reward ${reward.mode}`;
-  rewardLine.textContent = reward.total
-    ? `前三小时正反馈 ${reward.done}/${reward.total} · ${reward.label}`
-    : "前三小时正反馈配置载入中";
-  refs.demoGuideProgress.append(rewardLine);
-
-  if (reward.total) {
-    const detail = document.createElement("small");
-    detail.className = "demo-guide-progress-detail";
-    detail.textContent = reward.detail;
-    refs.demoGuideProgress.append(detail);
-  }
+  renderDemoGuideProgressUi({
+    refs,
+    guide,
+    earlyRewardPacingGuideSpec,
+  });
 }
 
 function renderDemoGuide() {
-  const guide = demoGuideStep();
-  const action = actionForGuideStep(guide);
-  refs.demoGuidePanel.dataset.guideStep = guide.id;
-  refs.demoGuideTitle.textContent = guide.title;
-  refs.demoGuideText.textContent = guide.text;
-  if (refs.demoGuideFirstSteps) refs.demoGuideFirstSteps.innerHTML = newPlayerFirstStepsMarkup(newPlayerFirstStepsSpec(guide, action));
-  if (refs.demoGuideRevival) refs.demoGuideRevival.innerHTML = grottoRevivalDirectorMarkup();
-  renderDemoGuideProgress(guide);
-  refs.demoGuideActionButton.textContent = action.cta || guide.cta || "执行下一步";
-  refs.demoGuideActionButton.disabled = Boolean(action.disabled);
-  refs.demoGuideActionButton.dataset.guideAction = action.action || "";
-  focusGuideControl(controlIdForGuideAction(action.action, guide.controlId));
+  renderDemoGuideUi({
+    refs,
+    demoGuideStep,
+    actionForGuideStep,
+    newPlayerFirstStepsMarkup,
+    newPlayerFirstStepsSpec,
+    grottoRevivalDirectorMarkup,
+    renderDemoGuideProgress,
+    controlIdForGuideAction,
+    focusGuideControl,
+  });
 }
 
 function runDemoGuideAction() {
@@ -51597,28 +53322,18 @@ function activePanelGroup() {
 }
 
 function renderPanelTabs() {
-  const active = activePanelGroup();
-  refs.panelGroupTabs.innerHTML = PANEL_GROUPS.map((group) => {
-    const pressed = group.id === active.id ? "true" : "false";
-    return `
-      <button type="button" data-panel-group="${group.id}" aria-pressed="${pressed}">
-        <strong>${group.label}</strong>
-        <span>${group.hint}</span>
-      </button>
-    `;
-  }).join("");
-}
-
-function applyPanelGroup() {
-  const visibleColumns = new Set(activePanelGroup().columns);
-  document.querySelectorAll(".lower-band > div").forEach((panel) => {
-    const visible = [...visibleColumns].some((className) => panel.classList.contains(className));
-    panel.hidden = !visible;
+  renderPanelTabsUi({
+    refs,
+    panelGroups: PANEL_GROUPS,
+    activePanelGroup,
   });
 }
 
-function selectorDataValue(value) {
-  return String(value ?? "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+function applyPanelGroup() {
+  applyVisiblePanelColumns({
+    rootSelector: ".lower-band > div",
+    columns: activePanelGroup().columns,
+  });
 }
 
 function lifeCodexFocusSpec(row, targetType = "spirit") {
@@ -51665,32 +53380,16 @@ function applyLifeCodexFocusTarget() {
   const schedule = window.requestAnimationFrame || ((callback) => window.setTimeout(callback, 0));
   schedule(() => {
     document.querySelectorAll(".codex-focus-pulse").forEach((element) => element.classList.remove("codex-focus-pulse"));
-    const element = document.querySelector(target.selector);
     lifeCodexFocusTarget = null;
-    if (!element) {
-      addLog("图鉴定位", `${target.label}暂时没有找到对应卡片，可能已经被新的进度刷新。`);
-      renderLogs();
-      return;
-    }
-    const hadTabIndex = element.hasAttribute("tabindex");
-    const previousTabIndex = element.getAttribute("tabindex");
-    element.classList.add("codex-focus-pulse");
-    element.setAttribute("tabindex", "-1");
-    element.scrollIntoView({
-      behavior: settings.reducedMotion ? "auto" : "smooth",
-      block: "center",
-      inline: "nearest",
+    pulseFocusElement({
+      selector: target.selector,
+      pulseClass: "codex-focus-pulse",
+      reducedMotion: settings.reducedMotion,
+      onMissing: () => {
+        addLog("图鉴定位", `${target.label}暂时没有找到对应卡片，可能已经被新的进度刷新。`);
+        renderLogs();
+      },
     });
-    try {
-      element.focus({ preventScroll: true });
-    } catch (error) {
-      element.focus();
-    }
-    window.setTimeout(() => {
-      element.classList.remove("codex-focus-pulse");
-      if (hadTabIndex) element.setAttribute("tabindex", previousTabIndex);
-      else element.removeAttribute("tabindex");
-    }, settings.reducedMotion ? 1200 : 2600);
   });
 }
 
@@ -51700,32 +53399,17 @@ function applyPlotRouteFocusTarget() {
   const schedule = window.requestAnimationFrame || ((callback) => window.setTimeout(callback, 0));
   schedule(() => {
     document.querySelectorAll(".plot-route-focus-pulse").forEach((element) => element.classList.remove("plot-route-focus-pulse"));
-    const element = document.querySelector(target.selector) || (target.fallbackSelector ? document.querySelector(target.fallbackSelector) : null);
     plotRouteFocusTarget = null;
-    if (!element) {
-      addLog(target.missingTitle || "田地去向定位", target.missingLog || "目标界面暂时没有找到，可能已经被新的进度刷新。");
-      renderLogs();
-      return;
-    }
-    const hadTabIndex = element.hasAttribute("tabindex");
-    const previousTabIndex = element.getAttribute("tabindex");
-    element.classList.add(target.pulseClass || "plot-route-focus-pulse");
-    element.setAttribute("tabindex", "-1");
-    element.scrollIntoView({
-      behavior: settings.reducedMotion ? "auto" : "smooth",
-      block: "center",
-      inline: "nearest",
+    pulseFocusElement({
+      selector: target.selector,
+      fallbackSelector: target.fallbackSelector,
+      pulseClass: target.pulseClass || "plot-route-focus-pulse",
+      reducedMotion: settings.reducedMotion,
+      onMissing: () => {
+        addLog(target.missingTitle || "田地去向定位", target.missingLog || "目标界面暂时没有找到，可能已经被新的进度刷新。");
+        renderLogs();
+      },
     });
-    try {
-      element.focus({ preventScroll: true });
-    } catch (error) {
-      element.focus();
-    }
-    window.setTimeout(() => {
-      element.classList.remove(target.pulseClass || "plot-route-focus-pulse");
-      if (hadTabIndex) element.setAttribute("tabindex", previousTabIndex);
-      else element.removeAttribute("tabindex");
-    }, settings.reducedMotion ? 1200 : 2600);
   });
 }
 
@@ -51735,32 +53419,16 @@ function applySpiritFocusTarget() {
   const schedule = window.requestAnimationFrame || ((callback) => window.setTimeout(callback, 0));
   schedule(() => {
     document.querySelectorAll(".spirit-focus-pulse").forEach((element) => element.classList.remove("spirit-focus-pulse"));
-    const element = document.querySelector(target.selector);
     spiritFocusTarget = null;
-    if (!element) {
-      addLog("精怪定位", `${target.spiritName || "这只精怪"}刚才还在画面里，但列表卡片暂时没有找到。`);
-      renderLogs();
-      return;
-    }
-    const hadTabIndex = element.hasAttribute("tabindex");
-    const previousTabIndex = element.getAttribute("tabindex");
-    element.classList.add("spirit-focus-pulse");
-    element.setAttribute("tabindex", "-1");
-    element.scrollIntoView({
-      behavior: settings.reducedMotion ? "auto" : "smooth",
-      block: "center",
-      inline: "nearest",
+    pulseFocusElement({
+      selector: target.selector,
+      pulseClass: "spirit-focus-pulse",
+      reducedMotion: settings.reducedMotion,
+      onMissing: () => {
+        addLog("精怪定位", `${target.spiritName || "这只精怪"}刚才还在画面里，但列表卡片暂时没有找到。`);
+        renderLogs();
+      },
     });
-    try {
-      element.focus({ preventScroll: true });
-    } catch (error) {
-      element.focus();
-    }
-    window.setTimeout(() => {
-      element.classList.remove("spirit-focus-pulse");
-      if (hadTabIndex) element.setAttribute("tabindex", previousTabIndex);
-      else element.removeAttribute("tabindex");
-    }, settings.reducedMotion ? 1200 : 2600);
   });
 }
 
@@ -51770,32 +53438,17 @@ function applyShopFocusTarget() {
   const schedule = window.requestAnimationFrame || ((callback) => window.setTimeout(callback, 0));
   schedule(() => {
     document.querySelectorAll(".shop-focus-pulse").forEach((element) => element.classList.remove("shop-focus-pulse"));
-    const element = document.querySelector(target.selector) || (target.fallbackSelector ? document.querySelector(target.fallbackSelector) : null);
     shopFocusTarget = null;
-    if (!element) {
-      addLog(target.missingTitle || "旧铺定位", target.missingLog || "旧铺反馈刚才还在画面里，但右侧经营报告暂时没有找到对应卡片。");
-      renderLogs();
-      return;
-    }
-    const hadTabIndex = element.hasAttribute("tabindex");
-    const previousTabIndex = element.getAttribute("tabindex");
-    element.classList.add("shop-focus-pulse");
-    element.setAttribute("tabindex", "-1");
-    element.scrollIntoView({
-      behavior: settings.reducedMotion ? "auto" : "smooth",
-      block: "center",
-      inline: "nearest",
+    pulseFocusElement({
+      selector: target.selector,
+      fallbackSelector: target.fallbackSelector,
+      pulseClass: "shop-focus-pulse",
+      reducedMotion: settings.reducedMotion,
+      onMissing: () => {
+        addLog(target.missingTitle || "旧铺定位", target.missingLog || "旧铺反馈刚才还在画面里，但右侧经营报告暂时没有找到对应卡片。");
+        renderLogs();
+      },
     });
-    try {
-      element.focus({ preventScroll: true });
-    } catch (error) {
-      element.focus();
-    }
-    window.setTimeout(() => {
-      element.classList.remove("shop-focus-pulse");
-      if (hadTabIndex) element.setAttribute("tabindex", previousTabIndex);
-      else element.removeAttribute("tabindex");
-    }, settings.reducedMotion ? 1200 : 2600);
   });
 }
 
@@ -51805,32 +53458,17 @@ function applyStoryCompassFocusTarget() {
   const schedule = window.requestAnimationFrame || ((callback) => window.setTimeout(callback, 0));
   schedule(() => {
     document.querySelectorAll(".story-compass-focus-pulse").forEach((element) => element.classList.remove("story-compass-focus-pulse"));
-    const element = document.querySelector(target.selector) || (target.fallbackSelector ? document.querySelector(target.fallbackSelector) : null);
     storyCompassFocusTarget = null;
-    if (!element) {
-      addLog(target.missingTitle || "主线导航", target.missingLog || "罗盘已经判断出下一步，但界面里暂时没有找到对应卡片。");
-      renderLogs();
-      return;
-    }
-    const hadTabIndex = element.hasAttribute("tabindex");
-    const previousTabIndex = element.getAttribute("tabindex");
-    element.classList.add("story-compass-focus-pulse");
-    element.setAttribute("tabindex", "-1");
-    element.scrollIntoView({
-      behavior: settings.reducedMotion ? "auto" : "smooth",
-      block: "center",
-      inline: "nearest",
+    pulseFocusElement({
+      selector: target.selector,
+      fallbackSelector: target.fallbackSelector,
+      pulseClass: "story-compass-focus-pulse",
+      reducedMotion: settings.reducedMotion,
+      onMissing: () => {
+        addLog(target.missingTitle || "主线导航", target.missingLog || "罗盘已经判断出下一步，但界面里暂时没有找到对应卡片。");
+        renderLogs();
+      },
     });
-    try {
-      element.focus({ preventScroll: true });
-    } catch (error) {
-      element.focus();
-    }
-    window.setTimeout(() => {
-      element.classList.remove("story-compass-focus-pulse");
-      if (hadTabIndex) element.setAttribute("tabindex", previousTabIndex);
-      else element.removeAttribute("tabindex");
-    }, settings.reducedMotion ? 1200 : 2600);
   });
 }
 
@@ -54880,6 +56518,222 @@ function createDaySummary(before) {
   };
 }
 
+function automationDayLedgerReportText(summary = state.lastDaySummary) {
+  if (!summary) return "";
+  const rows = automationDayLedgerRows(summary);
+  if (!rows.length) return "自动化日账本还没有接起第一条岗位线。";
+  return rows.map((row) => `${row.label}：${row.value}`).join(" / ");
+}
+
+function automationDayLedgerRows(summary = state.lastDaySummary) {
+  if (!summary) return [];
+  const workshopLine = workshopProductionLineSpec();
+  const completedWorkshopJobs = Array.isArray(summary.completedWorkshopJobs) ? summary.completedWorkshopJobs : [];
+  const restock = summary.shopRestock || shopRestockSummarySpec();
+  const weatherShelf = summary.shopWeatherShelf || null;
+  const waterwayStanding = summary.shopWaterwayStandingOrder || null;
+  const activeRisks = unresolvedRisks();
+  const riskCount = Math.max(Number(summary.unresolved || 0), activeRisks.length);
+  const spiritJobs = Array.isArray(summary.spiritJobs) ? summary.spiritJobs : [];
+  const synergy = Array.isArray(summary.spiritJobSynergy) ? summary.spiritJobSynergy : [];
+  const fieldSpirits = state.spirits.filter((spirit) => (spirit.job || "farm") === "farm");
+  const workshopSpirits = state.spirits.filter((spirit) => (spirit.job || "") === "workshop");
+  const patrolSpirits = state.spirits.filter((spirit) => (spirit.job || "") === "patrol");
+  const expeditionSpirits = state.spirits.filter((spirit) => (spirit.job || "") === "expedition");
+  const gardenSpirits = state.spirits.filter((spirit) => (spirit.job || "") === "garden");
+  const unwatered = state.plots.filter((plot) => plot.cropId && !plot.mature && !plot.watered).length;
+  const tradeRuns = (state.tradeRuns || []).slice();
+  const latestRun = tradeRuns
+    .slice()
+    .sort((a, b) => Number(b.returnedDay || b.returnDay || 0) - Number(a.returnedDay || a.returnDay || 0))[0] || null;
+  const tradeReturnDay = latestRun
+    ? (() => {
+      const run = latestRun;
+      return Number(run.returnedDay || run.returnDay || 0);
+    })()
+    : 0;
+  const ecologyRows = ecologyCourtyardGoalRows();
+  const readyEcology = ecologyRows.find((row) => row.ready) || ecologyRows.find((row) => row.active) || null;
+  const moodCareText = summary.cohabBuffs?.[0]
+    ? `${summary.cohabBuffs[0].routeName || "同住"} · ${summary.cohabBuffs[0].label}`
+    : summary.ecologyMemoryResonance?.tier > 0
+      ? `${summary.ecologyMemoryResonance.label} · 连记 ${summary.ecologyMemoryResonance.nights} 夜`
+      : gardenSpirits[0]
+        ? `${gardenSpirits[0].name} 在庭院托住伙伴心情`
+        : "庭院还没接起稳定的情绪托底线";
+  const rows = [
+    {
+      key: "field",
+      label: "田里被接手",
+      value: fieldSpirits.length > 0
+        ? `${fieldSpirits[0].name} 接了 ${Math.max(1, Math.min(unwatered || fieldSpirits.length * 3, fieldSpirits.length * 3))} 格活`
+        : `还有 ${Math.max(0, unwatered)} 格待接手`,
+      detail: fieldSpirits.length > 0
+        ? (unwatered > 0 ? `今晚还剩 ${unwatered} 格待润，明早先看精怪与田垄。` : "浇水和守熟已经不必全靠手点。")
+        : "先把一位伙伴调到农田岗，自动化日账本才会写下第一笔。",
+      selector: "#spiritList",
+      fallbackSelector: "#selectedPlotCard",
+      panelGroup: "core",
+      tone: fieldSpirits.length > 0 ? "ready" : "pending",
+      cta: "看田垄接手",
+    },
+    {
+      key: "workshop",
+      label: "后厂在烧",
+      value: workshopLine.activeJob
+        ? `${workshopLine.activeJob.currentStage.label} ${workshopLine.activeJob.progress}%`
+        : workshopSpirits.length > 0
+          ? `${workshopSpirits[0].name} 在灶边候工`
+          : "后厂还没跑起来",
+      detail: completedWorkshopJobs[0]
+        ? `${completedWorkshopJobs[0].outputItemName || "成品"} 已出锅入线。`
+        : workshopLine.activeJob
+          ? `这锅 ${workshopLine.activeJob.outputItemName} 正在接向 ${workshopLine.activeJob.orderText || "库存/旧铺"}` 
+          : "排进一锅生产后，后厂会从备料一路亮到入仓。",
+      selector: workshopLine.activeJob ? "[data-workshop-queue]" : ".workshop-production-line",
+      fallbackSelector: "#buildPanel",
+      panelGroup: "systems",
+      tone: workshopLine.activeJob || workshopSpirits.length > 0 ? "ready" : "pending",
+      cta: "看后厂跑线",
+    },
+    {
+      key: "stock",
+      label: "入仓/补货",
+      value: restock
+        ? `${restock.itemName} ${restock.have}/${restock.desiredCount}`
+        : weatherShelf?.itemName
+          ? `${weatherShelf.itemName} 等着补到头排`
+          : completedWorkshopJobs[0]
+            ? `${completedWorkshopJobs[0].outputItemName || "成品"} 已可转库存`
+            : "今晚暂时没有新补货线",
+      detail: restock
+        ? `${restock.sourceLabel || "旧铺补货"} · ${restock.statusText}`
+        : weatherShelf?.nextAction
+          ? `天气货签建议：${weatherShelf.nextAction}`
+          : "从后厂到库存、再到旧铺补货的线已经能被记住。",
+      selector: restock ? "#shopReport" : "#inventoryList",
+      fallbackSelector: "#goalBookPanel",
+      panelGroup: "core",
+      tone: restock?.ready || completedWorkshopJobs.length > 0 ? "ready" : "active",
+      cta: "看补货去向",
+    },
+    {
+      key: "patrol",
+      label: "巡灯压风险",
+      value: patrolSpirits.length > 0
+        ? (riskCount > 0 ? `${patrolSpirits[0].name} 盯着 ${riskCount} 条风险` : `${patrolSpirits[0].name} 在守夜路`)
+        : (riskCount > 0 ? `还有 ${riskCount} 条风险待压` : "今晚没有风险压上来"),
+      detail: riskCount > 0
+        ? "先看风险面板，再决定明早是巡灯还是亲自补处理。"
+        : "巡逻岗能把夜里最容易漏掉的风险提前记下来。",
+      selector: "#riskPanel",
+      fallbackSelector: "#spiritList",
+      panelGroup: "core",
+      tone: riskCount > 0 ? "warn" : patrolSpirits.length > 0 ? "ready" : "active",
+      cta: "看巡灯线",
+    },
+    {
+      key: "expedition",
+      label: "商队/远路",
+      value: latestRun
+        ? `${latestRun.routeName || "商路"} · 第 ${tradeReturnDay || state.day} 天`
+        : waterwayStanding?.focusItemName
+          ? `${waterwayStanding.focusItemName} 常单备货 ${waterwayStanding.focusHave}/${waterwayStanding.focusTarget}`
+          : expeditionSpirits.length > 0
+            ? `${expeditionSpirits[0].name} 守着远路时刻`
+            : "远路暂时还没接上线",
+      detail: latestRun
+        ? `${latestRun.status === "returned" ? "今天返程落账" : "还在路上"}${latestRun.routeName ? ` · ${latestRun.routeName}` : ""}`
+        : waterwayStanding?.detail || "商队回来时，这条线会把返程、补货和下次远行连成一页。",
+      selector: "#orderPanel",
+      fallbackSelector: "#goalBookPanel",
+      panelGroup: "core",
+      tone: latestRun || waterwayStanding || expeditionSpirits.length > 0 ? "ready" : "active",
+      cta: "看远路线",
+    },
+    {
+      key: "garden",
+      label: "庭院托心情",
+      value: moodCareText,
+      detail: readyEcology
+        ? `${readyEcology.name} 已接近可收录。`
+        : synergy[0]?.detail || "照应、同住和庭院共鸣会把自动化从省事变成生活感。",
+      selector: "#relationshipPanel",
+      fallbackSelector: "#goalBookPanel",
+      panelGroup: "story",
+      tone: readyEcology || gardenSpirits.length > 0 || summary.ecologyMemoryResonance?.tier > 0 ? "ready" : "active",
+      cta: "看庭院照应",
+    },
+  ];
+  return rows.filter((row) => row.value || row.detail);
+}
+
+function automationDayLedgerSpec(summary = state.lastDaySummary) {
+  if (!summary) return null;
+  const rows = automationDayLedgerRows(summary);
+  if (!rows.length) return null;
+  return {
+    active: true,
+    title: "自动化日终流水账",
+    headline: "田里被接手 -> 后厂在烧 -> 入仓/补货 -> 旧铺/商队/巡灯",
+    reportText: automationDayLedgerReportText(summary),
+    rows,
+    safety: "只定位自动化岗位线，不会自动切岗、派工、排产、开铺、发商队、处理风险、入夜或消耗资源",
+  };
+}
+
+function automationDayLedgerMarkup(spec = automationDayLedgerSpec()) {
+  if (!spec?.active) return "";
+  return `
+    <div class="day-summary-automation-ledger">
+      <strong>${spec.title}</strong>
+      <span>${spec.headline}</span>
+      <small>${spec.reportText}</small>
+      <div class="day-summary-automation-ledger-grid">
+        ${spec.rows.map((row) => `
+          <div class="day-summary-automation-ledger-row ${row.tone || "active"}">
+            <b>${row.label}</b>
+            <span>${row.value}</span>
+            <small>${row.detail}</small>
+            <button type="button" data-day-summary-automation-line="${row.key}">${row.cta}</button>
+          </div>
+        `).join("")}
+      </div>
+      <small>${spec.safety}</small>
+    </div>
+  `;
+}
+
+function focusDaySummaryAutomationLedger(lineKey = "field") {
+  const spec = automationDayLedgerSpec();
+  if (!spec?.rows?.length) return addLog("自动化日终流水账", "今晚还没有可回看的自动化岗位线，先让第一位伙伴接手重复劳动。");
+  const row = spec.rows.find((entry) => entry.key === lineKey) || spec.rows[0];
+  if (["field", "workshop", "patrol", "expedition", "garden"].includes(row.key)) {
+    const jobMap = {
+      field: "farm",
+      workshop: "workshop",
+      patrol: "patrol",
+      expedition: "expedition",
+      garden: "garden",
+    };
+    if (jobMap[row.key]) {
+      focusAutomationJobLine(jobMap[row.key]);
+      addLog("点选自动化日账本", `${row.label}：${row.value}。${row.detail} ${spec.safety}`);
+      return true;
+    }
+  }
+  queueStoryCompassFocusTarget({
+    selector: row.selector,
+    fallbackSelector: row.fallbackSelector || "#goalBookPanel",
+    label: `点选自动化日账本：${row.label}`,
+    log: `${row.label}：${row.value}。${row.detail} ${spec.safety}`,
+    panelGroup: row.panelGroup || "core",
+    missingTitle: `点选自动化日账本：${row.label}`,
+    missingLog: "自动化岗位线已经写入日终流水账，但对应面板暂时没有找到。",
+  });
+  return true;
+}
+
 function daySummaryLanternSigned(value = 0, suffix = "") {
   const number = Number(value || 0);
   return `${number > 0 ? "+" : ""}${number}${suffix}`;
@@ -55812,7 +57666,7 @@ function updateSeedRestockUi() {
 }
 
 function seedRestockBagSafetyText() {
-  return "只定位种子栏、空田和播种按钮，不会自动播种、买种、浇水、入夜、扣除种子、扣除体力或消耗资源";
+  return seedRestockBagSafetyTextWorld();
 }
 
 function seedRestockBagFeedbackSpec(seedId, count = 0, total = 0) {
@@ -55822,21 +57676,16 @@ function seedRestockBagFeedbackSpec(seedId, count = 0, total = 0) {
     || selectedPlot()
     || state.plots[0]
     || null;
-  return {
-    key: `${state.day}:${seedId}:${count}:${total}:seed_restock_bag`,
-    day: state.day,
+  return seedRestockBagFeedbackSpecWorld({
     seedId,
-    seedName: itemName(seedId),
-    cropId: crop?.crop_id || "",
-    cropName: crop ? itemName(crop.crop_id) : "作物",
-    count: Number(count || 0),
-    total: Number(total || 0),
+    count,
+    total,
+    crop,
+    emptyPlot,
+    day: state.day,
     stock: Number(state.inventory[seedId] || 0),
-    targetPlot: emptyPlot ? { x: emptyPlot.x, y: emptyPlot.y } : null,
-    plotLabel: emptyPlot ? `(${emptyPlot.x + 1},${emptyPlot.y + 1}) 号空田` : "空田",
-    routeText: "种子入袋 -> 点空田 -> 手动播种",
-    safety: seedRestockBagSafetyText(),
-  };
+    itemName,
+  });
 }
 
 function recordSeedRestockFeedback(seedId, count = 0, total = 0) {
@@ -55852,27 +57701,22 @@ function seedRestockBagWorldSpec(width = refs.world?.width || 960, height = refs
   const plot = spec.targetPlot
     ? state.plots.find((entry) => entry.x === spec.targetPlot.x && entry.y === spec.targetPlot.y)
     : state.plots.find((entry) => !entry.debris && !entry.cropId) || selectedPlot() || null;
-  const plotX = plot ? metrics.originX + plot.x * (metrics.tile + metrics.gap) + metrics.tile / 2 : metrics.originX + metrics.tile * 2;
-  const plotY = plot ? metrics.originY + plot.y * (metrics.tile + metrics.gap) + metrics.tile * 0.55 : metrics.originY + metrics.tile * 2;
-  const cardWidth = 310;
-  const cardHeight = 120;
-  const x = Math.max(24, Math.min(width - cardWidth - 28, plotX + 42));
-  const y = Math.max(112, Math.min(height - cardHeight - 34, plotY - 72));
-  return {
-    ...spec,
-    plot: plot ? { x: plot.x, y: plot.y } : null,
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: plotX, y: plotY },
-  };
+  return seedRestockBagWorldSpecWorld({
+    width,
+    height,
+    spec,
+    day: state.day,
+    metrics,
+    plot,
+  });
 }
 
 function seedRestockBagWorldAtCanvasPoint(px, py) {
-  const spec = seedRestockBagWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect, anchor } = spec;
-  const onCard = px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
-  const onAnchor = px >= anchor.x - 30 && px <= anchor.x + 30 && py >= anchor.y - 26 && py <= anchor.y + 26;
-  return onCard || onAnchor ? spec : null;
+  return seedRestockBagWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: seedRestockBagWorldSpec(refs.world?.width || 960, refs.world?.height || 640),
+  });
 }
 
 function focusSeedRestockBagWorldFromCanvas(spec = seedRestockBagWorldSpec()) {
@@ -55899,359 +57743,101 @@ function focusSeedRestockBagWorldFromCanvas(spec = seedRestockBagWorldSpec()) {
 }
 
 function drawSeedRestockBagWorld(ctx, spec = seedRestockBagWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
-  if (!spec?.rect) return false;
-  const { rect, anchor } = spec;
-  const active = seedRestockBagWorldFocus?.day === state.day
-    && seedRestockBagWorldFocus?.key === spec.key;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.8) * 2.3;
-  const cardY = rect.y + bob;
-  const accent = "#286f58";
-
-  ctx.save();
-  ctx.strokeStyle = active ? "rgba(40, 111, 88, 0.86)" : "rgba(40, 111, 88, 0.52)";
-  ctx.lineWidth = active ? 3 : 1.8;
-  ctx.setLineDash([7, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 12;
-  ctx.beginPath();
-  ctx.moveTo(anchor.x, anchor.y);
-  ctx.quadraticCurveTo(rect.x + 24, cardY + rect.height + 26, rect.x + 36, cardY + rect.height - 16);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  ctx.fillStyle = "rgba(23, 35, 29, 0.14)";
-  ctx.beginPath();
-  ctx.ellipse(anchor.x, anchor.y + 24, 38, 8, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "rgba(202, 235, 210, 0.86)";
-  ctx.strokeStyle = "rgba(40, 111, 88, 0.64)";
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.roundRect(anchor.x - 22, anchor.y - 10 + bob * 0.16, 44, 34, 12);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = "#286f58";
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("种", anchor.x - 5, anchor.y + 9 + bob * 0.16);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
-  ctx.strokeStyle = active ? "rgba(40, 111, 88, 0.9)" : "rgba(40, 111, 88, 0.62)";
-  ctx.lineWidth = active ? 2.6 : 1.5;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = "rgba(40, 111, 88, 0.14)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 16, cardY + 16, 58, 52, 16);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 22px Microsoft YaHei";
-  ctx.fillText("袋", rect.x + 34, cardY + 50);
-  ctx.fillStyle = "#286f58";
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText("补种入袋去向签 · 可点", rect.x + 88, cardY + 25);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(`${spec.seedName} x${spec.count} 已入袋`.slice(0, 20), rect.x + 88, cardY + 47);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "10px Microsoft YaHei";
-  ctx.fillText(`${spec.cropName} · 库存 ${spec.stock} · 花费 ${spec.total} 灵石`.slice(0, 36), rect.x + 88, cardY + 64);
-
-  const steps = [
-    { title: "入袋", value: `x${spec.count}`, color: "#286f58" },
-    { title: "空田", value: spec.plotLabel, color: "#8f5f3f" },
-    { title: "播种", value: "手动确认", color: "#b47d2f" },
-  ];
-  steps.forEach((step, index) => {
-    const stepX = rect.x + 18 + index * 96;
-    const stepY = cardY + 82;
-    ctx.fillStyle = `${step.color}1d`;
-    ctx.beginPath();
-    ctx.roundRect(stepX, stepY, 86, 24, 11);
-    ctx.fill();
-    ctx.fillStyle = step.color;
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(step.title, stepX + 8, stepY + 10);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(String(step.value || "").slice(0, 8), stepX + 8, stepY + 20);
+  return drawSeedRestockBagWorldWorld({
+    ctx,
+    spec,
+    reducedMotion: settings.reducedMotion,
+    motion,
+    day: state.day,
+    focus: seedRestockBagWorldFocus,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 18, cardY + rect.height - 16, rect.width - 36, 12, 6);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText(`${spec.routeText} · ${spec.safety}`.slice(0, 48), rect.x + 26, cardY + rect.height - 7);
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 50, cardY + 13, 36, 18, 9);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + rect.width - 42, cardY + 26);
-  ctx.restore();
-  return true;
 }
 
 function plotClearedVeinMemory(plot = null) {
-  if (!plot || (!plot.clearedDebris && !plot.clearedDay)) return null;
-  const veinIndex = restoredGrottoVeinPlots().findIndex((entry) => entry.x === plot.x && entry.y === plot.y);
-  const index = veinIndex >= 0 ? veinIndex + 1 : 1;
-  const debrisLabel = plot.clearedDebris === "stone" ? "碎石" : plot.clearedDebris ? "荒草" : "旧障碍";
-  return {
-    title: `复苏灵纹 #${index}`,
-    text: `清开${debrisLabel}后留下的地面灵纹，洞天灵息从这里回流 +1。`,
-    detail: plot.clearedDay ? `第 ${plot.clearedDay} 天露纹` : "第一处灵纹已经可见",
-  };
-}
-
-function plotFirstSeedMemory(plot = null) {
-  if (!plot?.firstSeeded) return null;
-  const seedName = itemName(plot.firstSeededSeedId || plot.seedItemId || "");
-  const cropName = itemName(plot.firstSeededCropId || plot.cropId || "");
-  const dayText = plot.firstSeededDay ? `第 ${plot.firstSeededDay} 天入土` : "第一次播种";
-  return {
-    title: "第一籽入土",
-    text: `${seedName || cropName || "第一粒种子"}从这里接住土气，第一块田的生产循环由此开始。`,
-    detail: dayText,
-  };
-}
-
-function plotSpiritSproutMemory(plot = null) {
-  if (!plot) return null;
-  syncSpiritSproutState();
-  const sprout = state.spiritSproutState;
-  if (!["tremble", "peek", "born"].includes(sprout.stage)) return null;
-  const sproutPlot = currentSpiritSproutPlot();
-  const samePlot = sproutPlot
-    ? sproutPlot.x === plot.x && sproutPlot.y === plot.y
-    : sprout.lastPlot?.x === plot.x && sprout.lastPlot?.y === plot.y;
-  if (!samePlot) return null;
-  const luoboJoined = state.completed.has("spirit")
-    || state.spirits.some((spirit) => spirit.id === "spirit_luobo_01" || spirit.lineId === "spirit_line_luobo");
-  if (sprout.stage === "born" && luoboJoined) {
-    return {
-      title: "第一只精怪入队",
-      text: "萝卜精就是从这块田转身露出小脸，伙伴栏已经开放，生产循环从手动劳作变成可以请伙伴接手。",
-      detail: "下一步：选中待浇田格，到伙伴栏点「让精怪协助」看 3x3 自动浇水；这里只解释，不会自动协助或消耗体力。",
-      joined: true,
-    };
-  }
-  const copy = spiritSproutAnomalyCopy(sprout.stage);
-  const stageLabel = sprout.stage === "born" ? "即将入队" : sprout.stage === "peek" ? "探头待收" : "轻颤预告";
-  return {
-    title: "成精预告",
-    text: `${stageLabel}：${copy.headline}。${copy.body}`,
-    detail: `${copy.action} · 只解释这块田，不会自动收获、入夜或触发成精。`,
-  };
-}
-
-function selectedPlotDetailSpec() {
-  const plot = selectedPlot();
-  if (!plot) {
-    return {
-      state: "missing",
-      title: "未选中灵田",
-      subtitle: "点击主画布上的灵田格，查看播种与节气建议。",
-      lines: [],
-      action: "选择地块",
-      actionId: "",
-    };
-  }
-  const typeText = plot.waterSoil ? "水润灵田" : plot.newlyExpanded ? "新开灵田" : "普通灵田";
-  const veinMemory = plotClearedVeinMemory(plot);
-  const firstSeedMemory = plotFirstSeedMemory(plot);
-  const sproutMemory = plotSpiritSproutMemory(plot);
-  const clearedClass = veinMemory ? " cleared" : "";
-  const firstSeedClass = firstSeedMemory ? " first-seed" : "";
-  const sproutClass = sproutMemory ? " sprout" : "";
-  const spiritBornClass = sproutMemory?.joined ? " spirit-born" : "";
-  if (plot.debris) {
-    return {
-      state: "blocked",
-      title: `灵田 (${plot.x + 1}, ${plot.y + 1}) · ${typeText}`,
-      subtitle: plot.debris === "stone" ? "碎石压着灵脉，先清理再播种。" : "荒草缠住田垄，先清理再播种。",
-      lines: ["下一步：清理", `体力消耗 4 · 当前节气 ${localize(currentTermConfig()?.term_name_key, currentTermId())}`],
-      action: "清理",
-      actionId: "clear",
-    };
-  }
-  if (!plot.cropId) {
-    const crop = data.cropsBySeed.get(state.selectedSeedId);
-    const recommendation = seedSolarRecommendation(crop, plot);
-    const seedRoute = seedUseRouteSpec(crop, plot);
-    const baizhiGuidance = baizhiQuestGuidanceSpec();
-    const baseLine = `库存 ${state.inventory[state.selectedSeedId] || 0} · 播种体力 6`;
-    const seedRouteLine = seedRoute ? `预计产出：${seedRoute.previewText}` : "";
-    return {
-      state: `${recommendation.className || "empty"}${baizhiGuidance ? " quest" : ""}${clearedClass}${firstSeedClass}${sproutClass}${spiritBornClass}`,
-      title: `灵田 (${plot.x + 1}, ${plot.y + 1}) · ${typeText}`,
-      subtitle: `空田 · 准备播种 ${itemName(state.selectedSeedId)} · ${recommendation.text}`,
-      lines: baizhiGuidance
-        ? [baizhiGuidance.plot, `${baizhiGuidance.progress} · ${baseLine}`, seedRouteLine].filter(Boolean)
-        : [recommendation.detail, seedRouteLine, baseLine].filter(Boolean),
-      veinMemory,
-      firstSeedMemory,
-      sproutMemory,
-      seedRoute,
-      action: "播种",
-      actionId: "plant",
-    };
-  }
-  const crop = data.cropsById.get(plot.cropId);
-  const affinity = cropSolarAffinity(crop, plot);
-  const yieldBonus = cropSolarYieldBonus(crop, plot, affinity);
-  const growDays = Number(crop?.grow_days || 1);
-  const age = Math.max(0, state.day - Number(plot.plantedDay || state.day));
-  const remaining = plot.mature ? 0 : Math.max(0, growDays - age);
-  const nextAction = plot.mature ? "收获" : plot.watered ? "入夜" : "浇水";
-  const baizhiGuidance = plot.cropId === BAIZHI_CROP_ID ? baizhiQuestGuidanceSpec(BAIZHI_SEED_ID) : null;
-  const growingRoute = growingCropUseRouteSpec(plot);
-  const spiritAssistLine = state.spirits.length > 0
-    ? (state.completed.has("assist")
-      ? "精怪协助已解锁，继续选中有作物的地块就能让伙伴代浇周围 3x3。"
-      : "精怪在队时，选中有作物的地块可让伙伴一次浇灌周围 3x3。")
-    : "";
-  return {
-    state: `${affinity.state || "planted"}${baizhiGuidance ? " quest" : ""}${clearedClass}${firstSeedClass}${sproutClass}${spiritBornClass}`,
-    title: `灵田 (${plot.x + 1}, ${plot.y + 1}) · ${typeText}`,
-    subtitle: `${itemName(plot.cropId)} · ${plot.mature ? "成熟可收" : plot.watered ? "今日已润" : "需要浇水"}`,
-    lines: [
-      `${affinity.detail}${yieldBonus.amount > 0 ? ` · 预计收获 +${yieldBonus.amount}` : ""}`,
-      `生长 ${age}/${growDays} 天${remaining > 0 ? ` · 约 ${remaining} 夜后成熟` : ""}`,
-      ...(baizhiGuidance ? [baizhiGuidance.progress] : []),
-      ...(spiritAssistLine ? [spiritAssistLine] : []),
-    ],
-    veinMemory,
-    firstSeedMemory,
-    sproutMemory,
-    growingRoute,
-    action: nextAction,
-    actionId: plot.mature ? "harvest" : plot.watered ? "sleep" : "water",
-  };
-}
-
-function selectedPlotRouteActionSpecs(route = null) {
-  if (!route) return [];
-  const actions = [];
-  if (route.orderId) {
-    actions.push({
-      key: `order:${route.orderId}`,
-      attr: `data-plot-route-order="${route.orderId}"`,
-      label: "看订单",
-    });
-  }
-  if (route.recipeId) {
-    actions.push({
-      key: `recipe:${route.recipeId}`,
-      attr: `data-plot-route-recipe="${route.recipeId}"`,
-      label: "看配方",
-    });
-  }
-  if (route.type === "shop" || route.shopTag) {
-    actions.push({
-      key: `shop:${route.shopTag || route.itemId}`,
-      attr: `data-plot-route-shop="${route.shopTag || ""}" data-plot-route-item="${route.itemId || ""}"`,
-      label: "看旧铺",
-    });
-  }
-  if (route.seedId && actions.length === 0) {
-    actions.push({
-      key: `seed:${route.seedId}`,
-      attr: `data-plot-route-seed="${route.seedId}"`,
-      label: "看种子",
-    });
-  }
-  const seen = new Set();
-  return actions.filter((action) => {
-    if (seen.has(action.key)) return false;
-    seen.add(action.key);
-    return true;
+  return plotClearedVeinMemoryUi({
+    plot,
+    restoredGrottoVeinPlots,
   });
 }
 
+function plotFirstSeedMemory(plot = null) {
+  return plotFirstSeedMemoryUi({
+    plot,
+    itemName,
+  });
+}
+
+function plotSpiritSproutMemory(plot = null) {
+  return plotSpiritSproutMemoryUi({
+    plot,
+    state,
+    syncSpiritSproutState,
+    currentSpiritSproutPlot,
+    spiritSproutAnomalyCopy,
+  });
+}
+
+function selectedPlotDetailSpec() {
+  return selectedPlotDetailSpecUi({
+    state,
+    data,
+    selectedPlot,
+    plotClearedVeinMemory,
+    plotFirstSeedMemory,
+    plotSpiritSproutMemory,
+    localize,
+    currentTermConfig,
+    currentTermId,
+    seedSolarRecommendation,
+    seedUseRouteSpec,
+    baizhiQuestGuidanceSpec,
+    itemName,
+    cropSolarAffinity,
+    cropSolarYieldBonus,
+    growingCropUseRouteSpec,
+    visibleOrders,
+    orderNeedStatus,
+    recipeCraftReady,
+    recipeInputStatus,
+    recipeName,
+    shopTagLabel,
+    baizhiCropId: BAIZHI_CROP_ID,
+    baizhiSeedId: BAIZHI_SEED_ID,
+  });
+}
+
+function selectedPlotRouteActionSpecs(route = null) {
+  return selectedPlotRouteActionSpecsUi(route);
+}
+
 function selectedPlotRouteActionsMarkup(route = null) {
-  const actions = selectedPlotRouteActionSpecs(route);
-  if (!actions.length) return "";
-  return `
-    <div class="selected-plot-route-actions ${route.type || "stock"}">
-      <em>去向入口</em>
-      ${actions.map((action) => `<button type="button" ${action.attr}>${action.label}</button>`).join("")}
-    </div>
-  `;
+  return selectedPlotRouteActionsMarkupUi(route);
 }
 
 function inventoryRouteActionsMarkup(route = null) {
-  const actions = selectedPlotRouteActionSpecs(route);
-  if (!actions.length) return "";
-  const inventoryAttr = (attr) => attr
-    .replace("data-plot-route-order", "data-inventory-route-order")
-    .replace("data-plot-route-recipe", "data-inventory-route-recipe")
-    .replace("data-plot-route-seed", "data-inventory-route-seed")
-    .replace("data-plot-route-shop", "data-inventory-route-shop")
-    .replace("data-plot-route-item", "data-inventory-route-item");
-  return `
-    <div class="item-use-route-actions ${route.type || "stock"}">
-      <em>背包去向</em>
-      ${actions.map((action) => `<button type="button" ${inventoryAttr(action.attr)}>${action.label}</button>`).join("")}
-    </div>
-  `;
+  return inventoryRouteActionsMarkupUi(route);
 }
 
 function inventoryRouteStatusMarkup(route = null) {
-  if (!route || route.type === "stock") return "";
-  const lines = [];
-  if (route.orderId) {
-    const order = visibleOrders().find((entry) => entry.order_id === route.orderId);
-    if (order) {
-      const status = orderNeedStatus(order);
-      lines.push(status.ready ? "订单已备齐，可去交付" : `订单缺口：${status.missingText || "继续备货"}`);
-    } else {
-      lines.push("订单暂未上板，先留作备货");
-    }
-  }
-  if (route.recipeId) {
-    const recipe = data.recipes.find((entry) => entry.recipe_id === route.recipeId);
-    if (recipe) {
-      const craftable = recipeCraftReady(recipe);
-      const inputText = recipeInputStatus(recipe, 4);
-      lines.push(craftable ? `工坊可下锅：${recipeName(recipe)}` : `配方原料：${inputText || "继续备料"}`);
-    }
-  }
-  if (route.type === "shop" || route.shopTag) {
-    lines.push(`旧铺货签：${route.shopTagLabel || shopTagLabel(route.shopTag) || "可上架试卖"}`);
-  }
-  if (!lines.length && route.missingText) lines.push(`还差：${route.missingText}`);
-  if (!lines.length) return "";
-  return `<small class="item-use-route-status ${route.ready ? "ready" : "pending"}">${lines.slice(0, 2).join(" · ")}</small>`;
+  return inventoryRouteStatusMarkupUi({
+    route,
+    data,
+    visibleOrders,
+    orderNeedStatus,
+    recipeCraftReady,
+    recipeInputStatus,
+    recipeName,
+    shopTagLabel,
+  });
 }
 
 function renderSelectedPlotCard() {
-  if (!refs.selectedPlotCard) return;
-  const spec = selectedPlotDetailSpec();
-  const actionButton = spec.actionId
-    ? `<button type="button" data-selected-plot-action="${spec.actionId}">执行：${spec.action}</button>`
-    : `<button type="button" disabled>先选地块</button>`;
-  refs.selectedPlotCard.className = `selected-plot-card ${spec.state}`;
-  refs.selectedPlotCard.innerHTML = `
-    <strong>${spec.title}</strong>
-    <span>${spec.subtitle}</span>
-    ${spec.veinMemory ? `<small class="selected-plot-vein-memory"><b>${spec.veinMemory.title}</b>${spec.veinMemory.text} · ${spec.veinMemory.detail}</small>` : ""}
-    ${spec.firstSeedMemory ? `<small class="selected-plot-first-seed-memory"><b>${spec.firstSeedMemory.title}</b>${spec.firstSeedMemory.text} · ${spec.firstSeedMemory.detail}</small>` : ""}
-    ${spec.sproutMemory ? `<small class="selected-plot-sprout-memory${spec.sproutMemory.joined ? " joined" : ""}"><b>${spec.sproutMemory.title}</b>${spec.sproutMemory.text} · ${spec.sproutMemory.detail}</small>` : ""}
-    ${spec.lines.map((line) => `<small>${line}</small>`).join("")}
-    ${spec.seedRoute ? `<small class="selected-plot-seed-route">种后去向：${spec.seedRoute.badge} · ${spec.seedRoute.detail}</small>` : ""}
-    ${selectedPlotRouteActionsMarkup(spec.seedRoute)}
-    ${spec.growingRoute ? `<small class="selected-plot-growing-route">${spec.growingRoute.liveText}：${spec.growingRoute.badge} · ${spec.growingRoute.detail}</small>` : ""}
-    ${selectedPlotRouteActionsMarkup(spec.growingRoute)}
-    <div class="selected-plot-card-action">
-      <em>建议：${spec.action}</em>
-      ${actionButton}
-    </div>
-  `;
+  renderSelectedPlotCardUi({
+    refs,
+    selectedPlotDetailSpec,
+    selectedPlotRouteActionsMarkup,
+  });
 }
 
 function buySelectedSeeds(count = 3) {
@@ -63343,6 +64929,7 @@ function sleep() {
   state.lastDaySummary.careChainEcho = careChainEchoSpec(state.lastDaySummary.careChainStage);
   state.lastDaySummary.careChainEvent = claimCareChainStageEvent(state.lastDaySummary.careChainStage, state.lastDaySummary.careChainEcho, before.day, state.lastDaySummary);
   state.lastDaySummary.dailyIntentReview = dailyIntentReviewSpec(state.lastDaySummary);
+  state.lastDaySummary.automationDayLedger = automationDayLedgerSpec(state.lastDaySummary);
   triggerNightGrowthFeedback({ ...nightGrowth, careChain: state.lastDaySummary.careChain, careChainStage: state.lastDaySummary.careChainStage, careChainEvent: state.lastDaySummary.careChainEvent });
   triggerSpiritNightWorkFeedback(spiritJobReport);
   complete("day_summary");
@@ -63352,18 +64939,6 @@ function sleep() {
   const careEventText = state.lastDaySummary.careChainEvent ? ` ${state.lastDaySummary.careChainEvent.title}，${state.lastDaySummary.careChainEvent.rewardText}。` : "";
   addLog("日终总结", `${nightGrowth.weatherName} 已结算。${nightGrowth.maturedPlots.length > 0 ? `今晚新成熟 ${nightGrowth.maturedPlots.length} 块灵田。` : `今晚有 ${nightGrowth.grownCount} 块灵田继续生长。`}${state.lastDaySummary.careChain ? ` ${state.lastDaySummary.careChain.title}：${state.lastDaySummary.careChain.headline}` : ""}${careStageText}${careEventText}${ecologyDailyEvent ? ` ${ecologyDailyEvent.title}也在庭院里留下了动静。` : ""}明日建议：${state.lastDaySummary.advice}`);
   render();
-}
-
-function drawCanvasCard(ctx, x, y, width, height, fill = "rgba(255, 253, 245, 0.74)") {
-  ctx.save();
-  ctx.fillStyle = fill;
-  ctx.strokeStyle = "rgba(23, 35, 29, 0.16)";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.roundRect(x, y, width, height, 16);
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
 }
 
 function drawCutsceneWorldSlate(ctx, spec = cutsceneWorldSlateSpec(ctx.canvas.width, ctx.canvas.height)) {
@@ -66595,261 +68170,38 @@ function drawCanalRestorationRouteWorld(ctx, spec = canalRestorationRouteWorldSp
 }
 
 function drawFailureCodexWorldBoard(ctx, spec = failureCodexWorldBoardSpec(ctx.canvas.width, ctx.canvas.height)) {
-  if (!spec?.rect) return false;
-  const { rect, palette, rows, top } = spec;
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.75) * 2;
-  const cardY = rect.y + bob;
-  const active = failureCodexWorldBoardFocus?.day === state.day
-    && failureCodexWorldBoardFocus?.key === spec.key;
-  const entryRows = rows.slice(0, 3);
-
-  ctx.save();
-  ctx.strokeStyle = `${palette.accent}55`;
-  ctx.lineWidth = 2;
-  ctx.setLineDash([6, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 10;
-  ctx.beginPath();
-  ctx.moveTo(rect.x + 18, cardY + rect.height - 28);
-  ctx.quadraticCurveTo(rect.x - 54, cardY + 84, 512, 538);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, palette.fill);
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.86)" : `${palette.accent}77`;
-  ctx.lineWidth = active ? 2.8 : 1.9;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 2, cardY + 2, rect.width - 4, rect.height - 4, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = palette.soft;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 54, 50, 16);
-  ctx.fill();
-  ctx.strokeStyle = `${palette.accent}66`;
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 22, cardY + 22, 38, 34, 10);
-  ctx.stroke();
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 20px Microsoft YaHei";
-  ctx.fillText(top.icon || "记", rect.x + 34, cardY + 45);
-
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(spec.title, rect.x + 82, cardY + 25);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 15px Microsoft YaHei";
-  ctx.fillText(spec.summary.slice(0, 18), rect.x + 82, cardY + 47);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 30), rect.x + 82, cardY + 64);
-
-  entryRows.forEach((entry, index) => {
-    const rowY = cardY + 86 + index * 20;
-    const rowPalette = failureCodexWorldPalette(entry);
-    ctx.fillStyle = `${rowPalette.accent}18`;
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 16, rowY - 13, rect.width - 32, 17, 8);
-    ctx.fill();
-    ctx.fillStyle = rowPalette.accent;
-    ctx.font = "900 10px Microsoft YaHei";
-    ctx.fillText(`${entry.icon || "记"} ${failureCodexTypeLabel(entry.type)}`.slice(0, 8), rect.x + 26, rowY);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 11px Microsoft YaHei";
-    ctx.fillText(String(entry.title || "").slice(0, 13), rect.x + 92, rowY);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "10px Microsoft YaHei";
-    ctx.fillText(String(entry.nextAction || entry.rewardText || entry.problem || "").slice(0, 20), rect.x + 194, rowY);
+  return drawFailureCodexWorldBoardWorld({
+    ctx,
+    spec,
+    reducedMotion: settings.reducedMotion,
+    day: state.day,
+    focus: failureCodexWorldBoardFocus,
+    drawCanvasCard,
+    failureCodexTypeLabel,
   });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
-  ctx.strokeStyle = "rgba(224, 182, 109, 0.35)";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 16, cardY + rect.height - 24, rect.width - 32, 18, 9);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText(`下一步：${spec.nextAction}`.slice(0, 35), rect.x + 26, cardY + rect.height - 11);
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + rect.width - 43, cardY + 25);
-  ctx.restore();
-  return true;
 }
 
 function drawFailureRecoveryRouteWorld(ctx, spec = failureRecoveryRouteWorldSpec(failureCodexWorldBoardSpec(ctx.canvas.width, ctx.canvas.height))) {
-  if (!spec?.rect) return false;
-  const { rect, palette, steps } = spec;
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 1.8) * 2;
-  const cardY = rect.y + pulse;
-  const active = failureRecoveryRouteWorldFocus?.day === state.day
-    && failureRecoveryRouteWorldFocus?.key === spec.key;
-
-  ctx.save();
-  ctx.strokeStyle = active ? `${palette.accent}cc` : `${palette.accent}55`;
-  ctx.lineWidth = active ? 3 : 2;
-  ctx.setLineDash([6, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 10;
-  ctx.beginPath();
-  ctx.moveTo(rect.x + rect.width, cardY + 48);
-  ctx.quadraticCurveTo(rect.x + rect.width + 38, cardY + 62, rect.x + rect.width + 58, cardY + 32);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 253, 245, 0.92)");
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.88)" : `${palette.accent}77`;
-  ctx.lineWidth = active ? 2.8 : 1.8;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(spec.title.slice(0, 18), rect.x + 16, cardY + 22);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 13px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 20), rect.x + 16, cardY + 43);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "10px Microsoft YaHei";
-  ctx.fillText(spec.summary.slice(0, 38), rect.x + 16, cardY + rect.height - 11);
-
-  const startX = rect.x + 20;
-  const laneY = cardY + 66;
-  const gap = 80;
-  ctx.strokeStyle = `${palette.accent}44`;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(startX + 10, laneY);
-  ctx.lineTo(startX + gap * 3 + 10, laneY);
-  ctx.stroke();
-
-  steps.slice(0, 4).forEach((step, index) => {
-    const dotX = startX + index * gap;
-    const colors = {
-      warn: { fill: "rgba(255, 240, 232, 0.94)", stroke: "#be4f37", text: "#be4f37" },
-      learn: { fill: "rgba(236, 248, 243, 0.94)", stroke: "#4d91a6", text: "#4d91a6" },
-      fix: { fill: "rgba(255, 248, 232, 0.96)", stroke: "#b47d2f", text: "#8f5f3f" },
-      support: { fill: "rgba(237, 243, 223, 0.96)", stroke: "#286f58", text: "#286f58" },
-    }[step.tone] || { fill: "rgba(255, 253, 245, 0.94)", stroke: palette.accent, text: palette.accent };
-    ctx.fillStyle = colors.fill;
-    ctx.strokeStyle = colors.stroke;
-    ctx.lineWidth = index === steps.length - 1 || active ? 2.1 : 1.5;
-    ctx.beginPath();
-    ctx.arc(dotX + 10, laneY, 10, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = colors.text;
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(String(index + 1), dotX + 7, laneY + 3);
-    ctx.fillStyle = colors.text;
-    ctx.font = "900 9px Microsoft YaHei";
-    ctx.fillText(step.label, dotX - 1, laneY + 24);
+  return drawFailureRecoveryRouteWorldWorld({
+    ctx,
+    spec,
+    reducedMotion: settings.reducedMotion,
+    day: state.day,
+    focus: failureRecoveryRouteWorldFocus,
+    drawCanvasCard,
   });
-
-  if (!settings.reducedMotion) {
-    for (let i = 0; i < 5; i += 1) {
-      const moteX = rect.x + 44 + i * 56 + Math.sin(motion * 1.3 + i) * 3;
-      const moteY = cardY + 30 + Math.cos(motion * 1.6 + i) * 2;
-      ctx.fillStyle = i % 2 ? "rgba(255, 253, 245, 0.86)" : `${palette.accent}66`;
-      ctx.beginPath();
-      ctx.arc(moteX, moteY, 2.2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  ctx.fillStyle = "rgba(255, 248, 232, 0.78)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 88, cardY + 12, 70, 19, 9);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("只定位", rect.x + rect.width - 70, cardY + 25);
-
-  ctx.restore();
-  return true;
 }
 
 function drawFailureMercyLanternWorld(ctx, spec = failureMercyLanternWorldSpec(failureCodexWorldBoardSpec(ctx.canvas.width, ctx.canvas.height)), motion = performance.now() / 1000) {
-  if (!spec?.rect || !spec.nodes?.length) return false;
-  const { rect, palette, nodes } = spec;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.55) * 1.8;
-  const glow = settings.reducedMotion ? 0.5 : (Math.sin(motion * 2.7) + 1) / 2;
-  const focused = failureMercyLanternWorldFocus?.day === state.day
-    && failureMercyLanternWorldFocus?.key === spec.key;
-  const cardY = rect.y + bob;
-
-  ctx.save();
-  ctx.strokeStyle = focused ? `${palette.accent}cc` : `${palette.accent}66`;
-  ctx.lineWidth = focused ? 3 : 2;
-  ctx.setLineDash([6, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 10;
-  ctx.beginPath();
-  ctx.moveTo(rect.x + 20, cardY + rect.height - 6);
-  ctx.quadraticCurveTo(rect.x + rect.width * 0.5, cardY + rect.height + 16, rect.x + rect.width - 18, cardY + rect.height - 8);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 253, 245, 0.9)");
-  ctx.strokeStyle = focused ? "rgba(224, 182, 109, 0.78)" : `${palette.accent}55`;
-  ctx.lineWidth = focused ? 2.4 : 1.4;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1, cardY + 1, rect.width - 2, rect.height - 2, 17);
-  ctx.stroke();
-
-  ctx.fillStyle = palette.soft;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 12, cardY + 10, 114, 20, 10);
-  ctx.fill();
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 12px Microsoft YaHei";
-  ctx.fillText(spec.title, rect.x + 22, cardY + 25);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 22), rect.x + 136, cardY + 24);
-
-  nodes.forEach((node, index) => {
-    const x = node.point.x;
-    const y = node.point.y + bob;
-    const active = focused && failureMercyLanternWorldFocus?.nodeKey === node.key;
-    const alpha = 0.22 + glow * 0.16 + (active ? 0.18 : 0);
-    ctx.fillStyle = `rgba(246, 240, 182, ${alpha})`;
-    ctx.beginPath();
-    ctx.ellipse(x, y + 12, active ? 38 : 30, active ? 12 : 9, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = active ? `${palette.accent}ee` : index === 0 ? "#b47d2f" : index === 1 ? "#286f58" : "#4d91a6";
-    ctx.beginPath();
-    ctx.roundRect(x - 18, y - 19, 36, 30, 10);
-    ctx.fill();
-    ctx.fillStyle = "rgba(255, 253, 245, 0.96)";
-    ctx.font = "900 13px Microsoft YaHei";
-    ctx.textAlign = "center";
-    ctx.fillText(node.glyph, x, y);
-    ctx.fillStyle = active ? "#17231d" : "#5d6f65";
-    ctx.font = active ? "800 10px Microsoft YaHei" : "700 9px Microsoft YaHei";
-    ctx.fillText(node.title.slice(0, 4), x, y + 25);
-    if (active) {
-      ctx.strokeStyle = "rgba(224, 182, 109, 0.82)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(x, y - 4, 24, 0, Math.PI * 2);
-      ctx.stroke();
-    }
+  return drawFailureMercyLanternWorldWorld({
+    ctx,
+    spec,
+    reducedMotion: settings.reducedMotion,
+    motion,
+    day: state.day,
+    focus: failureMercyLanternWorldFocus,
+    drawCanvasCard,
   });
-  ctx.textAlign = "left";
-
-  ctx.fillStyle = "rgba(255, 248, 232, 0.9)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 50, cardY + 9, 36, 17, 9);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + rect.width - 40, cardY + 21);
-  ctx.restore();
-  return true;
 }
 
 function drawCanalPermanentFlowWorld(ctx, spec = canalPermanentFlowWorldSpec()) {
@@ -70634,153 +71986,26 @@ function cropSolarYieldBonus(crop = null, plot = null, affinity = cropSolarAffin
 function cropWorldGrowthVisualSpec(crop = null, plot = null, plotIndex = 0) {
   const runtime = farmingRuntime();
   if (runtime) return runtime.cropWorldGrowthVisualSpec(crop, plot, plotIndex, state.day);
-  if (!crop || !plot?.cropId) return null;
-  const affinity = cropSolarAffinity(crop, plot);
-  const yieldBonus = cropSolarYieldBonus(crop, plot, affinity);
-  const growDays = Math.max(1, Number(crop.grow_days || 1));
-  const age = Math.max(0, state.day - Number(plot.plantedDay || state.day));
-  const rawProgress = plot.mature ? 1 : Math.max(0.08, Math.min(0.96, (age + (plot.watered ? 0.32 : 0)) / growDays));
-  const stage = plot.mature
-    ? "ripe"
-    : rawProgress >= 0.72
-      ? "bud"
-      : rawProgress >= 0.38
-        ? "leaf"
-        : "sprout";
-  const stageLabel = {
-    sprout: "新芽",
-    leaf: "抽叶",
-    bud: "将熟",
-    ripe: "可收",
-  }[stage] || "生长";
-  const needsWater = !plot.mature && !plot.watered;
-  const affinityTone = affinity.state || "offseason";
-  const palette = {
-    boost: { accent: "#e0b66d", fill: "rgba(255, 248, 232, 0.9)", glow: "rgba(246, 240, 182, 0.28)" },
-    season: { accent: "#48a868", fill: "rgba(237, 243, 223, 0.88)", glow: "rgba(202, 235, 210, 0.22)" },
-    risk: { accent: "#be4f37", fill: "rgba(255, 240, 232, 0.92)", glow: "rgba(190, 79, 55, 0.2)" },
-    offseason: { accent: "#8f5f3f", fill: "rgba(255, 253, 245, 0.82)", glow: "rgba(143, 95, 63, 0.13)" },
-  }[affinityTone] || { accent: "#5d6f65", fill: "rgba(255, 253, 245, 0.82)", glow: "rgba(93, 111, 101, 0.13)" };
-  const elementPalette = crop.element_type === "water"
-    ? { body: "#4d91a6", leaf: "#caebd2" }
-    : crop.element_type === "fire"
-      ? { body: "#be4f37", leaf: "#f0a54e" }
-      : crop.element_type === "wood"
-        ? { body: "#48a868", leaf: "#f5f0b6" }
-        : { body: "#b47d2f", leaf: "#286f58" };
-  return {
-    affinity,
-    yieldBonus,
-    growDays,
-    age,
-    progress: rawProgress,
-    stage,
-    stageLabel,
-    needsWater,
-    remaining: plot.mature ? 0 : Math.max(0, growDays - age),
-    spriteScale: plot.mature ? 0.76 : Math.max(0.34, 0.36 + rawProgress * 0.28),
+  return cropWorldGrowthVisualSpecFallback({
+    crop,
+    plot,
     plotIndex,
-    palette,
-    elementPalette,
-    badge: yieldBonus.amount > 0 ? `${affinity.label || "宜"}+${yieldBonus.amount}` : affinity.label || stageLabel,
-  };
+    day: state.day,
+    cropSolarAffinity,
+    cropSolarYieldBonus,
+  });
 }
 
 function drawCropWorldGrowthVisual(ctx, x, y, tile, plot, visual) {
-  if (!visual) return;
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.4 + visual.plotIndex) * 2;
-  const centerX = x + tile / 2;
-  const centerY = y + tile / 2;
-  ctx.save();
-
-  ctx.fillStyle = visual.stage === "ripe" ? "rgba(246, 240, 182, 0.26)" : visual.palette.glow;
-  ctx.beginPath();
-  ctx.ellipse(centerX, y + tile * 0.68, tile * (0.24 + visual.progress * 0.16) + pulse, tile * 0.11, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  if (visual.needsWater) {
-    ctx.strokeStyle = "rgba(92, 60, 42, 0.54)";
-    ctx.lineWidth = 1.6;
-    for (let i = 0; i < 3; i += 1) {
-      ctx.beginPath();
-      ctx.moveTo(x + tile * (0.18 + i * 0.2), y + tile * 0.36);
-      ctx.lineTo(x + tile * (0.12 + i * 0.22), y + tile * 0.55);
-      ctx.lineTo(x + tile * (0.28 + i * 0.18), y + tile * 0.72);
-      ctx.stroke();
-    }
-    ctx.fillStyle = "rgba(232, 246, 242, 0.94)";
-    ctx.strokeStyle = "rgba(77, 145, 166, 0.58)";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(x + 7, y + 7, 28, 20, 8);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = "#4d91a6";
-    ctx.font = "700 10px Microsoft YaHei";
-    ctx.fillText("补水", x + 11, y + 21);
-  }
-
-  if (visual.stage === "sprout" || visual.stage === "leaf") {
-    const sproutCount = visual.stage === "sprout" ? 2 : 4;
-    ctx.strokeStyle = visual.elementPalette.body;
-    ctx.lineWidth = 2.2;
-    for (let i = 0; i < sproutCount; i += 1) {
-      const offset = (i - (sproutCount - 1) / 2) * tile * 0.08;
-      ctx.beginPath();
-      ctx.moveTo(centerX + offset, y + tile * 0.66);
-      ctx.quadraticCurveTo(centerX + offset * 0.4, y + tile * (0.58 - visual.progress * 0.12), centerX + offset * 1.2, y + tile * (0.48 - visual.progress * 0.12));
-      ctx.stroke();
-      ctx.fillStyle = i % 2 ? visual.elementPalette.leaf : visual.elementPalette.body;
-      ctx.beginPath();
-      ctx.ellipse(centerX + offset * 1.25, y + tile * (0.47 - visual.progress * 0.11), 4 + visual.progress * 5, 2.8 + visual.progress * 3, i % 2 ? 0.6 : -0.6, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  if (visual.stage === "ripe" || visual.stage === "bud") {
-    ctx.strokeStyle = visual.stage === "ripe" ? "rgba(224, 182, 109, 0.72)" : `${visual.palette.accent}66`;
-    ctx.lineWidth = visual.stage === "ripe" ? 2.8 : 1.8;
-    ctx.setLineDash(visual.stage === "ripe" ? [8, 6] : [5, 7]);
-    ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 14;
-    ctx.beginPath();
-    ctx.ellipse(centerX, centerY + 2, tile * 0.38 + pulse, tile * 0.26 + pulse * 0.3, 0, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  if (visual.affinity.state !== "empty") {
-    ctx.fillStyle = visual.palette.fill;
-    ctx.strokeStyle = visual.palette.accent;
-    ctx.lineWidth = visual.affinity.state === "boost" || visual.affinity.state === "risk" ? 2.1 : 1.3;
-    ctx.beginPath();
-    ctx.roundRect(x + tile - 36, y + tile - 23, 30, 18, 7);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = visual.palette.accent;
-    ctx.font = "800 10px Microsoft YaHei";
-    ctx.fillText(visual.badge.slice(0, 4), x + tile - 32, y + tile - 10);
-  }
-
-  const progressWidth = Math.max(12, (tile - 18) * visual.progress);
-  ctx.fillStyle = "rgba(23, 35, 29, 0.14)";
-  ctx.beginPath();
-  ctx.roundRect(x + 9, y + tile - 8, tile - 18, 4, 999);
-  ctx.fill();
-  ctx.fillStyle = visual.needsWater ? "#4d91a6" : visual.stage === "ripe" ? "#b47d2f" : visual.elementPalette.body;
-  ctx.beginPath();
-  ctx.roundRect(x + 9, y + tile - 8, progressWidth, 4, 999);
-  ctx.fill();
-
-  if (visual.stage === "ripe") {
-    for (let i = 0; i < 4; i += 1) {
-      ctx.fillStyle = i % 2 ? "rgba(255, 253, 245, 0.82)" : "rgba(246, 240, 182, 0.78)";
-      ctx.beginPath();
-      ctx.arc(x + tile * (0.24 + i * 0.16), y + tile * (0.22 + (i % 2) * 0.1) + Math.sin(motion * 2 + i) * (settings.reducedMotion ? 0 : 2), 2.6, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-  ctx.restore();
+  return drawCropWorldGrowthVisualWorld({
+    ctx,
+    x,
+    y,
+    tile,
+    plot,
+    visual,
+    settings,
+  });
 }
 
 function plantedCropSolarAffinitySummary(limit = 3) {
@@ -70810,201 +72035,61 @@ function plantedCropSolarAffinitySummary(limit = 3) {
 }
 
 function termLearningTagText(tags = "", fallback = "常规") {
-  const entries = splitTags(tags).slice(0, 3);
-  if (!entries.length) return fallback;
-  return entries.map((tag) => {
-    const map = {
-      spring_seed: "春种",
-      earth_crop: "土系作物",
-      water_crop: "水生作物",
-      growth_small: "小幅成长",
-      pest_sensitive: "虫害敏感",
-      balanced_growth: "平衡生长",
-      wood_crop: "木系作物",
-      spirit_up: "灵气活跃",
-      fire_crop: "火系作物",
-      yield_up: "产量提升",
-      seed_discount: "种子折扣",
-      basic_food: "基础食物",
-      water_goods: "水鲜货",
-      pest_goods: "防虫货",
-      defense_goods: "防护货",
-      tea_goods: "茶货",
-      fire_goods: "火系货",
-      grain_goods: "粮食货",
-    };
-    return map[tag] || shopTagLabel(tag);
-  }).join(" / ");
+  return termLearningTagTextUi({
+    tags,
+    fallback,
+    splitTags,
+    shopTagLabel,
+  });
 }
 
 function weatherWaterLearningText(weather = currentWeatherConfig()) {
-  const water = Number(weather?.water_bonus || 0);
-  const growth = Number(weather?.crop_growth_modifier || 1);
-  if (water >= 0.3) return `雨水充足，水分 ${signedPercent(water)}，但成长 ${multiplierText(growth)}；优先看低洼或水润田。`;
-  if (water <= -0.2) return `天气偏干，水分 ${signedPercent(water)}，成长 ${multiplierText(growth)}；入夜前先补水。`;
-  return `水分 ${signedPercent(water)}，成长 ${multiplierText(growth)}；按普通节奏浇水即可。`;
+  return weatherWaterLearningTextUi({
+    weather,
+    signedPercent,
+    multiplierText,
+  });
 }
 
 function termLearningCardSpec(term = currentTermConfig(), weather = currentWeatherConfig(), fieldBoard = solarFieldDecisionBoardSpec(4)) {
-  if (!term) return null;
-  const termName = localize(term.term_name_key, term.term_id);
-  const weatherName = localize(weather?.weather_name_key, weather?.weather_id || "weather_clear");
-  const affinity = plantedCropSolarAffinitySummary();
-  const riskRows = Array.isArray(fieldBoard?.allRows) ? fieldBoard.allRows.filter((row) => row.tone === "risk") : [];
-  const topRow = fieldBoard?.rows?.[0] || null;
-  const disaster = String(weather?.disaster_tag || "none");
-  const riskText = riskRows.length > 0
-    ? `${riskRows.length} 块风险田，先处理 ${riskRows[0].coord || "红色田块"}。`
-    : disaster && disaster !== "none"
-      ? `天气带有 ${disaster} 标签，先看节气风险面板。`
-      : "暂无明显风险，适合推进播种、浇水或收获。";
-  const fieldAction = topRow
-    ? `${topRow.action}：${topRow.detail}`
-    : "先清荒或播种一块灵田，让节气效果有落点。";
-  const shopText = `${termLearningTagText(term.market_bonus_tags, "基础商品")} 更容易成为今日旧铺话题。`;
-  return {
-    termName,
-    weatherName,
-    headline: `${termName}读法 · ${weatherName}`,
-    cropText: `${termLearningTagText(term.crop_bonus_tags, "普通作物")} 更吃香；已种适性：${affinity.text}。`,
-    waterText: weatherWaterLearningText(weather),
-    shopText,
-    riskText,
-    fieldAction,
-    safetyText: "只解释今日节气读法；不会自动播种、浇水、收获、开铺或处理风险。",
-  };
+  return termLearningCardSpecUi({
+    term,
+    weather,
+    fieldBoard,
+    localize,
+    plantedCropSolarAffinitySummary,
+    termLearningTagText,
+    weatherWaterLearningText,
+  });
 }
 
 function termLearningCardMarkup(spec = termLearningCardSpec()) {
-  if (!spec) return "";
-  return `
-    <div class="term-learning-card">
-      <strong>${spec.headline}</strong>
-      <div class="term-learning-grid">
-        <span><b>种什么</b><small>${spec.cropText}</small></span>
-        <span><b>怎么浇</b><small>${spec.waterText}</small></span>
-        <span><b>卖什么</b><small>${spec.shopText}</small></span>
-        <span><b>避什么</b><small>${spec.riskText}</small></span>
-      </div>
-      <small>今日第一判断：${spec.fieldAction}</small>
-      <em>${spec.safetyText}</em>
-    </div>
-  `;
+  return termLearningCardMarkupUi(spec);
 }
 
 function solarTermMoodSceneSpec(term = currentTermConfig(), weather = currentWeatherConfig(), fieldBoard = solarFieldDecisionBoardSpec(4)) {
-  if (!term) return null;
-  const atmosphere = solarTermAtmosphereProfile(term, weather?.visual_fx_id || "");
-  const mood = weatherWorldMoodSpec(weather, term, atmosphere);
-  const life = weatherLifeVignetteSpec(weather, currentLivingWorldState(), mood);
-  const termName = localize(term.term_name_key, term.term_id);
-  const weatherName = mood.weatherName || localize(weather?.weather_name_key, weather?.weather_id || "weather_clear");
-  const marketText = termLearningTagText(term.market_bonus_tags, "基础商品");
-  const cropText = termLearningTagText(term.crop_bonus_tags, "普通作物");
-  const spiritText = termLearningTagText(term.spirit_bonus_tags, "精怪日常");
-  const riskRows = Array.isArray(fieldBoard?.allRows) ? fieldBoard.allRows.filter((row) => row.tone === "risk") : [];
-  const risk = unresolvedRisks()[0] || null;
-  const topField = fieldBoard?.rows?.[0] || null;
-  const scene = life?.scenes?.[0] || null;
-  const spirit = state.spirits.find((entry) => entry.job) || state.spirits[0] || null;
-  const seasonalSpirit = spirit ? spiritSeasonalWorkMomentSpec(spirit, spirit.job || "farm", weather) : null;
-  const fieldTarget = topField ? `${topField.x},${topField.y}` : "";
-  const shopHasReport = state.shopReport.length > 0;
-  const warning = riskRows.length > 0 || Boolean(risk) || mood.warning;
-  const routes = [
-    {
-      key: "field",
-      tone: topField?.tone || "seed",
-      label: "田地画面",
-      title: topField ? topField.action : "给天时一个落点",
-      detail: topField ? `${topField.title}：${topField.detail}` : `${cropText}更吃今日天时，先选一块可照料灵田。`,
-      cta: topField ? "定位田块" : "看灵田卡",
-      action: "field",
-      target: fieldTarget,
-    },
-    {
-      key: "shop",
-      tone: shopHasReport ? "harvest" : "seed",
-      label: "旧铺画面",
-      title: shopHasReport ? "回看天气货签" : `预备${marketText}`,
-      detail: scene ? `${scene.label}：${scene.text}` : `${marketText}会成为今日门口话题，先把货架和价格想清楚。`,
-      cta: shopHasReport ? "回看旧铺" : "看备货位",
-      action: "shop",
-      target: "",
-    },
-    {
-      key: "spirit",
-      tone: spirit ? "boost" : "clear",
-      label: "精怪画面",
-      title: spirit ? `${spirit.name}的${seasonalSpirit?.jobLabel || jobName(spirit.job || "farm")}小动作` : "等待第一只精怪",
-      detail: spirit
-        ? `${seasonalSpirit?.summary || `${weatherName}会影响精怪岗位表现。`} · ${spiritText}`
-        : `${spiritText}会在精怪入队后变成岗位动作、语音和陪伴反馈。`,
-      cta: spirit ? "看岗位线" : "看精怪入口",
-      action: "spirit",
-      target: spirit?.job || "",
-    },
-    {
-      key: "risk",
-      tone: warning ? "risk" : "season",
-      label: "风险画面",
-      title: warning ? "先确认天时异动" : "今日风险平稳",
-      detail: risk
-        ? `${risk.title || "节气风险"}：入夜前处理可避免田地损失。`
-        : riskRows.length > 0
-          ? `${riskRows.length} 块风险田，先看红色田块再入夜。`
-          : `${mood.detail} 当前可把注意力放在田地、旧铺或精怪岗位。`,
-      cta: warning ? "看风险" : "看节气",
-      action: warning ? "risk" : "term",
-      target: "",
-    },
-  ];
-  return {
-    key: `${state.day}:${term.term_id}:${weather?.weather_id || "weather_clear"}:${mood.kind}`,
-    tone: mood.kind || "clear",
-    glyph: mood.glyph || "节",
-    termName,
-    weatherName,
-    title: `今日画境 · ${termName}`,
-    subtitle: `${weatherName} / ${atmosphere.label || "天时"} / ${mood.title}`,
-    ambience: mood.detail,
-    lifeTitle: scene ? scene.label : life?.title || "天气生活小景",
-    lifeText: scene ? scene.text : life?.summary || "今日天气先影响田垄、旧铺和精怪岗位的读法。",
-    lifeTarget: scene?.key || "",
-    routes,
-    safetyText: "这些按钮只定位画面和面板；不会自动播种、浇水、收获、开铺、派工、处理风险、入夜或消耗资源。",
-  };
+  return solarTermMoodSceneSpecUi({
+    term,
+    weather,
+    fieldBoard,
+    state,
+    localize,
+    solarTermAtmosphereProfile,
+    weatherWorldMoodSpec,
+    weatherLifeVignetteSpec,
+    currentLivingWorldState,
+    termLearningTagText,
+    unresolvedRisks,
+    spiritSeasonalWorkMomentSpec,
+    jobName,
+  });
 }
 
 function solarTermMoodSceneMarkup(spec = solarTermMoodSceneSpec()) {
-  if (!spec) return "";
-  return `
-    <div class="solar-term-mood-scene ${spec.tone}">
-      <div class="solar-term-mood-head">
-        <b>${spec.glyph}</b>
-        <span>
-          <strong>${spec.title}</strong>
-          <small>${spec.subtitle}</small>
-        </span>
-      </div>
-      <p>${spec.ambience}</p>
-      <button type="button" class="solar-term-mood-life" data-solar-term-mood-action="weather_life" data-solar-term-mood-target="${selectorDataValue(spec.lifeTarget)}">
-        <strong>${spec.lifeTitle}</strong>
-        <small>${spec.lifeText}</small>
-      </button>
-      <div class="solar-term-mood-routes">
-        ${spec.routes.map((row) => `
-          <button type="button" class="solar-term-mood-route ${row.tone}" data-solar-term-mood-route="${row.key}" data-solar-term-mood-action="${row.action}" data-solar-term-mood-target="${selectorDataValue(row.target)}">
-            <b>${row.label}</b>
-            <span>${row.title}</span>
-            <small>${row.detail}</small>
-            <em>${row.cta}</em>
-          </button>
-        `).join("")}
-      </div>
-      <em>${spec.safetyText}</em>
-    </div>
-  `;
+  return solarTermMoodSceneMarkupUi({
+    spec,
+    selectorDataValue,
+  });
 }
 
 function focusSolarTermMoodScene(action = "term", target = "") {
@@ -71063,59 +72148,21 @@ function focusSolarTermMoodScene(action = "term", target = "") {
 }
 
 function solarTermMoodPalette(tone = "clear") {
-  if (tone === "storm-rain" || tone === "soft-rain" || tone === "dew" || tone === "mist") {
-    return { accent: "#4d91a6", fill: "rgba(241, 249, 251, 0.9)", soft: "rgba(77, 145, 166, 0.16)" };
-  }
-  if (tone === "hot-wind" || tone === "drought") {
-    return { accent: "#be4f37", fill: "rgba(255, 240, 232, 0.9)", soft: "rgba(190, 79, 55, 0.14)" };
-  }
-  if (tone === "frost" || tone === "snow") {
-    return { accent: "#4d91a6", fill: "rgba(235, 244, 255, 0.9)", soft: "rgba(159, 209, 223, 0.2)" };
-  }
-  if (tone === "cloudy") return { accent: "#5d6f65", fill: "rgba(237, 243, 223, 0.9)", soft: "rgba(93, 111, 101, 0.12)" };
-  return { accent: "#b47d2f", fill: "rgba(255, 248, 232, 0.9)", soft: "rgba(224, 182, 109, 0.18)" };
+  return solarTermMoodPaletteWorld(tone);
 }
 
 function solarTermMoodWorldPlaqueSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, scene = solarTermMoodSceneSpec()) {
-  if (!scene) return null;
-  const progress = solarTermMoodProgressSpec();
-  const rect = {
-    x: Math.max(602, width - 314),
-    y: 42,
-    width: 272,
-    height: 116,
-  };
-  const warningRoute = scene.routes.find((row) => row.tone === "risk") || null;
-  const leadRoute = warningRoute || scene.routes.find((row) => row.key === "field") || scene.routes[0] || null;
-  return {
-    key: `${scene.key}:world-plaque`,
-    rect,
-    tone: scene.tone,
-    glyph: scene.glyph,
-    title: scene.title,
-    subtitle: scene.subtitle,
-    ambience: scene.ambience,
-    lifeTitle: scene.lifeTitle,
-    leadRoute,
-    progress,
-    routeChips: scene.routes.slice(0, 4).map((row) => ({
-      key: row.key,
-      label: row.label.replace("画面", ""),
-      tone: row.tone,
-      title: row.title,
-      visited: Boolean(progress.rows.find((entry) => entry.key === row.key)?.visited),
-    })),
-    safetyText: "点选只打开今日画境与节气面板，不会自动播种、浇水、开铺、派工、处理风险、入夜或消耗资源。",
+  return solarTermMoodWorldPlaqueSpecWorld({
     width,
     height,
-  };
+    scene,
+    progress: solarTermMoodProgressSpec(),
+  });
 }
 
 function solarTermMoodWorldPlaqueAtCanvasPoint(px, py) {
   const spec = solarTermMoodWorldPlaqueSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height ? spec : null;
+  return solarTermMoodWorldPlaqueAtCanvasPointWorld({ px, py, spec });
 }
 
 function focusSolarTermMoodWorldPlaqueFromCanvas(spec = solarTermMoodWorldPlaqueSpec()) {
@@ -71136,344 +72183,136 @@ function focusSolarTermMoodWorldPlaqueFromCanvas(spec = solarTermMoodWorldPlaque
 }
 
 function drawSolarTermMoodWorldPlaque(ctx, spec = solarTermMoodWorldPlaqueSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
-  if (!spec?.rect) return false;
-  const { rect } = spec;
-  const palette = solarTermMoodPalette(spec.tone);
-  const active = solarTermMoodWorldPlaqueFocus?.day === state.day && solarTermMoodWorldPlaqueFocus?.key === spec.key;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.35) * 1.6;
-  const y = rect.y + bob;
-  ctx.save();
-  ctx.strokeStyle = active ? `${palette.accent}ee` : `${palette.accent}66`;
-  ctx.lineWidth = active ? 2.8 : 1.5;
-  ctx.setLineDash(active ? [] : [8, 8]);
-  ctx.beginPath();
-  ctx.moveTo(rect.x + rect.width - 38, y + rect.height);
-  ctx.quadraticCurveTo(rect.x + rect.width - 74, y + rect.height + 20, rect.x + rect.width - 118, y + rect.height + 4);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, y, rect.width, rect.height, palette.fill);
-  ctx.strokeStyle = active ? `${palette.accent}ee` : `${palette.accent}88`;
-  ctx.lineWidth = active ? 2.4 : 1.4;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, y + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = palette.soft;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, y + 14, 48, 48, 16);
-  ctx.fill();
-  ctx.strokeStyle = palette.accent;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(rect.x + 38, y + 38, 15, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 18px Microsoft YaHei";
-  ctx.fillText(spec.glyph || "节", rect.x + 29, y + 44);
-  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 19, y + 53, 38, 15, 8);
-  ctx.fill();
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + 28, y + 64);
-
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(`主世界今日画境 · 读懂 ${spec.progress?.label || "0/4"}`, rect.x + 76, y + 24);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(spec.title.slice(0, 16), rect.x + 76, y + 46);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(spec.subtitle.slice(0, 28), rect.x + 76, y + 64);
-
-  const lead = spec.leadRoute;
-  ctx.fillStyle = "rgba(255, 253, 245, 0.82)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 16, y + 74, rect.width - 32, 20, 10);
-  ctx.fill();
-  ctx.fillStyle = lead?.tone === "risk" ? "#be4f37" : palette.accent;
-  ctx.font = "800 10px Microsoft YaHei";
-  ctx.fillText((lead ? `先看：${lead.label} · ${lead.title}` : spec.lifeTitle).slice(0, 30), rect.x + 26, y + 88);
-
-  spec.routeChips.forEach((chip, index) => {
-    const chipX = rect.x + 18 + index * 60;
-    const chipY = y + 98;
-    const chipAccent = chip.tone === "risk" ? "#be4f37" : chip.tone === "boost" || chip.tone === "harvest" || chip.tone === "season" ? "#b47d2f" : chip.tone === "water" || chip.tone === "seed" ? "#4d91a6" : "#286f58";
-    ctx.fillStyle = chip.visited ? `${chipAccent}2d` : `${chipAccent}18`;
-    ctx.beginPath();
-    ctx.roundRect(chipX, chipY, 52, 14, 7);
-    ctx.fill();
-    ctx.fillStyle = chipAccent;
-    ctx.font = "800 9px Microsoft YaHei";
-    ctx.fillText(`${chip.visited ? "✓" : ""}${chip.label.slice(0, 3)}`, chipX + 7, chipY + 10);
+  return drawSolarTermMoodWorldPlaqueWorld({
+    ctx,
+    spec,
+    motion,
+    state,
+    settings,
+    solarTermMoodWorldPlaqueFocus,
+    solarTermMoodPalette,
+    drawCanvasCard,
   });
-  ctx.restore();
-  return true;
 }
 
 function solarTermMoodClamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
+  return solarTermMoodClampWorld(value, min, max);
 }
 
 function solarTermMoodRouteGlyph(key = "") {
-  const glyphs = {
-    field: "田",
-    shop: "铺",
-    spirit: "怪",
-    risk: "险",
-  };
-  return glyphs[key] || "景";
+  return solarTermMoodRouteGlyphWorld(key);
 }
 
 function solarTermMoodRouteAnchor(row, index = 0, width = refs.world?.width || 960, height = refs.world?.height || 640) {
-  const metrics = gridMetrics();
-  if (row.key === "field" && row.target) {
-    const [xValue, yValue] = String(row.target).split(",");
-    const x = Number(xValue);
-    const y = Number(yValue);
-    if (Number.isFinite(x) && Number.isFinite(y)) {
-      return {
-        x: metrics.originX + x * (metrics.tile + metrics.gap) + metrics.tile * 0.5,
-        y: metrics.originY + y * (metrics.tile + metrics.gap) + metrics.tile * 0.5,
-      };
-    }
-  }
-  if (row.key === "shop") return { x: 142, y: 230 };
-  if (row.key === "spirit") {
-    const spirit = row.target
-      ? state.spirits.find((entry) => (entry.job || "farm") === row.target) || state.spirits[0]
-      : state.spirits[0];
-    if (spirit) {
-      const sameJobIndex = state.spirits.filter((entry) => (entry.job || "farm") === (spirit.job || "farm")).findIndex((entry) => entry.id === spirit.id);
-      const globalIndex = state.spirits.findIndex((entry) => entry.id === spirit.id);
-      const station = spiritJobStation(spirit, Math.max(0, sameJobIndex), Math.max(0, globalIndex));
-      return { x: station.x + station.size * 0.52, y: station.y + station.size * 0.48 };
-    }
-    return { x: width - 240, y: 286 };
-  }
-  if (row.key === "risk") return { x: width - 176, y: 334 };
-  return { x: 120 + index * 120, y: height - 132 };
+  return solarTermMoodRouteAnchorWorld({
+    row,
+    index,
+    width,
+    height,
+    metrics: gridMetrics(),
+    state,
+    spiritJobStation,
+  });
 }
 
 function solarTermMoodRouteRect(row, anchor, index = 0, width = refs.world?.width || 960, height = refs.world?.height || 640) {
-  const cardWidth = 126;
-  const cardHeight = 54;
-  const presets = {
-    shop: { x: 60, y: 250 },
-    spirit: { x: solarTermMoodClamp(anchor.x + 26, 18, width - cardWidth - 18), y: solarTermMoodClamp(anchor.y - 28, 78, height - cardHeight - 20) },
-    risk: { x: width - cardWidth - 34, y: 354 },
-  };
-  if (row.key === "field") {
-    return {
-      x: solarTermMoodClamp(anchor.x + (anchor.x < width * 0.62 ? 26 : -cardWidth - 26), 18, width - cardWidth - 18),
-      y: solarTermMoodClamp(anchor.y - 26, 82, height - cardHeight - 18),
-      width: cardWidth,
-      height: cardHeight,
-    };
-  }
-  const preset = presets[row.key] || { x: 84 + index * 138, y: height - 120 };
-  return {
-    x: solarTermMoodClamp(preset.x, 18, width - cardWidth - 18),
-    y: solarTermMoodClamp(preset.y, 82, height - cardHeight - 18),
-    width: cardWidth,
-    height: cardHeight,
-  };
+  return solarTermMoodRouteRectWorld({
+    row,
+    anchor,
+    index,
+    width,
+    height,
+    solarTermMoodClamp,
+  });
 }
 
 function solarTermMoodWorldRouteTargets(width = refs.world?.width || 960, height = refs.world?.height || 640, scene = solarTermMoodSceneSpec()) {
-  if (!scene?.routes?.length) return [];
-  const progress = solarTermMoodProgressSpec();
-  return scene.routes.slice(0, 4).map((row, index) => {
-    const anchor = solarTermMoodRouteAnchor(row, index, width, height);
-    const rect = solarTermMoodRouteRect(row, anchor, index, width, height);
-    const progressRow = progress.rows.find((entry) => entry.key === row.key) || null;
-    return {
-      ...row,
-      id: `solar_term_mood_route_${row.key}`,
-      key: `${scene.key}:${row.key}`,
-      sceneKey: scene.key,
-      glyph: solarTermMoodRouteGlyph(row.key),
-      visited: Boolean(progressRow?.visited),
-      anchor,
-      rect,
-    };
+  return solarTermMoodWorldRouteTargetsWorld({
+    width,
+    height,
+    scene,
+    progress: solarTermMoodProgressSpec(),
+    metrics: gridMetrics(),
+    state,
+    spiritJobStation,
+    solarTermMoodRouteAnchor,
+    solarTermMoodRouteRect,
+    solarTermMoodRouteGlyph,
   });
 }
 
 function solarTermMoodWorldRouteAtCanvasPoint(px, py) {
-  return solarTermMoodWorldRouteTargets()
-    .slice()
-    .reverse()
-    .find((target) => (
-      px >= target.rect.x
-      && px <= target.rect.x + target.rect.width
-      && py >= target.rect.y
-      && py <= target.rect.y + target.rect.height
-    )) || null;
+  return solarTermMoodWorldRouteAtCanvasPointWorld({
+    px,
+    py,
+    targets: solarTermMoodWorldRouteTargets(),
+  });
 }
 
 function normalizeSolarTermMoodTrailEntry(entry = {}) {
-  return {
-    day: Number(entry.day || state.day),
-    key: String(entry.key || entry.action || "term"),
-    source: String(entry.source || "world_route"),
-    termId: String(entry.termId || currentTermId()),
-    termName: String(entry.termName || localize(currentTermConfig()?.term_name_key, currentTermId())),
-    weatherId: String(entry.weatherId || currentWeatherConfig()?.weather_id || state.weatherId),
-    weatherName: String(entry.weatherName || localize(currentWeatherConfig()?.weather_name_key, state.weatherId)),
-    label: String(entry.label || "节气"),
-    title: String(entry.title || "今日画境"),
-    detail: String(entry.detail || "今天已经看过这条节气画境路线。"),
-    tone: String(entry.tone || "clear"),
-    action: String(entry.action || "term"),
-    target: String(entry.target || ""),
-  };
+  return normalizeSolarTermMoodTrailEntryWorld({
+    entry,
+    stateDay: state.day,
+    termId: currentTermId(),
+    termName: localize(currentTermConfig()?.term_name_key, currentTermId()),
+    weatherId: currentWeatherConfig()?.weather_id || state.weatherId,
+    weatherName: localize(currentWeatherConfig()?.weather_name_key, state.weatherId),
+  });
 }
 
 function recordSolarTermMoodTrail(entry = {}) {
   const normalized = normalizeSolarTermMoodTrailEntry(entry);
-  state.solarTermMoodTrail = [
+  state.solarTermMoodTrail = recordSolarTermMoodTrailNextWorld({
     normalized,
-    ...(state.solarTermMoodTrail || [])
-      .map(normalizeSolarTermMoodTrailEntry)
-      .filter((item) => !(item.day === normalized.day && item.key === normalized.key && item.action === normalized.action)),
-  ]
-    .filter((item) => Number(item.day || 0) >= state.day - 3)
-    .slice(0, 12);
+    trail: state.solarTermMoodTrail || [],
+    stateDay: state.day,
+    normalizeSolarTermMoodTrailEntry,
+  });
   syncSolarTermMoodStampArchiveForDay(normalized.day);
   return normalized;
 }
 
 function solarTermMoodTrailForDay(day = state.day, limit = 4) {
-  return (state.solarTermMoodTrail || [])
-    .map(normalizeSolarTermMoodTrailEntry)
-    .filter((entry) => entry.day === day)
-    .slice(0, Math.max(0, limit));
+  return solarTermMoodTrailForDayWorld({
+    day,
+    limit,
+    trail: state.solarTermMoodTrail || [],
+    normalizeSolarTermMoodTrailEntry,
+  });
 }
 
 function solarTermMoodRouteKeyFromTrail(entry = {}) {
-  const routeKeys = ["field", "shop", "spirit", "risk"];
-  if (routeKeys.includes(entry.action)) return entry.action;
-  const keyPart = String(entry.key || "").split(":").pop();
-  return routeKeys.includes(keyPart) ? keyPart : "";
+  return solarTermMoodRouteKeyFromTrailWorld(entry);
 }
 
 function solarTermMoodProgressSpec(day = state.day, trail = state.solarTermMoodTrail || []) {
-  const labels = {
-    field: "田地",
-    shop: "旧铺",
-    spirit: "精怪",
-    risk: "风险",
-  };
-  const entries = (trail || [])
-    .map(normalizeSolarTermMoodTrailEntry)
-    .filter((entry) => entry.day === day);
-  const rows = Object.keys(labels).map((key) => {
-    const entry = entries.find((item) => solarTermMoodRouteKeyFromTrail(item) === key) || null;
-    return {
-      key,
-      label: labels[key],
-      visited: Boolean(entry),
-      entry,
-    };
-  });
-  const visitedCount = rows.filter((row) => row.visited).length;
-  const missing = rows.filter((row) => !row.visited).map((row) => row.label);
-  return {
+  return solarTermMoodProgressSpecWorld({
     day,
-    rows,
-    visitedCount,
-    total: rows.length,
-    complete: visitedCount === rows.length,
-    label: `${visitedCount}/${rows.length}`,
-    summary: visitedCount === rows.length
-      ? "四路读懂：今天已经把田地、旧铺、精怪和风险都接到节气里。"
-      : visitedCount > 0
-        ? `已读 ${visitedCount}/${rows.length} 路，未看 ${missing.join("、") || "无"}。`
-        : "还没点读今日画境，先从主世界右上角小牌或四路地标开始。",
-  };
+    trail,
+    normalizeSolarTermMoodTrailEntry,
+    solarTermMoodRouteKeyFromTrail,
+  });
 }
 
 function solarTermMoodStampArchiveEntryForDay(day = state.day, trail = state.solarTermMoodTrail || []) {
-  const entries = (trail || [])
-    .map(normalizeSolarTermMoodTrailEntry)
-    .filter((entry) => entry.day === day);
-  if (!entries.length) return null;
-  const progress = solarTermMoodProgressSpec(day, entries);
-  if (!progress.complete) return null;
-  const routeEntries = progress.rows
-    .map((row) => row.entry)
-    .filter(Boolean)
-    .map(normalizeSolarTermMoodTrailEntry);
-  const first = routeEntries[0] || entries[0];
-  return {
-    stampId: `${day}:${first.termId}:${first.weatherId}`,
-    day: Number(day || state.day),
-    termId: first.termId,
-    termName: first.termName,
-    weatherId: first.weatherId,
-    weatherName: first.weatherName,
-    tone: first.tone || "clear",
-    glyph: String(first.termName || "节").slice(0, 1),
-    title: `${first.termName} · ${first.weatherName}`,
-    detail: "四路读懂后收进目标册的非数值印记，用来证明这一天的节气已经从氛围变成可执行地图。",
-    routeKeys: progress.rows.map((row) => row.key),
-    routeEntries,
-    completedAtDay: state.day,
-    safetyText: "印记只用于收藏和定位回看；不会自动播种、浇水、收获、开铺、派工、处理风险、入夜或消耗资源。",
-  };
+  return solarTermMoodStampArchiveEntryForDayWorld({
+    day,
+    trail,
+    stateDay: state.day,
+    normalizeSolarTermMoodTrailEntry,
+    solarTermMoodProgressSpec,
+  });
 }
 
 function normalizeSolarTermMoodStampArchiveEntry(entry = {}) {
-  const routeEntries = (entry.routeEntries || entry.routes || [])
-    .map(normalizeSolarTermMoodTrailEntry);
-  const routeKeys = new Set([
-    ...(Array.isArray(entry.routeKeys) ? entry.routeKeys : []),
-    ...routeEntries.map(solarTermMoodRouteKeyFromTrail).filter(Boolean),
-  ]);
-  const labels = {
-    field: "田地",
-    shop: "旧铺",
-    spirit: "精怪",
-    risk: "风险",
-  };
-  const rows = Object.keys(labels).map((key) => {
-    const trailEntry = routeEntries.find((item) => solarTermMoodRouteKeyFromTrail(item) === key) || null;
-    return {
-      key,
-      label: labels[key],
-      visited: routeKeys.has(key) || Boolean(trailEntry),
-      entry: trailEntry,
-    };
+  return normalizeSolarTermMoodStampArchiveEntryWorld({
+    entry,
+    stateDay: state.day,
+    currentTermId,
+    stateWeatherId: state.weatherId,
+    normalizeSolarTermMoodTrailEntry,
+    solarTermMoodRouteKeyFromTrail,
   });
-  const visitedCount = rows.filter((row) => row.visited).length;
-  const termName = String(entry.termName || entry.term_name || "今日节气");
-  const weatherName = String(entry.weatherName || entry.weather_name || "今日天气");
-  return {
-    stampId: String(entry.stampId || entry.stamp_id || `${entry.day || state.day}:${entry.termId || currentTermId()}:${entry.weatherId || state.weatherId}`),
-    day: Number(entry.day || state.day),
-    termId: String(entry.termId || entry.term_id || currentTermId()),
-    termName,
-    weatherId: String(entry.weatherId || entry.weather_id || state.weatherId),
-    weatherName,
-    tone: String(entry.tone || "clear"),
-    glyph: String(entry.glyph || termName || "节").slice(0, 1),
-    title: String(entry.title || `${termName} · ${weatherName}`),
-    detail: String(entry.detail || "四路读懂后收进目标册的节气画境印记。"),
-    routeKeys: rows.filter((row) => row.visited).map((row) => row.key),
-    routeEntries,
-    rows,
-    visitedCount,
-    total: rows.length,
-    complete: visitedCount >= rows.length,
-    label: `${visitedCount}/${rows.length}`,
-    stateClass: visitedCount >= rows.length ? "done" : visitedCount > 0 ? "ready" : "pending",
-    completedAtDay: Number(entry.completedAtDay || entry.completed_at_day || entry.day || state.day),
-    safetyText: String(entry.safetyText || "印记只用于收藏和定位回看；不会自动播种、浇水、收获、开铺、派工、处理风险、入夜或消耗资源。"),
-  };
 }
 
 function syncSolarTermMoodStampArchiveForDay(day = state.day, trail = state.solarTermMoodTrail || []) {
@@ -71487,101 +72326,36 @@ function syncSolarTermMoodStampArchiveForDay(day = state.day, trail = state.sola
 }
 
 function solarTermMoodStampArchiveRows(limit = 6) {
-  const archiveRows = (state.solarTermMoodStampArchive || [])
-    .map(normalizeSolarTermMoodStampArchiveEntry)
-    .sort((a, b) => (b.day - a.day) || String(b.stampId).localeCompare(String(a.stampId)));
-  const progress = solarTermMoodProgressSpec();
-  const scene = solarTermMoodSceneSpec();
-  const term = currentTermConfig();
-  const weather = currentWeatherConfig();
-  const todayTermId = currentTermId();
-  const todayWeatherId = weather?.weather_id || state.weatherId;
-  const todayTermName = localize(term?.term_name_key, todayTermId);
-  const todayWeatherName = localize(weather?.weather_name_key, todayWeatherId);
-  const todayRows = progress.rows.map((row) => ({
-    key: row.key,
-    label: row.label,
-    visited: row.visited,
-    entry: row.entry ? normalizeSolarTermMoodTrailEntry(row.entry) : null,
-  }));
-  const todayRow = {
-    stampId: `${state.day}:${todayTermId}:${todayWeatherId}:today`,
-    day: state.day,
-    termId: todayTermId,
-    termName: todayTermName,
-    weatherId: todayWeatherId,
-    weatherName: todayWeatherName,
-    tone: scene?.tone || "clear",
-    glyph: scene?.glyph || String(todayTermName || "节").slice(0, 1),
-    title: `今日印记 · ${todayTermName}`,
-    detail: progress.complete
-      ? `${todayTermName} · ${todayWeatherName} 已经四路读懂，今晚会像一枚合图印一样留在目标册。`
-      : progress.summary,
-    rows: todayRows,
-    visitedCount: progress.visitedCount,
-    total: progress.total,
-    complete: progress.complete,
-    label: progress.label,
-    stateClass: progress.complete ? "done" : progress.visitedCount > 0 ? "ready" : "pending",
-    isToday: true,
-    cta: progress.complete ? "回看今日合图" : "继续读今日四路",
-    safetyText: "按钮只定位回看今日画境；不会自动播种、浇水、收获、开铺、派工、处理风险、入夜或消耗资源。",
-  };
-  const oldRows = archiveRows.filter((row) => !(row.day === todayRow.day && row.termId === todayRow.termId && row.weatherId === todayRow.weatherId));
-  return [todayRow, ...oldRows].slice(0, Math.max(1, limit));
+  return solarTermMoodStampArchiveRowsWorld({
+    limit,
+    archive: state.solarTermMoodStampArchive || [],
+    stateDay: state.day,
+    stateWeatherId: state.weatherId,
+    progress: solarTermMoodProgressSpec(),
+    scene: solarTermMoodSceneSpec(),
+    term: currentTermConfig(),
+    weather: currentWeatherConfig(),
+    currentTermId,
+    localize,
+    normalizeSolarTermMoodTrailEntry,
+    normalizeSolarTermMoodStampArchiveEntry,
+  });
 }
 
 function solarTermMoodStampArchiveSpec(limit = 6) {
   const rows = solarTermMoodStampArchiveRows(limit);
-  const archiveCount = (state.solarTermMoodStampArchive || []).map(normalizeSolarTermMoodStampArchiveEntry).length;
-  const completeCount = rows.filter((row) => row.complete).length;
-  const today = rows.find((row) => row.isToday) || rows[0] || null;
-  return {
+  return solarTermMoodStampArchiveSpecWorld({
     rows,
-    completeCount,
-    archiveCount,
-    today,
-    stateClass: today?.complete ? "done" : today?.visitedCount > 0 ? "ready" : archiveCount > 0 ? "ready" : "pending",
-    title: `节气画境印记 ${completeCount}/${rows.length}`,
-    subtitle: archiveCount > 0
-      ? `已收录 ${archiveCount} 枚合图印；最近 ${rows.length} 枚可在这里回看。`
-      : "先把今日画境的田地、旧铺、精怪和风险四路都点读一遍，第一枚合图印就会落页。",
-    safetyText: "目标册按钮只定位画境或节气面板，不会自动播种、浇水、收获、开铺、派工、处理风险、入夜或消耗资源。",
-  };
+    archive: state.solarTermMoodStampArchive || [],
+    normalizeSolarTermMoodStampArchiveEntry,
+  });
 }
 
 function solarTermMoodStampArchiveMarkup(spec = solarTermMoodStampArchiveSpec()) {
-  if (!spec?.rows?.length) return "";
-  return `
-    <div class="goal-card solar-mood-stamp-archive ${spec.stateClass}">
-      <strong>${spec.title}</strong>
-      <span>${spec.subtitle}</span>
-      <div class="solar-mood-stamp-grid">
-        ${spec.rows.map((row) => `
-          <div class="solar-mood-stamp-page ${row.stateClass} ${row.isToday ? "today" : "archive"}" data-solar-mood-stamp="${selectorDataValue(row.stampId)}">
-            <div class="solar-mood-stamp-seal">
-              <b>${row.glyph || "节"}</b>
-              <small>${row.complete ? "合图印" : row.label}</small>
-            </div>
-            <div class="solar-mood-stamp-copy">
-              <strong>第 ${row.day} 天 · ${row.termName} · ${row.weatherName}</strong>
-              <span>${row.detail}</span>
-              <div class="solar-mood-stamp-routes">
-                ${row.rows.map((route) => `
-                  <button type="button" class="solar-mood-stamp-route ${route.key} ${route.visited ? "visited" : "missing"}" data-solar-mood-stamp="${selectorDataValue(row.stampId)}" data-solar-mood-stamp-route="${route.key}">
-                    <b>${route.label}</b>
-                    <small>${route.visited ? (route.entry?.title || "已读懂") : "待点读"}</small>
-                  </button>
-                `).join("")}
-              </div>
-              <button type="button" data-solar-mood-stamp="${selectorDataValue(row.stampId)}">${row.cta || (row.complete ? "回看印记" : "继续点读")}</button>
-            </div>
-          </div>
-        `).join("")}
-      </div>
-      <small>${spec.safetyText}</small>
-    </div>
-  `;
+  return solarTermMoodStampArchiveMarkupWorld({
+    spec,
+    selectorDataValue,
+  });
 }
 
 function recordSolarTermMoodPanelRoute(routeKey = "", action = "", target = "") {
@@ -71656,129 +72430,46 @@ function focusSolarTermMoodStampArchiveRoute(stampId = "", routeKey = "") {
 }
 
 function solarTermMoodShopDisplaySpec(archiveSpec = solarTermMoodStampArchiveSpec(5)) {
-  const rows = archiveSpec.rows || [];
-  const today = archiveSpec.today || null;
-  const displayRows = rows
-    .filter((row) => row.complete || row.isToday || row.visitedCount > 0)
-    .slice(0, 3);
-  if (!displayRows.length || (!archiveSpec.archiveCount && !today?.visitedCount)) return null;
-  const lead = displayRows.find((row) => row.complete) || displayRows[0];
-  const routeText = (lead.rows || [])
-    .filter((route) => route.visited)
-    .map((route) => route.label)
-    .join(" / ") || "待点读";
-  return {
-    key: `solar-mood-shop-display:${state.day}:${archiveSpec.archiveCount}:${today?.label || "0/4"}`,
-    title: "画境印记陈设架",
-    headline: archiveSpec.archiveCount > 0
-      ? `${archiveSpec.archiveCount} 枚合图印压在旧铺门口`
-      : `今日画境已读 ${today?.label || "0/4"}，正在等第一枚合图印`,
-    detail: lead.complete
-      ? `${lead.termName} · ${lead.weatherName} 已被摆成门口小印牌，来客能看见这天的田、铺、怪、险都被认真读过。`
-      : `${lead.termName} · ${lead.weatherName} 还差几路，陈设架先亮出今日读法。`,
-    rows: displayRows,
-    lead,
-    routeText,
-    stampCount: archiveSpec.archiveCount,
-    stateClass: lead.complete ? "done" : today?.visitedCount > 0 ? "ready" : "pending",
-    safetyText: "陈设只用于氛围、收藏和定位回看；不会自动开铺、定价、补货、交单、播种、处理风险、入夜或消耗资源。",
-  };
+  return solarTermMoodShopDisplaySpecWorld({
+    archiveSpec,
+    day: state.day,
+  });
 }
 
 function solarTermMoodShopDisplayCustomerEchoSpec(display = solarTermMoodShopDisplaySpec(), opening = normalizeShopOpeningState(state.shopOpeningState)) {
-  if (!display?.lead) return null;
-  const lead = display.lead;
-  const shopActive = Boolean(opening.opened || opening.lastSession || state.shopReport.length > 0 || sellableInventoryGoods().length > 0);
-  const reportLead = (state.shopReport || []).find((entry) => entry.reason === "buy" || entry.reason === "need" || entry.reason === "tag" || entry.reason === "price") || null;
-  const customerName = reportLead?.name || opening.needBubbles?.[0]?.name || (shopActive ? "赶集客" : "路过镇民");
-  const routeText = display.routeText || (lead.rows || []).filter((route) => route.visited).map((route) => route.label).join(" / ") || "田 / 铺 / 怪 / 险";
-  const complete = Boolean(lead.complete);
-  const bubble = complete
-    ? `这枚${lead.termName}印，像是把今日田铺都照应过。`
-    : `${lead.termName}的印还没满，门口已有天时味。`;
-  return {
-    key: `${display.key}:customer-echo`,
-    stampId: lead.stampId,
-    customerName,
-    customerArchetype: reportLead?.customerArchetype || "villager",
-    title: shopActive ? "画境陈设来客回响" : "画境陈设门口预告",
-    bubble,
-    detail: complete
-      ? `${lead.termName} · ${lead.weatherName} 的合图印让旧铺门口多了一层“今天被认真经营过”的生活痕迹。`
-      : `${lead.termName} · ${lead.weatherName} 还在补齐四路，陈设架先把已读懂的 ${routeText} 亮出来。`,
-    routeText,
-    stateClass: complete ? "done" : "ready",
-    safetyText: "这只是来客观察和收藏回看；不会自动开铺、定价、补货、交单、播种、处理风险、入夜或消耗资源。",
-  };
+  return solarTermMoodShopDisplayCustomerEchoSpecWorld({
+    display,
+    opening,
+    shopReport: state.shopReport || [],
+    sellableGoodsCount: sellableInventoryGoods().length,
+  });
 }
 
 function solarTermMoodShopDisplayCustomerEchoMarkup(spec = solarTermMoodShopDisplayCustomerEchoSpec()) {
-  if (!spec) return "";
-  return `
-    <div class="solar-mood-shop-display-echo ${spec.stateClass}">
-      <strong>${spec.title}</strong>
-      <span>${spec.customerName}：${spec.bubble}</span>
-      <small>${spec.detail}</small>
-      <small>看见的路线：${spec.routeText}</small>
-      <button type="button" data-solar-mood-shop-display="${selectorDataValue(spec.stampId)}">回看这枚画境印</button>
-      <small>${spec.safetyText}</small>
-    </div>
-  `;
+  return solarTermMoodShopDisplayCustomerEchoMarkupWorld({
+    spec,
+    selectorDataValue,
+  });
 }
 
 function solarTermMoodShopDisplayDaySummarySpec(echo = solarTermMoodShopDisplayCustomerEchoSpec()) {
-  if (!echo) return null;
-  return {
-    key: `${echo.key}:day-summary`,
-    stampId: echo.stampId,
-    title: "旧铺画境陈设回响",
-    headline: `${echo.customerName}看见了${echo.routeText}`,
-    customerName: echo.customerName,
-    bubble: echo.bubble,
-    detail: echo.detail,
-    routeText: echo.routeText,
-    stateClass: echo.stateClass || "ready",
-    safetyText: "日终按钮只定位陈设来源和目标册印记，不会自动开铺、定价、补货、交单、播种、处理风险、入夜或消耗资源。",
-  };
+  return solarTermMoodShopDisplayDaySummarySpecWorld(echo);
 }
 
 function solarTermMoodShopDisplayDaySummaryMarkup(spec = state.lastDaySummary?.solarTermMoodShopDisplayEcho || null) {
-  if (!spec) return "";
-  return `
-    <div class="day-summary-solar-shop-display ${spec.stateClass || "ready"}">
-      <strong>${spec.title || "旧铺画境陈设回响"}</strong>
-      <span><b>${spec.customerName || "来客"}</b>${spec.bubble || "门口的画境印被看见了。"}</span>
-      <small>${spec.detail || ""}</small>
-      <div class="day-summary-solar-shop-display-row">
-        <span>看见的路线：${spec.routeText || "田 / 铺 / 怪 / 险"}</span>
-        <button type="button" data-day-summary-solar-shop-display="${selectorDataValue(spec.stampId || "")}">回看陈设来源</button>
-      </div>
-      <small>${spec.safetyText || "只定位回看，不会自动执行经营动作。"}</small>
-    </div>
-  `;
+  return solarTermMoodShopDisplayDaySummaryMarkupWorld({
+    spec,
+    selectorDataValue,
+  });
 }
 
 function solarTermMoodShopDisplayMarkup(spec = solarTermMoodShopDisplaySpec()) {
-  if (!spec) return "";
   const echoMarkup = solarTermMoodShopDisplayCustomerEchoMarkup(solarTermMoodShopDisplayCustomerEchoSpec(spec));
-  return `
-    <div class="shop-season-card solar-mood-shop-display ${spec.stateClass}" data-shop-board="solar-mood-display">
-      <strong>${spec.title}</strong>
-      <span>${spec.headline}</span>
-      <small>${spec.detail}</small>
-      <div class="solar-mood-shop-display-grid">
-        ${spec.rows.map((row) => `
-          <button type="button" class="solar-mood-shop-display-stamp ${row.complete ? "done" : row.visitedCount > 0 ? "ready" : "pending"}" data-solar-mood-shop-display="${selectorDataValue(row.stampId)}">
-            <b>${row.glyph || "印"}</b>
-            <span>第 ${row.day} 天 · ${row.termName}</span>
-            <small>${row.weatherName} · ${row.complete ? "合图印" : `读懂 ${row.label}`}</small>
-          </button>
-        `).join("")}
-      </div>
-      ${echoMarkup}
-      <small>${spec.safetyText}</small>
-    </div>
-  `;
+  return solarTermMoodShopDisplayMarkupWorld({
+    spec,
+    echoMarkup,
+    selectorDataValue,
+  });
 }
 
 function focusSolarTermMoodShopDisplay(stampId = "") {
@@ -71799,18 +72490,15 @@ function focusSolarTermMoodShopDisplay(stampId = "") {
 }
 
 function solarTermMoodShopDisplayWorldSpec(spec = solarTermMoodShopDisplaySpec()) {
-  if (!spec) return null;
-  return {
-    ...spec,
-    rect: { x: 62, y: 166, width: 154, height: 70 },
-  };
+  return solarTermMoodShopDisplayWorldSpecWorld(spec);
 }
 
 function solarTermMoodShopDisplayWorldAtCanvasPoint(px, py) {
-  const spec = solarTermMoodShopDisplayWorldSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height ? spec : null;
+  return solarTermMoodShopDisplayWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: solarTermMoodShopDisplayWorldSpec(),
+  });
 }
 
 function focusSolarTermMoodShopDisplayWorld(spec = solarTermMoodShopDisplayWorldSpec()) {
@@ -71820,104 +72508,31 @@ function focusSolarTermMoodShopDisplayWorld(spec = solarTermMoodShopDisplayWorld
 }
 
 function drawSolarTermMoodShopDisplayWorld(ctx, spec = solarTermMoodShopDisplayWorldSpec(), motion = performance.now() / 1000) {
-  if (!spec?.rect) return false;
-  const { rect } = spec;
-  const palette = solarTermMoodPalette(spec.lead?.tone || "clear");
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.4) * 1.4;
-  const y = rect.y + bob;
-  ctx.save();
-  ctx.fillStyle = "rgba(23, 35, 29, 0.14)";
-  ctx.beginPath();
-  ctx.ellipse(rect.x + 74, y + rect.height + 10, 74, 10, 0, 0, Math.PI * 2);
-  ctx.fill();
-  drawCanvasCard(ctx, rect.x, y, rect.width, rect.height, "rgba(255, 248, 232, 0.9)");
-  ctx.strokeStyle = `${palette.accent}88`;
-  ctx.lineWidth = 1.6;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, y + 1.5, rect.width - 3, rect.height - 3, 16);
-  ctx.stroke();
-  ctx.fillStyle = `${palette.accent}1f`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 10, y + 10, 38, 48, 12);
-  ctx.fill();
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 16px Microsoft YaHei";
-  ctx.fillText(spec.lead?.glyph || "印", rect.x + 22, y + 32);
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + 21, y + 49);
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 10px Microsoft YaHei";
-  ctx.fillText("画境印记陈设", rect.x + 56, y + 21);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 11px Microsoft YaHei";
-  ctx.fillText((spec.lead ? `${spec.lead.termName} · ${spec.lead.weatherName}` : spec.headline).slice(0, 13), rect.x + 56, y + 38);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "9px Microsoft YaHei";
-  ctx.fillText((spec.routeText || "田 / 铺 / 怪 / 险").slice(0, 16), rect.x + 56, y + 53);
-  spec.rows.slice(0, 3).forEach((row, index) => {
-    const sx = rect.x + 12 + index * 23;
-    const sy = y + rect.height - 12 + Math.sin(motion * 1.8 + index) * (settings.reducedMotion ? 0 : 0.8);
-    ctx.fillStyle = row.complete ? `${palette.accent}30` : "rgba(255, 253, 245, 0.72)";
-    ctx.strokeStyle = row.complete ? `${palette.accent}88` : "rgba(180, 125, 47, 0.32)";
-    ctx.beginPath();
-    ctx.roundRect(sx, sy, 18, 12, 5);
-    ctx.fill();
-    ctx.stroke();
+  return drawSolarTermMoodShopDisplayWorldWorld({
+    ctx,
+    spec,
+    motion,
+    settings,
+    solarTermMoodPalette,
+    drawCanvasCard,
   });
-  ctx.restore();
-  return true;
 }
 
 function solarTermMoodStampArchiveWorldRelicSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, archiveSpec = solarTermMoodStampArchiveSpec(5)) {
-  const today = archiveSpec.today || null;
-  if (!today) return null;
-  const archiveRows = archiveSpec.rows || [];
-  const latestComplete = archiveRows.find((row) => row.complete && !row.isToday)
-    || (today.complete ? today : null)
-    || archiveRows.find((row) => row.complete)
-    || archiveRows[0]
-    || today;
-  const focusStamp = today.visitedCount > 0 && !today.complete ? today : latestComplete;
-  const rect = {
-    x: Math.max(626, width - 252),
-    y: Math.max(430, height - 148),
-    width: 220,
-    height: 116,
-  };
-  const visibleRows = archiveRows.slice(0, 4);
-  const routeChips = (today.rows || []).slice(0, 4);
-  return {
-    key: `solar-mood-stamp-relic:${state.day}:${archiveSpec.archiveCount}:${today.label}`,
-    rect,
-    title: "画境印匣",
-    subtitle: archiveSpec.archiveCount > 0
-      ? `已藏 ${archiveSpec.archiveCount} 枚 · 今日读懂 ${today.label}`
-      : `今日读懂 ${today.label} · 待刻第一枚`,
-    detail: today.complete
-      ? "今日合图印已能收进目标册。"
-      : today.visitedCount > 0
-        ? "印匣正在等你补齐今日四路。"
-        : "先点读今日画境四路，印匣会慢慢亮起来。",
-    tone: latestComplete?.tone || today.tone || "clear",
-    glyph: latestComplete?.glyph || today.glyph || "印",
-    archiveCount: Number(archiveSpec.archiveCount || 0),
-    completeCount: Number(archiveSpec.completeCount || 0),
-    today,
-    focusStampId: focusStamp?.stampId || today.stampId,
-    visibleRows,
-    routeChips,
-    stateClass: today.complete ? "done" : today.visitedCount > 0 ? "ready" : archiveSpec.archiveCount > 0 ? "archive" : "pending",
-    safetyText: "点选只定位今日画境或目标册印记，不会自动播种、浇水、收获、开铺、派工、处理风险、入夜或消耗资源。",
+  return solarTermMoodStampArchiveWorldRelicSpecWorld({
     width,
     height,
-  };
+    archiveSpec,
+    day: state.day,
+  });
 }
 
 function solarTermMoodStampArchiveWorldRelicAtCanvasPoint(px, py) {
-  const spec = solarTermMoodStampArchiveWorldRelicSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height ? spec : null;
+  return solarTermMoodStampArchiveWorldRelicAtCanvasPointWorld({
+    px,
+    py,
+    spec: solarTermMoodStampArchiveWorldRelicSpec(refs.world?.width || 960, refs.world?.height || 640),
+  });
 }
 
 function focusSolarTermMoodStampArchiveWorldRelic(spec = solarTermMoodStampArchiveWorldRelicSpec()) {
@@ -71941,143 +72556,50 @@ function focusSolarTermMoodStampArchiveWorldRelic(spec = solarTermMoodStampArchi
 }
 
 function drawSolarTermMoodStampArchiveWorldRelic(ctx, spec = solarTermMoodStampArchiveWorldRelicSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
-  if (!spec?.rect) return false;
-  const { rect } = spec;
-  const palette = solarTermMoodPalette(spec.tone);
-  const active = solarTermMoodStampArchiveWorldRelicFocus?.day === state.day
-    && solarTermMoodStampArchiveWorldRelicFocus?.key === spec.key;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.25) * 1.6;
-  const y = rect.y + bob;
-  ctx.save();
-  ctx.strokeStyle = active ? `${palette.accent}ee` : `${palette.accent}66`;
-  ctx.lineWidth = active ? 2.6 : 1.4;
-  ctx.setLineDash(active ? [] : [6, 7]);
-  ctx.beginPath();
-  ctx.moveTo(rect.x + 28, y + rect.height - 10);
-  ctx.quadraticCurveTo(rect.x - 22, y + rect.height + 18, rect.x + 54, y + rect.height + 20);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, y, rect.width, rect.height, active ? palette.fill : "rgba(255, 248, 232, 0.9)");
-  ctx.strokeStyle = active ? `${palette.accent}ee` : `${palette.accent}88`;
-  ctx.lineWidth = active ? 2.4 : 1.3;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, y + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = `${palette.accent}20`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, y + 14, 58, 72, 16);
-  ctx.fill();
-  ctx.strokeStyle = `${palette.accent}aa`;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 20, y + 30, 46, 44, 12);
-  ctx.stroke();
-  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 23, y + 20, 40, 22, 10);
-  ctx.fill();
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 17px Microsoft YaHei";
-  ctx.fillText(spec.glyph || "印", rect.x + 34, y + 38);
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("印匣", rect.x + 32, y + 66);
-
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 12px Microsoft YaHei";
-  ctx.fillText(`${spec.title} · 可点`, rect.x + 84, y + 25);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 13px Microsoft YaHei";
-  ctx.fillText(spec.subtitle.slice(0, 18), rect.x + 84, y + 45);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(spec.detail.slice(0, 22), rect.x + 84, y + 62);
-
-  spec.routeChips.forEach((chip, index) => {
-    const chipX = rect.x + 84 + index * 38;
-    const chipY = y + 72;
-    const chipAccent = chip.key === "risk" ? "#be4f37" : chip.key === "field" ? "#4d91a6" : chip.key === "shop" || chip.key === "spirit" ? "#b47d2f" : "#286f58";
-    ctx.fillStyle = chip.visited ? `${chipAccent}2f` : "rgba(255, 253, 245, 0.72)";
-    ctx.strokeStyle = chip.visited ? `${chipAccent}88` : "rgba(23, 35, 29, 0.12)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.roundRect(chipX, chipY, 30, 18, 8);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = chip.visited ? chipAccent : "#5d6f65";
-    ctx.font = "900 9px Microsoft YaHei";
-    ctx.fillText(chip.visited ? "✓" : chip.label.slice(0, 1), chipX + 11, chipY + 12);
+  return drawSolarTermMoodStampArchiveWorldRelicWorld({
+    ctx,
+    spec,
+    motion,
+    state,
+    settings,
+    solarTermMoodStampArchiveWorldRelicFocus,
+    solarTermMoodPalette,
+    drawCanvasCard,
   });
-
-  const stampCount = Math.min(3, Math.max(0, Number(spec.archiveCount || 0)));
-  for (let index = 0; index < stampCount; index += 1) {
-    const sx = rect.x + 22 + index * 15;
-    const sy = y + 86 + (settings.reducedMotion ? 0 : Math.sin(motion * 1.7 + index) * 0.7);
-    ctx.fillStyle = index === 0 ? `${palette.accent}38` : "rgba(224, 182, 109, 0.24)";
-    ctx.beginPath();
-    ctx.roundRect(sx, sy, 24, 16, 7);
-    ctx.fill();
-    ctx.strokeStyle = `${palette.accent}66`;
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = active ? palette.accent : "#5d6f65";
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText(spec.archiveCount > 0 ? `目标册藏印 ${spec.archiveCount} 枚` : "从今日四路开始刻印", rect.x + 84, y + 102);
-  ctx.restore();
-  return true;
 }
 
 function solarTermMoodDaySummaryInsight(trail = []) {
-  const progress = solarTermMoodProgressSpec((trail[0]?.day || state.lastDaySummary?.day || state.day), trail);
-  if (!trail.length) return null;
-  const first = normalizeSolarTermMoodTrailEntry(trail[0]);
-  const routeText = progress.rows
-    .filter((row) => row.visited)
-    .map((row) => row.label)
-    .join("、");
-  return {
-    ...progress,
-    termName: first.termName,
-    weatherName: first.weatherName,
-    title: progress.complete ? "四路读懂" : "画境读了一半",
-    detail: progress.complete
-      ? `${first.termName} · ${first.weatherName} 已经被你读成一张经营地图：田地决定今日手感，旧铺接住应季货，精怪把天时变成岗位动作，风险提醒入夜前别漏看。`
-      : `${first.termName} · ${first.weatherName} 今天已看 ${routeText || "画境总览"}；若明天继续点读剩余地标，节气会更像一张可执行地图。`,
-  };
+  return solarTermMoodDaySummaryInsightWorld({
+    trail,
+    fallbackDay: state.lastDaySummary?.day || state.day,
+    normalizeSolarTermMoodTrailEntry,
+    solarTermMoodProgressSpec,
+  });
 }
 
 function solarTermMoodCompletionSealSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, progress = solarTermMoodProgressSpec()) {
-  if (!progress.complete) return null;
   const term = currentTermConfig();
   const weather = currentWeatherConfig();
   const scene = solarTermMoodSceneSpec(term, weather);
-  const rect = {
-    x: Math.max(648, width - 208),
-    y: 168,
-    width: 154,
-    height: 92,
-  };
-  return {
-    key: `${state.day}:${currentTermId()}:${weather?.weather_id || state.weatherId}:mood-complete`,
-    rect,
-    tone: scene?.tone || "clear",
-    glyph: scene?.glyph || "印",
-    title: "今日画境合图印",
+  return solarTermMoodCompletionSealSpecWorld({
+    width,
+    height,
+    progress,
+    day: state.day,
+    termId: currentTermId(),
+    weatherId: weather?.weather_id || state.weatherId,
     termName: localize(term?.term_name_key, currentTermId()),
     weatherName: localize(weather?.weather_name_key, state.weatherId),
-    routeText: progress.rows.map((row) => row.label).join(" / "),
-    detail: "四路读懂后亮起的非数值奖励，只证明你已经把今日节气读成了可执行地图。",
-    safetyText: "点选只回看今日画境，不会自动播种、浇水、收获、开铺、派工、处理风险、入夜或消耗资源。",
-  };
+    scene,
+  });
 }
 
 function solarTermMoodCompletionSealAtCanvasPoint(px, py) {
-  const spec = solarTermMoodCompletionSealSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height ? spec : null;
+  return solarTermMoodCompletionSealAtCanvasPointWorld({
+    px,
+    py,
+    spec: solarTermMoodCompletionSealSpec(refs.world?.width || 960, refs.world?.height || 640),
+  });
 }
 
 function focusSolarTermMoodCompletionSealFromCanvas(spec = solarTermMoodCompletionSealSpec()) {
@@ -72088,73 +72610,16 @@ function focusSolarTermMoodCompletionSealFromCanvas(spec = solarTermMoodCompleti
 }
 
 function drawSolarTermMoodCompletionSeal(ctx, spec = solarTermMoodCompletionSealSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
-  if (!spec?.rect) return false;
-  const { rect } = spec;
-  const palette = solarTermMoodPalette(spec.tone);
-  const active = solarTermMoodCompletionSealFocus?.day === state.day && solarTermMoodCompletionSealFocus?.key === spec.key;
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 1.8) * 2;
-  const centerX = rect.x + 46;
-  const centerY = rect.y + 46 + pulse;
-  ctx.save();
-  ctx.strokeStyle = active ? `${palette.accent}ee` : `${palette.accent}77`;
-  ctx.lineWidth = active ? 2.6 : 1.5;
-  ctx.setLineDash(active ? [] : [7, 7]);
-  ctx.beginPath();
-  ctx.moveTo(rect.x + 4, rect.y + rect.height - 10 + pulse);
-  ctx.quadraticCurveTo(rect.x - 24, rect.y + rect.height + 18, rect.x + 42, rect.y + rect.height + 18);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, rect.y + pulse, rect.width, rect.height, active ? palette.fill : "rgba(255, 248, 232, 0.88)");
-  ctx.strokeStyle = active ? `${palette.accent}ee` : `${palette.accent}8c`;
-  ctx.lineWidth = active ? 2.4 : 1.3;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, rect.y + 1.5 + pulse, rect.width - 3, rect.height - 3, 20);
-  ctx.stroke();
-
-  ctx.fillStyle = `${palette.accent}1f`;
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, 31, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = palette.accent;
-  ctx.lineWidth = 2.2;
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, 24, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.strokeStyle = `${palette.accent}88`;
-  ctx.lineWidth = 1.2;
-  for (let i = 0; i < 4; i += 1) {
-    const angle = Math.PI * 0.25 + i * Math.PI * 0.5 + (settings.reducedMotion ? 0 : Math.sin(motion * 0.8) * 0.04);
-    ctx.beginPath();
-    ctx.moveTo(centerX + Math.cos(angle) * 9, centerY + Math.sin(angle) * 9);
-    ctx.lineTo(centerX + Math.cos(angle) * 25, centerY + Math.sin(angle) * 25);
-    ctx.stroke();
-  }
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 17px Microsoft YaHei";
-  ctx.fillText("合", centerX - 8, centerY + 6);
-  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(centerX - 21, centerY + 19, 42, 15, 8);
-  ctx.fill();
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("四路", centerX - 10, centerY + 30);
-
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText("今日画境合图印", rect.x + 84, rect.y + 26 + pulse);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 12px Microsoft YaHei";
-  ctx.fillText(`${spec.termName} · ${spec.weatherName}`.slice(0, 13), rect.x + 84, rect.y + 46 + pulse);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "10px Microsoft YaHei";
-  ctx.fillText("田 / 铺 / 怪 / 险", rect.x + 84, rect.y + 64 + pulse);
-  ctx.fillStyle = palette.accent;
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText("点选回看，不执行", rect.x + 84, rect.y + 80 + pulse);
-  ctx.restore();
-  return true;
+  return drawSolarTermMoodCompletionSealWorld({
+    ctx,
+    spec,
+    motion,
+    state,
+    settings,
+    solarTermMoodCompletionSealFocus,
+    solarTermMoodPalette,
+    drawCanvasCard,
+  });
 }
 
 function focusDaySummarySolarTermMood(entryKey = "") {
@@ -72195,237 +72660,265 @@ function focusSolarTermMoodWorldRouteFromCanvas(target = null) {
 }
 
 function drawSolarTermMoodWorldRoutes(ctx, targets = solarTermMoodWorldRouteTargets(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
-  if (!targets.length) return false;
-  ctx.save();
-  targets.forEach((target, index) => {
-    const palette = solarTermMoodPalette(target.tone);
-    const active = solarTermMoodWorldRouteFocus?.day === state.day && solarTermMoodWorldRouteFocus?.key === target.key;
-    const visited = Boolean(target.visited);
-    const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.5 + index * 0.65) * 1.5;
-    const { rect, anchor } = target;
-    const y = rect.y + bob;
-    const cardCenterX = rect.x + rect.width * 0.5;
-    const cardCenterY = y + rect.height * 0.5;
-    ctx.strokeStyle = active ? `${palette.accent}ee` : `${palette.accent}78`;
-    ctx.lineWidth = active ? 2.4 : 1.4;
-    ctx.setLineDash(active ? [] : [5, 6]);
-    ctx.beginPath();
-    ctx.moveTo(anchor.x, anchor.y);
-    ctx.quadraticCurveTo((anchor.x + cardCenterX) * 0.5, anchor.y - 18, cardCenterX, cardCenterY);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    ctx.fillStyle = visited ? `${palette.accent}2f` : `${palette.accent}22`;
-    ctx.beginPath();
-    ctx.ellipse(anchor.x, anchor.y + 14, 30 + (active ? 4 : 0), 9, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    drawCanvasCard(ctx, rect.x, y, rect.width, rect.height, active || visited ? palette.fill : "rgba(255, 253, 245, 0.82)");
-    ctx.strokeStyle = active ? `${palette.accent}ee` : `${palette.accent}88`;
-    ctx.lineWidth = active ? 2.2 : 1.2;
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 1.5, y + 1.5, rect.width - 3, rect.height - 3, 14);
-    ctx.stroke();
-
-    ctx.fillStyle = palette.soft;
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 9, y + 9, 28, 28, 10);
-    ctx.fill();
-    ctx.fillStyle = target.tone === "risk" ? "#be4f37" : palette.accent;
-    ctx.font = "900 14px Microsoft YaHei";
-    ctx.fillText(visited ? "✓" : target.glyph, rect.x + 16, y + 28);
-
-    ctx.fillStyle = target.tone === "risk" ? "#be4f37" : palette.accent;
-    ctx.font = "900 10px Microsoft YaHei";
-    ctx.fillText(target.label.replace("画面", "").slice(0, 5), rect.x + 44, y + 18);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 11px Microsoft YaHei";
-    ctx.fillText(target.title.slice(0, 9), rect.x + 44, y + 34);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "9px Microsoft YaHei";
-    ctx.fillText(visited ? "已读懂" : "只定位", rect.x + 44, y + 47);
+  return drawSolarTermMoodWorldRoutesWorld({
+    ctx,
+    targets,
+    motion,
+    state,
+    settings,
+    solarTermMoodWorldRouteFocus,
+    solarTermMoodPalette,
+    drawCanvasCard,
   });
-  ctx.restore();
-  return true;
 }
 
 function solarFieldSeedCandidate(plot = selectedPlot()) {
-  return availableSeedCrops()
-    .map((crop) => {
-      const recommendation = seedSolarRecommendation(crop, plot);
-      const seedStock = Number(state.inventory[crop.seed_item_id] || 0);
-      const scoreMap = { boost: 76, season: 64, offseason: 42, risk: 18 };
-      return {
-        crop,
-        recommendation,
-        seedStock,
-        score: Number(scoreMap[recommendation.affinity?.state] || 36) + Math.min(10, seedStock * 2),
-      };
-    })
-    .sort((a, b) => b.score - a.score)[0] || null;
+  return solarFieldSeedCandidateUi({
+    plot,
+    crops: availableSeedCrops(),
+    inventory: state.inventory,
+    seedSolarRecommendation,
+  });
 }
 
 function solarFieldDecisionBoardSpec(limit = 5) {
   const term = currentTermConfig();
   const weather = currentWeatherConfig();
-  if (!term) return null;
-  const affinitySummary = plantedCropSolarAffinitySummary();
-  const rows = state.plots
-    .map((plot) => {
-      const coord = `(${plot.x + 1},${plot.y + 1})`;
-      const typeText = plot.waterSoil ? "水润田" : plot.newlyExpanded ? "新田" : "灵田";
-      if (plot.debris) {
-        return {
-          plot,
-          x: plot.x,
-          y: plot.y,
-          coord,
-          tone: "clear",
-          glyph: "荒",
-          title: `${coord} ${typeText}`,
-          action: "清荒开垄",
-          effect: "空出节气收益位",
-          detail: plot.debris === "stone" ? "碎石压住灵脉，清掉后再按节气播种。" : "荒草挡住田气，清掉后更适合接今日天时。",
-          score: 44,
-        };
-      }
-      if (!plot.cropId) {
-        const candidate = solarFieldSeedCandidate(plot);
-        if (!candidate) {
-          return {
-            plot,
-            x: plot.x,
-            y: plot.y,
-            coord,
-            tone: "seed",
-            glyph: "播",
-            title: `${coord} ${typeText}`,
-            action: "等待种子",
-            effect: "空田可规划",
-            detail: "当前没有可推荐的种子，先补种子或处理其他成熟田。",
-            score: 26,
-          };
-        }
-        const { crop, recommendation, seedStock } = candidate;
-        return {
-          plot,
-          x: plot.x,
-          y: plot.y,
-          coord,
-          tone: seedStock > 0 ? "seed" : "clear",
-          glyph: seedStock > 0 ? "播" : "籽",
-          title: `${coord} ${typeText}`,
-          action: seedStock > 0 ? `播 ${itemName(crop.seed_item_id)}` : "先补种子",
-          effect: recommendation.text,
-          detail: `${recommendation.detail}${seedStock > 0 ? ` · 库存 ${seedStock}` : ` · ${seedAvailabilityHint(crop.seed_item_id)}`}`,
-          score: candidate.score,
-        };
-      }
-      const crop = data.cropsById.get(plot.cropId);
-      const affinity = cropSolarAffinity(crop, plot, term, weather);
-      const yieldBonus = cropSolarYieldBonus(crop, plot, affinity);
-      const growDays = Math.max(1, Number(crop?.grow_days || 1));
-      const age = Math.max(0, state.day - Number(plot.plantedDay || state.day));
-      const remaining = plot.mature ? 0 : Math.max(0, growDays - age);
-      const route = growingCropUseRouteSpec(plot);
-      const needsWater = !plot.mature && !plot.watered;
-      let tone = affinity.state || "steady";
-      let glyph = affinity.label || "田";
-      let action = "继续观察";
-      let score = 38;
-      if (plot.mature) {
-        tone = affinity.state === "risk" ? "risk" : "harvest";
-        glyph = affinity.state === "risk" ? "抢" : "收";
-        action = affinity.state === "risk" ? "抢收避险" : "优先收获";
-        score = 94 + Number(yieldBonus.amount || 0) * 4;
-      } else if (affinity.state === "risk") {
-        tone = "risk";
-        glyph = "险";
-        action = needsWater ? "补水稳田" : "盯防风险";
-        score = 88 + (needsWater ? 8 : 0);
-      } else if (needsWater) {
-        tone = "water";
-        glyph = "水";
-        action = "今日浇水";
-        score = 74 + Number(yieldBonus.amount || 0) * 5;
-      } else if (affinity.state === "boost") {
-        tone = "boost";
-        glyph = affinity.label || "宜";
-        action = "守住增收";
-        score = 70 + Number(yieldBonus.amount || 0) * 6;
-      } else if (affinity.state === "season") {
-        tone = "season";
-        glyph = "顺";
-        action = "稳定生长";
-        score = 54;
-      } else {
-        tone = "offseason";
-        glyph = "偏";
-        action = "补水观察";
-        score = 42;
-      }
-      return {
-        plot,
-        x: plot.x,
-        y: plot.y,
-        coord,
-        tone,
-        glyph,
-        title: `${coord} ${itemName(plot.cropId)}`,
-        action,
-        effect: yieldBonus.amount > 0 ? `预计增收 +${yieldBonus.amount}` : route?.badge || affinity.label || "稳产",
-        detail: `${affinity.detail}${remaining > 0 ? ` · 约 ${remaining} 夜后成熟` : " · 已成熟"}${route?.targetName ? ` · 去向 ${route.targetName}` : ""}`,
-        score,
-      };
-    })
-    .sort((a, b) => b.score - a.score || a.y - b.y || a.x - b.x);
-  const visibleRows = rows.slice(0, limit);
-  const riskCount = rows.filter((row) => row.tone === "risk").length;
-  const harvestCount = rows.filter((row) => row.tone === "harvest").length;
-  const boostCount = rows.filter((row) => row.tone === "boost").length;
-  const waterCount = rows.filter((row) => row.tone === "water").length;
-  const seedCount = rows.filter((row) => row.tone === "seed").length;
-  const advice = riskCount > 0
-    ? "先处理红色田块，风险田不管会吃掉今日节气收益。"
-    : harvestCount > 0
-      ? "先收成熟田，再按空田推荐补种，把节气收益接上。"
-      : boostCount > 0
-        ? "今日有适性增收田，记得浇水或保留到成熟再收。"
-        : waterCount > 0
-          ? "今日重点是补水，先把未润田稳住。"
-          : seedCount > 0
-            ? "空田已经有推荐种子，可以趁当前节气补一轮。"
-            : "当前田垄平稳，继续推进订单、工坊或精怪岗位。";
-  return {
-    title: "田垄节气看板",
-    subtitle: `${localize(term.term_name_key, term.term_id)} · ${localize(weather.weather_name_key, weather.weather_id)} · 关键田块 ${visibleRows.length}`,
-    summary: affinitySummary.text,
-    advice,
-    rows: visibleRows,
-    allRows: rows,
-  };
+  return solarFieldDecisionBoardSpecUi({
+    limit,
+    term,
+    weather,
+    plots: state.plots,
+    day: state.day,
+    cropsById: data.cropsById,
+    affinitySummary: plantedCropSolarAffinitySummary(),
+    localize,
+    itemName,
+    seedAvailabilityHint,
+    solarFieldSeedCandidate,
+    cropSolarAffinity,
+    cropSolarYieldBonus,
+    growingCropUseRouteSpec,
+  });
 }
 
 function solarFieldDecisionBoardMarkup(spec = solarFieldDecisionBoardSpec()) {
-  if (!spec?.rows?.length) return "";
-  return `
-    <div class="term-field-board">
-      <div class="term-field-board-head">
-        <strong>${spec.title}</strong>
-        <span>${spec.subtitle}</span>
+  return solarFieldDecisionBoardMarkupUi(spec);
+}
+
+function seasonalCropGuideKeyForTermId(termId = currentTermId()) {
+  return {
+    term_guyu: "seasonal_crop_guyu_chaya",
+    term_bailu: "seasonal_crop_bailu_yiner",
+    term_dongzhi: "seasonal_crop_dongzhi_festival",
+  }[termId] || "";
+}
+
+function seasonalCropGuideSpec(term = currentTermConfig(), season = currentShopSeason()) {
+  const currentKey = seasonalCropGuideKeyForTermId(term?.term_id || currentTermId());
+  const winterWindow = currentTermId() === "term_dongzhi" || season?.season_id === "season_shop_005";
+  const safety = "只定位节气面板、种子栏、配方栏、订单板或人物关系卡，不会自动播种、加工、交单、赠礼、推进时间或消耗资源。";
+  const guides = [
+    {
+      key: "seasonal_crop_guyu_chaya",
+      tone: "guyu",
+      title: "谷雨茶芽导览",
+      headline: "谷雨茶芽把中期种植、灵茶配方和谷雨外单接成一条茶线。",
+      statusText: currentKey === "seasonal_crop_guyu_chaya"
+        ? "当前就是谷雨窗口，适合把茶芽直接接进灵茶与谷雨订单。"
+        : "谷雨没到时也能先记住这条线：中期开铺后，茶芽会成为灵茶和岁事茶的起笔。",
+      detail: "谷雨茶芽导览会把谷雨茶芽种子、灵茶、谷雨订单和后续故事茶连起来，先跑顺一轮就能看懂第二年的节气货怎么起势。",
+      safety,
+      actions: [
+        {
+          id: "recipe",
+          label: "看灵茶配方",
+          kind: "recipe",
+          targetId: "recipe_lingcha",
+        },
+        {
+          id: "order",
+          label: "看谷雨订单",
+          kind: "order",
+          targetId: "order_term_0001",
+        },
+      ],
+    },
+    {
+      key: "seasonal_crop_bailu_yiner",
+      tone: "bailu",
+      title: "白露凝香导览",
+      headline: "白露银耳会把高端药饮、礼盒货和白露礼宴榜真正串成一套。",
+      statusText: currentKey === "seasonal_crop_bailu_yiner"
+        ? "白露到了，正适合把甜润礼盒、高端药饮和白露试炼一起接上。"
+        : "白露没到时先记住这条礼线：白露银耳、年册礼卷和礼宴榜会在第二年一起放大价值。",
+      detail: "白露凝香导览重点看白露凝香试、白露礼宴榜和年册礼卷。它会把谷雨茶芽、白露银耳与高端礼货压成更像礼的出货线。",
+      safety,
+      actions: [
+        {
+          id: "trial",
+          label: "看白露试炼",
+          kind: "trial",
+          targetId: "trial_bailu_gift",
+        },
+        {
+          id: "year2_order",
+          label: "看书契会单",
+          kind: "year2_order",
+          targetId: "order_year2_festival_0001",
+        },
+      ],
+    },
+    {
+      key: "seasonal_crop_dongzhi_festival",
+      tone: "dongzhi",
+      title: "冬至宴灯导览",
+      headline: "冬至把故事茶、节庆月饼、年册礼卷和今夜灯路一起推到冬至名铺榜。",
+      statusText: winterWindow
+        ? "当前就在冬至窗口或冬至名铺榜赛季，最适合同时冲夜市留客、节庆货和长灯路。"
+        : "还没到冬至时，先把三件套和灯影线记下来，真正到冬夜就能直接接会单和灯路。",
+      detail: "冬至宴灯导览会把冬至宴灯试、书契会节庆礼单、冬至名铺榜、今夜灯路和陆三笑关系放到一张卡上，方便把节庆货、夜客与故事线一起看。",
+      safety,
+      actions: [
+        {
+          id: "trial",
+          label: "看冬至试炼",
+          kind: "trial",
+          targetId: "trial_dongzhi_lantern",
+        },
+        {
+          id: "year2_order",
+          label: "看节庆会单",
+          kind: "year2_order",
+          targetId: "order_year2_festival_0001",
+        },
+        {
+          id: "lantern",
+          label: "看今夜灯路",
+          kind: "lantern",
+          targetId: "dengying_lantern",
+        },
+        {
+          id: "npc",
+          label: "看陆三笑关系",
+          kind: "npc",
+          targetId: "npc_lu_sanxiao",
+        },
+      ],
+    },
+  ];
+  return {
+    active: guides.length > 0,
+    currentKey,
+    guides: guides.map((guide) => ({
+      ...guide,
+      active: guide.key === currentKey || (guide.key === "seasonal_crop_dongzhi_festival" && winterWindow),
+    })),
+  };
+}
+
+function seasonalCropGuideMarkup(spec = seasonalCropGuideSpec()) {
+  if (!spec?.active) return "";
+  return spec.guides.map((guide) => `
+    <div class="seasonal-crop-guide ${guide.tone}" data-seasonal-crop-guide="${selectorDataValue(guide.key)}">
+      <strong>${guide.title}</strong>
+      <span>${guide.headline}</span>
+      <small><b>${guide.active ? "当前窗口" : "线路提示"}</b>${guide.statusText}</small>
+      <small>${guide.detail}</small>
+      <div class="seasonal-crop-guide-actions">
+        ${guide.actions.map((action) => `<button type="button" data-seasonal-crop-action="${action.id}" data-seasonal-crop-guide="${guide.key}">${action.label}</button>`).join("")}
       </div>
-      <small>${spec.summary} · ${spec.advice}</small>
-      <div class="term-field-board-grid">
-        ${spec.rows.map((row) => `
-          <button type="button" class="term-field-row ${row.tone}" data-solar-field-plot="${row.x},${row.y}">
-            <b>${row.glyph}</b>
-            <span><strong>${row.title}</strong><small>${row.action} · ${row.effect}</small></span>
-            <em>${row.detail}</em>
-          </button>
-        `).join("")}
-      </div>
+      <small class="seasonal-crop-guide-safe">${guide.safety}</small>
     </div>
-  `;
+  `).join("");
+}
+
+function focusSeasonalCropGuideCard(guideKey = "", source = "term") {
+  const spec = seasonalCropGuideSpec();
+  const guide = spec.guides.find((entry) => entry.key === guideKey) || spec.guides[0];
+  if (!guide) return addLog("节气作物导览", "当前还没有可回看的节气作物导览卡。");
+  const sourceLabels = {
+    term: "看节气作物导览",
+    stamp: "节气印记 -> 节气作物导览",
+    year2_goal: "第二年节气目标 -> 节气作物导览",
+    "seasonal-crop-guide.bailu": "查看白露导览",
+    "seasonal-crop-guide.dongzhi": "查看冬至导览",
+  };
+  const sourceLabel = sourceLabels[source] || sourceLabels.term;
+  queueStoryCompassFocusTarget({
+    selector: `[data-seasonal-crop-guide="${selectorDataValue(guide.key)}"]`,
+    fallbackSelector: "#termPanel",
+    label: sourceLabel,
+    log: `${sourceLabel}：${guide.title} 已在节气面板高亮。${guide.headline}${guide.safety}`,
+    panelGroup: "systems",
+    missingTitle: sourceLabel,
+    missingLog: `${guide.title} 暂时没有显示在节气面板。${guide.safety}`,
+  });
+  return true;
+}
+
+function focusSeasonalCropGuideAction(actionId = "", guideKey = "") {
+  const spec = seasonalCropGuideSpec();
+  const guide = spec.guides.find((entry) => entry.key === guideKey) || spec.guides[0];
+  if (!guide) return addLog("节气作物导览", "这张节气作物导览暂时还没有整理出来。");
+  const action = guide.actions.find((entry) => entry.id === actionId) || null;
+  if (!action) return focusSeasonalCropGuideCard(guideKey, "term");
+  if (action.kind === "recipe") return focusPlotRouteRecipe(action.targetId);
+  if (action.kind === "order") return focusPlotRouteOrder(action.targetId);
+  if (action.kind === "trial") {
+    const trial = data.solarTrialsById.get(action.targetId);
+    const trialTitle = trial ? solarTrialName(trial) : action.targetId;
+    queueStoryCompassFocusTarget({
+      selector: `[data-solar-trial="${selectorDataValue(action.targetId)}"]`,
+      fallbackSelector: "#solarTrialPanel",
+      label: `${guide.title}：${action.label}`,
+      log: `${trialTitle} 已在第二年试炼面板高亮。先看 3 天试炼的推荐循环，再决定什么时候把这条节气货真正做满。${guide.safety}`,
+      panelGroup: "systems",
+      missingTitle: `${guide.title}：${action.label}`,
+      missingLog: `${trialTitle} 暂时没有显示在第二年试炼面板。${guide.safety}`,
+    });
+    return true;
+  }
+  if (action.kind === "year2_order") {
+    queueStoryCompassFocusTarget({
+      selector: `[data-year2-order-id="${selectorDataValue(action.targetId)}"]`,
+      fallbackSelector: "#shopReport",
+      label: `${guide.title}：${action.label}`,
+      log: `书契会节庆礼单 已在名铺订单预览里高亮。岁事茶、节庆月饼和年册礼卷都会从这里合流。${guide.safety}`,
+      panelGroup: "core",
+      missingTitle: `${guide.title}：${action.label}`,
+      missingLog: `书契会节庆礼单 暂时没有显示在名铺订单预览里。${guide.safety}`,
+    });
+    return true;
+  }
+  if (action.kind === "lantern") {
+    const selector = state.completedRareSpiritEvents.has("rsea_018")
+      ? '[data-dengying-hidden-reveal="true"]'
+      : '[data-shop-season-board="lantern"]';
+    queueStoryCompassFocusTarget({
+      selector,
+      fallbackSelector: "#shopReport",
+      label: `${guide.title}：${action.label}`,
+      log: `今夜灯路入口已定位。先看灯影精的夜巡卡，再决定今晚要不要去照亮隐藏入口。${guide.safety}`,
+      panelGroup: "core",
+      missingTitle: `${guide.title}：${action.label}`,
+      missingLog: `今夜灯路的入口暂时没有显示出来。${guide.safety}`,
+    });
+    return true;
+  }
+  if (action.kind === "npc") {
+    queueStoryCompassFocusTarget({
+      selector: `[data-npc-id="${selectorDataValue(action.targetId)}"]`,
+      fallbackSelector: "#relationshipPanel",
+      label: `${guide.title}：${action.label}`,
+      log: `陆三笑的关系卡已高亮。谷雨茶、白露礼线、冬至宴灯和终章残碑都会从这条人物线继续长出来。${guide.safety}`,
+      panelGroup: "story",
+      missingTitle: `${guide.title}：${action.label}`,
+      missingLog: `陆三笑的关系卡暂时没有找到。${guide.safety}`,
+    });
+    return true;
+  }
+  return focusSeasonalCropGuideCard(guideKey, "term");
 }
 
 function focusSolarFieldBoardPlot(value = "") {
@@ -72443,35 +72936,12 @@ function focusSolarFieldBoardPlot(value = "") {
 }
 
 function seedSolarRecommendation(crop = null, plot = selectedPlot()) {
-  if (!crop) return { label: "平", className: "neutral", text: "等待选择种子", detail: "" };
-  const simulatedPlot = {
-    ...(plot || {}),
-    cropId: crop.crop_id,
-    seedItemId: crop.seed_item_id,
-  };
-  const affinity = cropSolarAffinity(crop, simulatedPlot);
-  const yieldBonus = cropSolarYieldBonus(crop, simulatedPlot, affinity);
-  const labels = {
-    boost: affinity.label === "水" ? "水荐" : "推荐",
-    season: "顺季",
-    risk: "有险",
-    offseason: "偏季",
-  };
-  const classNames = {
-    boost: "boost",
-    season: "season",
-    risk: "risk",
-    offseason: "offseason",
-  };
-  const selectedPlotText = plot?.waterSoil ? "当前选中水润田" : plot && !plot.debris ? "当前选中普通灵田" : "先选可播灵田";
-  return {
-    label: labels[affinity.state] || "平",
-    className: classNames[affinity.state] || "neutral",
-    text: `${labels[affinity.state] || "平"}${yieldBonus.amount > 0 ? ` +${yieldBonus.amount}` : ""}`,
-    detail: `${selectedPlotText} · ${affinity.detail || "节气适性普通"}${yieldBonus.amount > 0 ? ` · 预计收获 +${yieldBonus.amount}` : ""}`,
-    yieldBonus: yieldBonus.amount,
-    affinity,
-  };
+  return seedSolarRecommendationUi({
+    crop,
+    plot,
+    cropSolarAffinity,
+    cropSolarYieldBonus,
+  });
 }
 
 function drawSolarTermAtmosphere(ctx, width, height, atmosphere, weatherFx = "") {
@@ -73812,55 +74282,15 @@ function drawGrowingCropUseRouteBadge(ctx, x, y, tile, plot, plotIndex = 0) {
 }
 
 function drawSolarFieldDecisionBadges(ctx, originX, originY, tile, gap) {
-  const spec = solarFieldDecisionBoardSpec(4);
-  if (!spec?.rows?.length) return;
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const palette = {
-    risk: { fill: "rgba(239, 217, 208, 0.94)", stroke: "#be4f37", text: "#8f3f2f" },
-    harvest: { fill: "rgba(255, 248, 232, 0.94)", stroke: "#b47d2f", text: "#8f5f3f" },
-    boost: { fill: "rgba(255, 248, 232, 0.92)", stroke: "#e0b66d", text: "#8f5f3f" },
-    water: { fill: "rgba(232, 246, 242, 0.92)", stroke: "#4d91a6", text: "#286f58" },
-    seed: { fill: "rgba(237, 243, 223, 0.94)", stroke: "#48a868", text: "#286f58" },
-    clear: { fill: "rgba(255, 253, 245, 0.9)", stroke: "#5d6f65", text: "#5d6f65" },
-    season: { fill: "rgba(237, 243, 223, 0.9)", stroke: "#7aa25a", text: "#286f58" },
-    offseason: { fill: "rgba(255, 253, 245, 0.84)", stroke: "#8f5f3f", text: "#5d6f65" },
-  };
-
-  ctx.save();
-  spec.rows.forEach((row, index) => {
-    const colors = palette[row.tone] || palette.season;
-    const x = originX + row.x * (tile + gap);
-    const y = originY + row.y * (tile + gap);
-    const bob = settings.reducedMotion ? 0 : Math.sin(motion * 2 + index) * 2;
-    const badgeX = x + tile * 0.46;
-    const badgeY = y - 18 + bob;
-    ctx.fillStyle = colors.fill;
-    ctx.strokeStyle = colors.stroke;
-    ctx.lineWidth = row.tone === "risk" || row.tone === "harvest" ? 2.4 : 1.6;
-    ctx.beginPath();
-    ctx.roundRect(badgeX, badgeY, 68, 28, 11);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = colors.stroke;
-    ctx.beginPath();
-    ctx.arc(badgeX + 14, badgeY + 14, 9, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#fffdf5";
-    ctx.font = "700 11px Microsoft YaHei";
-    ctx.fillText(row.glyph.slice(0, 1), badgeX + 10, badgeY + 18);
-    ctx.fillStyle = colors.text;
-    ctx.font = "700 10px Microsoft YaHei";
-    ctx.fillText(row.action.slice(0, 4), badgeX + 28, badgeY + 18);
-    if (index === 0) {
-      ctx.strokeStyle = `${colors.stroke}88`;
-      ctx.setLineDash([4, 5]);
-      ctx.beginPath();
-      ctx.roundRect(x + 3, y + 3, tile - 6, tile - 6, 10);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
+  return drawSolarFieldDecisionBadgesUi({
+    ctx,
+    spec: solarFieldDecisionBoardSpec(4),
+    originX,
+    originY,
+    tile,
+    gap,
+    reducedMotion: settings.reducedMotion,
   });
-  ctx.restore();
 }
 
 function nightGrowthRouteBadgeSpec(route = null) {
@@ -79909,6 +80339,105 @@ function focusRareSpiritIdentityPortraitFromCanvas(spec = rareSpiritIdentityPort
   return true;
 }
 
+function rareSpiritMemoryCompassPersona(spirit = null) {
+  if (!spirit) return null;
+  const moment = rareSpiritMomentForSpirit(spirit);
+  const persona = spiritJobPersonaSpec(spirit, spirit.job || "farm");
+  return {
+    spiritId: spirit.id,
+    lineId: spirit.lineId || spiritLine(spirit.id),
+    spiritName: spirit.name,
+    title: persona?.title || `${spirit.name} 的伙伴面貌`,
+    focus: moment?.focus || persona?.focus || "洞天角落",
+    attitude: moment?.quote || rareSpiritGiftStatusText(spirit) || "今日神态还在慢慢铺开",
+    giftText: rareSpiritGiftStatusText(spirit) || "回礼留痕仍在积累",
+  };
+}
+
+function rareSpiritMemoryCompassRows(limit = 6) {
+  return state.spirits
+    .filter((spirit) => rareSpiritLifeProfile(spirit.lineId || spiritLine(spirit.id)))
+    .slice(0, limit)
+    .map((spirit) => ({
+      spirit,
+      persona: rareSpiritMemoryCompassPersona(spirit),
+      moment: rareSpiritMomentForSpirit(spirit),
+    }))
+    .filter((row) => row.persona);
+}
+
+function rareSpiritMemoryCompassSpec(rows = rareSpiritMemoryCompassRows()) {
+  if (!rows.length) return null;
+  const lead = rows[0];
+  return {
+    key: `rare_memory_compass:${state.day}:${rows.length}`,
+    day: state.day,
+    title: "稀有精怪伙伴记忆罗盘",
+    subtitle: "伙伴肖像簿 · 可点",
+    selector: "#goalBookPanel",
+    fallbackSelector: "#spiritList",
+    rect: { x: 708, y: 122, width: 206, height: 126 },
+    anchor: { x: 836, y: 246 },
+    sectionTitle: "六线人格",
+    overviewTitle: "角色总览",
+    moodTitle: "今日神态",
+    giftTitle: "回礼留痕",
+    leadName: lead.persona.spiritName,
+    rows,
+    safetyLifeCodex: "只定位生活图鉴、事件卡或小剧场入口，不会自动触发事件、领取回礼、增加羁绊、招募、派工或消耗资源",
+    safetySpiritPanel: "只定位生活图鉴、事件卡、精怪面板或小剧场入口，不会自动触发事件、领取回礼、增加羁绊、招募、派工或消耗资源",
+  };
+}
+
+function rareSpiritMemoryCompassMarkup(spec = rareSpiritMemoryCompassSpec()) {
+  if (!spec) return "";
+  return `
+    <div class="rare-memory-compass">
+      <strong>${spec.title}</strong>
+      <span>${spec.subtitle}</span>
+      <small>${spec.sectionTitle} · ${spec.overviewTitle} · ${spec.moodTitle} · ${spec.giftTitle}</small>
+    </div>
+  `;
+}
+
+function rareSpiritMemoryCompassWorldSpec(spec = rareSpiritMemoryCompassSpec()) {
+  return spec;
+}
+
+function rareSpiritMemoryCompassWorldAtCanvasPoint(px, py) {
+  const spec = rareSpiritMemoryCompassWorldSpec();
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? {
+      type: "rare_spirit_memory_compass",
+      label: spec.subtitle,
+      selector: spec.selector,
+      fallbackSelector: spec.fallbackSelector,
+      rareSpiritMemoryCompass: spec,
+      rect,
+    }
+    : null;
+}
+
+function focusRareSpiritMemoryCompassWorldFromCanvas(target = rareSpiritMemoryCompassWorldSpec()) {
+  const spec = target?.rareSpiritMemoryCompass || target;
+  if (!spec) return false;
+  rareSpiritMemoryCompassWorldFocus = { key: spec.key, day: state.day };
+  queueStoryCompassFocusTarget({
+    selector: spec.selector,
+    fallbackSelector: spec.fallbackSelector,
+    label: "点选稀有伙伴肖像簿",
+    log: `点选稀有伙伴肖像簿：${spec.title}。${spec.sectionTitle}、${spec.overviewTitle}、${spec.moodTitle}、${spec.giftTitle} 都已经高亮。${spec.safetyLifeCodex}。${spec.safetySpiritPanel}。`,
+    panelGroup: "core",
+    missingTitle: "稀有精怪伙伴记忆罗盘",
+    missingLog: "稀有精怪伙伴记忆罗盘还在主世界发亮，但右侧生活图鉴暂时没能定位。这里只定位生活图鉴、事件卡、小剧场或精怪面板入口，不会自动触发事件或消耗资源。",
+  });
+  addLog("点选稀有伙伴肖像簿", `${spec.title}：${spec.subtitle}，先看 ${spec.sectionTitle}，再回到 ${spec.overviewTitle}、${spec.moodTitle} 与 ${spec.giftTitle}。${spec.safetyLifeCodex}。`);
+  render();
+  return true;
+}
+
 function drawRareSpiritWorldInvitation(ctx, spec = rareSpiritWorldInvitationSpec()) {
   if (!spec) return false;
   const { rect, slot } = spec;
@@ -80161,6 +80690,48 @@ function drawRareSpiritIdentityPortraitWorld(ctx, spec = rareSpiritIdentityPortr
     }
   }
 
+  ctx.restore();
+  return true;
+}
+
+function drawRareSpiritMemoryCompassWorld(ctx, spec = rareSpiritMemoryCompassWorldSpec()) {
+  if (!spec?.rect) return false;
+  const { rect, anchor } = spec;
+  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
+  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 1.7) * 2;
+  const active = rareSpiritMemoryCompassWorldFocus?.day === state.day
+    && rareSpiritMemoryCompassWorldFocus?.key === spec.key;
+  const cardY = rect.y + pulse;
+
+  ctx.save();
+  ctx.strokeStyle = active ? "rgba(125, 99, 63, 0.92)" : "rgba(125, 99, 63, 0.56)";
+  ctx.lineWidth = active ? 3 : 2;
+  ctx.setLineDash([6, 8]);
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y);
+  ctx.bezierCurveTo(anchor.x - 28, anchor.y - 38, rect.x + 42, cardY + 28, rect.x + 24, cardY + 62);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 249, 238, 0.95)");
+  ctx.strokeStyle = active ? "rgba(125, 99, 63, 0.92)" : "rgba(125, 99, 63, 0.6)";
+  ctx.lineWidth = active ? 2.5 : 1.6;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, cardY + 1, rect.width - 2, rect.height - 2, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "#7d633f";
+  ctx.font = "900 13px Microsoft YaHei";
+  ctx.fillText(spec.subtitle, rect.x + 18, cardY + 24);
+  ctx.font = "bold 12px Microsoft YaHei";
+  ctx.fillText(spec.sectionTitle, rect.x + 18, cardY + 46);
+  ctx.fillText(spec.overviewTitle, rect.x + 108, cardY + 46);
+  ctx.fillText(spec.moodTitle, rect.x + 18, cardY + 68);
+  ctx.fillText(spec.giftTitle, rect.x + 108, cardY + 68);
+  ctx.fillStyle = "#2d352c";
+  ctx.font = "12px Microsoft YaHei";
+  ctx.fillText(`${spec.leadName || "伙伴"} 的记忆正在发亮`, rect.x + 18, cardY + 92);
+  ctx.fillText("只定位生活图鉴与事件入口", rect.x + 18, cardY + 112);
   ctx.restore();
   return true;
 }
@@ -84059,6 +84630,11 @@ function year2LifePlazaTargets() {
     }));
 }
 
+const YEAR2_LIFE_TRADE_HINTS = {
+  weeklyLine: "本周远行线",
+  clickLabel: "点选远行旗：",
+};
+
 function drawYear2LifePlaza(ctx, width, height, livingState = currentLivingWorldState()) {
   const plaza = year2LifePlazaState();
   if (!plaza.active) return;
@@ -86268,9 +86844,24 @@ function worldContentTargets() {
     targets.push({
       id: "post_mainline_goal_route",
       type: "post_mainline_goal_route",
+      todayRouteType: "post_mainline_today_route",
       label: postMainlineRoute.label,
+      todayRouteLabel: "主线后今日路线",
       focusKey: postMainlineRoute.focusRow?.key || "",
       rect: postMainlineRoute.rect,
+    });
+  }
+  const postMainlineTodayRoute = postMainlineTodayRouteWorldSpec();
+  if (postMainlineTodayRoute?.rect) {
+    targets.push({
+      id: "post_mainline_today_route",
+      type: "post_mainline_today_route",
+      label: postMainlineTodayRoute.title,
+      routeKey: postMainlineTodayRoute.routeKey,
+      selector: postMainlineTodayRoute.selector,
+      fallbackSelector: postMainlineTodayRoute.fallbackSelector,
+      postMainlineTodayRoute,
+      rect: postMainlineTodayRoute.rect,
     });
   }
   targets.push(...postMainlineRouteStationTargets());
@@ -86428,7 +87019,15 @@ function focusWorldContentFromCanvas(target = null) {
       "点选年路：十小时年路灯牌",
       `${spec?.focusRow?.title || "主线后目标路线"} 已接到目标册。当前通关后目标 ${evidence.totalMinutes}/${evidence.targetMinutes} 分钟，覆盖 ${evidence.coverage.filter((entry) => entry.pass).length}/${evidence.coverage.length} 类留存意图；这里只定位下一步，不会自动跳关、不会自动领取奖励，也不会消耗资源。`,
     );
+    addLog(
+      "点选主线后今日路线：主线后今日路线",
+      `${spec?.focusRow?.title || "主线后今日路线"} 只做今日路线定位，不会自动跳关、不会自动领取奖励，也不会消耗资源。`,
+    );
     return true;
+  }
+
+  if (target.type === "post_mainline_today_route") {
+    return focusPostMainlineTodayRouteWorldFromCanvas(target.postMainlineTodayRoute || target);
   }
 
   if (target.type === "post_mainline_route_station") {
@@ -89138,6 +89737,82 @@ function drawPostMainlineTenHourRouteWorld(ctx, spec = postMainlineTenHourWorldR
     }
   }
 
+  ctx.restore();
+  return true;
+}
+
+function drawPostMainlineTodayRouteWorld(ctx, spec = postMainlineTodayRouteWorldSpec(ctx.canvas.width, ctx.canvas.height)) {
+  if (!spec?.rect) return false;
+  const { rect, anchor } = spec;
+  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
+  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.55) * 1.8;
+  const active = postMainlineTodayRouteWorldFocus?.day === state.day
+    && postMainlineTodayRouteWorldFocus?.key === spec.key;
+  const accent = spec.rowNode?.accent || "#b47d2f";
+  const cardY = rect.y + bob;
+
+  ctx.save();
+  ctx.strokeStyle = active ? `${accent}dd` : `${accent}66`;
+  ctx.lineWidth = active ? 2.8 : 1.7;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 10;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y);
+  ctx.bezierCurveTo(anchor.x - 52, anchor.y + 10, rect.x + 34, cardY + 18, rect.x + 24, cardY + 54);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 250, 238, 0.96)");
+  ctx.strokeStyle = active ? `${accent}ee` : `${accent}88`;
+  ctx.lineWidth = active ? 2.5 : 1.5;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}18`;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 52, 52, 14);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 22px Microsoft YaHei";
+  ctx.fillText(spec.rowNode.icon || "今", rect.x + 29, cardY + 47);
+  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 20, cardY + 52, 38, 15, 8);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText("可点", rect.x + 30, cardY + 63);
+
+  ctx.fillStyle = accent;
+  ctx.font = "900 12px Microsoft YaHei";
+  ctx.fillText(spec.title, rect.x + 78, cardY + 22);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 14), rect.x + 78, cardY + 43);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(`${spec.rowNode.title} · ${spec.minutes} 分钟`.slice(0, 28), rect.x + 78, cardY + 58);
+  ctx.fillText(`${spec.targetLabel} · 覆盖 ${spec.coverageDone}/${spec.coverageTotal}`.slice(0, 28), rect.x + 78, cardY + 71);
+
+  spec.rows.slice(0, 3).forEach((row, index) => {
+    const chipX = rect.x + 16 + index * 72;
+    const chipY = cardY + 80;
+    const rowAccent = row.accent || accent;
+    ctx.fillStyle = row.active ? `${rowAccent}22` : "rgba(255, 253, 245, 0.78)";
+    ctx.strokeStyle = row.active ? `${rowAccent}aa` : "rgba(143, 95, 63, 0.2)";
+    ctx.lineWidth = row.active ? 1.6 : 1;
+    ctx.beginPath();
+    ctx.roundRect(chipX, chipY, 64, 22, 9);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = row.active ? rowAccent : "#8f5f3f";
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(String(row.stationLabel || row.title || "路线").slice(0, 5), chipX + 6, chipY + 10);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "800 7px Microsoft YaHei";
+    ctx.fillText(`${Math.max(0, Number(row.minutes || 0))} 分钟`.slice(0, 8), chipX + 6, chipY + 19);
+  });
   ctx.restore();
   return true;
 }
@@ -96827,6 +97502,49 @@ function drawShopDiagnosisWorldBoard(ctx, spec = shopDiagnosisWorldBoardSpec(), 
   return true;
 }
 
+function drawShopCustomerReasonCompassWorld(ctx, spec = shopCustomerReasonCompassWorldSpec(), motion = performance.now() / 1000) {
+  if (!spec?.rect) return false;
+  const { rect, anchor } = spec;
+  const active = shopCustomerReasonCompassWorldFocus?.day === state.day
+    && shopCustomerReasonCompassWorldFocus?.key === spec.key;
+  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.55) * 2;
+  const cardY = rect.y + bob;
+
+  ctx.save();
+  ctx.strokeStyle = active ? "rgba(180, 125, 47, 0.9)" : "rgba(180, 125, 47, 0.56)";
+  ctx.lineWidth = active ? 2.8 : 1.8;
+  ctx.setLineDash([6, 8]);
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y);
+  ctx.quadraticCurveTo(rect.x + 24, cardY + rect.height + 26, rect.x + 24, cardY + rect.height - 10);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 249, 238, 0.94)");
+  ctx.strokeStyle = active ? "rgba(180, 125, 47, 0.92)" : "rgba(180, 125, 47, 0.6)";
+  ctx.lineWidth = active ? 2.5 : 1.5;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, cardY + 1, rect.width - 2, rect.height - 2, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 13px Microsoft YaHei";
+  ctx.fillText(spec.title, rect.x + 18, cardY + 24);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "12px Microsoft YaHei";
+  spec.rows.slice(0, 3).forEach((row, index) => {
+    const rowY = cardY + 48 + index * 22;
+    ctx.fillStyle = row.accent || "#8f5f3f";
+    ctx.font = "bold 12px Microsoft YaHei";
+    ctx.fillText(row.title, rect.x + 18, rowY);
+    ctx.fillStyle = "#465448";
+    ctx.font = "12px Microsoft YaHei";
+    ctx.fillText((row.text || "").slice(0, 18), rect.x + 102, rowY);
+  });
+  ctx.restore();
+  return true;
+}
+
 function drawCustomerThoughtBubbles(ctx) {
   const thoughts = shopThoughtBubbleEntries();
   if (thoughts.length === 0) return;
@@ -97409,6 +98127,8 @@ function drawWorld() {
   drawDaySummaryLanternWorld(ctx, daySummaryLanternWorldSpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawDungeonDayEchoWorldPlaque(ctx, dungeonDayEchoWorldPlaqueSpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawFinalBanquetForeground(ctx, width, height);
+  drawFinalBanquetAfterwordBridgeWorld(ctx, finalBanquetAfterwordBridgeWorldSpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
+  drawYear2OpeningTenDayWorld(ctx, year2OpeningTenDayWorldSpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
 
   if (state.spirits.length > 0) {
     drawSpiritAutomationGroundTrace(ctx, spiritAutomationGroundTraceSpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
@@ -97424,6 +98144,7 @@ function drawWorld() {
   drawRareSpiritWorldInvitation(ctx);
   drawRareSpiritClueRoadsignWorld(ctx);
   drawRareSpiritDailyStageWorld(ctx);
+  drawRareSpiritMemoryCompassWorld(ctx, rareSpiritMemoryCompassWorldSpec());
   drawRareSpiritIdentityPortraitWorld(ctx, rareSpiritIdentityPortraitWorldSpec(width, height));
   drawLeizhuWindGuide(ctx);
   drawYuelianMoonlitPond(ctx);
@@ -97472,9 +98193,14 @@ function drawWorld() {
   drawShopWordOfMouthSaleEchoWorld(ctx, shopWordOfMouthSaleEchoWorldSpec(), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawShopWordOfMouthSaleReasonWorld(ctx, shopWordOfMouthSaleReasonWorldSpec(), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawShopWordOfMouthFollowupRestockWorld(ctx, shopWordOfMouthFollowupRestockWorldSpec(), settings.reducedMotion ? 0 : performance.now() / 1000);
+  drawShopCustomerReasonCompassWorld(ctx, shopCustomerReasonCompassWorldSpec(), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawShopCustomerLessonMorningFollowupWorld(ctx, shopCustomerLessonMorningFollowupWorldSpec(), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawShopCustomerLessonVerificationEchoWorld(ctx, shopCustomerLessonVerificationEchoWorldSpec(), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawShopWordOfMouthMorningFollowupWorld(ctx, shopWordOfMouthMorningFollowupWorldSpec(), settings.reducedMotion ? 0 : performance.now() / 1000);
+  drawShopThoughtRouteMorningFollowupWorld(ctx, shopThoughtRouteMorningFollowupWorldSpec(), settings.reducedMotion ? 0 : performance.now() / 1000);
+  drawShopThoughtRouteReadyMorningWorld(ctx, shopThoughtRouteReadyMorningWorldSpec(), settings.reducedMotion ? 0 : performance.now() / 1000);
+  drawShopThoughtRouteMissedWorld(ctx, shopThoughtRouteMissedWorldSpec(), settings.reducedMotion ? 0 : performance.now() / 1000);
+  drawShopThoughtRouteCaughtWorld(ctx, shopThoughtRouteCaughtWorldSpec(), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawShopWordOfMouthRestockedMorningWorld(ctx, shopWordOfMouthRestockedMorningWorldSpec(), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawShopWordOfMouthRestockCaughtWorld(ctx, shopWordOfMouthRestockCaughtWorldSpec(), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawEarlyRewardKeepsakeWorld(ctx, earlyRewardFeedbackKeepsakeSpec(width, height, originX, originY, tile, gap));
@@ -97486,6 +98212,7 @@ function drawWorld() {
   drawYearOneRhythmWorldBoard(ctx, yearOneRhythmWorldBoardSpec(width, height));
   drawYearOneRhythmStampWorld(ctx, yearOneRhythmStampWorldSpec(width, height));
   drawPostMainlineTenHourRouteWorld(ctx, postMainlineTenHourWorldRouteSpec(width, height));
+  drawPostMainlineTodayRouteWorld(ctx, postMainlineTodayRouteWorldSpec(width, height));
   drawPostMainlineRouteStations(ctx, postMainlineRouteStationSpecs(width, height));
   drawYear2GoalWorldBoard(ctx, year2GoalWorldBoardSpec(width, height));
 
@@ -99015,3526 +99742,825 @@ function startInputLoop() {
 }
 
 function renderInventory() {
-  refs.inventoryList.innerHTML = "";
-  const entries = Object.entries(state.inventory);
-  if (entries.length === 0) {
-    refs.inventoryList.innerHTML = '<div class="item-row"><span>背包空空</span><strong>0</strong></div>';
-    return;
-  }
-
-  const weatherShelf = shopWeatherShelfRecommendationSpec();
-  for (const [itemId, count] of entries) {
-    const row = document.createElement("div");
-    const restockTarget = syncShopOpeningState().restockTarget;
-    const restockMatch = restockTarget?.status === "active" && restockTarget.itemId === itemId ? restockTarget : null;
-    const liveRoute = state.lastHarvestUseRoute?.itemId === itemId && state.lastHarvestUseRoute?.day === state.day
-      ? harvestUseRouteSafe(state.lastHarvestUseRoute)
-      : null;
-    const route = liveRoute || harvestUseRouteSpec(itemId, count);
-    row.className = `item-row${liveRoute ? " live-use-route" : ""}${restockMatch ? " shop-restock-inventory-target" : ""}`;
-    const icon =
-      itemId.includes("baicai")
-        ? `<img class="mini-icon" src="${assetSrc("assets/crop-baicai.svg")}" alt="" />`
-        : itemId.includes("bailuobo")
-          ? `<img class="mini-icon" src="${assetSrc("assets/crop-bailuobo.svg")}" alt="" />`
-          : "";
-    const routeHint = route && route.type !== "stock"
-      ? `<small class="item-use-route">${route.badge}：${route.targetName || route.cta}</small>`
-      : liveRoute
-        ? `<small class="item-use-route">收获去向：${liveRoute.cta || "先留作库存"}</small>`
-        : "";
-    const routeActions = route && route.type !== "stock" ? inventoryRouteActionsMarkup(route) : "";
-    const routeStatus = route && route.type !== "stock" ? inventoryRouteStatusMarkup(route) : "";
-    const restockHint = restockMatch
-      ? `<small class="item-shop-restock-target">旧铺补货目标：${count}/${restockMatch.desiredCount}${shopRestockTargetReady(restockMatch) ? " · 可完成" : ` · 期限第 ${restockMatch.dueDay} 天`}<button type="button" data-inventory-shop-restock="${itemId}">看追踪</button></small>`
-      : "";
-    const weatherShelfHint = inventoryWeatherShelfHintMarkup(itemId, count, weatherShelf);
-    row.innerHTML = `<span>${icon}<b>${itemName(itemId)}</b>${restockHint}${weatherShelfHint}${routeHint}${routeStatus}${routeActions}</span><strong>${count}</strong>`;
-    refs.inventoryList.append(row);
-  }
+  renderInventoryPanelUi({
+    refs,
+    state,
+    assetSrc,
+    shopWeatherShelfRecommendationSpec,
+    syncShopOpeningState,
+    harvestUseRouteSafe,
+    harvestUseRouteSpec,
+    inventoryRouteActionsMarkup,
+    inventoryRouteStatusMarkup,
+    shopRestockTargetReady,
+    inventoryWeatherShelfHintMarkup,
+    itemName,
+  });
 }
 
 function renderTradeRoutes() {
-  if (!data.tradeRoutes.length) return;
-  const header = document.createElement("div");
-  header.className = "trade-route-summary";
-  header.innerHTML = `
-    <strong>跨界商路与商队</strong>
-    <span>读取 interrealm_trade_route.csv、trade_route_event.csv、trade_route_risk_supply.csv 与 hidden_dungeon_rotation.csv。</span>
-    <small>可先探路，再自动装载推荐货物发商队；入夜推进路程，到期按风险、补给和利润率结算。</small>
-  `;
-  refs.spiritList.append(header);
-
-  for (const preview of data.tradeRoutes.map(routePreview)) {
-    const { route, supply, event, rotation, familiar } = preview;
-    const dungeon = data.dungeonsById.get(rotation?.area_id);
-    const cargo = tradeCargoPlan(route);
-    const activeRun = tradeRunFor(route.route_id);
-    const supplyText = supply
-      .map((entry) => `${supplyTagLabel(entry.tag)} ${entry.owned}/${entry.needed}${entry.ready ? "✓" : "缺"}`)
-      .join(" · ");
-    const eventText = event
-      ? `${event.event_name}：${event.choice_a} / ${event.choice_b}，风险 ${signedPercent(event.risk_delta)}`
-      : "暂无路上事件";
-    const riskyChoice = tradeEventChoiceSpec(event, "a");
-    const safeChoice = tradeEventChoiceSpec(event, "b");
-    const rotationText = rotation
-      ? `${dungeonName(dungeon)} · ${conditionLabel(rotation.unlock_condition_group)} · ${localize(data.solarTermsById.get(rotation.season_window)?.term_name_key, rotation.season_window)}轮换`
-      : "暂无隐藏秘境轮换";
-    const status = !state.spirits.length
-      ? "需精怪领路"
-      : preview.unlocked
-        ? activeRun ? `商队在途，第 ${activeRun.returnDay} 天返程` : preview.ready ? "补给达标，可发商队" : "可发商队，但补给短缺"
-        : `待解锁：${conditionLabel(route.unlock_condition_group)}`;
-    const node = document.createElement("div");
-    node.className = `trade-route-card${preview.unlocked ? " unlocked" : " locked"}${preview.ready ? " ready" : ""}${activeRun ? " active" : ""}${familiar?.active ? " familiar" : ""}`;
-    node.innerHTML = `
-      <strong>${route.route_name} · ${percentText(route.profit_rate)}收益 · ${status}</strong>
-      <span>路程 ${route.travel_days} 天 · 基础风险 ${percentText(route.base_risk)} · 预估风险 ${percentText(preview.risk)} · 偏好货类 ${splitTags(route.preferred_goods_tags).join(" / ")}</span>
-      <span>补给：${supplyText || "无需额外补给"}</span>
-      <span>推荐装货：${cargo.goods.length ? `${cargo.goods.map((goods) => `${itemName(goods.itemId)} x${goods.count}`).join(" / ")} · 货值 ${cargo.value}` : "暂无匹配货物"}</span>
-      <small>事件：${eventText}</small>
-      ${familiar?.active ? `<small>${familiar.detail}</small>` : ""}
-      ${event ? `<small>分支：${riskyChoice.label}（风险 ${signedPercent(riskyChoice.riskDelta)} / 利润 +${percentText(riskyChoice.profitBonus)}） · ${safeChoice.label}（风险 ${signedPercent(safeChoice.riskDelta)} / 稳定返航）</small>` : ""}
-      <small>秘境轮换：${rotationText} · 奖励焦点 ${rotation?.reward_focus || "待配置"}</small>
-      <div class="trade-route-actions">
-        <button type="button" data-trade-route="${route.route_id}" ${!preview.unlocked || !state.spirits.length ? "disabled" : ""}>派精怪探路</button>
-        <button type="button" data-trade-start="${route.route_id}" data-trade-choice="a" ${!preview.unlocked || !state.spirits.length || activeRun || cargo.goods.length === 0 ? "disabled" : ""}>${event ? "冒险发队" : "发商队"}</button>
-        ${event ? `<button type="button" data-trade-start="${route.route_id}" data-trade-choice="b" ${!preview.unlocked || !state.spirits.length || activeRun || cargo.goods.length === 0 ? "disabled" : ""}>稳妥发队</button>` : ""}
-      </div>
-    `;
-    refs.spiritList.append(node);
-  }
+  renderTradeRoutesPanelUi({
+    refs,
+    state,
+    data,
+    routePreview,
+    tradeCargoPlan,
+    tradeRunFor,
+    supplyTagLabel,
+    signedPercent,
+    tradeEventChoiceSpec,
+    dungeonName,
+    conditionLabel,
+    localize,
+    percentText,
+    splitTags,
+    itemName,
+  });
 }
 
 function renderSpirits() {
-  refs.spiritList.innerHTML = "";
-  if (state.spirits.length === 0) {
-    canvasSpiritCareFocus = null;
-    const promiseMarkup = firstSpiritPromiseMarkup();
-    if (promiseMarkup) {
-      const promiseNode = document.createElement("div");
-      promiseNode.innerHTML = promiseMarkup.trim();
-      refs.spiritList.append(promiseNode.firstElementChild);
-    }
-    const emptyNode = document.createElement("div");
-    emptyNode.className = "spirit-row";
-    emptyNode.innerHTML = "尚未有精怪入队";
-    refs.spiritList.append(emptyNode);
-    renderTradeRoutes();
-    return;
-  }
-
-  const canvasCareMarkup = canvasSpiritCareFocusMarkup();
-  if (canvasCareMarkup) {
-    const focusNode = document.createElement("div");
-    focusNode.innerHTML = canvasCareMarkup.trim();
-    refs.spiritList.append(focusNode.firstElementChild);
-  }
-
-  const synergyNetworkMarkup = spiritJobSynergyNetworkMarkup();
-  if (synergyNetworkMarkup) {
-    const synergyNode = document.createElement("div");
-    synergyNode.innerHTML = synergyNetworkMarkup.trim();
-    refs.spiritList.append(synergyNode.firstElementChild);
-  }
-
-  const automationPromenadeMarkup = spiritAutomationPromenadeMarkup();
-  if (automationPromenadeMarkup) {
-    const automationNode = document.createElement("div");
-    automationNode.innerHTML = automationPromenadeMarkup.trim();
-    refs.spiritList.append(automationNode.firstElementChild);
-  }
-
-  for (const spirit of state.spirits) {
-    ensureSpiritJobs(spirit);
-    syncRareSpiritLifeState();
-    const visual = spiritVisualProfile(spirit);
-    const activeCombos = data.spiritEcologyCombos.filter(ecologyComboActive);
-    const nextCombo = activeCombos[0] || data.spiritEcologyCombos[0];
-    const lineEvents = (data.spiritEventsByLine.get(spirit.lineId || spiritLine(spirit.id)) || []).slice(0, 3);
-    const memoryCount = data.spiritMemoryFlags.filter((memory) => memory.spirit_line_id === (spirit.lineId || spiritLine(spirit.id)) && state.spiritMemoryFlags.has(memory.memory_flag_id)).length;
-    const rareMoment = rareSpiritMomentForSpirit(spirit);
-    const rareGiftText = rareSpiritGiftStatusText(spirit);
-    const interaction = normalizeSpiritInteractionState(state.spiritInteractionState).last;
-    const signatureSkillText = spiritSignatureSkillText(spirit);
-    const jobPersona = spiritJobPersonaSpec(spirit, spirit.job);
-    const workRange = spiritWorkRangeSpec(spirit, spirit.job);
-    const synergy = spiritJobSynergyForSpirit(spirit);
-    const joinFeedback = state.spiritJoinFeedback?.spiritId === spirit.id ? state.spiritJoinFeedback : null;
-    const evolutionFeedback = state.spiritEvolutionFeedback?.spiritId === spirit.id ? state.spiritEvolutionFeedback : null;
-    const spiritLineId = spirit.lineId || spiritLine(spirit.id);
-    const joinCard = joinFeedback
-      ? `
-        <div class="spirit-join-card">
-          <strong>${joinFeedback.label} · ${joinFeedback.source === "first_join" ? "伙伴栏已开放" : "新伙伴响应"}</strong>
-          <span>${joinFeedback.detail}</span>
-          <small>${joinFeedback.cta} · 当前岗位 ${jobName(joinFeedback.job)}</small>
-        </div>
-      `
-      : "";
-    const evolutionCard = evolutionFeedback
-      ? `
-        <div class="spirit-join-card evolution-live">
-          <strong>${evolutionFeedback.stageName} · 进化完成</strong>
-          <span>${evolutionFeedback.previousName} -> ${evolutionFeedback.spiritName} · ${evolutionFeedback.rangeBefore} -> ${evolutionFeedback.rangeAfter}</span>
-          <small>${evolutionFeedback.cta} · 留下 ${evolutionFeedback.rewardText}</small>
-        </div>
-      `
-      : "";
-    const interactionCard = interaction?.spiritId === spirit.id
-      ? `
-        <div class="spirit-interaction-card">
-          <strong>伙伴回应 · ${interaction.type === "mood_repair" ? "安抚小事" : interaction.type === "theater" ? "小剧场" : interaction.type === "feed" ? "喂食" : "摸摸"}</strong>
-          <span>${interaction.actionText}</span>
-          <small>“${interaction.quote}” · ${interaction.floatingText || `羁绊 +${interaction.bondGain}`} · 心情 ${interaction.mood} · 饱腹 ${interaction.hunger}</small>
-          ${interaction.extraText ? `<small>${interaction.extraText}</small>` : ""}
-        </div>
-      `
-      : "";
-    const jobButtons = ["farm", "workshop", "shop", "patrol", "expedition", "garden"].map((job) => {
-      const specialty = spiritJobSpecialtyBonus(spirit, job);
-      return `<button type="button" data-spirit-job="${job}" data-spirit-id="${spirit.id}">${jobName(job)}${specialty > 0 ? ` +${Math.round(specialty * 100)}%` : ""}${spirit.job === job ? " ✓" : ""}</button>`;
-    }).join("");
-    const eventRows = lineEvents.map((event) => {
-      const ready = spiritEventReady(event);
-      const done = state.completedSpiritEvents.has(event.spirit_event_id);
-      const replayReady = done && spiritEventSceneReady(event);
-      const statusText = done
-        ? replayReady ? "可回看" : "已记忆"
-        : ready ? "可触发" : spiritEventTriggerHint(event);
-      const buttonMarkup = replayReady
-        ? `<button type="button" data-spirit-event-scene="${event.spirit_event_id}">回看演出</button>`
-        : `<button type="button" data-spirit-event="${event.spirit_event_id}" ${!ready ? "disabled" : ""}>${done ? "已完成" : "触发事件"}</button>`;
-      return `
-        <div class="spirit-event-row ${done ? "done" : ready ? "ready" : "locked"}" data-spirit-event-row="${event.spirit_event_id}">
-          <span>${spiritEventStageLabel(event.event_stage)} · ${localize(event.dialogue_key, event.note)} · ${statusText}</span>
-          ${buttonMarkup}
-        </div>
-      `;
-    }).join("");
-    const row = document.createElement("div");
-    row.className = `spirit-row${joinFeedback ? " join-live" : ""}`;
-    row.dataset.spiritId = spirit.id;
-    row.dataset.spiritLine = spiritLineId;
-    row.innerHTML = `
-      <div class="spirit-title"><span class="spirit-glyph" style="--spirit-base:${visual.base};--spirit-accent:${visual.accent};">${visual.glyph}</span><strong>${spirit.name}</strong></div>
-      <span>视觉定位：${visual.label} · 画面岗位：${jobName(spirit.job)} · ${spirit.job === "farm" ? "浇水灵珠" : spirit.job === "workshop" ? "灶火星屑" : spirit.job === "shop" ? "招客话牌" : spirit.job === "expedition" ? "探路虚线" : spirit.job === "patrol" ? "巡逻灯域" : "庭院花息"}</span>
-      ${joinCard}
-      ${evolutionCard}
-      <div class="spirit-job-persona ${jobPersona.tone}">
-        <strong>${jobPersona.label} · ${jobPersona.action}</strong>
-        <span>关注：${jobPersona.focus} · 效率 ${jobPersona.efficiency} · 今日工作 ${spirit.assignments} 次</span>
-        <small>${jobPersona.specialty} · ${jobPersona.advice}</small>
-      </div>
-      ${spiritDailyChoreMarkup(spirit)}
-      ${synergy ? `<div class="spirit-job-synergy"><strong>${synergy.label} · 昨夜搭班</strong><span>${synergy.spirits.join(" + ")} · ${synergy.rewardText}</span><small>${synergy.detail}</small></div>` : ""}
-      <div class="spirit-work-range ${workRange.evolved ? "evolved" : "seed"}">
-        <strong>${workRange.stageName} · ${workRange.jobHint}</strong>
-        <span>${workRange.rangeLabel} · 面积 ${workRange.area} 格 · 基础工力 ${workRange.workPower.toFixed(2)}</span>
-        <small>${workRange.deltaText} · ${workRange.nextText}</small>
-      </div>
-      ${spiritIdentityMemoryMarkup(spirit)}
-      ${spiritCompanionCareMarkup(spirit)}
-      <span>岗位熟练：农田 Lv.${spirit.jobLevels.farm || 0} / 工坊 Lv.${spirit.jobLevels.workshop || 0} / 店铺 Lv.${spirit.jobLevels.shop || 0} / 远征 Lv.${spirit.jobLevels.expedition || 0}</span>
-      <span>羁绊 Lv.${spirit.bondLevel || 1} · EXP ${spirit.bondExp || 0} · 心情 ${Math.round(spirit.mood || 0)} · 饱腹 ${Math.round(spirit.hunger || 0)} · 体力 ${Math.round(spirit.stamina || 0)}</span>
-      <div class="spirit-actions">
-        <button type="button" data-spirit-action="pet" data-spirit-id="${spirit.id}">摸摸</button>
-        <button type="button" data-spirit-action="feed" data-spirit-id="${spirit.id}">喂食</button>
-        <button type="button" data-rare-spirit-theater="${spirit.id}" ${rareMoment ? "" : "disabled"}>${rareMoment ? "看今日小剧场" : "小剧场待触发"}</button>
-        ${jobButtons}
-        <button type="button" data-spirit-expedition="${data.spiritExpeditions[0]?.expedition_id || ""}" data-spirit-id="${spirit.id}">短途派遣</button>
-      </div>
-      <small>生态共鸣：${nextCombo ? `${ecologyComboName(nextCombo)} · ${activeCombos.length > 0 ? "已激活" : "待补齐建筑/精怪"}` : "等待生态配置"}</small>
-      <small>个体记忆：${memoryCount}/${lineEvents.length} · 记忆会影响岗位效率与第二年试炼评分。</small>
-      ${signatureSkillText ? `<small>${signatureSkillText}</small>` : ""}
-      ${rareMoment ? `<small>稀有日常：${rareMoment.focus} · ${rareMoment.action} · “${rareMoment.quote}”</small>` : ""}
-      ${rareGiftText ? `<small>${rareGiftText}</small>` : ""}
-      ${interactionCard}
-      <div class="spirit-event-list">${eventRows}</div>
-    `;
-    refs.spiritList.append(row);
-  }
-  renderTradeRoutes();
+  renderSpiritPanelUi({
+    refs,
+    state,
+    data,
+    clearCanvasSpiritCareFocus: () => {
+      canvasSpiritCareFocus = null;
+    },
+    firstSpiritPromiseMarkup,
+    canvasSpiritCareFocusMarkup,
+    spiritJobSynergyNetworkMarkup,
+    spiritAutomationPromenadeMarkup,
+    ensureSpiritJobs,
+    syncRareSpiritLifeState,
+    spiritVisualProfile,
+    ecologyComboActive,
+    spiritLine,
+    rareSpiritMomentForSpirit,
+    rareSpiritGiftStatusText,
+    normalizeSpiritInteractionState,
+    spiritSignatureSkillText,
+    spiritJobPersonaSpec,
+    spiritWorkRangeSpec,
+    spiritVoiceMomentSpec,
+    spiritJobSynergyForSpirit,
+    jobName,
+    spiritJobSpecialtyBonus,
+    spiritEventReady,
+    spiritEventSceneReady,
+    spiritEventTriggerHint,
+    spiritEventStageLabel,
+    localize,
+    spiritDailyChoreMarkup,
+    rareSpiritCompanionCardMarkup,
+    spiritIdentityMemoryMarkup,
+    spiritCompanionCareMarkup,
+    ecologyComboName,
+    renderTradeRoutes,
+  });
 }
 
 function renderStory() {
-  refs.storyPanel.innerHTML = "";
-  const visible = STORY_BEATS.filter((beat) => state.storySeen.has(beat.id)).slice(-4);
-  for (const beat of visible) {
-    const node = document.createElement("div");
-    node.className = "story-beat";
-    node.innerHTML = `<strong>${beat.title}</strong>${beat.text}`;
-    refs.storyPanel.append(node);
-  }
+  renderStoryPanel({ refs, state, storyBeats: STORY_BEATS });
 }
 
 function renderMissions() {
-  refs.missionPanel.innerHTML = "";
-  const storyVisit = activeStoryVisitFeedback();
-  const opening = syncShopOpeningState();
-  const shopVisitPledge = shopVisitPledgeDisplaySpec(opening);
-  const shopTownErrand = shopTownErrandDisplaySpec(opening);
-  const shopWordOfMouthVisit = opening.lastSession?.day === state.day
-    ? opening.lastSession.shopWordOfMouthVisit || null
-    : shopWordOfMouthVisitLeadSpec(shopWordOfMouthDisplaySpec());
-  const baizhiStage = activeBaizhiQuestStageFeedback();
-  const chapterFinishHint = baizhiChapterFinishPanelHint();
-  const herbValleyHint = chapterFinishHint ? null : herbValleyUnlockPanelHint();
-  const spiritManorHint = spiritManorPanelHint();
-  const chapter3TradeHint = chapter3TradePanelHint();
-  const chapter4DroughtHint = chapter4DroughtPanelHint();
-  const baizhiQuestHintActive = baizhiQuestGuidanceActive();
-  const baizhiQuestHint = baizhiQuestGuidanceSpec();
-  const mainHeader = document.createElement("div");
-  const completedMain = data.quests.filter((quest) => state.missionDone.has(quest.quest_id)).length;
-  mainHeader.className = "mission-summary";
-  mainHeader.innerHTML = `<strong>主线任务书 ${completedMain}/${data.quests.length}</strong><span>读取 quest_base.csv 与 quest_step.csv，当前 Demo 会自动推进前几段主线。</span>`;
-  refs.missionPanel.append(mainHeader);
-
-  const compass = mainStoryCompassSpec();
-  const compassNode = document.createElement("div");
-  compassNode.className = `mission-story-compass ${compass.mainComplete ? "complete" : "active"}`;
-  const compassActionLabel = storyCompassActionLabel(compass.nextStep, compass.mainComplete);
-  const roadmapMarkup = mainStoryChapterRoadmapMarkup(mainStoryChapterRoadmapSpec(compass));
-  compassNode.innerHTML = `
-    <div class="mission-story-compass-head">
-      <strong>${compass.chapterLabel}</strong>
-      <span>主线进度 ${compass.progressLabel} · ${compass.promise}</span>
-    </div>
-    <div class="mission-story-compass-track">
-      ${compass.chapters.map((chapter) => `
-        <span class="${chapter.stateClass}">
-          <b>${chapter.shortTitle}</b>
-          <small>${chapter.doneCount}/${chapter.total}</small>
-        </span>
-      `).join("")}
-    </div>
-    ${roadmapMarkup}
-    <div class="mission-story-compass-focus">
-      <strong>${compass.focusQuest ? `当前焦点：${questTitle(compass.focusQuest)}` : "当前焦点：等待主线开卷"}</strong>
-      <span>${compass.focusQuest ? `${npcName(compass.focusQuest.issuer_id)} · 第 ${compass.focusQuest.chapter} 章 · 任务 ${compass.focusProgress.done}/${compass.focusProgress.total} 步` : "先完成序章清荒与播种，任务书会自动亮起。"}</span>
-      <small>下一步：${compass.nextStepText}</small>
-      <small>明日建议：${compass.advice}</small>
-      <button type="button" data-story-compass-action="next">${compassActionLabel}</button>
-    </div>
-  `;
-  refs.missionPanel.append(compassNode);
-
-  const fullClearEvidence = mainStoryFullClearMarkup(mainStoryFullClearSpec(compass));
-  const fullClearNode = document.createElement("div");
-  fullClearNode.innerHTML = fullClearEvidence;
-  refs.missionPanel.append(fullClearNode.firstElementChild);
-
-  const yearOneRhythmMarkup = yearOneRhythmPanelMarkup();
-  if (yearOneRhythmMarkup) {
-    const rhythmNode = document.createElement("div");
-    rhythmNode.innerHTML = yearOneRhythmMarkup;
-    refs.missionPanel.append(rhythmNode.firstElementChild);
-  }
-
-  const prologueJourney = prologueJourneySpec();
-  if (prologueJourney.visible) {
-    const prologueNode = document.createElement("div");
-    const prologueClass = prologueJourney.doneCount >= prologueJourney.total
-      ? "done"
-      : prologueJourney.active?.live
-        ? "story-live"
-        : "active";
-    prologueNode.className = `mission-card prologue-journey ${prologueClass}`;
-    prologueNode.innerHTML = `
-      <strong>序章路标 ${prologueJourney.doneCount}/${prologueJourney.total}</strong>
-      <span>${prologueJourney.headline}</span>
-      <div class="prologue-journey-track">
-        ${prologueJourney.rows.map((row) => `
-          <span class="prologue-journey-step ${row.stateClass}" data-prologue-pace="${row.paceId}">
-            <b>${row.phase}</b>
-            <small>${row.label} · ${row.timeMin} 分钟</small>
-            <em>${(row.live ? row.instant : row.note).slice(0, 26)}</em>
-          </span>
-        `).join("")}
-      </div>
-      <small>世界留痕：${prologueJourney.worldPromise}</small>
-      ${prologueJourney.active ? `<small>当前一拍：${prologueJourney.active.beat} → ${prologueJourney.active.instant}</small>` : ""}
-    `;
-    refs.missionPanel.append(prologueNode);
-  }
-
-  const commerceJourney = commerceJourneySpec();
-  if (commerceJourney.visible) {
-    const commerceNode = document.createElement("div");
-    const commerceClass = commerceJourney.doneCount >= commerceJourney.total
-      ? "done"
-      : commerceJourney.active?.live
-        ? "story-live"
-        : "active";
-    commerceNode.className = `mission-card commerce-journey ${commerceClass}`;
-    commerceNode.innerHTML = `
-      <strong>经营路标 ${commerceJourney.doneCount}/${commerceJourney.total}</strong>
-      <span>${commerceJourney.headline}</span>
-      <div class="commerce-journey-track">
-        ${commerceJourney.rows.map((row) => `
-          <span class="commerce-journey-step ${row.stateClass}" data-commerce-pace="${row.paceId}">
-            <b>${row.phase}</b>
-            <small>${row.label} · ${row.timeMin} 分钟</small>
-            <em>${(row.live ? row.instant : row.note).slice(0, 28)}</em>
-          </span>
-        `).join("")}
-      </div>
-      <small>经营留痕：${commerceJourney.worldPromise}</small>
-      ${commerceJourney.active ? `<small>当前一拍：${commerceJourney.active.beat} → ${commerceJourney.active.instant}</small>` : ""}
-    `;
-    refs.missionPanel.append(commerceNode);
-  }
-
-  const dailyIntentNode = document.createElement("div");
-  dailyIntentNode.innerHTML = dailyIntentBoardMarkup();
-  refs.missionPanel.append(dailyIntentNode.firstElementChild);
-
-  if (shopVisitPledge) {
-    const route = shopVisitPledgeRouteCandidates(shopVisitPledge)[0] || null;
-    const visitNode = document.createElement("div");
-    visitNode.className = "mission-card story-live";
-    visitNode.innerHTML = `
-      <strong>铺前来帖小约：${shopVisitPledge.customerLabel}</strong>
-      <span>${shopVisitPledge.statusLabel} · ${shopVisitPledge.targetItemName || shopVisitPledge.hotTagLabel || "对口货"} · ${shopVisitPledge.note}</span>
-      <small>${shopVisitPledge.resultText || shopVisitPledge.detail} · ${shopVisitPledge.cta}</small>
-      ${route ? `<button type="button" data-shop-restock-route="${route.action}" data-shop-restock-recipe="${route.recipeId || ""}" data-shop-restock-seed="${route.seedId || ""}" data-shop-restock-tag="${route.shopTag || ""}" data-shop-restock-item="${route.itemId || shopVisitPledge.targetItemId || ""}">${route.action === "recipe" ? "看配方" : route.action === "seed" ? "看种子" : "看旧铺货签"}</button>` : ""}
-    `;
-    refs.missionPanel.append(visitNode);
-  }
-
-  if (shopTownErrand) {
-    const visitNode = document.createElement("div");
-    visitNode.className = `mission-card story-live ${shopTownErrand.ready ? "story-visit-feedback" : ""}`;
-    visitNode.innerHTML = `
-      <strong>镇上捎话：${shopTownErrand.npcLabel}</strong>
-      <span>${shopTownErrand.statusLabel} · ${shopTownErrand.areaLabel} · ${shopTownErrand.requestItemName} ${shopTownErrand.have}/${shopTownErrand.count}</span>
-      <small>${shopTownErrand.resultText || shopTownErrand.detail} · ${shopTownErrand.note}</small>
-      ${shopTownErrandButtonsMarkup(shopTownErrand, { includeFocus: true })}
-    `;
-    refs.missionPanel.append(visitNode);
-  }
-
-  if (shopWordOfMouthVisit) {
-    const visitNode = document.createElement("div");
-    visitNode.className = "mission-card story-live";
-    visitNode.innerHTML = `
-      <strong>${shopWordOfMouthVisit.title}：${shopWordOfMouthVisit.customerLabel}</strong>
-      <span>${shopWordOfMouthVisit.preview ? "明日来认门" : shopWordOfMouthVisit.appeared ? "今日已到门前" : "今日口碑来客"} · ${shopWordOfMouthVisit.leadItemName || shopWordOfMouthVisit.hotTagLabel || "对口货"}</span>
-      <small>${shopWordOfMouthVisit.appeared ? shopWordOfMouthVisit.resultText || shopWordOfMouthVisit.detail : shopWordOfMouthVisit.detail} · ${shopWordOfMouthVisit.cta}</small>
-    `;
-    refs.missionPanel.append(visitNode);
-  }
-
-  if (storyVisit) {
-    const visitNode = document.createElement("div");
-    visitNode.className = "mission-card story-visit-feedback";
-    visitNode.innerHTML = `
-      <strong>${storyVisit.title}：${storyVisit.questLabel}</strong>
-      <span>${storyVisit.npcLabel} · ${storyVisit.areaText} · ${storyVisit.orderTitle}</span>
-      <small>${storyVisit.detail} 奖励预览 ${storyVisit.rewardPreview} · ${storyVisit.cta}</small>
-    `;
-    refs.missionPanel.append(visitNode);
-  }
-
-  if (baizhiStage) {
-    const stageNode = document.createElement("div");
-    stageNode.className = "mission-card story-live";
-    stageNode.innerHTML = `
-      <strong>${baizhiStage.title}：${baizhiStage.headline}</strong>
-      <span>${baizhiStage.detail}</span>
-      <small>${baizhiStage.cta} · 奖励预览 ${baizhiStage.rewardPreview}</small>
-    `;
-    refs.missionPanel.append(stageNode);
-  }
-
-  if (herbValleyHint) {
-    const valleyNode = document.createElement("div");
-    valleyNode.className = "mission-card story-live herb-valley-live";
-    valleyNode.innerHTML = `
-      <strong>${herbValleyHint.title}：${herbValleyHint.headline}</strong>
-      <span>${herbValleyHint.detail}</span>
-      <small>${herbValleyHint.cta}</small>
-    `;
-    refs.missionPanel.append(valleyNode);
-  }
-
-  if (chapterFinishHint) {
-    const finishNode = document.createElement("div");
-    finishNode.className = "mission-card story-live herb-valley-live";
-    finishNode.innerHTML = `
-      <strong>${chapterFinishHint.title}：${chapterFinishHint.headline}</strong>
-      <span>${chapterFinishHint.detail}</span>
-      <small>${chapterFinishHint.rewardHint} · ${chapterFinishHint.cta}</small>
-    `;
-    refs.missionPanel.append(finishNode);
-  }
-
-  if (spiritManorHint) {
-    const manorNode = document.createElement("div");
-    manorNode.className = "mission-card story-live spirit-manor-live";
-    manorNode.innerHTML = `
-      <strong>${spiritManorHint.title}：${spiritManorHint.headline}</strong>
-      <span>${spiritManorHint.detail}</span>
-      <small>${spiritManorHint.cta} · ${spiritManorHint.rewardHint}</small>
-    `;
-    refs.missionPanel.append(manorNode);
-  }
-
-  if (chapter3TradeHint) {
-    const tradeNode = document.createElement("div");
-    tradeNode.className = `mission-card story-live ${fireRuinUnlocked() ? "herb-valley-live" : "spirit-manor-live"}`;
-    tradeNode.innerHTML = `
-      <strong>${chapter3TradeHint.title}：${chapter3TradeHint.headline}</strong>
-      <span>${chapter3TradeHint.detail}</span>
-      <small>${chapter3TradeHint.cta} · ${chapter3TradeHint.rewardHint}</small>
-    `;
-    refs.missionPanel.append(tradeNode);
-  }
-
-  if (chapter4DroughtHint) {
-    const droughtNode = document.createElement("div");
-    droughtNode.className = "mission-card story-live herb-valley-live";
-    droughtNode.innerHTML = `
-      <strong>${chapter4DroughtHint.title}：${chapter4DroughtHint.headline}</strong>
-      <span>${chapter4DroughtHint.detail}</span>
-      <small>${chapter4DroughtHint.cta} · ${chapter4DroughtHint.rewardHint}</small>
-    `;
-    refs.missionPanel.append(droughtNode);
-  }
-
-  const visibleMainQuests = data.quests.filter((quest, index) =>
-    index < 6
-      || state.missionDone.has(quest.quest_id)
-      || state.completed.has(quest.quest_id)
-      || quest.quest_id === spiritManorHint?.questId
-      || quest.quest_id === chapter3TradeHint?.questId
-      || quest.quest_id === chapter4DroughtHint?.questId,
-  );
-  for (const quest of visibleMainQuests) {
-    const done = state.missionDone.has(quest.quest_id);
-    const rewardClaimed = state.claimedQuestRewards.has(quest.quest_id);
-    const progress = questProgress(quest);
-    const nextStep = progress.steps.find((step) => stepProgress(step) < Number(step.target_count || 1));
-    const liveStoryQuest = storyVisit?.questId === quest.quest_id ? storyVisit : null;
-    const liveBaizhiStage = baizhiStage?.questId === quest.quest_id ? baizhiStage : null;
-    const liveHerbValley = herbValleyHint?.questId === quest.quest_id ? herbValleyHint : null;
-    const liveBaizhiFinish = chapterFinishHint?.questId === quest.quest_id ? chapterFinishHint : null;
-    const liveSpiritManor = spiritManorHint?.questId === quest.quest_id ? spiritManorHint : null;
-    const liveChapter3Trade = chapter3TradeHint?.questId === quest.quest_id ? chapter3TradeHint : null;
-    const liveChapter4Drought = chapter4DroughtHint?.questId === quest.quest_id ? chapter4DroughtHint : null;
-    const hintedStoryQuest = quest.quest_id === BAIZHI_QUEST_ID && baizhiQuestHintActive;
-    const card = document.createElement("div");
-    card.className = `mission-card${done ? " done" : ""}${liveStoryQuest || hintedStoryQuest || liveBaizhiStage || liveHerbValley || liveBaizhiFinish || liveSpiritManor || liveChapter3Trade || liveChapter4Drought ? " story-live" : ""}`;
-    card.dataset.mainQuestId = quest.quest_id;
-    card.innerHTML = `
-      <strong>${questTitle(quest)}${done ? " · 已完成" : ""}${rewardClaimed ? " · 奖励已领" : ""}</strong>
-      ${localize(`${quest.quest_id}_desc`, quest.quest_type === "main" ? "主线任务步骤来自配置表，正式版会逐步接入完整触发与奖励。" : "任务说明待本地化")}
-      ${liveStoryQuest || liveBaizhiStage || liveHerbValley || liveBaizhiFinish || liveSpiritManor || liveChapter3Trade || liveChapter4Drought || hintedStoryQuest ? `<span class="mission-live-clue">${liveStoryQuest ? `${liveStoryQuest.title}：${liveStoryQuest.detail}` : liveBaizhiStage ? `${liveBaizhiStage.title}：${liveBaizhiStage.detail}` : liveHerbValley ? `${liveHerbValley.title}：${liveHerbValley.detail}` : liveBaizhiFinish ? `${liveBaizhiFinish.title}：${liveBaizhiFinish.detail}` : liveSpiritManor ? `${liveSpiritManor.title}：${liveSpiritManor.detail}` : liveChapter3Trade ? `${liveChapter3Trade.title}：${liveChapter3Trade.detail}` : liveChapter4Drought ? `${liveChapter4Drought.title}：${liveChapter4Drought.detail}` : baizhiQuestHint?.mission || "线索已亮：白芷已经注意到你能稳定做出干净稳当的灵植产出，去医馆谈谈铁皮石斛委托。"}</span>` : ""}
-      <small>${npcName(quest.issuer_id)} · 第 ${quest.chapter} 章 · ${progress.done}/${progress.total} 步${nextStep ? ` · 下一步：${stepLabel(nextStep)}` : ""} · 奖励池 ${quest.complete_reward_group}${liveStoryQuest || liveBaizhiStage || liveHerbValley || liveBaizhiFinish || liveSpiritManor || liveChapter3Trade || liveChapter4Drought || hintedStoryQuest ? ` · 奖励预览 ${liveStoryQuest?.rewardPreview || liveBaizhiStage?.rewardPreview || liveSpiritManor?.rewardHint || liveChapter3Trade?.rewardHint || liveChapter4Drought?.rewardHint || "高级药园配方"}` : ""}${hintedStoryQuest && baizhiQuestHint ? ` · ${baizhiQuestHint.progress}` : ""}${liveBaizhiStage ? ` · ${liveBaizhiStage.cta}` : ""}${liveHerbValley ? ` · ${liveHerbValley.cta}` : ""}${liveBaizhiFinish ? ` · ${liveBaizhiFinish.cta}` : ""}${liveSpiritManor ? ` · ${liveSpiritManor.cta}` : ""}${liveChapter3Trade ? ` · ${liveChapter3Trade.cta}` : ""}${liveChapter4Drought ? ` · ${liveChapter4Drought.cta}` : ""}</small>
-    `;
-    refs.missionPanel.append(card);
-  }
-
-  const sideHeader = document.createElement("div");
-  const visibleSide = data.sideQuests
-    .filter(sideQuestVisible)
-    .slice()
-    .sort((a, b) => {
-      const activeDelta = Number(state.activeSideQuests.has(b.quest_id)) - Number(state.activeSideQuests.has(a.quest_id));
-      if (activeDelta !== 0) return activeDelta;
-      return Number(b.priority || 0) - Number(a.priority || 0);
-    });
-  sideHeader.className = "mission-summary side";
-  sideHeader.innerHTML = `<strong>支线触发线索 ${visibleSide.length}/${data.sideQuests.length}</strong><span>读取 side_quest_base.csv、side_quest_step.csv 与 side_quest_event_trigger.csv。</span>`;
-  refs.missionPanel.append(sideHeader);
-
-  const qinghePondEntry = activeQinghePondEntryFeedback();
-  const qinghePondProgress = activeQinghePondProgressFeedback();
-  if (qinghePondEntry) {
-    const node = document.createElement("div");
-    node.className = "mission-card side qinghe-pond-entry live-clue";
-    node.innerHTML = `
-      <strong>${qinghePondEntry.label}：${qinghePondEntry.questTitle}</strong>
-      <span>${qinghePondEntry.statusText}</span>
-      <small>${qinghePondEntry.firstStepText} · ${qinghePondEntry.secondStepText} · 奖励 ${qinghePondEntry.rewardText}</small>
-    `;
-    refs.missionPanel.append(node);
-  }
-
-  if (qinghePondProgress) {
-    const node = document.createElement("div");
-    node.className = `mission-card side qinghe-pond-progress live-clue ${qinghePondProgress.phase}`;
-    node.innerHTML = `
-      <strong>${qinghePondProgress.label}：${qinghePondProgress.title}</strong>
-      <span>${qinghePondProgress.detail}</span>
-      <small>${qinghePondProgress.rewardText} · ${qinghePondProgress.nextAdvice}</small>
-      <small>灵池水鲜进度：${qinghePondProgress.routeText}</small>
-    `;
-    refs.missionPanel.append(node);
-  }
-
-  if (state.sideQuestFeedback) {
-    const feedback = state.sideQuestFeedback;
-    const node = document.createElement("div");
-    node.className = `mission-card side side-quest-feedback ${feedback.phase}`;
-    node.innerHTML = `
-      <strong>${feedback.phaseLabel}：${feedback.title}</strong>
-      <span>${feedback.npcLabel} · ${feedback.areaText} · ${feedback.progressText}</span>
-      <small>${feedback.stepText} · ${feedback.hint}</small>
-    `;
-    refs.missionPanel.append(node);
-  }
-
-  for (const quest of visibleSide.slice(0, 4)) {
-    const progress = questProgress(quest, true);
-    const trigger = (data.sideQuestTriggersByQuest.get(quest.quest_id) || [])[0];
-    const triggerStatus = trigger ? configuredTriggerReady(trigger) : { ready: true };
-    const accepted = state.activeSideQuests.has(quest.quest_id) || quest.auto_accept === "true";
-    const rewardClaimed = state.claimedQuestRewards.has(quest.quest_id);
-    const liveFeedback = state.sideQuestFeedback?.questId === quest.quest_id ? state.sideQuestFeedback : null;
-    const card = document.createElement("div");
-    card.className = `mission-card side ${progress.done === progress.total && progress.total > 0 ? "done" : accepted || triggerStatus.ready ? "ready" : ""} ${liveFeedback ? "live-clue" : ""}`;
-    card.dataset.sideQuestId = quest.quest_id;
-    card.innerHTML = `
-      <strong>${questTitle(quest)}${accepted ? " · 已承接" : triggerStatus.ready ? " · 可触发" : " · 线索未满足"}${rewardClaimed ? " · 奖励已领" : ""}</strong>
-      ${trigger ? triggerReadable(trigger) : "自动承接支线"}
-      ${liveFeedback ? `<span class="mission-live-clue">${liveFeedback.phaseLabel}：${liveFeedback.stepText}</span>` : ""}
-      <small>${npcName(quest.issuer_id)} · ${quest.quest_type} · ${progress.done}/${progress.total} 步${progress.steps[0] ? ` · ${stepLabel(progress.steps[0])}` : ""}${trigger ? ` · 条件 ${conditionLabel(trigger.condition_group)}` : ""} · 奖励池 ${quest.complete_reward_group}</small>
-      <div class="mission-side-actions">
-        <button type="button" data-side-quest-action="${quest.quest_id}" ${rewardClaimed || (!accepted && !triggerStatus.ready) ? "disabled" : ""}>${rewardClaimed ? "已领取" : sideQuestActionLabel(quest)}</button>
-        <button type="button" data-side-quest-route="${quest.quest_id}" ${rewardClaimed || (!accepted && !triggerStatus.ready) ? "disabled" : ""}>${sideQuestRouteActionLabel(quest)}</button>
-      </div>
-    `;
-    refs.missionPanel.append(card);
-  }
+  renderMissionPanelUi({
+    refs,
+    state,
+    data,
+    activeStoryVisitFeedback,
+    syncShopOpeningState,
+    shopVisitPledgeDisplaySpec,
+    shopTownErrandDisplaySpec,
+    shopWordOfMouthVisitLeadSpec,
+    shopWordOfMouthDisplaySpec,
+    activeBaizhiQuestStageFeedback,
+    baizhiChapterFinishPanelHint,
+    herbValleyUnlockPanelHint,
+    spiritManorPanelHint,
+    chapter3TradePanelHint,
+    chapter4DroughtPanelHint,
+    missionCropCodexRowByKey,
+    baizhiQuestGuidanceActive,
+    baizhiQuestGuidanceSpec,
+    mainStoryCompassSpec,
+    storyCompassActionLabel,
+    mainStoryChapterRoadmapMarkup,
+    mainStoryChapterRoadmapSpec,
+    questTitle,
+    npcName,
+    mainStoryFullClearMarkup,
+    mainStoryFullClearSpec,
+    yearOneRhythmPanelMarkup,
+    prologueJourneySpec,
+    commerceJourneySpec,
+    dailyIntentBoardMarkup,
+    shopVisitPledgeRouteCandidates,
+    shopTownErrandButtonsMarkup,
+    fireRuinUnlocked,
+    questProgress,
+    stepProgress,
+    stepLabel,
+    localize,
+    sideQuestVisible,
+    activeQinghePondEntryFeedback,
+    activeQinghePondProgressFeedback,
+    missionCropCodexTaskActionsMarkup,
+    configuredTriggerReady,
+    triggerReadable,
+    conditionLabel,
+    sideQuestActionLabel,
+    sideQuestRouteActionLabel,
+    baizhiQuestId: BAIZHI_QUEST_ID,
+  });
 }
 
 function renderDialogue() {
-  refs.dialoguePanel.innerHTML = "";
-  if (state.activeDialogue.length === 0) {
-    refs.dialoguePanel.innerHTML = `
-      <div class="dialogue-line"><strong>古戒</strong>先把洞天整理出来，再去镇上见人。</div>
-      ${queuedDialogueGroups.length > 0 ? `<div class="dialogue-line"><strong>待播</strong>还有 ${queuedDialogueGroups.length} 段生活对白，会在当前演出结束后接续。</div>` : ""}
-    `;
-    return;
-  }
-
-  const stage = activeDialogueStageSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (stage) {
-    const node = document.createElement("div");
-    node.className = "dialogue-line stage-focus";
-    node.innerHTML = `<strong>对白舞台</strong>${stage.current.speaker} · ${stage.visual.role === "spirit" ? "精怪回应" : stage.visual.role === "system" ? "古戒低语" : "角色交流"} · 画布已聚焦`;
-    refs.dialoguePanel.append(node);
-  }
-
-  for (const line of state.activeDialogue.slice(-5)) {
-    const node = document.createElement("div");
-    const focused = stage && line === stage.current;
-    node.className = `dialogue-line ${focused ? "current-speaker" : ""}`;
-    node.innerHTML = `<strong>${line.speaker}</strong>${line.text}`;
-    refs.dialoguePanel.append(node);
-  }
-  if (queuedDialogueGroups.length > 0) {
-    const queued = document.createElement("div");
-    queued.className = "dialogue-line";
-    queued.innerHTML = `<strong>待播</strong>后面还有 ${queuedDialogueGroups.length} 段生活对白。`;
-    refs.dialoguePanel.append(queued);
-  }
+  renderDialoguePanelUi({
+    refs,
+    state,
+    queuedDialogueGroups,
+    activeDialogueStageSpec,
+  });
 }
 
 function renderCutscenePanel() {
-  refs.cutscenePanel.innerHTML = "";
-  const active = state.activeCutscene;
-  const activeMemoryPage = state.activeDungeonMemoryPage ? dungeonMemoryPageSpec(state.dungeonCompendium?.[state.activeDungeonMemoryPage]) : null;
-  const activeTownLifeMemory = activeTownLifeMemoryEntry();
-  const activeTownLifeShopMoment = activeTownLifeShopMomentEntry();
-  if (active) {
-    const shot = activeCutsceneShot();
-    const canvasSpec = cutsceneCanvasSpec(refs.world?.width || 960, refs.world?.height || 640);
-    const audio = data.audioAssetsById.get(shot?.audio_key);
-    const shotIndex = active.kind === "side" ? shot?.beat_index : shot?.shot_index;
-    const duration = active.kind === "side" ? shot?.duration_sec : shot?.shot_duration_sec;
-    const node = document.createElement("div");
-    node.className = "cutscene-card active";
-    node.innerHTML = `
-      <strong>${active.kind === "side" ? active.id : cutsceneTitle(active.id)} · 镜头 ${shotIndex || active.index + 1}</strong>
-      <span>${shot?.camera_type || "camera"} / ${shot?.focus_target || shot?.actor_focus || "focus"} · ${shot?.action_key || ""}</span>
-      <span>字幕：${localize(shot?.subtitle_key, shot?.subtitle_key || "无字幕")}</span>
-      <span>画布镜头：${canvasSpec ? `${canvasSpec.focusLabel} · ${canvasSpec.actionLabel}` : "等待镜头数据"}</span>
-      <small>音频：${shot?.audio_key || "无"}${audio ? ` · ${audio.audio_type}/${audio.bus_id}` : ""} · Hook：${shot?.gameplay_hook || "无"} · ${duration || 0}s</small>
-      <div class="cutscene-actions">
-        <button type="button" data-cutscene-next="true">下一镜头</button>
-        <button type="button" data-cutscene-skip="true">跳过演出</button>
-      </div>
-    `;
-    refs.cutscenePanel.append(node);
-    return;
-  }
-
-  if (activeTownLifeMemory) {
-    const node = document.createElement("div");
-    node.className = "cutscene-card active town-memory-page";
-    node.innerHTML = `
-      <div class="town-memory-page-hero">
-        <img src="${npcPortraitSrc(activeTownLifeMemory.npcId)}" alt="${activeTownLifeMemory.npcName}头像" loading="lazy" />
-        <div>
-          <strong>${activeTownLifeMemory.npcName} · ${activeTownLifeMemory.title}</strong>
-          <span>${activeTownLifeMemory.level} 心关系记忆 · 第 ${activeTownLifeMemory.day} 天写入 · 来往 ${activeTownLifeMemory.interactions} 次</span>
-        </div>
-      </div>
-      <p class="memory-page-scene">${activeTownLifeMemory.summary}</p>
-      <small>“${activeTownLifeMemory.line}”</small>
-      <small>这段记忆会保留在凡仙镇关系册里，可作为后续 NPC 小剧情和终章支援的情绪底稿。</small>
-      <div class="cutscene-actions">
-        <button type="button" data-town-memory-close="true">合上镇民记忆</button>
-      </div>
-    `;
-    refs.cutscenePanel.append(node);
-    return;
-  }
-
-  if (activeTownLifeShopMoment) {
-    const archive = townLifeShopMomentArchiveEntries(activeTownLifeShopMoment.npcId, 6);
-    const archiveHtml = archive.length > 1
-      ? `<div class="relationship-shop-archive cutscene-shop-archive">
-        ${archive.map((entry) => `<button type="button" data-town-shop-moment-npc="${entry.npcId}" data-town-shop-moment-id="${entry.id}" ${entry.id === activeTownLifeShopMoment.id ? "disabled" : ""}>第 ${entry.day} 天 · ${entry.sceneTag || entry.itemName}</button>`).join("")}
-      </div>`
-      : "";
-    const rewardText = activeTownLifeShopMoment.rewardText
-      ? `回礼：${activeTownLifeShopMoment.rewardText}`
-      : "这页后话会保留在旧铺来往册里，提醒这条线如何慢慢热起来。";
-    const archiveNote = archive.length > 1
-      ? `同一位镇民目前记下 ${archive.length} 页旧铺后话，可以直接翻到前几次来往。`
-      : "这还是这位镇民写下的第一笔旧铺后话。";
-    const node = document.createElement("div");
-    node.className = "cutscene-card active town-shop-page";
-    node.innerHTML = `
-      <div class="town-memory-page-hero">
-        <img src="${npcPortraitSrc(activeTownLifeShopMoment.npcId)}" alt="${activeTownLifeShopMoment.npcName}头像" loading="lazy" />
-        <div>
-          <strong>${activeTownLifeShopMoment.npcName} · ${activeTownLifeShopMoment.title}</strong>
-          <span>${activeTownLifeShopMoment.area} · 第 ${activeTownLifeShopMoment.day} 天写下 · ${activeTownLifeShopMoment.fresh ? "今天刚落页" : "旧铺来往留痕"}</span>
-        </div>
-      </div>
-      <div class="memory-page-tags"><b>${activeTownLifeShopMoment.itemName} x${activeTownLifeShopMoment.count}</b><b>${activeTownLifeShopMoment.sceneTag || "旧铺后话"}</b>${activeTownLifeShopMoment.memoryTitle ? `<b>${activeTownLifeShopMoment.memoryTitle}</b>` : ""}</div>
-      <p class="memory-page-scene">${activeTownLifeShopMoment.summary}</p>
-      ${activeTownLifeShopMoment.detail ? `<small class="town-shop-page-detail">${activeTownLifeShopMoment.detail}</small>` : ""}
-      ${activeTownLifeShopMoment.line ? `<small>“${activeTownLifeShopMoment.line}”</small>` : ""}
-      <small>${rewardText}</small>
-      ${activeTownLifeShopMoment.followup ? `<small>${activeTownLifeShopMoment.followup}</small>` : ""}
-      <small>${archiveNote}</small>
-      ${archiveHtml}
-      <div class="cutscene-actions">
-        <button type="button" data-town-shop-moment-close="true">合上旧铺后话</button>
-      </div>
-    `;
-    refs.cutscenePanel.append(node);
-    return;
-  }
-
-  if (activeMemoryPage) {
-    const node = document.createElement("div");
-    node.className = "cutscene-card active memory-page";
-    node.innerHTML = `
-      <strong>${activeMemoryPage.title}</strong>
-      <span>${activeMemoryPage.subtitle}</span>
-      <div class="memory-page-tags"><b>${activeMemoryPage.tag}</b><b>${activeMemoryPage.resonance}</b></div>
-      <p class="memory-page-scene">${activeMemoryPage.scene}</p>
-      <small>${activeMemoryPage.caption}</small>
-      <small>${activeMemoryPage.footer}</small>
-      <div class="cutscene-actions">
-        <button type="button" data-dungeon-memory-close="true">合上回忆页</button>
-      </div>
-    `;
-    refs.cutscenePanel.append(node);
-    return;
-  }
-
-  const summary = document.createElement("div");
-  summary.className = "cutscene-card summary";
-  summary.innerHTML = `<strong>演出管线 ${state.playedCutscenes.size}/${data.cutsceneShotsById.size + data.sideCutsceneBeatsByMap.size}</strong><span>读取 cutscene_timeline.csv、cutscene_asset_manifest.csv、side_quest_cutscene_beat.csv 与 audio_asset_list.csv。</span>`;
-  refs.cutscenePanel.append(summary);
-
-  if (state.sideQuestFeedback) {
-    const feedback = state.sideQuestFeedback;
-    const node = document.createElement("div");
-    node.className = `cutscene-card side side-quest-presentation ${feedback.hasCutscene ? "has-cutscene" : "dialogue-only"}`;
-    node.innerHTML = `
-      <strong>${feedback.phaseLabel} · ${feedback.title}</strong>
-      <span>${feedback.hasCutscene ? "支线演出已接入" : "支线对白已接入"} · ${feedback.presentationCount || 0} 段 · ${feedback.areaText}</span>
-      <small>${feedback.hint}</small>
-    `;
-    refs.cutscenePanel.append(node);
-  }
-
-  for (const [cutsceneId, shots] of [...data.cutsceneShotsById.entries()].slice(0, 4)) {
-    const assets = data.cutsceneAssetsById.get(cutsceneId) || [];
-    const node = document.createElement("div");
-    node.className = `cutscene-card${state.playedCutscenes.has(cutsceneId) ? " complete" : ""}`;
-    node.innerHTML = `
-      <strong>${cutsceneTitle(cutsceneId)}${state.playedCutscenes.has(cutsceneId) ? " · 已播放" : ""}</strong>
-      <span>${shots.length} 镜头 · P0/P1 资产 ${assets.length} 项 · 跳过组 ${shots[0]?.skip_group || "未配置"}</span>
-      <small>首镜头：${shots[0]?.camera_type} / ${shots[0]?.focus_target} · 音频 ${shots[0]?.audio_key}</small>
-      <button type="button" data-cutscene-id="${cutsceneId}">播放样片</button>
-    `;
-    refs.cutscenePanel.append(node);
-  }
-
-  for (const mapId of sideCutsceneMaps().slice(0, 3)) {
-    const beats = data.sideCutsceneBeatsByMap.get(mapId) || [];
-    const node = document.createElement("div");
-    node.className = `cutscene-card side${state.playedCutscenes.has(mapId) ? " complete" : ""}`;
-    node.innerHTML = `
-      <strong>支线演出 ${mapId}${state.playedCutscenes.has(mapId) ? " · 已播放" : ""}</strong>
-      <span>${beats.length} beat · ${beats[0]?.actor_focus || "actor"} · ${beats[0]?.emotion_key || "emotion"}</span>
-      <small>字幕 ${beats[0]?.subtitle_key || "无"} · 音频 ${beats[0]?.audio_key || "无"}</small>
-      <button type="button" data-side-cutscene="${mapId}">播放支线</button>
-    `;
-    refs.cutscenePanel.append(node);
-  }
+  renderCutscenePanelUi({
+    refs,
+    state,
+    data,
+    dungeonMemoryPageSpec,
+    activeTownLifeMemoryEntry,
+    activeTownLifeShopMomentEntry,
+    activeCutsceneShot,
+    cutsceneCanvasSpec,
+    cutsceneTitle,
+    localize,
+    npcPortraitSrc,
+    townLifeShopMomentArchiveEntries,
+    sideCutsceneMaps,
+  });
 }
 
 function renderRelationships() {
-  refs.relationshipPanel.innerHTML = "";
-  syncCohabState();
-  const liveOrderFeedback = activeOrderDeliveryMoment();
-  const liveShopTownErrandFeedback = activeShopTownErrandFeedback();
-  const liveStoryVisit = activeStoryVisitFeedback();
-  const liveBaizhiStage = activeBaizhiQuestStageFeedback();
-  const chapterFinishHint = baizhiChapterFinishPanelHint();
-  const herbValleyHint = chapterFinishHint ? null : herbValleyUnlockPanelHint();
-  const spiritManorHint = spiritManorPanelHint();
-  const chapter3TradeHint = chapter3TradePanelHint();
-  const chapter4DroughtHint = chapter4DroughtPanelHint();
-  const qinghePondEntry = activeQinghePondEntryFeedback();
-  const qinghePondProgress = activeQinghePondProgressFeedback();
-  const visible = data.npcs.filter((npc) => npc.npc_id !== "npc_system").slice(0, 6);
-  const townRows = townLifeRows(6);
-  const townWeather = currentWeatherConfig();
-  const townTerm = currentTermConfig();
-  const canvasTownMarkup = canvasTownLifeFocusMarkup();
-  const shopTownErrand = shopTownErrandDisplaySpec();
-  if (canvasTownMarkup) refs.relationshipPanel.insertAdjacentHTML("beforeend", canvasTownMarkup);
-  const earlyRoadmapMarkup = earlyNpcRoadmapMarkup(earlyNpcRoadmapSpec(townRows));
-  if (earlyRoadmapMarkup) refs.relationshipPanel.insertAdjacentHTML("beforeend", earlyRoadmapMarkup);
-  const opportunityMarkup = townLifeOpportunityBoardMarkup(townRows);
-  if (opportunityMarkup) refs.relationshipPanel.insertAdjacentHTML("beforeend", opportunityMarkup);
-  const townBoard = document.createElement("div");
-  townBoard.className = `town-life-board ${chapter4DroughtActive() ? "urgent" : currentTermId() === "term_dongzhi" ? "festival" : ""}`;
-  townBoard.innerHTML = `
-    <div class="town-life-header">
-      <strong>凡仙镇今日动线</strong>
-      <span>第 ${state.day} 天 · ${clockMinuteText()} · ${localize(townTerm?.term_name_key, currentTermId())} · ${localize(townWeather.weather_name_key, townWeather.weather_id)}</span>
-    </div>
-    <div class="town-life-grid">
-      ${townRows.map((row) => {
-        const greeted = townLifeGreetingSeen(row.npc.npc_id);
-        const rowErrand = townLifeErrandStatus(row);
-        const rowShopMoment = latestTownLifeShopMoment(row.npc.npc_id);
-        const rowShopAction = shopTownErrand?.npcId === row.npc.npc_id ? shopTownErrandPrimaryActionSpec(shopTownErrand) : null;
-        const rowErrandRoute = greeted && rowErrand && !rowErrand.completed && !rowErrand.ready ? townLifeErrandRouteSpec(rowErrand) : null;
-        return `
-          <div class="town-life-row ${row.status.key}${greeted ? " greeted" : ""}">
-            <b>${npcName(row.npc.npc_id)}</b>
-            <span>${row.area} · ${row.action}</span>
-            <em>${row.status.label} · 好感 Lv.${row.level}${greeted ? " · 今日已寒暄" : ""}</em>
-            <small>${row.bark}</small>
-            ${rowShopMoment ? `<small class="town-life-shop-moment ${rowShopMoment.day === state.day ? "fresh" : "archive"}">旧铺后话：${rowShopMoment.summary}</small>` : ""}
-            ${shopTownErrand?.npcId === row.npc.npc_id ? `<small class="town-life-errand ${shopTownErrand.completed ? "done" : shopTownErrand.failed ? "pending" : shopTownErrand.ready ? "ready" : "pending"}">旧铺捎话：${shopTownErrand.requestItemName} ${shopTownErrand.have}/${shopTownErrand.count} · ${shopTownErrand.note}</small>` : ""}
-            ${greeted && rowErrand ? `<small class="town-life-errand ${rowErrand.completed ? "done" : rowErrand.ready ? "ready" : "pending"}">今日小托付：${rowErrand.title} · ${rowErrand.itemName} ${rowErrand.have}/${rowErrand.count} · 回礼 ${rowErrand.rewardGold} 灵石${rowErrand.rewardFame ? ` / 声望 +${rowErrand.rewardFame}` : ""}</small>` : ""}
-            ${rowErrandRoute ? `<small class="town-life-errand-route ${rowErrandRoute.type}">备货路线：${rowErrandRoute.label} · ${rowErrandRoute.title}</small>` : ""}
-            <button type="button" data-town-life-greet="${row.npc.npc_id}" ${row.status.key === "away" || greeted ? "disabled" : ""}>${greeted ? "已寒暄" : "打个招呼"}</button>
-            ${shopTownErrand?.npcId === row.npc.npc_id ? `<button type="button" data-shop-town-errand-action="${rowShopAction?.mode || "focus"}" data-shop-town-errand-route="${rowShopAction?.route?.action || ""}" data-shop-town-errand-recipe="${rowShopAction?.route?.recipeId || ""}" data-shop-town-errand-seed="${rowShopAction?.route?.seedId || ""}" data-shop-town-errand-tag="${rowShopAction?.route?.shopTag || ""}" data-shop-town-errand-item="${rowShopAction?.route?.itemId || shopTownErrand.requestItemId || ""}" ${shopTownErrand.completed || shopTownErrand.failed ? "disabled" : ""}>${shopTownErrand.completed ? "已送到" : shopTownErrand.failed ? "已落空" : rowShopAction?.label || "看镇上动线"}</button>` : ""}
-            ${greeted && rowErrand ? `<button type="button" data-town-life-errand="${row.npc.npc_id}" ${rowErrand.completed || !rowErrand.ready ? "disabled" : ""}>${rowErrand.completed ? "已办妥" : rowErrand.ready ? "交付小托付" : "材料不足"}</button>` : ""}
-            ${rowErrandRoute ? `<button type="button" data-town-life-errand-route="${row.npc.npc_id}">${rowErrandRoute.buttonLabel || "看备货路线"}</button>` : ""}
-          </div>
-        `;
-      }).join("")}
-    </div>
-  `;
-  refs.relationshipPanel.append(townBoard);
-  for (const npc of visible) {
-    const value = state.npcFavor[npc.npc_id] || 0;
-    const level = favorLevel(value);
-    const nextReward = data.favorRewards
-      .filter((reward) => reward.npc_id === npc.npc_id && !state.claimedFavorRewards.has(reward.reward_id))
-      .sort((a, b) => Number(a.favor_level) - Number(b.favor_level))[0];
-    const schedule = currentScheduleFor(npc.npc_id);
-    const cohab = cohabStatusFor(npc.npc_id);
-    const cohabEvent = cohab ? nextCohabEvent(cohab.epilogue.epilogue_id) : null;
-    const festival = cohab ? festivalEventFor(cohab.epilogue.epilogue_id) : null;
-    const cohabHistory = cohab ? (state.cohabState.history || []).find((entry) => entry.epilogueId === cohab.epilogue.epilogue_id) : null;
-    const activeCohabBuff = cohab ? Object.entries(state.cohabState.activeBuffs || {}).find(([, info]) => info.route === cohab.epilogue.epilogue_id) : null;
-    const activeCohabBuffText = activeCohabBuff
-      ? `${cohabBuffSpec(activeCohabBuff[0]).label} · 余 ${Math.max(0, Number(activeCohabBuff[1].expiresDay || state.day) - state.day + 1)} 天`
-      : "";
-    const sideHint = sideDialogueHintFor(npc.npc_id);
-    const sideClue = sideQuestClueForNpc(npc.npc_id);
-    const sideClueText = sideClue
-      ? `${questTitle(sideClue.quest)} · ${sideQuestClueStatusText(sideClue)}${sideClue.currentStep ? ` · ${stepLabel(sideClue.currentStep)}` : ""}`
-      : sideHint
-        ? `${questTitle(sideHint.quest)} · ${sideHint.map.scene_key}`
-        : "等待触发";
-    const compendiumRemark = activeNpcCompendiumRemark(npc.npc_id);
-    const orderFeedback = state.orderDeliveryFeedback?.npcId === npc.npc_id ? state.orderDeliveryFeedback : null;
-    const orderFeedbackLive = orderFeedback && liveOrderFeedback?.npcId === npc.npc_id ? liveOrderFeedback : null;
-    const shopErrandFeedback = state.shopTownErrandFeedback?.npcId === npc.npc_id ? state.shopTownErrandFeedback : null;
-    const shopErrandFeedbackLive = shopErrandFeedback && liveShopTownErrandFeedback?.npcId === npc.npc_id ? liveShopTownErrandFeedback : null;
-    const storyFeedback = liveStoryVisit?.npcId === npc.npc_id ? liveStoryVisit : null;
-    const baizhiStageFeedback = npc.npc_id === "npc_baizhi" ? liveBaizhiStage : null;
-    const herbValleyFeedback = npc.npc_id === "npc_baizhi" ? herbValleyHint : null;
-    const chapterFinishFeedback = npc.npc_id === "npc_baizhi" ? chapterFinishHint : null;
-    const spiritManorFeedback = npc.npc_id === "npc_atan" ? spiritManorHint : null;
-    const chapter3TradeFeedback = npc.npc_id === "npc_hu_sihai" ? chapter3TradeHint : null;
-    const chapter4DroughtFeedback = npc.npc_id === "npc_xubo" || npc.npc_id === "npc_qinghe" ? chapter4DroughtHint : null;
-    const qinghePondFeedback = npc.npc_id === "npc_qinghe" ? qinghePondEntry : null;
-    const qinghePondProgressFeedback = npc.npc_id === "npc_qinghe" ? qinghePondProgress : null;
-    const sideFeedback = state.sideQuestFeedback?.npcId === npc.npc_id ? state.sideQuestFeedback : null;
-    const npcEvents = NPC_STORY_EVENTS.filter((event) => event.npcId === npc.npc_id);
-    const eventProgress = npcEvents.length
-      ? `${npcEvents.filter((event) => state.npcStoryEvents.has(event.id)).length}/${npcEvents.length} 基础事件`
-      : "基础事件待扩展";
-    const gift = recommendedNpcGift(npc.npc_id);
-    const giftDone = townLifeGiftSeen(npc.npc_id);
-    const giftText = giftDone
-      ? `今日已赠礼：${syncTownLifeInteractionState().giftsByDay[townLifeGiftKey(npc.npc_id)]?.itemName || "一份心意"}`
-      : gift
-        ? `推荐赠礼：${gift.itemName} · ${gift.reason} · 好感 +${gift.favorGain}`
-        : "推荐赠礼：背包里暂无合适礼物";
-    const cohabManualDailySeen = cohab ? state.cohabState.dailySeen[`${cohab.epilogue.epilogue_id}:manual_daily`] === state.day : false;
-    const cohabWeeklyReady = cohab?.unlocked
-      ? (data.cohabWeeklyByEpilogue.get(cohab.epilogue.epilogue_id) || [])
-        .some((entry) => conditionMet(entry.condition_group) && state.cohabState.weeklyClaims[entry.weekly_event_id] !== currentCohabWeekKey())
-      : false;
-    const cohabFestivalReady = cohab?.unlocked
-      ? (data.cohabFestivalByEpilogue.get(cohab.epilogue.epilogue_id) || [])
-        .some((entry) => conditionMet(entry.condition_group) && state.cohabState.festivalClaims[entry.festival_event_id] !== currentCohabFestivalKey())
-      : false;
-    const cohabActionsHtml = cohab
-      ? `<div class="relationship-cohab-actions">
-        <button type="button" data-cohab-daily="${npc.npc_id}" ${!cohab.unlocked || cohabManualDailySeen ? "disabled" : ""}>${cohab.unlocked ? cohabManualDailySeen ? "今日已聊" : "看同住日常" : "同住未开"}</button>
-        <button type="button" data-cohab-weekly="${npc.npc_id}" ${!cohabWeeklyReady ? "disabled" : ""}>${cohabWeeklyReady ? "推进周常" : "周常待机"}</button>
-        <button type="button" data-cohab-festival="${npc.npc_id}" ${!cohabFestivalReady ? "disabled" : ""}>${cohabFestivalReady ? "节气小事" : "节庆待时"}</button>
-      </div>`
-      : "";
-    const memory = latestTownLifeMemory(npc.npc_id);
-    const memoryArchive = townLifeUnlockedMemoryEntries(npc.npc_id);
-    const counts = townLifeInteractionCounts(npc.npc_id);
-    const memoryProgress = townLifeMemoryProgressText(npc.npc_id);
-    const shopMoment = latestTownLifeShopMoment(npc.npc_id);
-    const shopMomentArchive = townLifeShopMomentArchiveEntries(npc.npc_id, 4);
-    const memoryText = memory
-      ? `最近记忆：${memory.title} · ${memory.summary}`
-      : "最近记忆：还没有留下能写进关系册的小事";
-    const memoryArchiveHtml = memoryArchive.length
-      ? `<div class="relationship-memory-archive">
-        ${memoryArchive.map((entry) => `<button type="button" data-town-memory-npc="${npc.npc_id}" data-town-memory-id="${entry.memoryId}">${entry.level}心 · ${entry.title}</button>`).join("")}
-      </div>`
-      : `<div class="relationship-memory-archive empty"><span>关系册空白：先在镇上寒暄、帮托付或赠礼，写下第一段小事。</span></div>`;
-    const shopMomentArchiveHtml = shopMomentArchive.length
-      ? `<div class="relationship-shop-archive">
-        ${shopMomentArchive.map((entry) => `<button type="button" data-town-shop-moment-npc="${npc.npc_id}" data-town-shop-moment-id="${entry.id}" ${state.activeTownLifeShopMomentPage?.momentId === entry.id ? "disabled" : ""}>第 ${entry.day} 天 · ${entry.sceneTag || entry.itemName}</button>`).join("")}
-      </div>`
-      : "";
-    const portrait = npcPortraitSrc(npc.npc_id);
-    const node = document.createElement("div");
-    node.dataset.npcId = npc.npc_id;
-    node.className = `relationship-card ${level > 0 ? "known" : "new"} ${orderFeedback ? "order-touched" : ""} ${orderFeedbackLive ? "order-live" : ""} ${shopErrandFeedback ? "shop-touched" : ""} ${shopErrandFeedbackLive ? "shop-live" : ""} ${storyFeedback || baizhiStageFeedback || herbValleyFeedback || chapterFinishFeedback || spiritManorFeedback || chapter3TradeFeedback || chapter4DroughtFeedback ? "story-touched" : ""} ${sideFeedback ? "side-touched" : ""}`;
-    node.innerHTML = `
-      <div class="relationship-card-hero">
-        <img src="${portrait}" alt="${npcName(npc.npc_id)}头像" loading="lazy" />
-        <div>
-          <strong>${npcName(npc.npc_id)} · Lv.${level}</strong>
-          <span>${npc.npc_role} · 好感 ${value}/100 · ${schedule ? `${areaName(schedule.area_id)} / ${schedule.action_type}` : "暂无日程"}</span>
-        </div>
-      </div>
-      ${orderFeedback ? `<span class="relationship-order-feedback${orderFeedbackLive ? " live" : ""}">${orderFeedback.title}：${orderFeedback.response} ${orderFeedback.favorLeveled ? "新的关系档位已点亮。" : `当前 ${orderFeedback.favorAfter}/100。`}${orderFeedbackLive ? ` ${orderFeedback.npcLabel} 刚把这单记到账本下。` : ""}</span>` : ""}
-      ${shopErrandFeedback ? `<span class="relationship-shop-feedback${shopErrandFeedbackLive ? " live" : ""}">${shopErrandFeedback.title}：${shopErrandFeedback.response} ${shopErrandFeedback.memoryTitle ? `关系册写下「${shopErrandFeedback.memoryTitle}」。` : shopErrandFeedback.favorLeveled ? "新的关系档位已点亮。" : `当前 ${shopErrandFeedback.favorAfter}/100。`}${shopErrandFeedbackLive ? ` ${shopErrandFeedback.line || ""}` : ""}</span>` : ""}
-      ${storyFeedback ? `<span class="relationship-story-feedback${storyFeedback.fresh ? " live" : ""}">${storyFeedback.title}：${storyFeedback.detail} ${storyFeedback.questLabel} 已浮现。</span>` : ""}
-      ${baizhiStageFeedback ? `<span class="relationship-story-feedback live">${baizhiStageFeedback.title}：${baizhiStageFeedback.detail} ${baizhiStageFeedback.cta}</span>` : ""}
-      ${herbValleyFeedback ? `<span class="relationship-story-feedback live">${herbValleyFeedback.title}：${herbValleyFeedback.detail} ${herbValleyFeedback.cta}</span>` : ""}
-      ${chapterFinishFeedback ? `<span class="relationship-story-feedback live">${chapterFinishFeedback.title}：${chapterFinishFeedback.detail} ${chapterFinishFeedback.cta}</span>` : ""}
-      ${spiritManorFeedback ? `<span class="relationship-story-feedback live">${spiritManorFeedback.title}：${spiritManorFeedback.detail} ${spiritManorFeedback.cta}</span>` : ""}
-      ${chapter3TradeFeedback ? `<span class="relationship-story-feedback live">${chapter3TradeFeedback.title}：${chapter3TradeFeedback.detail} ${chapter3TradeFeedback.cta}</span>` : ""}
-      ${chapter4DroughtFeedback ? `<span class="relationship-story-feedback live">${chapter4DroughtFeedback.title}：${chapter4DroughtFeedback.detail} ${chapter4DroughtFeedback.cta}</span>` : ""}
-      ${qinghePondFeedback ? `<span class="relationship-pond-feedback live">${qinghePondFeedback.questTitle}：${qinghePondFeedback.statusText} ${qinghePondFeedback.nextAdvice}</span>` : ""}
-      ${qinghePondProgressFeedback ? `<span class="relationship-pond-progress-feedback live">${qinghePondProgressFeedback.title}：${qinghePondProgressFeedback.headline} ${qinghePondProgressFeedback.nextAdvice}</span>` : ""}
-      ${sideFeedback ? `<span class="relationship-side-feedback">${sideFeedback.title}：${sideFeedback.phaseLabel} · ${sideFeedback.stepText}</span>` : ""}
-      <span>剧情进度：${eventProgress}</span>
-      <span>支线线索：${sideClueText}</span>
-      <span>同居线：${cohab ? cohabRequirementText(cohab) : "未配置"}</span>
-      <span>同住加成：${cohab ? `${cohabSharedBonusText(cohab.epilogue)}${activeCohabBuffText ? ` · 当前余韵 ${activeCohabBuffText}` : ""}` : "暂无"}</span>
-      <span>事件预览：${cohabEvent ? cohabEvent.event_name || cohabEvent.scene_key : "暂无"}${festival ? ` · 节庆 ${festival.event_name}` : ""}</span>
-      <span>生活近况：${cohabHistory ? `${cohabHistory.eventName} · 第 ${cohabHistory.day} 天` : "还没有触发同住生活事件"}</span>
-      ${cohabActionsHtml}
-      ${shopMoment ? `<span class="relationship-shop-moment ${shopMoment.day === state.day ? "fresh" : "archive"}">旧铺后话：${shopMoment.summary}${shopMoment.rewardText ? ` · ${shopMoment.rewardText}` : ""}</span>` : ""}
-      ${shopMomentArchiveHtml}
-      <span class="relationship-memory ${memory ? "unlocked" : "pending"}">${memoryText}</span>
-      ${memoryArchiveHtml}
-      <span class="relationship-memory-progress">来往 ${counts.total} 次（寒暄 ${counts.greet} / 托付 ${counts.errand} / 赠礼 ${counts.gift}） · ${memoryProgress}</span>
-      <span class="relationship-gift-hint ${giftDone ? "done" : gift?.tone || "empty"}">${giftText}</span>
-      ${compendiumRemark ? `<span class="relationship-compendium">印记点评：${compendiumRemark}</span>` : ""}
-      <small>下一奖励：${nextReward ? `Lv.${nextReward.favor_level} · ${favorRewardSummary(nextReward)}` : "已领取当前全部奖励"}</small>
-      <button type="button" data-npc-gift="${npc.npc_id}" ${giftDone || !gift ? "disabled" : ""}>${giftDone ? "今日已赠" : gift ? "赠送推荐礼物" : "无合适礼物"}</button>
-    `;
-    refs.relationshipPanel.append(node);
-  }
+  renderRelationshipsPanelUi({
+    refs,
+    state,
+    data,
+    npcStoryEvents: NPC_STORY_EVENTS,
+    syncCohabState,
+    activeOrderDeliveryMoment,
+    activeShopTownErrandFeedback,
+    activeStoryVisitFeedback,
+    activeBaizhiQuestStageFeedback,
+    baizhiChapterFinishPanelHint,
+    herbValleyUnlockPanelHint,
+    spiritManorPanelHint,
+    chapter3TradePanelHint,
+    chapter4DroughtPanelHint,
+    activeQinghePondEntryFeedback,
+    activeQinghePondProgressFeedback,
+    townLifeRows,
+    currentWeatherConfig,
+    currentTermConfig,
+    canvasTownLifeFocusMarkup,
+    shopTownErrandDisplaySpec,
+    earlyNpcRoadmapMarkup,
+    earlyNpcRoadmapSpec,
+    townLifeOpportunityBoardMarkup,
+    chapter4DroughtActive,
+    currentTermId,
+    clockMinuteText,
+    localize,
+    townLifeGreetingSeen,
+    townLifeErrandStatus,
+    latestTownLifeShopMoment,
+    shopTownErrandPrimaryActionSpec,
+    townLifeErrandRouteSpec,
+    npcName,
+    favorLevel,
+    currentScheduleFor,
+    cohabStatusFor,
+    nextCohabEvent,
+    festivalEventFor,
+    cohabBuffSpec,
+    sideDialogueHintFor,
+    sideQuestClueForNpc,
+    questTitle,
+    sideQuestClueStatusText,
+    stepLabel,
+    activeNpcCompendiumRemark,
+    recommendedNpcGift,
+    townLifeGiftSeen,
+    syncTownLifeInteractionState,
+    townLifeGiftKey,
+    conditionMet,
+    currentCohabWeekKey,
+    currentCohabFestivalKey,
+    cohabMomentWindowText,
+    cohabLifeSummary,
+    cohabRequirementText,
+    latestTownLifeMemory,
+    townLifeUnlockedMemoryEntries,
+    townLifeInteractionCounts,
+    townLifeMemoryProgressText,
+    townLifeShopMomentArchiveEntries,
+    npcPortraitSrc,
+    areaName,
+    cohabSharedBonusText,
+    favorRewardSummary,
+  });
 }
 
 function renderFinalSupportPanel() {
-  refs.finalSupportPanel.innerHTML = "";
-  const bundles = data.finalSupportBundles;
-  const unlockedCount = bundles.filter((bundle) => state.unlockedFinalSupports.has(bundle.bundle_id)).length;
-  const stageCount = data.finalSupportStages.length;
-  const appliedStageCount = state.appliedFinalSupportStages.size;
-  const summary = document.createElement("div");
-  summary.className = `final-support-summary ${unlockedCount >= 4 ? "ready" : "pending"}`;
-  summary.innerHTML = `
-    <strong>终阵准备 ${unlockedCount}/${bundles.length} · 阶段 ${appliedStageCount}/${stageCount}</strong>
-    <span>累计支援强度 ${finalSupportPower().toFixed(2)} · 激活 NPC 支援后可将好感、店铺、建设与演出转化为最终战准备。</span>
-  `;
-  refs.finalSupportPanel.append(summary);
-
-  const effects = Object.entries(state.finalSupportEffects || {});
-  if (effects.length) {
-    const effectNode = document.createElement("div");
-    effectNode.className = "final-support-effects";
-    effectNode.innerHTML = effects
-      .map(([target, value]) => `<span>${finalSupportEffectText(target, value)}</span>`)
-      .join("");
-    refs.finalSupportPanel.append(effectNode);
-  }
-
-  for (const bundle of bundles) {
-    const unlocked = state.unlockedFinalSupports.has(bundle.bundle_id);
-    const ready = finalSupportReady(bundle);
-    const foreshadow = finalSupportForeshadow(bundle);
-    const prepTiers = finalSupportPrepTiers(bundle);
-    const stages = finalSupportStages(bundle.bundle_id);
-    const node = document.createElement("div");
-    node.dataset.finalSupportBundle = bundle.bundle_id;
-    node.className = `final-support-card ${unlocked ? "unlocked" : ready ? "ready" : "locked"} foreshadow-${foreshadow.tone}`;
-    const stageHtml = stages.map((stage) => {
-      const stageReady = conditionMet(stage.trigger_condition_group);
-      const applied = state.appliedFinalSupportStages.has(stage.stage_id);
-      const playable = unlocked && stageReady && !applied;
-      return `
-        <div class="final-support-stage ${applied ? "applied" : stageReady ? "ready" : "locked"}">
-          <span>${stage.stage_phase} · ${finalSupportEffectText(stage.effect_target, stage.effect_value)} · ${cutsceneTitle(stage.cutscene_id)}</span>
-          <button type="button" data-final-support-stage="${stage.stage_id}" ${!playable ? "disabled" : ""}>${applied ? "已写入" : "应用阶段"}</button>
-        </div>
-      `;
-    }).join("");
-    const prepHtml = prepTiers.length
-      ? `<div class="final-support-prep-list">${prepTiers.map((tier) => `
-        <div class="final-support-prep ${tier.claimed ? "claimed" : tier.ready ? "ready" : "locked"}">
-          <span>${tier.label} · 需 ${tier.required} 段记忆 · ${finalSupportEffectText(tier.effectTarget, tier.effectValue)}</span>
-          <button type="button" data-final-support-prep="${bundle.bundle_id}" data-final-support-prep-tier="${tier.tier}" ${tier.claimed || !tier.ready ? "disabled" : ""}>${tier.claimed ? "已写入" : tier.ready ? "领取预备支援" : "伏笔不足"}</button>
-        </div>
-      `).join("")}</div>`
-      : "";
-    node.innerHTML = `
-      <strong>${npcName(bundle.npc_id)} · ${bundle.support_type}</strong>
-      <span>${bundle.note}</span>
-      <div class="final-support-foreshadow ${foreshadow.tone}">
-        <b>${foreshadow.label} · ${foreshadow.percent}%</b>
-        <span>${foreshadow.detail}</span>
-        <small>${foreshadow.nextText || "终章群像支援将读取全队关系铺垫"}</small>
-        <i style="--support-progress:${foreshadow.percent}%"></i>
-      </div>
-      <small>条件：${conditionLabel(bundle.require_condition_group)} · 效果：${finalSupportEffectText(bundle.effect_target, bundle.effect_value)} · VFX ${bundle.vfx_id}</small>
-      ${prepHtml}
-      <button type="button" data-final-support="${bundle.bundle_id}" ${!ready || unlocked ? "disabled" : ""}>${unlocked ? "支援已到位" : ready ? "激活支援" : "条件未满足"}</button>
-      <div class="final-support-stage-list">${stageHtml}</div>
-    `;
-    refs.finalSupportPanel.append(node);
-  }
+  renderFinalSupportPanelUi({
+    refs,
+    state,
+    data,
+    finalSupportPower,
+    finalSupportEffectText,
+    finalSupportReady,
+    finalSupportForeshadow,
+    finalSupportPrepTiers,
+    finalSupportStages,
+    conditionMet,
+    cutsceneTitle,
+    npcName,
+    conditionLabel,
+  });
 }
 
 function renderReleasePanel() {
-  const p0Assets = data.steamAssets.filter((asset) => asset.priority === "P0");
-  const verticalP0 = data.verticalSlice.filter((entry) => entry.priority === "P0");
-  const qaP0 = data.demoQa.filter((entry) => entry.priority === "P0");
-  const releaseP0 = data.releaseGates.filter((entry) => entry.priority === "P0");
-  const vertical = checklistSummary(verticalP0, evaluateVerticalAcceptance);
-  const qa = checklistSummary(qaP0, evaluateQaCheck);
-  const gates = checklistSummary(releaseP0, evaluateReleaseGate);
-  const localizationP0 = localizationSummary("P0");
-  const community = communityCalendarSummary();
-  const conditionQa = conditionQaSummary();
-  const stability = stabilityQaStatus();
-  const checks = [
-    {
-      title: `版本 ${BUILD_INFO.version}`,
-      text: `${BUILD_INFO.phase} · Build ${BUILD_INFO.buildDate}`,
-      pass: true,
-    },
-    {
-      title: "垂直切片验收",
-      text: `P0 验收 ${vertical.label} 通过，来源 vertical_slice_acceptance.csv。`,
-      pass: vertical.passed === vertical.total,
-    },
-    {
-      title: "Demo QA",
-      text: `P0 QA ${qa.label} 通过，来源 demo_qa_checklist.csv。`,
-      pass: qa.passed === qa.total,
-    },
-    {
-      title: "Steam 素材",
-      text: `已接入 ${p0Assets.length} 条 P0 素材计划，当前预置：${CAPTURE_SCENES[state.currentCaptureScene].label}。`,
-      pass: p0Assets.length >= 4,
-    },
-    {
-      title: "本地化覆盖",
-      text: `P0 本地化 ${localizationP0.passed}/${localizationP0.total} 项达标，平均覆盖 ${localizationP0.avg}%。`,
-      pass: localizationP0.total > 0 && localizationP0.passed === localizationP0.total,
-    },
-    {
-      title: "宣发节奏",
-      text: `社区日历 ${community.ready}/${community.total} 条素材可制作，Steam 触点 ${community.steamBeats} 条，Demo CTA ${community.demoBeats} 条。`,
-      pass: community.total >= 6 && community.ready >= Math.ceil(community.total * 0.75),
-    },
-    {
-      title: "条件系统",
-      text: `条件组 ${conditionQa.supported}/${conditionQa.total} 可解析，当前满足 ${conditionQa.passed} 条，来源 condition_group.csv。`,
-      pass: conditionQa.total > 0 && conditionQa.supported === conditionQa.total,
-    },
-    {
-      title: "控制提示",
-      text: settings.controllerHints ? "键鼠与 Gamepad 基础映射已启用。" : "手柄提示已隐藏，输入映射仍可用。",
-      pass: settings.controllerHints,
-    },
-    {
-      title: "性能稳定哨兵",
-      text: `${stability.summary}；最差帧 ${stability.worstFrameMs}ms；采样 ${stability.samples} 帧；${stability.evidence}。`,
-      pass: stability.pass,
-      detail: "vsa_009：前3小时无阻断问题 · 无崩溃无软锁目标帧稳定。只显示 QA 状态，不会自动执行任何玩法动作。",
-    },
-    {
-      title: "成就与云存档",
-      text: `已解锁 ${state.unlockedAchievements.size}/${data.achievements.length} 项，云存档镜像 ${state.cloudMirrorAt ? "已生成" : "待保存生成"}。`,
-      pass: data.achievements.length > 0 && state.unlockedAchievements.size > 0,
-    },
-    {
-      title: "Release 门禁",
-      text: `P0 门禁 ${gates.label} 通过，来源 release_readiness_gate.csv。`,
-      pass: gates.passed === gates.total,
-    },
-    {
-      title: "四章主线通关",
-      text: `${mainStoryFullClearSpec().summary} 当前章节 ${mainStoryFullClearSpec().progressLabel}。`,
-      pass: mainStoryFullClearPass(),
-      detail: "rrg_008：新开档到终章可完整通关。该条不再用单次秘境通关替代主线完成证据。",
-    },
-    {
-      title: "错误日志",
-      text: state.errors.length === 0 ? "本次运行暂无错误。" : `${state.errors.length} 条错误已记录到本地日志。`,
-      pass: state.errors.length === 0,
-    },
-  ];
-
-  refs.releasePanel.innerHTML = "";
-  const stabilityEvidenceNode = document.createElement("div");
-  stabilityEvidenceNode.innerHTML = stabilityQaEvidenceMarkup(stability);
-  refs.releasePanel.append(stabilityEvidenceNode.firstElementChild);
-  for (const check of checks) {
-    const node = document.createElement("div");
-    node.className = `release-item ${check.pass ? "pass" : "warn"}`;
-    node.innerHTML = `<strong>${check.title}</strong>${check.text}${check.detail ? `<small>${check.detail}</small>` : ""}`;
-    refs.releasePanel.append(node);
-  }
+  renderReleasePanelUi({
+    refs,
+    state,
+    settings,
+    data,
+    buildInfo: BUILD_INFO,
+    captureScenes: CAPTURE_SCENES,
+    checklistSummary,
+    evaluateVerticalAcceptance,
+    evaluateQaCheck,
+    evaluateReleaseGate,
+    localizationSummary,
+    communityCalendarSummary,
+    conditionQaSummary,
+    stabilityQaStatus,
+    stabilityQaEvidenceMarkup,
+    mainStoryFullClearSpec,
+    mainStoryFullClearPass,
+  });
 }
 
 function renderAchievementPanel() {
-  refs.achievementPanel.innerHTML = "";
-  const summary = document.createElement("div");
-  summary.className = "achievement-summary";
-  summary.innerHTML = `<strong>${state.unlockedAchievements.size}/${data.achievements.length}</strong><span>Steam 成就映射 · 云存档镜像：${state.cloudMirrorAt ? "已生成" : "待保存"}</span>`;
-  refs.achievementPanel.append(summary);
-
-  for (const achievement of data.achievements) {
-    const unlocked = state.unlockedAchievements.has(achievement.achievement_id);
-    const node = document.createElement("div");
-    node.className = `achievement-card ${unlocked ? "unlocked" : "locked"}`;
-    node.innerHTML = `
-      <strong>${achievement.title}</strong>
-      <span>${achievement.description}</span>
-      <small>${achievement.steam_api_name} · ${unlocked ? "已解锁" : "未解锁"}</small>
-    `;
-    refs.achievementPanel.append(node);
-  }
+  renderAchievementPanelUi({ refs, state, data });
 }
 
 function renderPlatformPanel() {
-  const platform = state.platformState || {};
-  const adapter = steamworksAdapter();
-  const dataRuntime = runtimeDataLoader?.status?.();
-  const saveAdapter = saveRuntime?.adapterLabel?.() || "browser-localStorage";
-  const featureRows = STEAMWORKS_BRIDGE.requiredFeatures.map((feature) => {
-    const ready = adapter.sdkReady;
-    const bridgeReady = adapter.bridgeReady;
-    const label = {
-      achievements: "成就同步",
-      remote_storage: "Remote Storage",
-      overlay: "Overlay",
-      stats: "Stats/StoreStats",
-    }[feature] || feature;
-    return `<div class="platform-feature ${ready ? "ready" : bridgeReady ? "bridge" : "mock"}"><span>${label}</span><strong>${ready ? "SDK" : bridgeReady ? "Bridge" : "Mock"}</strong></div>`;
-  }).join("");
-
-  refs.platformPanel.innerHTML = "";
-  const summary = document.createElement("div");
-  summary.className = `platform-summary ${adapter.sdkReady ? "pass" : "warn"}`;
-  summary.innerHTML = `
-    <strong>${adapter.sdkReady ? "Steamworks SDK 已探测" : adapter.bridgeReady ? "桌面壳桥接已探测" : "Local Mock 平台桥接"}</strong>
-    <span>AppID ${BUILD_INFO.steamAppId} · Adapter ${platform.adapterId || adapter.id} · Bridge ${STEAMWORKS_BRIDGE.adapterId}</span>
-    <small>${adapter.sdkReady ? "真实 SDK 可用，后续可写入 Steam depot 验证。" : adapter.bridgeReady ? `桌面壳 stub 会写入本地证据：${adapter.evidenceMode || "local-file-staging"}，但 rrg_012 仍需真实 SDK。` : "当前等待桌面包体注入 XiannongSteamworks，全流程先写入本地证据。"}</small>
-  `;
-  refs.platformPanel.append(summary);
-
-  const sync = document.createElement("div");
-  sync.className = "platform-card";
-  sync.innerHTML = `
-    <strong>同步状态</strong>
-    <span>成就：${platform.lastAchievementSync ? `${platform.lastAchievementSync.apiName} · ${platform.lastAchievementSync.status}` : "尚未同步"}</span>
-    <span>云存档：${platform.lastCloudSync ? `${platform.lastCloudSync.path} · ${platform.lastCloudSync.status}` : "尚未生成"}</span>
-    <span>Overlay：${platform.lastOverlayRequest ? `${platform.lastOverlayRequest.target} · ${platform.lastOverlayRequest.status}` : "尚未请求"}</span>
-    <span>Local JSON: ${platform.lastLocalJsonSave ? `${platform.lastLocalJsonSave.path} · ${platform.lastLocalJsonSave.status}` : `${saveAdapter} · waiting for save`}</span>
-    <span>Runtime Data: ${dataRuntime ? `${dataRuntime.mode} · ${dataRuntime.contentHash ? dataRuntime.contentHash.slice(0, 12) : dataRuntime.error || "pending"}` : "legacy csv"}</span>
-    <button type="button" data-platform-overlay="store">测试 Overlay 请求</button>
-  `;
-  refs.platformPanel.append(sync);
-
-  const feature = document.createElement("div");
-  feature.className = "platform-card";
-  feature.innerHTML = `<strong>SDK 功能位</strong><div class="platform-feature-grid">${featureRows}</div><small>待办：${(platform.pending || []).join(" / ") || "无"}</small>`;
-  refs.platformPanel.append(feature);
+  renderPlatformPanelUi({
+    refs,
+    state,
+    buildInfo: BUILD_INFO,
+    steamworksBridge: STEAMWORKS_BRIDGE,
+    steamworksAdapter,
+    runtimeDataLoader,
+    saveRuntime,
+  });
 }
 
 function renderAcceptancePanel() {
-  const groups = [
-    {
-      title: "垂直切片",
-      rows: data.verticalSlice.filter((entry) => entry.priority === "P0"),
-      evaluator: evaluateVerticalAcceptance,
-      idKey: "accept_id",
-      nameKey: "module",
-      detailKey: "acceptance_criteria",
-    },
-    {
-      title: "Demo QA",
-      rows: data.demoQa.filter((entry) => entry.priority === "P0"),
-      evaluator: evaluateQaCheck,
-      idKey: "qa_id",
-      nameKey: "check_item",
-      detailKey: "acceptance_criteria",
-    },
-    {
-      title: "Release Gate",
-      rows: data.releaseGates.filter((entry) => entry.priority === "P0"),
-      evaluator: evaluateReleaseGate,
-      idKey: "gate_id",
-      nameKey: "requirement",
-      detailKey: "pass_condition",
-    },
-  ];
-
-  refs.acceptancePanel.innerHTML = "";
-  for (const group of groups) {
-    const summary = checklistSummary(group.rows, group.evaluator);
-    const header = document.createElement("div");
-    header.className = `acceptance-summary ${summary.passed === summary.total ? "pass" : "warn"}`;
-    header.innerHTML = `<strong>${group.title} ${summary.label}</strong><span>当前构建实时判定</span>`;
-    refs.acceptancePanel.append(header);
-
-    for (const row of group.rows) {
-      const pass = group.evaluator(row);
-      const stabilityEvidence = row.accept_id === "vsa_009" ? stabilityQaStatus() : null;
-      const node = document.createElement("div");
-      node.className = `acceptance-card ${pass ? "pass" : "warn"}`;
-      node.innerHTML = `
-        <strong>${row[group.nameKey]}</strong>
-        <span>${row[group.detailKey]}</span>
-        <small>${row[group.idKey]} · ${pass ? "通过" : "待补"} · 证据：${row.evidence || row.evidence_source || row.related_doc}</small>
-        ${stabilityEvidence ? stabilityQaEvidenceMarkup(stabilityEvidence, { compact: true }) : ""}
-      `;
-      refs.acceptancePanel.append(node);
-    }
-  }
+  renderAcceptancePanelUi({
+    refs,
+    data,
+    checklistSummary,
+    evaluateVerticalAcceptance,
+    evaluateQaCheck,
+    evaluateReleaseGate,
+    stabilityQaStatus,
+    stabilityQaEvidenceMarkup,
+  });
 }
 
 function renderSaveSchemaPanel() {
-  const payload = serializeState();
-  const report = state.saveSchemaReport || saveSchemaCoverage(payload);
-  const p0Fields = data.saveSchemaRegistry.filter((field) => field.qa_priority === "P0");
-  const requiredFields = data.saveSchemaRegistry.filter((field) => field.persist_required === "true");
-  refs.saveSchemaPanel.innerHTML = "";
-  const summary = document.createElement("div");
-  summary.className = `save-schema-summary ${report.missing.length ? "warn" : "pass"}`;
-  summary.innerHTML = `
-    <strong>存档 Schema v${SAVE_SCHEMA_VERSION} · 必存字段 ${report.covered}/${report.required}</strong>
-    <span>P0 字段 ${p0Fields.length} 个 · 迁移计划 ${data.saveMigrationPlan.length} 条 · Cloud schema ${SAVE_SCHEMA_VERSION}</span>
-    <small>${report.missing.length ? `缺失：${report.missing.join(" / ")}` : "当前序列化 payload 覆盖全部必存字段。"}</small>
-  `;
-  refs.saveSchemaPanel.append(summary);
-
-  const migrationNode = document.createElement("div");
-  migrationNode.className = "save-schema-card";
-  const history = state.saveMigrationHistory || [];
-  migrationNode.innerHTML = `
-    <strong>迁移历史 ${history.length} 条${state.saveMigratedFrom !== null ? ` · 来源 v${state.saveMigratedFrom}` : ""}</strong>
-    <span>${history.slice(-3).map((entry) => `${entry.id}: v${entry.from}->v${entry.to}`).join(" · ") || "当前存档已是最新 schema，暂无迁移历史。"}</span>
-  `;
-  refs.saveSchemaPanel.append(migrationNode);
-
-  for (const field of requiredFields.slice(0, 8)) {
-    const value = saveFieldValue(field, payload);
-    const covered = value !== undefined;
-    const node = document.createElement("div");
-    node.className = `save-schema-card ${covered ? "pass" : "warn"}`;
-    node.innerHTML = `
-      <strong>${field.field_id} · ${field.qa_priority}</strong>
-      <span>${field.module_path}.${field.field_name} · ${field.data_type} · v${field.added_version}</span>
-      <small>${covered ? "已映射到当前原型状态" : `默认值 ${field.default_value}`} · 迁移 ${field.migration_required}</small>
-    `;
-    refs.saveSchemaPanel.append(node);
-  }
-
-  for (const migration of data.saveMigrationPlan.slice(0, 4)) {
-    const node = document.createElement("div");
-    node.className = "save-migration-card";
-    node.innerHTML = `
-      <strong>${migration.migration_id} · v${migration.from_version}->v${migration.to_version}</strong>
-      <span>${migration.affected_module} · ${migration.operation}</span>
-      <small>校验：${migration.validation_check} · 回滚：${migration.rollback_policy}</small>
-    `;
-    refs.saveSchemaPanel.append(node);
-  }
+  renderSaveSchemaPanelUi({
+    refs,
+    state,
+    data,
+    saveSchemaVersion: SAVE_SCHEMA_VERSION,
+    serializeState,
+    saveSchemaCoverage,
+    saveFieldValue,
+  });
 }
 
 function renderLocalizationPanel() {
-  refs.localizationPanel.innerHTML = "";
-  const summaryP0 = localizationSummary("P0");
-  const summary = document.createElement("div");
-  summary.className = `localization-summary ${summaryP0.passed === summaryP0.total ? "pass" : "warn"}`;
-  summary.innerHTML = `
-    <strong>P0 本地化 ${summaryP0.passed}/${summaryP0.total} · 平均 ${summaryP0.avg}%</strong>
-    <span>扫描 localization_text.csv 与已接入配置表，按 localization_coverage_plan.csv 的 key_pattern、目标覆盖率和 QA 方法评估。</span>
-  `;
-  refs.localizationPanel.append(summary);
-
-  for (const plan of data.localizationCoverage) {
-    const result = localizationCoverageFor(plan);
-    const node = document.createElement("div");
-    node.className = `localization-card ${result.pass ? "pass" : "warn"}`;
-    node.innerHTML = `
-      <strong>${plan.coverage_id} · ${plan.language} · ${result.coverage}% / ${result.target}%</strong>
-      <span>${plan.content_area} · ${plan.source_table} · ${plan.key_pattern}</span>
-      <small>${result.plannedOnly ? "发行计划项：当前原型无可扫描 key，以素材/文案计划存在作为预检查。" : `Key ${result.present.length}/${result.keys.length}`} · QA ${plan.qa_method} · Owner ${plan.owner}</small>
-      ${result.missing.length ? `<small>缺失示例：${result.missing.join(" / ")}</small>` : ""}
-    `;
-    refs.localizationPanel.append(node);
-  }
+  renderLocalizationPanelUi({ refs, data, localizationSummary, localizationCoverageFor });
 }
 
 function renderCommunityPanel() {
-  refs.communityPanel.innerHTML = "";
-  const summaryData = communityCalendarSummary();
-  const summary = document.createElement("div");
-  summary.className = `community-summary ${summaryData.ready >= Math.ceil(summaryData.total * 0.75) ? "pass" : "warn"}`;
-  summary.innerHTML = `
-    <strong>社区宣发 ${summaryData.ready}/${summaryData.total} · Steam ${summaryData.steamBeats} · Demo CTA ${summaryData.demoBeats}</strong>
-    <span>读取 community_content_calendar.csv，并对照 Steam 素材计划与当前实机系统，判断每条内容是否已有可制作素材。</span>
-  `;
-  refs.communityPanel.append(summary);
-
-  const entries = data.communityContentCalendar
-    .slice()
-    .sort((a, b) => Number(a.week_offset || 0) - Number(b.week_offset || 0));
-  for (const entry of entries) {
-    const readiness = communityAssetReady(entry);
-    const node = document.createElement("div");
-    node.className = `community-card ${readiness.ready ? "pass" : "warn"}`;
-    node.innerHTML = `
-      <strong>${entry.week_offset} 周 · ${entry.phase} · ${entry.content_theme}</strong>
-      <span>${entry.format} · ${entry.target_channel.replaceAll("|", " / ")} · CTA ${entry.cta}</span>
-      <small>素材：${entry.primary_asset} · ${readiness.reason}</small>
-      <small>来源：${entry.source_doc} · Owner ${entry.owner}</small>
-    `;
-    refs.communityPanel.append(node);
-  }
+  renderCommunityPanelUi({ refs, data, communityCalendarSummary, communityAssetReady });
 }
 
 function renderConditionPanel() {
-  refs.conditionPanel.innerHTML = "";
-  const summaryData = conditionQaSummary();
-  const summary = document.createElement("div");
-  summary.className = `condition-summary ${summaryData.supported === summaryData.total ? "pass" : "warn"}`;
-  summary.innerHTML = `
-    <strong>条件组 ${summaryData.passed}/${summaryData.total} 当前满足</strong>
-    <span>${summaryData.supported}/${summaryData.total} 条表达式可解析；不可解析项保留旧逻辑兜底并进入 QA 待修表。</span>
-  `;
-  refs.conditionPanel.append(summary);
-
-  const visible = summaryData.statuses
-    .slice()
-    .sort((a, b) => Number(conditionGroupFor(b.id)?.priority || 0) - Number(conditionGroupFor(a.id)?.priority || 0))
-    .slice(0, 12);
-
-  for (const status of visible) {
-    const group = conditionGroupFor(status.id) || {};
-    const node = document.createElement("div");
-    node.className = `condition-card ${!status.supported ? "warn" : status.pass ? "pass" : "locked"}`;
-    node.innerHTML = `
-      <strong>${status.id} · ${status.supported ? status.pass ? "已满足" : "未满足" : "需修表"}</strong>
-      <span>${status.expression}</span>
-      <small>${group.usage_hint || "runtime"} · P${group.priority || 0} · ${status.reason}</small>
-    `;
-    refs.conditionPanel.append(node);
-  }
+  renderConditionPanelUi({ refs, conditionQaSummary, conditionGroupFor });
 }
 
 function renderAssetPanel() {
-  const scene = CAPTURE_SCENES[state.currentCaptureScene] || CAPTURE_SCENES.start;
-  const screenshotScenes = Object.entries(CAPTURE_SCENES);
-  const storeAssetEvidence = storeAssetEvidenceSpec();
-  const p0Screenshots = data.steamAssets.filter((asset) => asset.asset_type === "screenshot" && asset.priority === "P0").length;
-  const assetCounts = STEAM_READY_ASSETS.reduce((counts, asset) => {
-    counts[asset.type] = (counts[asset.type] || 0) + 1;
-    return counts;
-  }, {});
-  const steamReadyCard = (asset) => `
-    <figure class="steam-ready-card ${asset.type}">
-      <img src="${assetSrc(asset.path)}" alt="${asset.label}" loading="lazy" />
-      <figcaption>
-        <strong>${asset.label}</strong>
-        <span>${asset.size} · PNG ready · SVG source</span>
-      </figcaption>
-    </figure>
-  `;
-  const storeCapsules = STEAM_READY_ASSETS.filter((asset) => asset.type === "store_capsule").map(steamReadyCard).join("");
-  const libraryAssets = STEAM_READY_ASSETS.filter((asset) => asset.type === "library_asset").map(steamReadyCard).join("");
-  const screenshotGrid = screenshotScenes.map(([, capture]) => `
-    <figure class="store-screenshot-card">
-      <img src="${assetSrc(capture.asset)}" alt="${capture.label}" />
-      <figcaption><strong>${capture.label}</strong><span>${capture.log.replace("Steam 截图预置：", "")}</span></figcaption>
-    </figure>
-  `).join("");
-  const steamScreenshotGrid = STEAM_READY_ASSETS.filter((asset) => asset.type === "screenshot").map(steamReadyCard).join("");
-  refs.assetPanel.innerHTML = `
-    <div class="asset-preview">
-      ${storeAssetEvidenceMarkup(storeAssetEvidence)}
-      <img src="${assetSrc(scene.asset)}" alt="${scene.label}" />
-      <div class="release-item pass"><strong>${scene.label}</strong>${scene.log}</div>
-      <div class="release-item pass"><strong>Steam-ready 素材包 ${STEAM_READY_ASSETS.length}/15</strong>商店胶囊 ${assetCounts.store_capsule || 0}、库资产 ${assetCounts.library_asset || 0}、1920x1080 截图 ${(assetCounts.screenshot || 0)}；当前 PNG 与 SVG 源文件均由项目自有程序化素材生成。</div>
-      <section class="steam-ready-showcase">
-        <div class="steam-ready-heading">
-          <strong>商店胶囊图</strong>
-          <span>覆盖 Header / Small / Main / Vertical，可用于商店页布局评审。</span>
-        </div>
-        <div class="steam-ready-grid capsule-grid">${storeCapsules}</div>
-        <div class="steam-ready-heading">
-          <strong>Steam 库资产</strong>
-          <span>覆盖库 Capsule、Header、Hero，方便桌面客户端视觉预审。</span>
-        </div>
-        <div class="steam-ready-grid library-grid">${libraryAssets}</div>
-        <div class="steam-ready-heading">
-          <strong>商店截图 PNG</strong>
-          <span>与截图脚本场景一一对应；上架前仍需由最终可执行文件替换为真实实机截图。</span>
-        </div>
-        <div class="steam-ready-grid screenshot-grid">${steamScreenshotGrid}</div>
-      </section>
-      <div class="release-item pass"><strong>Steam 商店截图集 ${screenshotScenes.length}/8</strong>P0 素材计划截图 ${p0Screenshots} 张，当前均由项目自有程序化 SVG 生成，可用于商店素材评审与后续实机替换。</div>
-      <div class="store-screenshot-grid">${screenshotGrid}</div>
-      <div class="icon-strip">
-        <img src="${assetSrc("assets/spirit-luobo.svg")}" alt="萝卜精头像" />
-        <img src="${assetSrc("assets/crop-bailuobo.svg")}" alt="灵气白萝卜图标" />
-        <img src="${assetSrc("assets/crop-baicai.svg")}" alt="青芽白菜图标" />
-        <img src="${assetSrc("assets/customer-villager.svg")}" alt="村民顾客头像" />
-      </div>
-      <img src="${assetSrc("assets/control-hints.svg")}" alt="手柄和键鼠提示图" />
-    </div>
-  `;
+  renderAssetPanelUi({
+    refs,
+    state,
+    data,
+    captureScenes: CAPTURE_SCENES,
+    steamReadyAssets: STEAM_READY_ASSETS,
+    assetSrc,
+    storeAssetEvidenceSpec,
+    storeAssetEvidenceMarkup,
+  });
 }
 
 function renderTermPanel() {
-  const term = currentTermConfig();
-  const weather = currentWeatherConfig();
-  const affinitySummary = plantedCropSolarAffinitySummary();
-  refs.termPanel.innerHTML = "";
-  if (!term) {
-    refs.termPanel.innerHTML = '<div class="term-item"><strong>节气未载入</strong>等待 CSV 配置。</div>';
-    return;
-  }
-
-  const learningMarkup = termLearningCardMarkup();
-  if (learningMarkup) {
-    const learningNode = document.createElement("div");
-    learningNode.innerHTML = learningMarkup.trim();
-    refs.termPanel.append(learningNode.firstElementChild);
-  }
-  const moodMarkup = solarTermMoodSceneMarkup();
-  if (moodMarkup) {
-    const moodNode = document.createElement("div");
-    moodNode.innerHTML = moodMarkup.trim();
-    refs.termPanel.append(moodNode.firstElementChild);
-  }
-
-  const rows = [
-    ["当前节气", localize(term.term_name_key, state.term)],
-    ["当前天气", localize(weather.weather_name_key, weather.weather_id)],
-    ["作物影响", term.crop_bonus_tags],
-    ["水分影响", signedPercent(weather.water_bonus)],
-    ["成长倍率", multiplierText(weather.crop_growth_modifier)],
-    ["精怪心情", signedPercent(weather.mood_modifier)],
-    ["灾害标签", weather.disaster_tag && weather.disaster_tag !== "none" ? weather.disaster_tag : "无"],
-    ["已种适性", affinitySummary.text],
-    ["市场影响", term.market_bonus_tags],
-    ["精怪影响", term.spirit_bonus_tags],
-    ["风险池", term.risk_pool_id],
-  ];
-
-  for (const [title, text] of rows) {
-    const node = document.createElement("div");
-    node.className = "term-item";
-    node.innerHTML = `<strong>${title}</strong>${text || "无"}`;
-    refs.termPanel.append(node);
-  }
-  const boardMarkup = solarFieldDecisionBoardMarkup();
-  if (boardMarkup) {
-    const boardNode = document.createElement("div");
-    boardNode.innerHTML = boardMarkup.trim();
-    refs.termPanel.append(boardNode.firstElementChild);
-  }
-  if (affinitySummary.detail) {
-    const note = document.createElement("div");
-    note.className = "term-item affinity";
-    note.innerHTML = `<strong>田间提示</strong>${affinitySummary.detail}`;
-    refs.termPanel.append(note);
-  }
+  renderTermPanelUi({
+    refs,
+    state,
+    currentTermConfig,
+    currentWeatherConfig,
+    plantedCropSolarAffinitySummary,
+    termLearningCardMarkup,
+    solarTermMoodSceneMarkup,
+    seasonalCropGuideMarkup,
+    seasonalCropGuideSpec,
+    solarFieldDecisionBoardMarkup,
+    localize,
+    signedPercent,
+    multiplierText,
+  });
 }
 
 function renderSolarTrialPanel() {
-  refs.solarTrialPanel.innerHTML = "";
-  const active = state.activeSolarTrial;
-  const compendium = dungeonCompendiumProgress();
-  const summary = document.createElement("div");
-  summary.className = "solar-trial-summary";
-  if (!year2Unlocked()) {
-    summary.innerHTML = `
-      <strong>第二年节气试炼 未开卷</strong>
-      <span>这些 3 天挑战会在蟠桃大宴后接住种植、店铺、秘境、风险和精怪养成，成为通关后的长期目标。</span>
-      <small>当前可先积累节气印记 ${compendium.unlocked}/${compendium.total}、Boss 通关印记 ${compendium.cleared}；终章收束后，这些印记会转化为试炼共鸣。</small>
-    `;
-    refs.solarTrialPanel.append(summary);
-    return;
-  }
-  summary.innerHTML = `
-    <strong>第二年节气试炼 ${state.completedSolarTrials.size}/${data.year2SolarTrials.length}</strong>
-    <span>${active ? `${solarTrialName(data.solarTrialsById.get(active.trialId))} 进行中，今天可手动写入一段年轮手账` : "选择一个试炼，将种植、店铺、风险、秘境和精怪培养压成 3 天挑战。"}</span>
-    <small>节气印记 ${compendium.unlocked}/${compendium.total} · Boss 通关印记 ${compendium.cleared} · 尚存碎片 ${compendium.shards}</small>
-  `;
-  refs.solarTrialPanel.append(summary);
-
-  for (const trial of data.year2SolarTrials) {
-    const unlocked = solarTrialUnlocked(trial);
-    const done = state.completedSolarTrials.has(trial.trial_id);
-    const running = active?.trialId === trial.trial_id;
-    const run = running ? normalizeActiveSolarTrialRun(trial) : null;
-    const progress = solarTrialRunProgress(run, trial);
-    const score = evaluateSolarTrialScore(trial);
-    const rewardCount = rewardPoolEntries(trial.reward_pool_id).length;
-    const compendiumSupport = solarTrialCompendiumSupport(trial);
-    const actionMarkup = running ? solarTrialActionCardsMarkup(trial, run, progress) : "";
-    const breakdownMarkup = running || unlocked ? solarTrialBreakdownMarkup(trial, run) : "";
-    const logMarkup = running ? solarTrialRunLogMarkup(run) : "";
-    const node = document.createElement("div");
-    node.className = `solar-trial-card${running ? " active" : ""}${done ? " complete" : ""}${unlocked ? "" : " locked"}`;
-    node.innerHTML = `
-      <strong>${solarTrialName(trial)} · 预估 ${score} 分 / ${solarTrialRank(score)} 级${done ? " · 已完成" : ""}</strong>
-      <span>${localize(data.solarTermsById.get(trial.term_id)?.term_name_key, trial.term_id)} · ${running ? `${progress.phaseLabel} ${progress.dayIndex}/${progress.totalDays} · ${progress.actedToday ? "今日已记录" : "今日待推进"} · 第 ${active.endDay} 天结算` : `准备 ${trial.prep_days} 天 · 挑战 ${trial.challenge_days} 天`} · ${conditionLabel(trial.unlock_condition_group)}</span>
-      <span>推荐精怪：${splitTags(trial.recommended_spirit_lines).join(" / ")} · 循环标签：${splitTags(trial.required_loop_tags).join(" / ")}</span>
-      <small>评分：${trial.score_formula} · 奖励池 ${trial.reward_pool_id} (${rewardCount} 项)</small>
-      <small>节气印记：${compendiumSupport.summary}${compendiumSupport.bonus > 0 ? ` · 共鸣 +${compendiumSupport.bonus}` : " · 还未形成有效共鸣"}</small>
-      ${running ? `<small class="solar-trial-phase-note">${progress.phaseNote}</small>` : ""}
-      ${breakdownMarkup}
-      ${actionMarkup}
-      ${logMarkup}
-      <button type="button" data-solar-trial="${trial.trial_id}" ${!unlocked || done || Boolean(active) ? "disabled" : ""}>开启试炼</button>
-    `;
-    refs.solarTrialPanel.append(node);
-  }
+  renderSolarTrialPanelUi({
+    refs,
+    state,
+    data,
+    dungeonCompendiumProgress,
+    year2Unlocked,
+    solarTrialName,
+    solarTrialUnlocked,
+    normalizeActiveSolarTrialRun,
+    solarTrialRunProgress,
+    evaluateSolarTrialScore,
+    solarTrialRank,
+    rewardPoolEntries,
+    solarTrialCompendiumSupport,
+    solarTrialActionCardsMarkup,
+    solarTrialBreakdownMarkup,
+    solarTrialRunLogMarkup,
+    seasonalCropGuideKeyForTermId,
+    localize,
+    conditionLabel,
+    splitTags,
+  });
 }
 
 function renderQuests() {
-  refs.questList.innerHTML = "";
-  for (const quest of QUESTS) {
-    const item = document.createElement("li");
-    item.className = state.completed.has(quest.id) ? "done" : "";
-    item.textContent = quest.text;
-    refs.questList.append(item);
-  }
+  renderQuestListPanel({ refs, state, quests: QUESTS });
 }
 
 function renderDaySummaryPanel() {
-  refs.daySummaryPanel.innerHTML = "";
-  const morningBoard = morningActionBoardSpec();
-  const morningMarkup = morningActionBoardMarkup(morningBoard);
-  const prepMarkup = sleepPrepChecklistMarkup();
-  const summary = state.lastDaySummary;
-  if (!summary) {
-    refs.daySummaryPanel.innerHTML = `
-      ${morningMarkup}
-      ${prepMarkup}
-      <div class="day-summary-card pending">
-        <strong>今晚还没有结算</strong>
-        <span>点击“入夜结算”后，这里会汇总收入、成熟作物、风险、商队/试炼状态和明日建议。</span>
-      </div>
-    `;
-    return;
-  }
-
-  const inventoryText = summary.inventoryDelta
-    .slice(0, 4)
-    .map((entry) => `${itemName(entry.itemId)} ${entry.delta > 0 ? "+" : ""}${entry.delta}`)
-    .join("、") || "背包无明显变化";
-  const spiritJobText = (summary.spiritJobs || [])
-    .slice(0, 4)
-    .map((entry) => `${entry.spirit}：${entry.text}${entry.focus ? `（关注 ${entry.focus}）` : ""}`)
-    .join("；") || "暂无精怪夜勤";
-  const spiritJobSynergyMarkup = (summary.spiritJobSynergy || []).length > 0
-    ? `
-      <div class="day-summary-spirit-synergy">
-        <strong>自动化协作链 ${summary.spiritJobSynergy.length} 条</strong>
-        ${(summary.spiritJobSynergy || []).slice(0, 3).map((entry) => `
-          <span><b>${entry.label}</b>${entry.spirits.join(" + ")} · ${entry.rewardText}</span>
-          <small>${entry.detail}</small>
-        `).join("")}
-      </div>
-    `
-    : "";
-  const spiritSeasonalWorkMarkup = (summary.spiritSeasonalWork || []).length > 0
-    ? `
-      <div class="day-summary-spirit-seasonal-work">
-        <strong>精怪顺应天时 ${summary.spiritSeasonalWork.length} 件</strong>
-        ${(summary.spiritSeasonalWork || []).slice(0, 3).map((entry) => `
-          <div class="day-summary-spirit-seasonal-row ${entry.tone || "clear"}">
-            <span><b>${entry.glyph} ${entry.spiritName}</b>${entry.label} · ${entry.prop}</span>
-            <small>${entry.weatherName} · ${entry.jobLabel} · ${entry.detail}</small>
-            <button type="button" data-day-summary-spirit-seasonal="${entry.spiritId}">回看小景</button>
-          </div>
-        `).join("")}
-      </div>
-    `
-    : "";
-  const dailyIntentReviewMarkupText = dailyIntentReviewMarkup(summary.dailyIntentReview || dailyIntentReviewSpec(summary));
-  const solarMorningSummaryText = solarMorningSignSummaryText(summary.solarMorningSign);
-  const solarTermMoodInsight = solarTermMoodDaySummaryInsight(summary.solarTermMoodTrail || []);
-  const solarTermMoodTrailMarkup = (summary.solarTermMoodTrail || []).length > 0
-    ? `
-      <div class="day-summary-solar-mood ${solarTermMoodInsight?.complete ? "complete" : "partial"}">
-        <strong>今日画境回响 ${solarTermMoodInsight?.label || summary.solarTermMoodTrail.length}</strong>
-        ${solarTermMoodInsight ? `<p><b>${solarTermMoodInsight.title}</b>${solarTermMoodInsight.detail}</p>` : ""}
-        ${(summary.solarTermMoodTrail || []).slice(0, 4).map((entry) => `
-          <div class="day-summary-solar-mood-row ${entry.tone || "clear"}">
-            <span><b>${entry.label}</b>${entry.termName} · ${entry.weatherName} · ${entry.title}</span>
-            <small>${entry.detail}</small>
-            <button type="button" data-day-summary-solar-mood="${selectorDataValue(entry.key)}">回看画境</button>
-          </div>
-        `).join("")}
-      </div>
-    `
-    : "";
-  const solarTermMoodShopDisplaySummaryMarkup = solarTermMoodShopDisplayDaySummaryMarkup(summary.solarTermMoodShopDisplayEcho);
-  const weatherLifeVignetteMarkup = (summary.weatherLifeVignettes || []).length > 0
-    ? `
-      <div class="day-summary-weather-life">
-        <strong>天气生活小景 ${summary.weatherLifeVignettes.length} 处</strong>
-        ${(summary.weatherLifeVignettes || []).slice(0, 3).map((entry) => `
-          <div class="day-summary-weather-life-row ${entry.kind || "clear"}">
-            <span><b>${entry.label}</b>${entry.weatherName} · ${entry.title}</span>
-            <small>${entry.text}</small>
-            <button type="button" data-day-summary-weather-life="${entry.sceneKey}">回看天气小景</button>
-          </div>
-        `).join("")}
-      </div>
-    `
-    : "";
-  const townLifeWeatherMomentMarkup = (summary.townLifeWeatherMoments || []).length > 0
-    ? `
-      <div class="day-summary-town-weather">
-        <strong>镇上天气见闻 ${summary.townLifeWeatherMoments.length} 则</strong>
-        ${(summary.townLifeWeatherMoments || []).slice(0, 3).map((entry) => `
-          <div class="day-summary-town-weather-row ${entry.tone || "water"}">
-            <span><b>${entry.npcName}</b>${entry.weatherName} · ${entry.label} · ${entry.area}</span>
-            <small>${entry.text}</small>
-            <button type="button" data-day-summary-town-weather="${entry.npcId}">回看镇民小景</button>
-          </div>
-        `).join("")}
-      </div>
-    `
-    : "";
-  const townLifeWeatherErrandMarkup = (summary.townLifeWeatherErrands || []).length > 0
-    ? `
-      <div class="day-summary-town-weather-errand">
-        <strong>天气托付回响 ${summary.townLifeWeatherErrands.length} 件</strong>
-        ${(summary.townLifeWeatherErrands || []).slice(0, 3).map((entry) => `
-          <div class="day-summary-town-weather-errand-row ${entry.tone || "gold"}">
-            <span><b>${entry.npcName}</b>${entry.label} · ${entry.itemName} x${entry.count}</span>
-            <small>${entry.summary}</small>
-            <button type="button" data-day-summary-town-weather-errand="${entry.npcId}">回看回响</button>
-          </div>
-        `).join("")}
-      </div>
-    `
-    : "";
-  const careChain = summary.careChain || null;
-  const careChainStage = normalizeCareChainState(summary.careChainStage || state.careChainState);
-  const careChainEcho = summary.careChainEcho || careChainEchoSpec(careChainStage);
-  const careChainEvent = summary.careChainEvent || null;
-  const careChainMarkup = careChain?.active
-    ? `
-      <div class="day-summary-care-chain ${careChain.complete ? "complete" : "partial"}">
-        <strong>${careChain.title}</strong>
-        <span>${careChain.headline}</span>
-        ${careChainStage.streak > 0 ? `
-          <em class="day-summary-care-chain-stage">连续照应：${careChainStage.stageName} · ${careChainStage.streak} 日${careChainStage.nextAt ? ` · 下阶还差 ${Math.max(0, careChainStage.nextAt - careChainStage.streak)} 日` : " · 镇上已听见"}</em>
-        ` : ""}
-        <div class="day-summary-care-chain-grid">
-          ${(careChain.chips || []).map((chip) => `
-            <small class="${chip.active ? "active" : "idle"}"><b>${chip.label}</b>${chip.text}</small>
-          `).join("")}
-        </div>
-        ${careChainEcho ? `
-          <small class="day-summary-care-chain-echo"><b>生机回声</b>${careChainEcho.townLine}<br />精怪：${careChainEcho.spiritLine}<br />旧铺：${careChainEcho.shopLine}</small>
-        ` : ""}
-        ${careChainEvent ? `
-          <small class="day-summary-care-chain-event"><b>${careChainEvent.title}</b>${careChainEvent.detail}<em>奖励：${careChainEvent.rewardText || "洞天记住了这条照应线"}</em><button type="button" data-care-chain-recent-event="${careChainEvent.eventId || "latest"}">回看余温</button></small>
-        ` : ""}
-        ${careChain.reputationText ? `<small>旧铺名声：${careChain.reputationText}</small>` : ""}
-      </div>
-    `
-    : "";
-  const workshopText = (summary.completedWorkshopJobs || []).length > 0
-    ? `工坊出货：${summary.completedWorkshopJobs.map((entry) => `${entry.outputItemName} x${entry.outputCount}`).join("、")}`
-    : summary.workshopFocus
-      ? `工坊火候：${summary.workshopFocus.headline} · ${summary.workshopFocus.detail}`
-      : "";
-  const workshopOrderMatchText = (summary.completedWorkshopJobs || [])
-    .map((entry) => entry.orderMatch)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((match) => `${match.outputItemName} 接上 ${match.orderTitle}，${match.ready ? "现在可交" : `还差 ${match.missingText || "余料"}`}`)
-    .join("；");
-  const cohabMomentText = (summary.cohabMoments || [])
-    .slice(0, 3)
-    .map((entry) => `${entry.routeName || "同住"}：${entry.eventName}`)
-    .join("；");
-  const cohabBuffText = (summary.cohabBuffs || [])
-    .slice(0, 3)
-    .map((entry) => `${entry.routeName || "同住"} · ${entry.label}（至第 ${entry.expiresDay} 天）`)
-    .join("；");
-  const rareSpiritText = (summary.rareSpiritMoments || [])
-    .slice(0, 3)
-    .map((entry) => `${entry.spiritName}：${entry.actionShort}`)
-    .join("；");
-  const rareGiftText = (summary.rareSpiritGifts || [])
-    .slice(0, 2)
-    .map((entry) => `${entry.spiritName} 留下 ${entry.detail}`)
-    .join("；");
-  const rareSpiritTheaterDaySummaryMarkupText = rareSpiritTheaterDaySummaryMarkup(summary.rareSpiritTheaterRows || []);
-  const sproutMomentText = (summary.sproutMoments || [])
-    .slice(0, 2)
-    .map((entry) => `${entry.title}：${entry.detail}`)
-    .join("；");
-  const spiritInteractionText = summary.spiritInteraction
-    ? `${summary.spiritInteraction.spiritName}：${summary.spiritInteraction.actionText}，${summary.spiritInteraction.floatingText || `羁绊 +${summary.spiritInteraction.bondGain}`}`
-    : "";
-  const townLifeGreetingText = (summary.townLifeGreetings || [])
-    .slice(0, 4)
-    .map((entry) => `${entry.npcName}在${entry.area}${entry.action ? ` ${entry.action}` : ""}`)
-    .join("；");
-  const townLifeErrandText = (summary.townLifeErrands || [])
-    .slice(0, 4)
-    .map((entry) => `${entry.npcName}：${entry.title}（${entry.itemName} x${entry.count}${entry.weatherLabel ? `，${entry.weatherLabel}` : ""}）`)
-    .join("；");
-  const townLifeGiftText = (summary.townLifeGifts || [])
-    .slice(0, 4)
-    .map((entry) => `${entry.npcName}收下${entry.itemName}（好感 +${entry.favorGain}）`)
-    .join("；");
-  const townLifeMemoryText = (summary.townLifeMemories || [])
-    .slice(0, 4)
-    .map((entry) => `${entry.npcName}「${entry.title}」`)
-    .join("；");
-  const townLifeShopMomentText = (summary.townLifeShopMoments || [])
-    .slice(0, 4)
-    .map((entry) => `${entry.npcName}：${entry.title}`)
-    .join("；");
-  const townLifeShopMomentFocus = (summary.townLifeShopMoments || [])[0] || null;
-  const spiritMoodRepairText = summary.spiritMoodRepair
-    ? `${summary.spiritMoodRepair.spiritName}：${summary.spiritMoodRepair.title}，建议 ${summary.spiritMoodRepair.advice}`
-    : "";
-  const canalRestorationText = summary.canalRestoration
-    ? `${summary.canalRestoration.title}：新增 ${summary.canalRestoration.expandedPlots} 格灵田，解锁 ${summary.canalRestoration.unlockedSeedName} x${summary.canalRestoration.seedGiftCount}`
-    : "";
-  const pondSummaryText = summary.pondSummary
-    ? `灵池水位 ${summary.pondSummary.waterLabel}${summary.pondSummary.autoWater ? " · 今晚会替水生田续水" : " · 明天要手动顾水"} · 夜护 ${summary.pondSummary.nightWaterCropCareDays} 夜 · ${summary.pondSummary.lotusText}${summary.pondSummary.lastCatch ? ` · 最近捞起 ${summary.pondSummary.lastCatch.itemName} x${summary.pondSummary.lastCatch.count}` : ""}${summary.pondSummary.ecologyEvent ? ` · ${summary.pondSummary.ecologyEvent.title}` : ""}${summary.pondSummary.mastery ? " · 青禾已经教会你稳水看口" : ""}${summary.pondSummary.moonPondActive ? " · 月池静养生效" : ""}`
-    : "";
-  const shopFirstSaleToday = summary.shopOpening?.firstSale && summary.shopOpening.firstSale.day === summary.day;
-  const shopSessionToday = summary.shopOpening?.lastSession && summary.shopOpening.lastSession.day === summary.day;
-  const shopFeaturedText = summary.shopOpening?.lastSession?.featuredMomentText || "";
-  const shopReflection = shopSaleReflectionSpec(summary.shopOpening || {});
-  const shopRegularBoard = summary.shopOpening?.regularBoard || null;
-  const shopOpeningText = shopFirstSaleToday
-    ? `${summary.shopOpening.firstSale.name} 买走 ${summary.shopOpening.firstSale.itemName}，因为：${summary.shopOpening.firstSale.reasonText}${shopFeaturedText ? `；${shopFeaturedText}` : ""}`
-    : shopSessionToday
-      ? `今日旧铺 ${summary.shopOpening.lastSession.visitors} 位顾客进店，热卖预告：${summary.shopOpening.hotTagLabel || summary.shopOpening.lastSession.hotTagLabel}${shopFeaturedText ? `；${shopFeaturedText}` : ""}`
-      : "";
-  const shopReviewText = shopReflection?.reviewQuote ? `顾客短评：${shopReflection.reviewQuote}` : "";
-  const shopReturnPreviewText = shopReflection?.returnPreview
-    ? `回头客预告：${shopReflection.returnPreview.summary}；${shopReflection.returnPreview.cta}`
-    : "";
-  const shopDoorstepText = shopDoorstepSceneSummaryText(summary.shopOpening || {});
-  const shopSeasonalDoorstepText = shopSeasonalDoorstepSceneSummaryText(summary.shopSeasonalDoorstep || null);
-  const shopReturningDigestText = shopReturningVisitDigestSummaryText(summary.shopOpening || {});
-  const shopIntroducedText = shopIntroducedCustomerDigestSummaryText(summary.shopOpening || {});
-  const shopWordOfMouthText = shopWordOfMouthSummaryText(summary.shopWordOfMouth || null);
-  const shopWordVisitText = shopWordOfMouthVisitSummaryText(summary.shopOpening?.lastSession?.shopWordOfMouthVisit || null);
-  const shopVisitPledgeText = shopVisitPledgeSummaryText(summary.shopOpening?.visitPledge || summary.shopOpening?.lastSession?.visitPledge || null);
-  const shopTownErrandText = shopTownErrandSummaryText(summary.shopOpening?.townErrand || summary.shopOpening?.lastSession?.townErrand || null);
-  const shopRegularBoardText = shopRegularBoardSummaryText(shopRegularBoard);
-  const shopReputationText = shopReputationStageSummaryText(summary.shopReputationStage || null);
-  const shopCustomerLessonMarkupText = shopCustomerDayLessonMarkup(summary.shopCustomerLesson || null);
-  const shopRestock = summary.shopRestock || null;
-  const shopWeatherShelf = summary.shopWeatherShelf || null;
-  const shopWaterwayStandingOrder = summary.shopWaterwayStandingOrder || null;
-  const canalPlan = summary.canalDaySummaryPlan || null;
-  const canalPlanMarkup = canalPlan
-    ? `
-      <div class="day-summary-canal-plan ${canalPlan.yuelianClued ? "clued" : "active"}">
-        <strong>${canalPlan.title}</strong>
-        <span>${canalPlan.headline}</span>
-        <div class="day-summary-canal-plan-grid">
-          ${(canalPlan.steps || []).map((step) => `
-            <button type="button" class="${step.stateClass || "pending"}" data-day-summary-canal-plan="${step.key}">
-              <b>${step.label}</b>
-              <small>${step.detail}</small>
-              <em>${step.buttonLabel}</em>
-            </button>
-          `).join("")}
-        </div>
-        <small>明日建议：${canalPlan.advice}</small>
-      </div>
-    `
-    : "";
-  const liveShopTownErrand = shopTownErrandDisplaySpec();
-  const liveShopTownErrandPrimary = shopTownErrandPrimaryActionSpec(liveShopTownErrand);
-  const shopTownErrandMarkup = liveShopTownErrand
-    ? `
-      <div class="day-summary-shop-town-errand ${liveShopTownErrand.completed ? "ready" : liveShopTownErrand.failed ? "overdue" : liveShopTownErrand.ready ? "ready" : "active"}">
-        <strong>镇上捎话 · ${liveShopTownErrand.npcLabel}</strong>
-        <span>${liveShopTownErrand.statusLabel} · ${liveShopTownErrand.requestItemName} ${liveShopTownErrand.have}/${liveShopTownErrand.count} · ${liveShopTownErrand.note}</span>
-        <small>${liveShopTownErrand.resultText || liveShopTownErrand.detail}</small>
-        ${liveShopTownErrand.completed || liveShopTownErrand.failed ? "" : `
-          <div class="day-summary-shop-town-errand-actions">
-            <button type="button" data-shop-town-errand-action="${liveShopTownErrandPrimary?.mode || "focus"}" data-shop-town-errand-route="${liveShopTownErrandPrimary?.route?.action || ""}" data-shop-town-errand-recipe="${liveShopTownErrandPrimary?.route?.recipeId || ""}" data-shop-town-errand-seed="${liveShopTownErrandPrimary?.route?.seedId || ""}" data-shop-town-errand-tag="${liveShopTownErrandPrimary?.route?.shopTag || ""}" data-shop-town-errand-item="${liveShopTownErrandPrimary?.route?.itemId || liveShopTownErrand.requestItemId || ""}">${liveShopTownErrandPrimary?.label || "看镇上动线"}</button>
-            ${liveShopTownErrandPrimary?.mode === "focus" ? "" : '<button type="button" data-shop-town-errand-action="focus">看镇上动线</button>'}
-          </div>
-        `}
-      </div>
-    `
-    : "";
-  const shopRestockMarkup = shopRestock
-    ? `
-      <div class="day-summary-shop-restock ${shopRestock.ready ? "ready" : shopRestock.overdue ? "overdue" : "active"}">
-        <strong>${shopRestock.sourceLabel || "旧铺补货"}小抄 · ${shopRestock.itemName}</strong>
-        <span>进度 ${shopRestock.have}/${shopRestock.desiredCount} · 期限第 ${shopRestock.dueDay} 天 · ${shopRestock.statusText}</span>
-        <small>下一步：${shopRestock.routeText}${shopRestock.note ? ` · ${shopRestock.note}` : ""}</small>
-        <button type="button" data-day-summary-shop-restock="${shopRestock.nextAction}" data-day-summary-restock-recipe="${shopRestock.recipeId || ""}" data-day-summary-restock-seed="${shopRestock.seedId || ""}" data-day-summary-restock-tag="${shopRestock.shopTag || ""}" data-day-summary-restock-item="${shopRestock.itemId || ""}">看补货追踪</button>
-      </div>
-    `
-    : "";
-  const shopWeatherShelfMarkup = shopWeatherShelf
-    ? `
-      <div class="day-summary-shop-weather-shelf ${shopWeatherShelf.success ? "ready" : "overdue"}">
-        <strong>${shopWeatherShelf.title}</strong>
-        <span>${shopWeatherShelf.headline}</span>
-        <small>明日建议：${shopWeatherShelf.nextAction}</small>
-        <div class="day-summary-shop-weather-actions">
-          <button type="button" ${shopWeatherShelf.followupAction === "restock" ? `data-shop-weather-restock="true" data-shop-weather-restock-item="${shopWeatherShelf.itemId || ""}" data-shop-weather-restock-tag="${shopWeatherShelf.tag || ""}"` : 'data-shop-weather-review="true"'}>${shopWeatherShelf.buttonLabel || "追踪天气补货"}</button>
-          ${shopWeatherShelf.route ? `<button type="button" data-shop-weather-route="${shopWeatherShelf.route.action}" data-shop-weather-recipe="${shopWeatherShelf.route.recipeId || ""}" data-shop-weather-seed="${shopWeatherShelf.route.seedId || ""}" data-shop-weather-tag="${shopWeatherShelf.route.shopTag || shopWeatherShelf.tag || ""}" data-shop-weather-item="${shopWeatherShelf.route.itemId || shopWeatherShelf.itemId || ""}">${shopWeatherShelf.route.action === "recipe" ? "看配方" : shopWeatherShelf.route.action === "seed" ? "看种子" : "看旧铺货签"}</button>` : ""}
-        </div>
-      </div>
-    `
-    : "";
-  const shopWaterwayStandingOrderMarkup = shopWaterwayStandingOrder
-    ? `
-      <div class="day-summary-waterway-standing ${shopWaterwayStandingOrder.ready ? "ready" : "overdue"}">
-        <strong>${shopWaterwayStandingOrder.title}</strong>
-        <span>${shopWaterwayStandingOrder.focusItemName} ${shopWaterwayStandingOrder.focusHave}/${shopWaterwayStandingOrder.focusTarget} · 常单备货 ${shopWaterwayStandingOrder.stockedKinds} 类 / ${shopWaterwayStandingOrder.totalStock} 件</span>
-        <small>${shopWaterwayStandingOrder.detail}</small>
-        <small>明日建议：${shopWaterwayStandingOrder.nextAction}</small>
-        <div class="day-summary-waterway-standing-actions">
-          <button type="button" data-day-summary-waterway-standing="focus">回看常单牌</button>
-          ${shopWaterwayStandingOrder.route ? `<button type="button" data-day-summary-waterway-standing="${shopWaterwayStandingOrder.route.action}" data-day-summary-waterway-recipe="${shopWaterwayStandingOrder.route.recipeId || ""}" data-day-summary-waterway-seed="${shopWaterwayStandingOrder.route.seedId || ""}" data-day-summary-waterway-tag="${shopWaterwayStandingOrder.route.shopTag || ""}" data-day-summary-waterway-item="${shopWaterwayStandingOrder.route.itemId || shopWaterwayStandingOrder.focusItemId || ""}">${shopWaterwayStandingOrder.route.action === "recipe" ? "看配方" : shopWaterwayStandingOrder.route.action === "seed" ? "看种子" : "看旧铺货签"}</button>` : ""}
-        </div>
-      </div>
-    `
-    : "";
-  const failureCodexText = summary.failureCodex
-    ? `${failureCodexTypeLabel(summary.failureCodex.type)} · ${summary.failureCodex.title}：${summary.failureCodex.insight || summary.failureCodex.problem}；下次：${summary.failureCodex.nextAction || "按见闻册调整"}${summary.failureCodex.rewardText ? `；托底：${summary.failureCodex.rewardText}` : ""}`
-    : "";
-  const weather = data.weatherById.get(summary.weather);
-  const term = data.solarTermsById.get(summary.term);
-  const nightGrowthText = summary.nightGrowth
-    ? `夜间成长：新成熟 ${summary.nightGrowth.maturedCount} 块，继续生长 ${summary.nightGrowth.grownCount} 块${summary.nightGrowth.caredCount > 0 ? `，雨水/灵池代顾 ${summary.nightGrowth.caredCount} 块` : ""}${summary.nightGrowth.termChanged ? `；节气转入 ${summary.nightGrowth.termName}` : ""}`
-    : "";
-  const maturedPlotActionRows = (summary.maturedPlotActions || [])
-    .slice(0, 3)
-    .map((entry) => `
-      <div class="day-summary-mature-route ${entry.route?.type || "stock"}">
-        <span><b>${entry.cropName}</b> · 灵田 (${Number(entry.x) + 1}, ${Number(entry.y) + 1})</span>
-        <small>${entry.routeBadge} → ${entry.routeTarget} · ${entry.detail}</small>
-        <button type="button" data-day-summary-mature-plot="${entry.x},${entry.y}">定位收获</button>
-      </div>
-    `)
-    .join("");
-  const harvestUseRouteText = summary.harvestUseRoute
-    ? `${summary.harvestUseRoute.itemName} x${summary.harvestUseRoute.count} → ${summary.harvestUseRoute.headline || summary.harvestUseRoute.badge}；${summary.harvestUseRoute.detail || summary.harvestUseRoute.cta}`
-    : "";
-  const ecologyInspectionCareText = summary.ecologyDailyEvent?.inspectionCare?.active
-    ? `；巡看照料：${summary.ecologyDailyEvent.inspectionCare.landmarkLabel} · 心情 +${summary.ecologyDailyEvent.inspectionCare.moodBonus} / 灵石 +${summary.ecologyDailyEvent.inspectionCare.goldBonus}`
-    : "";
-  const ecologyDailyText = summary.ecologyDailyEvent
-    ? `${summary.ecologyDailyEvent.tierLabel} · ${summary.ecologyDailyEvent.title}：${summary.ecologyDailyEvent.actionText}${ecologyInspectionCareText}${summary.ecologyDailyEvent.rewards?.length ? `；收获 ${summary.ecologyDailyEvent.rewards.map((reward) => reward.text).join("、")}` : ""}${summary.ecologyDailyEvent.targetSpiritNames?.length ? `；安抚 ${summary.ecologyDailyEvent.targetSpiritNames.join("、")}` : ""}${summary.ecologyDailyEvent.memoryResonance?.tier > 0 ? `；${summary.ecologyDailyEvent.memoryResonance.label}余韵生效` : ""}`
-    : "";
-  const ecologyMemoryText = summary.ecologyMemoryResonance?.tier > 0
-    ? `${summary.ecologyMemoryResonance.label}：已记 ${summary.ecologyMemoryResonance.nights} 夜 / ${summary.ecologyMemoryResonance.comboCount} 类，后续夜事心情 +${summary.ecologyMemoryResonance.moodBonus}、灵石 +${summary.ecologyMemoryResonance.goldBonus}`
-    : "";
-  const spiritFinaleText = summary.spiritFinaleEffects
-    ? spiritFinaleEffectCompactText(summary.spiritFinaleEffects, 4)
-    : "";
-  const spiritFinaleDetailText = summary.spiritFinaleEffects?.rows?.length
-    ? summary.spiritFinaleEffects.rows.slice(0, 3).map((row) => row.detail).join("；")
-    : "";
-  const p0SnapshotMarkup = daySummaryP0SnapshotMarkup(summary, morningBoard);
-  const vsa008EvidenceMarkup = daySummaryVsa008EvidenceMarkup(summary, morningBoard);
-  const tomorrowFirstStepMarkup = daySummaryTomorrowFirstStepMarkup(morningBoard, summary);
-  const earlyRewardNextDelightMarkupText = earlyRewardNextDelightMarkup(summary.earlyRewardNextDelight || earlyRewardNextDelightSpec());
-  const dungeonDayEchoMarkupText = dungeonDayEchoDaySummaryMarkup(summary.dungeonDayEcho || null);
-  const node = document.createElement("div");
-  node.className = "day-summary-card ready";
-  node.innerHTML = `
-    ${vsa008EvidenceMarkup}
-    ${p0SnapshotMarkup}
-    ${morningMarkup}
-    ${prepMarkup}
-    ${tomorrowFirstStepMarkup}
-    ${earlyRewardNextDelightMarkupText}
-    <strong>第 ${summary.day} 天结束 → 第 ${summary.nextDay} 天</strong>
-    <span>${localize(term?.term_name_key, summary.term)} · ${localize(weather?.weather_name_key, summary.weather)} · 灵石 ${summary.goldDelta >= 0 ? "+" : ""}${summary.goldDelta} · 声望 ${summary.fameDelta >= 0 ? "+" : ""}${summary.fameDelta}</span>
-    <span>${inventoryText}</span>
-    ${dailyIntentReviewMarkupText}
-    ${solarMorningSummaryText ? `<small class="day-summary-solar-morning">今日天时复盘：${solarMorningSummaryText}</small>` : ""}
-    ${solarTermMoodTrailMarkup}
-    ${solarTermMoodShopDisplaySummaryMarkup}
-    ${weatherLifeVignetteMarkup}
-    ${townLifeWeatherMomentMarkup}
-    ${townLifeWeatherErrandMarkup}
-    ${careChainMarkup}
-    ${nightGrowthText ? `<small>${nightGrowthText}</small>` : ""}
-    ${maturedPlotActionRows ? `<div class="day-summary-mature-list"><strong>明早先收</strong>${maturedPlotActionRows}</div>` : ""}
-    ${harvestUseRouteText ? `<small class="day-summary-harvest-route">收获去向：${harvestUseRouteText}</small>` : ""}
-    ${canalPlanMarkup}
-    ${shopRestockMarkup}
-    ${shopWeatherShelfMarkup}
-    ${shopWaterwayStandingOrderMarkup}
-    ${dungeonDayEchoMarkupText}
-    ${failureCodexText ? `<small class="day-summary-failure-codex">失败见闻：${failureCodexText}</small>` : ""}
-    ${ecologyDailyText ? `<small class="day-summary-ecology">${ecologyDailyText}</small>` : ""}
-    ${ecologyMemoryText ? `<small class="day-summary-ecology-memory">${ecologyMemoryText}</small>` : ""}
-    ${spiritFinaleText ? `<small class="day-summary-spirit-finale"><b>终章伙伴常驻</b>${spiritFinaleText}<em>${spiritFinaleDetailText}</em></small>` : ""}
-    <small>精怪夜勤：${spiritJobText}</small>
-    ${spiritSeasonalWorkMarkup}
-    ${spiritJobSynergyMarkup}
-    ${workshopText ? `<small>${workshopText}</small>` : ""}
-    ${workshopOrderMatchText ? `<small class="day-summary-workshop-order">工坊接单：${workshopOrderMatchText}</small>` : ""}
-    <small>成熟地块 ${summary.matured} · 未处理风险 ${summary.unresolved} · 商队返程 ${summary.returnedRuns} · ${summary.activeTrial ? `试炼：${summary.activeTrial}` : "暂无进行中试炼"}</small>
-    ${shopOpeningText ? `<small>旧铺日结：${shopOpeningText}</small>` : ""}
-    ${shopReviewText ? `<small>${shopReviewText}</small>` : ""}
-    ${shopReturnPreviewText ? `<small>${shopReturnPreviewText}</small>` : ""}
-    ${shopDoorstepText ? `<small>门口小景：${shopDoorstepText}</small>` : ""}
-    ${shopSeasonalDoorstepText ? `<small>节气门口：${shopSeasonalDoorstepText}</small>` : ""}
-    ${shopReturningDigestText ? `<small>熟脸回门：${shopReturningDigestText}</small>` : ""}
-    ${shopIntroducedText ? `<small>熟客带新客：${shopIntroducedText}</small>` : ""}
-    ${shopWordOfMouthText ? `<small>铺前市闻：${shopWordOfMouthText}</small>` : ""}
-    ${shopWordVisitText ? `<small>铺前来帖：${shopWordVisitText}</small>` : ""}
-    ${shopVisitPledgeText ? `<small>来帖小约：${shopVisitPledgeText}</small>` : ""}
-    ${shopTownErrandText ? `<small>镇上捎话：${shopTownErrandText}</small>` : ""}
-    ${shopRegularBoardText ? `<small>熟客留言墙：${shopRegularBoardText}</small>` : ""}
-    ${shopReputationText ? `<small class="day-summary-shop-reputation">旧铺名声：${shopReputationText}</small>` : ""}
-    ${shopCustomerLessonMarkupText}
-    ${shopTownErrandMarkup}
-    ${summary.shopSeason ? `<small>名铺月评：${summary.shopSeason.seasonName} · ${String(summary.shopSeason.rankTier).toUpperCase()} 档 · ${summary.shopSeason.score} 分</small>` : ""}
-    ${cohabMomentText ? `<small>同住生活：${cohabMomentText}</small>` : ""}
-    ${cohabBuffText ? `<small>同住余韵：${cohabBuffText}</small>` : ""}
-    ${rareSpiritTheaterDaySummaryMarkupText}
-    ${rareSpiritText ? `<small>稀有精怪：${rareSpiritText}</small>` : ""}
-    ${rareGiftText ? `<small>精怪回礼：${rareGiftText}</small>` : ""}
-    ${townLifeGreetingText ? `<small>镇上见闻：${townLifeGreetingText}</small>` : ""}
-    ${townLifeErrandText ? `<small>镇民托付：${townLifeErrandText}</small>` : ""}
-    ${townLifeShopMomentText ? `<small>旧铺后话：${townLifeShopMomentText}</small>` : ""}
-    ${townLifeShopMomentFocus ? `<button type="button" data-town-shop-moment-npc="${townLifeShopMomentFocus.npcId}" data-town-shop-moment-id="${townLifeShopMomentFocus.id}">翻开这页后话</button>` : ""}
-    ${townLifeGiftText ? `<small>今日赠礼：${townLifeGiftText}</small>` : ""}
-    ${townLifeMemoryText ? `<small>关系记忆：${townLifeMemoryText}</small>` : ""}
-    ${spiritInteractionText ? `<small>伙伴回应：${spiritInteractionText}</small>` : ""}
-    ${spiritMoodRepairText ? `<small>低落小事：${spiritMoodRepairText}</small>` : ""}
-    ${canalRestorationText ? `<small>洞天扩张：${canalRestorationText}</small>` : ""}
-    ${pondSummaryText ? `<small>灵池近况：${pondSummaryText}</small>` : ""}
-    ${summary.sproutSummary ? `<small>成精预告：${summary.sproutSummary}</small>` : ""}
-    ${sproutMomentText ? `<small>田垄异动：${sproutMomentText}</small>` : ""}
-    <small>明日建议：${summary.advice}</small>
-  `;
-  refs.daySummaryPanel.append(node);
+  renderDaySummaryPanelUi({
+    refs,
+    state,
+    data,
+    selectorDataValue,
+    morningActionBoardSpec,
+    morningActionBoardMarkup,
+    sleepPrepChecklistMarkup,
+    itemName,
+    dailyIntentReviewMarkup,
+    dailyIntentReviewSpec,
+    solarMorningSignSummaryText,
+    solarTermMoodDaySummaryInsight,
+    solarTermMoodShopDisplayDaySummaryMarkup,
+    normalizeCareChainState,
+    careChainEchoSpec,
+    shopSaleReflectionSpec,
+    shopDoorstepSceneSummaryText,
+    shopSeasonalDoorstepSceneSummaryText,
+    shopReturningVisitDigestSummaryText,
+    shopIntroducedCustomerDigestSummaryText,
+    shopWordOfMouthSummaryText,
+    shopWordOfMouthVisitSummaryText,
+    shopVisitPledgeSummaryText,
+    shopTownErrandSummaryText,
+    shopRegularBoardSummaryText,
+    shopReputationStageSummaryText,
+    shopCustomerDayLessonMarkup,
+    shopTownErrandDisplaySpec,
+    shopTownErrandPrimaryActionSpec,
+    failureCodexTypeLabel,
+    localize,
+    spiritFinaleEffectCompactText,
+    daySummaryP0SnapshotMarkup,
+    daySummaryVsa008EvidenceMarkup,
+    daySummaryTomorrowFirstStepMarkup,
+    earlyRewardNextDelightMarkup,
+    earlyRewardNextDelightSpec,
+    dungeonDayEchoDaySummaryMarkup,
+    automationDayLedgerMarkup,
+    automationDayLedgerSpec,
+    postMainlineRhythmDaySummaryMarkup,
+    postMainlineEveningEchoMarkup,
+    postMainlineLongTailResonanceMarkup,
+    rareSpiritTheaterDaySummaryMarkup,
+  });
 }
 
 function renderGoalBook() {
-  refs.goalBookPanel.innerHTML = "";
-
-  const uiPressureMarkup = uiPressureReliefMarkup();
-  if (uiPressureMarkup) {
-    const uiPressureNode = document.createElement("div");
-    uiPressureNode.innerHTML = uiPressureMarkup.trim();
-    refs.goalBookPanel.append(uiPressureNode.firstElementChild);
-  }
-
-  const intentJournalRows = dailyIntentJournalRows(3);
-  const intentJournalActive = intentJournalRows.some((row) => row.score > 0);
-  const intentJournalHeader = document.createElement("div");
-  intentJournalHeader.className = `goal-summary ${intentJournalActive ? "pass" : "active"}`;
-  intentJournalHeader.innerHTML = `<strong>每日主轴手账 ${intentJournalRows.filter((row) => row.score > 0).length}/3</strong><span>回看最近几天真正推进的是赚钱、建设、探索、关系还是稳田，让日常经营形成连续路线。</span>`;
-  refs.goalBookPanel.append(intentJournalHeader);
-  const trendNode = document.createElement("div");
-  trendNode.innerHTML = dailyIntentTrendMarkup();
-  refs.goalBookPanel.append(trendNode.firstElementChild);
-
-  const solarMoodStampSpec = solarTermMoodStampArchiveSpec(6);
-  const solarMoodStampHeader = document.createElement("div");
-  solarMoodStampHeader.className = `goal-summary ${solarMoodStampSpec.stateClass === "done" ? "pass" : "active"}`;
-  solarMoodStampHeader.innerHTML = `<strong>${solarMoodStampSpec.title}</strong><span>把今日画境合图印收进目标册，形成节气、天气、田地、旧铺、精怪和风险的长期收藏线。</span>`;
-  refs.goalBookPanel.append(solarMoodStampHeader);
-  const solarMoodStampMarkup = solarTermMoodStampArchiveMarkup(solarMoodStampSpec);
-  if (solarMoodStampMarkup) {
-    const solarMoodStampNode = document.createElement("div");
-    solarMoodStampNode.innerHTML = solarMoodStampMarkup.trim();
-    refs.goalBookPanel.append(solarMoodStampNode.firstElementChild);
-  }
-
-  const careChainJournal = careChainJournalRows(4);
-  const careChainState = normalizeCareChainState(state.careChainState);
-  const careChainHeader = document.createElement("div");
-  careChainHeader.className = `goal-summary ${careChainJournal.length > 0 ? "pass" : "active"}`;
-  careChainHeader.innerHTML = `<strong>洞天照应札记 ${careChainJournal.length}/4</strong><span>记录田地、精怪和旧铺连续照应的阶段事件；当前连续 ${careChainState.streak} 日，最佳 ${careChainState.bestStreak} 日。</span>`;
-  refs.goalBookPanel.append(careChainHeader);
-  if (careChainJournal.length === 0) {
-    const emptyCareJournal = document.createElement("div");
-    emptyCareJournal.className = "goal-card care-chain-journal pending";
-    emptyCareJournal.innerHTML = `<strong>照应札记还没落页</strong><span>让田里成长、精怪岗位和旧铺门口至少两端在同一天接上，入夜后这里会留下第一笔照应。</span><small>提示：连续三日会触发阶段事件，并写进这本札记。</small><button type="button" data-care-chain-journal-event="">先续一条照应</button>`;
-    refs.goalBookPanel.append(emptyCareJournal);
-  } else {
-    for (const row of careChainJournal) {
-      const node = document.createElement("div");
-      node.className = `goal-card care-chain-journal ${row.stateClass} ${row.type}`;
-      node.innerHTML = `
-        <strong>第 ${row.day} 天 · ${row.title}</strong>
-        <span>${row.headline}</span>
-        <small>${row.detail}</small>
-        <small>${row.rewardText}</small>
-        <button type="button" data-care-chain-journal-event="${row.eventId || ""}">${row.cta}</button>
-      `;
-      refs.goalBookPanel.append(node);
-    }
-  }
-  if (!intentJournalActive) {
-    const emptyIntentJournal = document.createElement("div");
-    emptyIntentJournal.className = "goal-card daily-intent-journal pending";
-    emptyIntentJournal.innerHTML = `<strong>今日主轴尚未落笔</strong><span>从每日三选目标里挑一个方向，完成任意行动后，这里会写下今日主轴、足迹和阶段。</span><small>提示：连续推进同一方向可触发起势、连势、成势奖励。</small><button type="button" data-daily-intent-journal-action="continue" data-daily-intent-journal-key="field">从今日稳田开始</button>`;
-    refs.goalBookPanel.append(emptyIntentJournal);
-  } else {
-    for (const row of intentJournalRows) {
-      const node = document.createElement("div");
-      node.className = `goal-card daily-intent-journal ${row.score > 0 ? "done" : "pending"} ${row.tone}`;
-      node.innerHTML = `
-        <strong>第 ${row.day} 天 · ${row.title} · ${row.milestoneLabel}</strong>
-        <span>${row.label} ${row.score} 点 · 足迹 ${row.count} 条</span>
-        <small>${row.details.length ? row.details.join("；") : "这一天还没有留下明确足迹。"}</small>
-        <button type="button" data-daily-intent-journal-action="continue" data-daily-intent-journal-key="${row.intent}">续走这条线</button>
-        <button type="button" data-daily-intent-journal-action="weak" data-daily-intent-journal-key="${row.intent}">换线补短板</button>
-      `;
-      refs.goalBookPanel.append(node);
-    }
-  }
-
-  const earlyHeader = document.createElement("div");
-  const earlyDone = data.earlyRewardPacing.filter(earlyRewardDone).length;
-  earlyHeader.className = `goal-summary ${earlyDone >= Math.min(10, data.earlyRewardPacing.length) ? "pass" : "active"}`;
-  earlyHeader.innerHTML = `<strong>前三小时正反馈 ${earlyDone}/${data.earlyRewardPacing.length}</strong><span>把清理、播种、成精、加工、开铺、修复做成连续奖励节奏。</span>`;
-  refs.goalBookPanel.append(earlyHeader);
-  const cadenceMarkup = earlyRewardCadenceAuditMarkup();
-  if (cadenceMarkup) {
-    const cadenceNode = document.createElement("div");
-    cadenceNode.innerHTML = cadenceMarkup.trim();
-    refs.goalBookPanel.append(cadenceNode.firstElementChild);
-  }
-
-  for (const pace of data.earlyRewardPacing.slice(0, 10)) {
-    const done = earlyRewardDone(pace);
-    const live = state.earlyRewardFeedback?.paceId === pace.pace_id;
-    const node = document.createElement("div");
-    node.className = `goal-card ${done ? "done" : "pending"} ${live ? "live" : ""}`;
-    node.innerHTML = `
-      <strong>${pace.phase} · ${pace.time_min} 分钟</strong>
-      <span>${pace.player_action} → ${pace.instant_feedback}</span>
-      <small>${live ? `刚触发：${pace.delayed_feedback || pace.success_metric}` : done ? "已在当前 Demo 中触发" : `后续反馈：${pace.delayed_feedback || pace.success_metric}`}</small>
-    `;
-    refs.goalBookPanel.append(node);
-  }
-
-  const shopOpening = syncShopOpeningState();
-  const shopCrowdRows = (shopOpening.history.length > 0 ? shopOpening.history : shopOpening.lastSession ? [shopOpening.lastSession] : [])
-    .map((entry) => ({ entry, heat: shopCrowdHeatUiSpec(entry.liveFocus) }))
-    .filter((row) => row.heat.active)
-    .slice(0, 3);
-  const shopCrowdHeader = document.createElement("div");
-  shopCrowdHeader.className = `goal-summary ${shopCrowdRows.length > 0 ? "pass" : "active"}`;
-  shopCrowdHeader.innerHTML = `<strong>旧铺门口热度回看 ${shopCrowdRows.length}/3</strong><span>把开铺后的排队、围观、热卖牌和犹豫离店写成复盘，帮助下一次陈列更像真正经营。</span>`;
-  refs.goalBookPanel.append(shopCrowdHeader);
-  if (shopCrowdRows.length === 0) {
-    const emptyShopCrowd = document.createElement("div");
-    emptyShopCrowd.className = "goal-card shop-crowd-memory pending";
-    emptyShopCrowd.innerHTML = `<strong>旧铺还没有门口热度记录</strong><span>完成一次开铺后，门口排队、围观与热卖牌会写到这里。</span><small>提示：先准备一件标签明确的作物或加工品，再开铺测试第一批顾客。</small>`;
-    refs.goalBookPanel.append(emptyShopCrowd);
-  } else {
-    for (const row of shopCrowdRows) {
-      const focus = row.entry.liveFocus || {};
-      const node = document.createElement("div");
-      node.className = `goal-card shop-crowd-memory ${row.heat.stateClass === "warn" ? "pending" : "done"}`;
-      node.innerHTML = `
-        <strong>第 ${row.entry.day || state.day} 天 · ${row.heat.title}</strong>
-        <span>${row.heat.headline} · ${row.heat.queueText}</span>
-        <small>成交 ${focus.buyers || 0} · 犹豫离店 ${focus.leavers || 0} · 主题 ${focus.themeScore || 0}% · ${row.heat.mood}</small>
-        <small>掌柜建议：${row.heat.nextAction}</small>
-      `;
-      refs.goalBookPanel.append(node);
-    }
-  }
-
-  const failureCodex = syncFailureCodexState();
-  const failureRows = failureCodexRows(4);
-  const failureHeader = document.createElement("div");
-  failureHeader.className = `goal-summary ${failureRows.length > 0 ? "pass" : "active"}`;
-  failureHeader.innerHTML = `<strong>失败见闻册 ${failureCodex.total}/${Math.max(4, failureRows.length)} · 最近 ${failureRows.length}</strong><span>把订单缺口、旧铺差评、节气风险、秘境失利和商队险路变成可回看的学习与托底反馈。</span>`;
-  refs.goalBookPanel.append(failureHeader);
-  const failureTriptych = failureLearningTriptychMarkup(failureLearningTriptychSpec(failureRows, failureCodex));
-  if (failureTriptych) {
-    const triptychNode = document.createElement("div");
-    triptychNode.innerHTML = failureTriptych;
-    refs.goalBookPanel.append(triptychNode.firstElementChild);
-  }
-  if (failureRows.length === 0) {
-    const emptyFailure = document.createElement("div");
-    emptyFailure.className = "goal-card failure-codex-card pending";
-    emptyFailure.innerHTML = `<strong>还没有失败见闻</strong><span>遇到订单缺口、旧铺补救、风险失守、秘境撤退或商队险路时，这里会记录原因、托底和下一步。</span><small>这不是惩罚册，是掌柜和洞天一起学会“下次怎么更稳”的账页。</small>`;
-    refs.goalBookPanel.append(emptyFailure);
-  } else {
-    for (const entry of failureRows) {
-      const node = document.createElement("div");
-      node.className = `goal-card failure-codex-card ${entry.tone === "boss" ? "boss" : entry.tone === "support" ? "ready" : "done"}`;
-      node.innerHTML = `
-        <strong>${entry.icon} ${failureCodexTypeLabel(entry.type)} · ${entry.title}</strong>
-        <span>${entry.headline}</span>
-        ${entry.problem ? `<small>原因：${entry.problem}</small>` : ""}
-        ${entry.insight ? `<small>见闻：${entry.insight}</small>` : ""}
-        ${entry.nextAction ? `<small>下次：${entry.nextAction}</small>` : ""}
-        ${entry.rewardText ? `<small>托底：${entry.rewardText}</small>` : ""}
-      `;
-      refs.goalBookPanel.append(node);
-    }
-  }
-
-  syncGoalBookState();
-  const isYear2Open = year2Unlocked();
-  const year2AllGoals = isYear2Open ? data.year2GoalBook.filter((goal) => year2GoalUnlocked(goal)) : [];
-  const year2ReadyCount = year2AllGoals.filter(year2GoalReady).length;
-  const year2ClaimedCount = year2AllGoals.filter(year2GoalClaimed).length;
-  const year2Header = document.createElement("div");
-  year2Header.className = `goal-summary ${year2ReadyCount > 0 ? "pass" : "active"}`;
-  year2Header.innerHTML = isYear2Open
-    ? `<strong>第二年目标册 ${year2ClaimedCount}/${year2AllGoals.length} · 可领取 ${year2ReadyCount}</strong><span>把今日建议、本周推进、节气主题和长期追求整理成真正能完成的年鉴。</span>`
-    : "<strong>第二年目标册 未开卷</strong><span>完成终章决战、重建二十四节气大阵，并亲手收获万年蟠桃后开启。</span>";
-  refs.goalBookPanel.append(year2Header);
-
-  const firstWeek = year2FirstWeekStatus();
-  const year2Intro = document.createElement("div");
-  year2Intro.className = `goal-card ${!isYear2Open ? "locked" : firstWeek.delivered ? "done" : firstWeek.ready ? "ready" : "pending"}`;
-  if (isYear2Open) {
-    const firstOrder = firstWeek.order;
-    let introTitle = "第二年开局：宴后第一周";
-    let introBody = "今日建议先接回精怪照料和店铺订单；名铺赛季看评分短板；同住后日谈与跨界商路会逐步把镇民、精怪和外界重新织起来。";
-    let introDetail = "蟠桃大宴已经把“通关”变成新的经营起点，接下来追求的是长期陪伴、收藏和造景表达。";
-    if (firstOrder && firstWeek.delivered) {
-      introTitle = "第二年开局：宴后第一周已跑顺";
-      introBody = "第一张名铺礼宴单已经交付，第二年现金流、赛季评分和目标册都接上了。接下来优先看名铺赛季短板，再挑一个今日建议或本周目标继续推进。";
-      introDetail = `首周起笔：${orderTitle(firstOrder)} 已完成 · 后续重点转向赛季评分、关系线、收藏与造景表达。`;
-    } else if (firstOrder && firstWeek.ready) {
-      introBody = `许伯备好的三件套已经齐了，订单板上的“${orderTitle(firstOrder)}”现在就能交。交完这单，第二年经营会正式从宴席余温接成稳定开张。`;
-      introDetail = `首周状态：三件套已备齐 · 可立即交付 · 奖励 ${Number(firstOrder.reward_gold || 0)} 灵石 / ${Number(firstOrder.reward_fame || 0)} 声望。`;
-    } else if (firstOrder) {
-      const missingText = firstWeek.needStatus?.missing.slice(0, 3).join("、") || "礼卷、宴食和灵酿";
-      introBody = `第一张第二年名铺单已经压到账台上，还差 ${missingText}。先把这单备齐，第二年目标册和赛季评分才会真正开始滚动起来。`;
-      introDetail = `首单：${orderTitle(firstOrder)} · 当前备货 ${firstWeek.needStatus?.readyCount || 0}/${firstWeek.needStatus?.totalCount || 0} · 交付后会把年二节奏正式接上。`;
-    } else if (!firstWeek.starterClaimed) {
-      introBody = "第二年入口已经亮起，但开局三件套还没到账。先完成蟠桃大宴后的交接，让许伯把首周要用的体面货压到账台上。";
-      introDetail = "首周提示：补给到账后，会直接指向第一张名铺礼宴订单。";
-    }
-    year2Intro.innerHTML = `<strong>${introTitle}</strong><span>${introBody}</span><small>${introDetail}</small>`;
-  } else {
-    year2Intro.innerHTML = `<strong>还差一场蟠桃大宴</strong><span>当前年鉴先记录前三小时反馈、秘境图鉴、岗位修行和精怪事件；第二年日常、名铺赛季、同住后日谈与自由目标会在主线收束后一起亮起。</span><small>目标：击败噬灵螟母 → 建成终阵 → 种下并收获万年蟠桃。</small>`;
-  }
-  refs.goalBookPanel.append(year2Intro);
-
-  if (isYear2Open) {
-    const year2RecommendMarkup = year2TodayRecommendationMarkup();
-    if (year2RecommendMarkup) {
-      const year2RecommendNode = document.createElement("div");
-      year2RecommendNode.innerHTML = year2RecommendMarkup.trim();
-      refs.goalBookPanel.append(year2RecommendNode.firstElementChild);
-    }
-  }
-
-  const postMainlineRoute = document.createElement("div");
-  postMainlineRoute.innerHTML = postMainlineTenHourGoalMarkup().trim();
-  refs.goalBookPanel.append(postMainlineRoute.firstElementChild);
-
-  const compendium = dungeonCompendiumProgress();
-  const compendiumHeader = document.createElement("div");
-  compendiumHeader.className = `goal-summary ${compendium.unlocked >= Math.max(1, Math.min(3, compendium.total)) ? "pass" : "active"}`;
-  compendiumHeader.innerHTML = `<strong>秘境图鉴 ${compendium.unlocked}/${compendium.total} · 通关印记 ${compendium.cleared}</strong><span>节气印记会反馈到年轮试炼与长期收藏；碎片攒满 3 枚即可先拼成图鉴印记。</span>`;
-  refs.goalBookPanel.append(compendiumHeader);
-
-  if (compendium.entries.length > 0) {
-    for (const entry of compendium.entries.slice(0, 4)) {
-      const summary = dungeonCompendiumEntrySummary(entry);
-      const node = document.createElement("div");
-      node.className = `goal-card ${summary?.state === "done" ? "done" : summary?.state === "ready" ? "ready" : "pending"}`;
-      node.innerHTML = `
-        <strong>${summary?.title || entry.stampLabel}</strong>
-        <span>${summary?.body || entry.dungeonLabel}</span>
-        <small>${summary?.detail || entry.note || "继续探索秘境，补齐这枚节气印记。"}</small>
-      `;
-      refs.goalBookPanel.append(node);
-    }
-  }
-
-  const dungeonEchoRows = dungeonDayEchoArchiveRows(4);
-  const dungeonEchoHeader = document.createElement("div");
-  dungeonEchoHeader.className = `goal-summary ${dungeonEchoRows.length > 0 ? "pass" : "active"}`;
-  dungeonEchoHeader.innerHTML = `<strong>秘境余烬手账 ${dungeonEchoRows.length}/4</strong><span>把最近秘境探索、撤离、失利或通关后的场规、精怪解法、带回内容和明日路线沉淀成长期可回看的洞天账页。</span>`;
-  refs.goalBookPanel.append(dungeonEchoHeader);
-  if (dungeonEchoRows.length === 0) {
-    const emptyEchoArchive = document.createElement("div");
-    emptyEchoArchive.className = "goal-card dungeon-echo-archive pending";
-    emptyEchoArchive.innerHTML = `
-      <strong>第一条秘境余烬仍待落笔</strong>
-      <span>先在秘境里完成一次探索、撤离、失利或通关，入夜后的余烬会自动写进这本手账。</span>
-      ${dungeonDayEchoArchiveScrollMarkup(null)}
-      <small>这里是回看档案，不会自动进入秘境、探索、顺应节气或挑战 Boss，也不会消耗资源。</small>
-      <button type="button" data-dungeon-echo-archive="" data-dungeon-echo-mode="panel">先看秘境入口</button>
-    `;
-    refs.goalBookPanel.append(emptyEchoArchive);
-  } else {
-    for (const row of dungeonEchoRows) {
-      const stateClass = row.outcome === "clear" ? "done" : row.outcome === "failure" || row.tone === "warn" ? "pending" : "ready";
-      const archiveKey = selectorDataValue(row.key);
-      const node = document.createElement("div");
-      node.className = `goal-card dungeon-echo-archive ${stateClass} ${row.tone || "note"}`;
-      node.innerHTML = `
-        <strong>第 ${row.day} 天 · ${row.dungeonName} · ${row.outcomeLabel}</strong>
-        <span>${row.headline} · ${row.floorText}</span>
-        ${dungeonDayEchoArchiveScrollMarkup(row)}
-        <small><b>场规</b>${row.fieldRule}</small>
-        <small><b>精怪解法</b>${row.solutionText}</small>
-        <small><b>带回</b>${row.rewardText}</small>
-        <small><b>下一步</b>${row.nextStepText}</small>
-        <div class="dungeon-echo-archive-actions">
-          <button type="button" data-dungeon-echo-archive="${archiveKey}" data-dungeon-echo-mode="panel">回看余烬</button>
-          <button type="button" data-dungeon-echo-archive="${archiveKey}" data-dungeon-echo-mode="route">定位三联牌</button>
-          <button type="button" data-dungeon-echo-archive="${archiveKey}" data-dungeon-echo-mode="memory" ${row.memoryKey ? "" : "disabled"}>翻回忆页</button>
-        </div>
-        <small class="dungeon-echo-archive-safe">${row.safety}</small>
-      `;
-      refs.goalBookPanel.append(node);
-    }
-  }
-
-  const memoryPages = dungeonCompendiumMemoryPages(3);
-  const memoryUnlockedCount = memoryPages.filter((page) => state.dungeonCompendium?.[page.key]?.unlocked).length;
-  const memoryHeader = document.createElement("div");
-  memoryHeader.className = `goal-summary ${memoryUnlockedCount > 0 ? "pass" : "active"}`;
-  memoryHeader.innerHTML = `<strong>回忆页 ${memoryPages.length} 页 · 已点亮 ${compendium.cleared}</strong><span>最近收录的节气印记会翻成可回看的年鉴页，补上场景、奖励和年轮试炼共鸣。</span>`;
-  refs.goalBookPanel.append(memoryHeader);
-
-  if (memoryPages.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "goal-card pending memory-page-card";
-    empty.innerHTML = `<strong>第一张回忆页仍待落笔</strong><small>先去秘境里留下节气碎片，年轮纪念碑才会开始记住这段见闻。</small>`;
-    refs.goalBookPanel.append(empty);
-  } else {
-    for (const page of memoryPages) {
-      const entry = state.dungeonCompendium?.[page.key];
-      const stateClass = entry?.cleared ? "done" : entry?.unlocked ? "ready" : "pending";
-      const node = document.createElement("div");
-      node.className = `goal-card memory-page-card ${stateClass}`;
-      node.innerHTML = `
-        <strong>${page.title}</strong>
-        <span>${page.subtitle}</span>
-        <small>${page.scene}</small>
-        <small>${page.caption} · ${page.resonance}</small>
-        <small>${page.footer}</small>
-        <button type="button" data-dungeon-memory-open="${page.key}" ${state.activeDungeonMemoryPage === page.key ? "disabled" : ""}>${state.activeDungeonMemoryPage === page.key ? "正在翻看" : "翻开回忆页"}</button>
-      `;
-      refs.goalBookPanel.append(node);
-    }
-  }
-
-  if (isYear2Open) {
-    const yearlyClaimCount = Object.keys(state.goalBookState.year2Claims || {}).length + Object.keys(state.goalBookState.freeplayClaims || {}).length;
-    const dailyLimit = state.day <= 7 ? 3 : yearlyClaimCount >= 10 ? 5 : 4;
-    const year2Sections = [
-      { title: "今日建议", type: "daily", goals: recommendedYear2Goals("daily", dailyLimit), empty: "今天的短目标都做完了，可以去推进周目标或自由目标。" },
-      { title: "本周目标", type: "weekly", goals: recommendedYear2Goals("weekly", 3), empty: "本周中期目标暂时清空了，说明你的经营节奏很稳。" },
-      { title: "本月主题", type: "seasonal", goals: recommendedYear2Goals("seasonal", 2), empty: "当前节气没有激活专属主题，继续经营等下一轮时令变化。" },
-      { title: "长期追求", type: "longterm", goals: year2AllGoals.filter((goal) => ["collection", "relationship", "challenge"].includes(goal.goal_type) && !year2GoalClaimed(goal)).sort((a, b) => year2GoalPriorityScore(b) - year2GoalPriorityScore(a)).slice(0, 4), empty: "长期目标暂时都已收录，洞天已经越来越像完整共同体了。" },
-    ];
-
-    for (const section of year2Sections) {
-      const header = document.createElement("div");
-      header.className = `goal-summary ${section.goals.some((goal) => year2GoalReady(goal)) ? "pass" : "active"}`;
-      header.innerHTML = `<strong>${section.title}</strong><span>${section.type === "daily" ? "5 到 20 分钟的小目标" : section.type === "weekly" ? "1 到 3 天的推进方向" : section.type === "seasonal" ? "跟着节气和赛季走" : "通关后仍值得追的纪念线"}</span>`;
-      refs.goalBookPanel.append(header);
-
-      if (section.goals.length === 0) {
-        const empty = document.createElement("div");
-        empty.className = "goal-card done";
-        empty.innerHTML = `<strong>${section.title} 已整理完</strong><small>${section.empty}</small>`;
-        refs.goalBookPanel.append(empty);
-        continue;
-      }
-
-      for (const goal of section.goals) {
-        const progress = year2GoalProgress(goal);
-        const target = conditionTarget(goal.complete_condition);
-        const claimed = year2GoalClaimed(goal);
-        const ready = year2GoalReady(goal);
-        const node = document.createElement("div");
-        node.className = `goal-card ${claimed ? "done" : ready ? "ready" : "pending"}`;
-        node.innerHTML = `
-          <strong>${year2GoalTitle(goal)}</strong>
-          <span>${goal.note} · 预计 ${goal.estimated_minutes} 分钟</span>
-          <small>当前进度 ${Math.min(progress, target)}/${target} · 奖励 ${year2GoalRewardText(goal)}</small>
-          <button type="button" data-year2-goal="${goal.goal_id}" ${ready && !claimed ? "" : "disabled"}>${claimed ? "已收录" : ready ? "收进年鉴" : "继续推进"}</button>
-        `;
-        refs.goalBookPanel.append(node);
-      }
-    }
-  }
-
-  const jobGoals = spiritJobGoalRows();
-  const claimedJobGoals = jobGoals.filter(spiritJobGoalClaimed).length;
-  const readyJobGoals = jobGoals.filter((goal) => spiritJobGoalReady(goal) && !spiritJobGoalClaimed(goal)).length;
-  const jobHeader = document.createElement("div");
-  jobHeader.className = `goal-summary ${claimedJobGoals >= jobGoals.length ? "pass" : readyJobGoals ? "pass" : "active"}`;
-  jobHeader.innerHTML = `<strong>精怪岗位修行 ${claimedJobGoals}/${jobGoals.length} · 可领取 ${readyJobGoals}</strong><span>把农田、工坊、店铺、巡逻、远征、庭院岗位培养成长期目标链。</span>`;
-  refs.goalBookPanel.append(jobHeader);
-
-  for (const goal of jobGoals) {
-    const progress = spiritJobProgress(goal.job_type);
-    const ready = spiritJobGoalReady(goal);
-    const claimed = spiritJobGoalClaimed(goal);
-    const milestone = (state.spiritJobMilestones || []).find((entry) => entry.masteryId === goal.mastery_id);
-    const taskText = spiritJobTaskText(milestone);
-    const taskDone = milestone && state.completedSpiritJobTasks.has(milestone.masteryId);
-    const taskReady = milestone && spiritJobTaskReady(milestone);
-    const node = document.createElement("div");
-    node.className = `goal-card spirit-job-goal ${claimed ? "done" : ready ? "ready" : "locked"}`;
-    node.innerHTML = `
-      <strong>${jobName(goal.job_type)}修行 · Lv.${goal.level}</strong>
-      <span>${progress.spirit ? `${progress.spirit.name} 当前 Lv.${progress.level} / EXP ${progress.exp}` : "暂无对应岗位精怪开始修行"} · 目标 EXP ${goal.exp_required}</span>
-      <small>${goal.unlock_effect} · 奖励 ${spiritJobGoalRewardText(goal)}</small>
-      <button type="button" data-spirit-job-goal="${goal.mastery_id}" ${!ready || claimed ? "disabled" : ""}>${claimed ? "已领取" : ready ? "领取修行奖励" : "继续修行"}</button>
-      ${milestone ? `<div class="spirit-job-task ${taskDone ? "done" : taskReady ? "ready" : "locked"}"><span>${taskText.title} · ${taskDone ? "已完成" : taskText.hint}</span><small>奖励 ${spiritJobTaskRewardText(milestone)}</small>${taskDone && spiritJobTaskPersistentEffectText(milestone.job) ? `<small>${spiritJobTaskPersistentEffectText(milestone.job)}</small>` : ""}<button type="button" data-spirit-job-task="${milestone.masteryId}" ${taskDone || !taskReady ? "disabled" : ""}>${taskDone ? "已完成" : taskReady ? "完成岗位小事" : "待准备"}</button></div>` : ""}
-    `;
-    refs.goalBookPanel.append(node);
-  }
-
-  const spiritLineRows = spiritEventGoalRows(data.spiritEventsByLine.size || 6);
-  const completedSpiritLines = spiritLineRows.filter((row) => row.events.length > 0 && row.completedEvents.length >= row.events.length).length;
-  const readySpiritLines = spiritLineRows.filter((row) => row.readyEvent).length;
-  const replaySpiritLines = spiritLineRows.filter((row) => row.replayEvent).length;
-  const spiritLineHeader = document.createElement("div");
-  spiritLineHeader.className = `goal-summary ${completedSpiritLines >= spiritLineRows.length ? "pass" : readySpiritLines ? "pass" : replaySpiritLines ? "pass" : "active"}`;
-  spiritLineHeader.innerHTML = `<strong>伙伴记忆线 ${completedSpiritLines}/${spiritLineRows.length} · 可推进 ${readySpiritLines} · 可回看 ${replaySpiritLines}</strong><span>把普通精怪的初见、进化和终章陪伴整理成真正能追踪的伙伴线；进化镜头解锁后可随时回看。</span>`;
-  refs.goalBookPanel.append(spiritLineHeader);
-
-  const finaleEffects = spiritFinaleEffectSummary();
-  const finaleRows = spiritFinaleEffectRows(finaleEffects);
-  const activeFinaleRows = finaleRows.filter((row) => row.active);
-  const finaleCard = document.createElement("div");
-  finaleCard.className = `goal-card spirit-finale-effect-card ${activeFinaleRows.length >= finaleRows.length ? "done" : activeFinaleRows.length > 0 ? "ready" : "pending"}`;
-  finaleCard.innerHTML = `
-    <strong>终章伙伴常驻 ${activeFinaleRows.length}/${finaleRows.length}</strong>
-    <span>${activeFinaleRows.length > 0 ? `已生效：${spiritFinaleEffectCompactText(finaleEffects, 6)}` : "完成普通精怪终章后，它们会把岗位真正留在洞天里，变成农田、工坊、巡逻和旧铺的长期加成。"}</span>
-    <div class="spirit-finale-effect-grid">
-      ${finaleRows.map((row) => `
-        <span class="${row.active ? "active" : "locked"}" style="--finale-accent:${row.accent}">
-          <b>${row.shortTitle}</b>
-          <small>${row.loopLabel} · ${row.valueText}</small>
-        </span>
-      `).join("")}
-    </div>
-    <small>${activeFinaleRows.length > 0 ? activeFinaleRows.slice(0, 3).map((row) => `${row.anchorLabel}：${row.detail}`).join("；") : "下一步：继续推进上方伙伴记忆线，把初见、进化和终章陪伴依次收束。"}</small>
-  `;
-  refs.goalBookPanel.append(finaleCard);
-
-  for (const row of spiritLineRows) {
-    const latestCompleted = row.completedEvents[row.completedEvents.length - 1] || null;
-    const focusEvent = row.readyEvent || row.nextEvent || row.replayEvent || latestCompleted || row.events[0] || null;
-    const stageTrail = row.completedEvents.length > 0
-      ? `已收录：${row.completedEvents.map((event) => spiritEventStageLabel(event.event_stage)).join(" / ")}`
-      : row.ownedSpirit
-        ? "已结缘，下一段会随时令与经营慢慢亮起。"
-        : "尚未结缘，先让对应精怪入队。";
-    let buttonMarkup = '<button type="button" disabled>等待亮起</button>';
-    if (row.readyEvent) {
-      buttonMarkup = `<button type="button" data-spirit-event="${row.readyEvent.spirit_event_id}">触发${spiritEventStageLabel(row.readyEvent.event_stage)}</button>`;
-    } else if (row.replayEvent) {
-      buttonMarkup = `<button type="button" data-spirit-event-scene="${row.replayEvent.spirit_event_id}">回看进化演出</button>`;
-    } else if (!row.ownedSpirit) {
-      buttonMarkup = '<button type="button" disabled>先结缘伙伴</button>';
-    }
-    const node = document.createElement("div");
-    node.className = `goal-card spirit-line-event ${row.stateClass}`;
-    node.setAttribute("data-spirit-line", row.lineId);
-    node.innerHTML = `
-      <strong>${row.spiritName} · ${row.headline}</strong>
-      <span>伙伴记忆 ${row.completedEvents.length}/${row.events.length}${focusEvent?.area_id ? ` · ${areaName(focusEvent.area_id)}` : ""}</span>
-      <small>${row.detail}</small>
-      <small>${stageTrail}</small>
-      ${buttonMarkup}
-    `;
-    refs.goalBookPanel.append(node);
-  }
-
-  const rareHeader = document.createElement("div");
-  const doneRare = data.rareSpiritEvents.filter(rareSpiritEventDone).length;
-  const readyRare = data.rareSpiritEvents.filter(rareSpiritEventReady).length;
-  rareHeader.className = `goal-summary ${doneRare >= data.rareSpiritEvents.length ? "pass" : readyRare ? "pass" : "active"}`;
-  rareHeader.innerHTML = `<strong>稀有精怪事件 ${doneRare}/${data.rareSpiritEvents.length} · 可触发 ${readyRare}</strong><span>精怪不只是岗位，也会通过节气、店铺和秘境事件进入长期陪伴。</span>`;
-  refs.goalBookPanel.append(rareHeader);
-
-  const clueTrackerRows = rareSpiritClueTrackerRows(6);
-  const clueTrackerReady = clueTrackerRows.filter((row) => row.ready).length;
-  const clueTrackerKnown = clueTrackerRows.filter((row) => row.clue || row.ready || row.done).length;
-  const clueBoard = document.createElement("div");
-  clueBoard.className = `goal-card rare-clue-tracker ${clueTrackerReady ? "ready" : clueTrackerKnown ? "clued" : "locked"}`;
-  clueBoard.innerHTML = `
-    <strong>稀有精怪线索追踪 · 可触发 ${clueTrackerReady} · 已知 ${clueTrackerKnown}</strong>
-    <span>把秘境、店铺、节气和精怪羁绊里的稀有线索汇总成下一步行动，不再只看后台条件。</span>
-    <div class="rare-clue-tracker-grid">
-      ${clueTrackerRows.map((row) => `
-        <div class="rare-clue-tracker-row ${row.stateClass}" data-rare-event-line="${row.lineId}">
-          <b>${row.event.spirit_name} · ${row.stageLabel}</b>
-          <span>${row.statusText} · ${row.sourceText}</span>
-          <small>下一步：${row.nextAction}</small>
-          <small>动作/回礼：${row.event.exclusive_action || "专属动作"} · ${row.rewardText}</small>
-        </div>
-      `).join("")}
-    </div>
-  `;
-  refs.goalBookPanel.append(clueBoard);
-
-  const lifeCodexRows = rareSpiritLifeCodexRows();
-  const lifeCodexComplete = lifeCodexRows.filter((row) => row.owned && row.completedEvents.length >= row.events.length && row.theaterEntries.length > 0).length;
-  const lifeCodexReady = lifeCodexRows.filter((row) => row.readyEvents.length > 0).length;
-  const lifeHeader = document.createElement("div");
-  lifeHeader.className = `goal-summary ${lifeCodexComplete >= lifeCodexRows.length ? "pass" : lifeCodexReady ? "pass" : "active"}`;
-  lifeHeader.innerHTML = `<strong>精怪生活图鉴 ${lifeCodexComplete}/${lifeCodexRows.length} · 可推进 ${lifeCodexReady}</strong><span>按精怪线汇总事件、小剧场、回礼、生态共鸣和羁绊，帮助你判断哪条生活线还需要陪伴。</span>`;
-  refs.goalBookPanel.append(lifeHeader);
-  const activeLifeCodexFilter = currentLifeCodexFilterId();
-  const activeFilterMeta = LIFE_CODEX_FILTERS.find((entry) => entry.id === activeLifeCodexFilter) || LIFE_CODEX_FILTERS[0];
-  const filterBar = document.createElement("div");
-  filterBar.className = "rare-life-codex-filter-bar";
-  filterBar.innerHTML = LIFE_CODEX_FILTERS.map((filter) => {
-    const count = lifeCodexRows.filter((row) => lifeCodexFilterMatches(row, filter.id)).length;
-    return `
-      <button type="button" class="rare-life-codex-filter-button" data-life-codex-filter="${filter.id}" aria-pressed="${filter.id === activeLifeCodexFilter ? "true" : "false"}">
-        <strong>${filter.label}</strong>
-        <span>${count} 条</span>
-      </button>
-    `;
-  }).join("");
-  refs.goalBookPanel.append(filterBar);
-  const filteredLifeCodexRows = lifeCodexRows.filter((row) => lifeCodexFilterMatches(row, activeLifeCodexFilter));
-  const filterNote = document.createElement("div");
-  filterNote.className = `goal-card rare-life-codex-filter-note ${filteredLifeCodexRows.length === 0 ? "pending" : activeLifeCodexFilter === "complete" ? "done" : "ready"}`;
-  filterNote.innerHTML = `
-    <strong>${activeFilterMeta.label} · ${filteredLifeCodexRows.length}/${lifeCodexRows.length}</strong>
-    <span>${activeFilterMeta.hint}</span>
-    <small>${filteredLifeCodexRows.length > 0 ? filteredLifeCodexRows.slice(0, 3).map((row) => `${row.spiritName} · ${row.statusText}`).join("；") : activeFilterMeta.empty}</small>
-  `;
-  refs.goalBookPanel.append(filterNote);
-  const actionPromenade = rareSpiritActionPromenadeMarkup(rareSpiritActionPromenadeSpec(lifeCodexRows));
-  if (actionPromenade) {
-    const promenadeNode = document.createElement("div");
-    promenadeNode.innerHTML = actionPromenade;
-    refs.goalBookPanel.append(promenadeNode.firstElementChild);
-  }
-  const theaterArchivePreview = rareSpiritTheaterArchiveEntries(6);
-
-  if (filteredLifeCodexRows.length === 0) {
-    const emptyLifeCodex = document.createElement("div");
-    emptyLifeCodex.className = "goal-card rare-life-codex-empty pending";
-    emptyLifeCodex.innerHTML = `<strong>${activeFilterMeta.label} 暂时没有条目</strong><span>${activeFilterMeta.empty}</span><small>你可以切回“全部生活线”查看总览，或先去精怪面板制造新的互动记录。</small>`;
-    refs.goalBookPanel.append(emptyLifeCodex);
-  }
-
-  for (const row of filteredLifeCodexRows) {
-    const latestTheaterText = row.latestTheater
-      ? `最近小剧场：第 ${row.latestTheater.day} 天 · ${row.latestTheater.focus} · “${row.latestTheater.quote}”`
-      : "小剧场：尚未主动收录";
-    const latestGiftText = row.latestGift
-      ? `最近回礼：${itemName(row.latestGift.itemId)}`
-      : row.completedEvents.length > 0 ? "回礼：等待下一段事件或互动" : "回礼：尚未获得";
-    const ecologyText = row.ecologyCombos.length > 0
-      ? `生态共鸣 ${row.activeEcology.length}/${row.ecologyCombos.length} · ${row.ecologyCombos.slice(0, 2).map(ecologyComboName).join(" / ")}`
-      : "生态共鸣：暂无专属组合";
-    const archiveEntry = theaterArchivePreview.find((entry) => entry.lineId === row.lineId);
-    const node = document.createElement("div");
-    node.className = `goal-card rare-life-codex ${row.stateClass}`;
-    node.setAttribute("data-life-codex-line", row.lineId);
-    node.innerHTML = `
-      <strong>${row.spiritName} · ${row.statusText}</strong>
-      <span>生活进度 ${row.progressText} · 事件 ${row.completedEvents.length}/${row.events.length} · 羁绊 Lv.${row.bondLevel}</span>
-      <small>${latestTheaterText}</small>
-      <small>${latestGiftText} · ${ecologyText}</small>
-      <div class="rare-life-codex-actions">
-        <button type="button" data-life-codex-focus="spirit" data-life-codex-line="${row.lineId}" ${row.owned ? "" : "disabled"}>定位精怪</button>
-        <button type="button" data-life-codex-focus="event" data-life-codex-line="${row.lineId}" ${row.readyEvents.length > 0 ? "" : "disabled"}>定位事件</button>
-        <button type="button" data-life-codex-focus="theater" data-life-codex-line="${row.lineId}" ${archiveEntry ? "" : "disabled"}>回看小剧场</button>
-      </div>
-      <div class="rare-life-codex-tags">
-        <span class="${row.owned ? "done" : "missing"}">${row.owned ? "已结缘" : "待结缘"}</span>
-        <span class="${row.completedEvents.length >= row.events.length ? "done" : row.readyEvents.length ? "ready" : "missing"}">${row.completedEvents.length >= row.events.length ? "事件收束" : row.readyEvents.length ? "事件可推" : "事件待触发"}</span>
-        <span class="${row.theaterEntries.length > 0 ? "done" : "missing"}">${row.theaterEntries.length > 0 ? `小剧场 ${row.theaterEntries.length}` : "待收录小剧场"}</span>
-        <span class="${row.activeEcology.length > 0 ? "done" : "missing"}">${row.activeEcology.length > 0 ? "生态已亮" : "生态待养"}</span>
-      </div>
-    `;
-    refs.goalBookPanel.append(node);
-  }
-
-  for (const event of data.rareSpiritEvents) {
-    const clue = rareSpiritClueForEvent(event);
-    const done = rareSpiritEventDone(event);
-    const ready = rareSpiritEventReady(event);
-    const rewardText = rareSpiritEventRewardText(event);
-    const lineId = rareSpiritLineId(event);
-    const rareSpirit = state.spirits.find((spirit) => (spirit.lineId || spiritLine(spirit.id)) === lineId);
-    const rareMoment = rareSpirit ? rareSpiritMomentForSpirit(rareSpirit) : null;
-    const buttonLabel = done ? "已完成" : event.event_stage === "first_meet" ? "触发初见" : "领取回礼";
-    const node = document.createElement("div");
-    node.className = `goal-card rare-spirit-event ${done ? "done" : ready ? "ready" : "locked"}`;
-    node.setAttribute("data-rare-event-id", event.entry_id);
-    node.setAttribute("data-rare-event-line", lineId);
-    node.innerHTML = `
-      <strong>${event.spirit_name} · ${event.event_stage}</strong>
-      <span>${event.scene_summary}</span>
-      <small>${done ? "已收录进洞天记忆" : clue ? `秘境线索：${clue.sceneSummary}` : ready ? `可触发动作：${event.exclusive_action}` : `线索：${event.trigger_condition}`} · 奖励 ${rewardText}</small>
-      ${rareMoment && event.event_stage === "first_meet" ? `<small>今日同行：${rareMoment.focus} · ${rareMoment.actionShort} · “${rareMoment.quote}”</small>` : ""}
-      <button type="button" data-rare-spirit-event="${event.entry_id}" ${!ready || done ? "disabled" : ""}>${buttonLabel}</button>
-    `;
-    refs.goalBookPanel.append(node);
-  }
-
-  const theaterArchive = theaterArchivePreview;
-  const theaterHeader = document.createElement("div");
-  theaterHeader.className = `goal-summary ${theaterArchive.length > 0 ? "pass" : "active"}`;
-  theaterHeader.innerHTML = `<strong>稀有小剧场回看 ${theaterArchive.length}/6</strong><span>把主动触发过的精怪日常沉淀成可回看的年鉴页，保留台词、地点和当日动作，不重复发放奖励。</span>`;
-  refs.goalBookPanel.append(theaterHeader);
-  if (theaterArchive.length === 0) {
-    const emptyTheater = document.createElement("div");
-    emptyTheater.className = "goal-card rare-theater-archive pending";
-    emptyTheater.innerHTML = `<strong>还没有收录小剧场</strong><span>去精怪面板点击“看今日小剧场”，第一段稀有日常会自动写进这里。</span><small>回看页会重新点亮主场景演出，但不会重复给羁绊或回礼。</small>`;
-    refs.goalBookPanel.append(emptyTheater);
-  } else {
-    for (const entry of theaterArchive) {
-      const node = document.createElement("div");
-      node.className = "goal-card rare-theater-archive done";
-      node.setAttribute("data-theater-line", entry.lineId);
-      node.innerHTML = `
-        <strong>${entry.title}</strong>
-        <span>${entry.subtitle}</span>
-        <small>“${entry.quote || "这段小事，我还记得。"}” · ${entry.caption}</small>
-        <button type="button" data-rare-theater-replay="${entry.archiveIndex}">回看小剧场</button>
-      `;
-      refs.goalBookPanel.append(node);
-    }
-  }
-
-  const ecologyGoals = ecologyCourtyardGoalRows();
-  const ecologyReady = ecologyGoals.filter((row) => row.ready).length;
-  const ecologyClaimed = ecologyGoals.filter((row) => row.claimed).length;
-  const ecologyGarden = ecologyCourtyardSummary();
-  const ecologyMemoryResonance = ecologyGarden.scoreBreakdown?.memoryResonance || ecologyDailyMemoryResonanceSnapshot();
-  const ecologyMemoryResonanceText = ecologyDailyMemoryResonanceText(ecologyMemoryResonance);
-  const ecologyHeader = document.createElement("div");
-  ecologyHeader.className = `goal-summary ${ecologyClaimed >= ecologyGoals.length ? "pass" : ecologyReady ? "pass" : "active"}`;
-  ecologyHeader.innerHTML = `<strong>生态庭院造景 ${ecologyClaimed}/${ecologyGoals.length} · 可收录 ${ecologyReady} · ${ecologyGarden.tier?.shortLabel || "初成"} ${ecologyGarden.score} 分</strong><span>把精怪线、建筑标签和稀有事件接成可追踪的庭院共鸣，每完成一处都会在主场景留下长期画面反馈。</span>`;
-  refs.goalBookPanel.append(ecologyHeader);
-  const ecologyScoreCard = document.createElement("div");
-  ecologyScoreCard.className = `goal-card ecology-score-card ${ecologyGarden.claimedGoalCount > 0 ? ecologyGarden.score >= 88 ? "done" : "ready" : "pending"}`;
-  ecologyScoreCard.innerHTML = `
-    <strong>${ecologyGarden.tier?.label || "待布置庭院"} · 庭院评分 ${ecologyGarden.score}</strong>
-    <span>${ecologyGarden.tier?.note || "继续补精怪、造景和生活事件，让这片院子真正像有人住。"} </span>
-    <div class="ecology-score-breakdown">
-      <span>主题 ${ecologyGarden.scoreBreakdown?.themeConsistency || 0}/30</span>
-      <span>功能 ${ecologyGarden.scoreBreakdown?.functionClosure || 0}/25</span>
-      <span>舒适 ${ecologyGarden.scoreBreakdown?.spiritComfort || 0}/20</span>
-      <span>稀景 ${ecologyGarden.scoreBreakdown?.rareDecor || 0}/15</span>
-      <span>生活 ${ecologyGarden.scoreBreakdown?.lifeEvents || 0}/10</span>
-    </div>
-    <small>${ecologyGarden.sceneRows.length > 0 ? ecologyGarden.sceneRows.slice(0, 2).map((row) => `${row.name}：${row.text}`).join("；") : ecologyGarden.nextCombo ? `下一处造景：${ecologyGarden.nextCombo.name} · ${ecologyGarden.nextCombo.unlockHint}` : "先完成第一处生态共鸣，庭院就会开始显出自己的气质。"}</small>
-    ${ecologyMemoryResonance.tier > 0 ? `<small>庭院记忆：${ecologyMemoryResonance.label} · 生活评分 +${ecologyMemoryResonance.lifeScoreBonus} · ${ecologyMemoryResonance.summary}</small>` : ""}
-  `;
-  refs.goalBookPanel.append(ecologyScoreCard);
-
-  const ecologyState = syncEcologyDailyState();
-  const ecologyMemoryRows = ecologyDailyMemoryRows(4);
-  const ecologyInspectionRows = ecologyInspectionMemoryRows(4);
-  const hasEcologyMemory = ecologyMemoryRows.length > 0 || ecologyInspectionRows.length > 0;
-  const ecologyMemoryCard = document.createElement("div");
-  ecologyMemoryCard.className = `goal-card ecology-memory-card ${hasEcologyMemory ? "done" : "pending"}`;
-  ecologyMemoryCard.innerHTML = hasEcologyMemory
-    ? `
-      <strong>庭院夜事与巡看回看 · 夜事 ${ecologyState.history.length} / 巡看 ${ecologyState.inspectionHistory.length}</strong>
-      <span>${ecologyMemoryResonance.summary}</span>
-      ${ecologyMemoryResonanceText ? `<small class="ecology-memory-resonance">${ecologyMemoryResonanceText}</small>` : ""}
-      <small>${ecologyMemoryResonance.nextHint}</small>
-      ${ecologyMemoryRows.length > 0 ? `
-        <div class="ecology-memory-list">
-          ${ecologyMemoryRows.map((entry) => `
-            <span>
-              <b>${entry.dayText} · ${entry.title}</b>
-              <small>${entry.comboName}：${entry.actionText || entry.moodText || "庭院在夜里留下动静"} · ${entry.detailText}</small>
-            </span>
-          `).join("")}
-        </div>
-      ` : `<small>夜事尚未落页：先收录生态造景，再入夜结算，庭院会自己记下小事。</small>`}
-      ${ecologyInspectionRows.length > 0 ? `
-        <div class="ecology-memory-list ecology-inspection-list">
-          ${ecologyInspectionRows.map((entry) => `
-            <span>
-              <b>${entry.dayText} · ${entry.landmarkLabel} · ${entry.actionText}</b>
-              <small>${entry.caretakerName}：${entry.summary} · ${entry.rewardText}</small>
-            </span>
-          `).join("")}
-        </div>
-      ` : `<small>今日巡看尚未记录：在主场景直接点击已点亮的生态地标，会打开生态巡看留签预览照料动作、巡看回报和夜事余韵，不会直接记录巡看或发放收益。</small>`}
-    `
-    : `
-      <strong>庭院夜事与巡看回看 · 尚未落页</strong>
-      <span>先收录一处生态造景，再入夜结算；也可以直接点击主场景生态地标查看生态巡看留签，先读懂白天照料会怎样接到夜事余韵。</span>
-      <small>提示：让精怪驻进庭院岗、完成生态共鸣目标，夜间小事与白日巡看都会慢慢写成庭院记忆。</small>
-    `;
-  refs.goalBookPanel.append(ecologyMemoryCard);
-
-  const ecologyInspectionConfirm = ecologyInspectionConfirmRows(6);
-  const ecologyInspectionDone = ecologyInspectionConfirm.filter((row) => row.inspection.alreadyInspected).length;
-  const ecologyInspectionConfirmCard = document.createElement("div");
-  ecologyInspectionConfirmCard.className = `goal-card ecology-inspection-confirm-card ${ecologyInspectionDone > 0 ? ecologyInspectionDone >= ecologyInspectionConfirm.length ? "done" : "ready" : ecologyInspectionConfirm.length ? "ready" : "pending"}`;
-  ecologyInspectionConfirmCard.innerHTML = ecologyInspectionConfirm.length
-    ? `
-      <strong>今日生态巡看确认 ${ecologyInspectionDone}/${ecologyInspectionConfirm.length}</strong>
-      <span>主世界的生态巡看留签只负责预览；这里才是明确记录今日巡看、发放回报并写入庭院夜事照料线索的入口。</span>
-      <div class="ecology-inspection-confirm-list">
-        ${ecologyInspectionConfirm.map((row) => {
-          const actionNode = row.nodes.find((node) => node.key === "action") || row.nodes[0];
-          const nightNode = row.nodes.find((node) => node.key === "night") || row.nodes[2];
-          return `
-            <div class="ecology-inspection-confirm-row ${row.stateClass}" data-ecology-inspection-row="${row.combo.comboId}">
-              <span>
-                <b>${row.inspection.landmarkLabel} · ${actionNode?.title || row.inspection.actionText}</b>
-                <small>${actionNode?.detail || row.inspection.summary}</small>
-                <small>${row.rewardPreview} · ${nightNode?.title || "夜事余韵"}：${nightNode?.detail || "确认后才会接入夜间庭院小事。"}</small>
-              </span>
-              <button type="button" data-ecology-inspection-confirm="${row.combo.comboId}" ${row.inspection.alreadyInspected ? "disabled" : ""}>${row.buttonLabel}</button>
-            </div>
-          `;
-        }).join("")}
-      </div>
-      <small>安全边界：场景点击不会自动巡看；只有本卡按钮会写入巡看记录、奖励和当晚照料线索。</small>
-    `
-    : `
-      <strong>今日生态巡看确认 · 暂无可巡地标</strong>
-      <span>先完成一处生态共鸣或收录生态庭院造景，主场景才会出现可预览的生态巡看留签。</span>
-      <small>这条闭环会把精怪白天照料、目标册确认、夜事余韵和庭院记忆接起来。</small>
-    `;
-  refs.goalBookPanel.append(ecologyInspectionConfirmCard);
-
-  for (const row of ecologyGoals) {
-    const stateClass = row.claimed ? "done" : row.ready ? "ready" : row.active ? "ready" : "pending";
-    const missing = row.missingText || "条件已齐，只差收录";
-    const node = document.createElement("div");
-    node.className = `goal-card ecology-goal ${stateClass}`;
-    node.innerHTML = `
-      <strong>${row.name} · ${row.active ? "生态共鸣已亮" : "造景筹备中"}</strong>
-      <span>${row.effectText} · ${row.unlockHint}</span>
-      <small>造景进度 ${row.progressText} · ${row.active ? "可收进生态庭院" : `还差 ${missing}`}</small>
-      <div class="ecology-requirements">${row.requirements.slice(0, 4).map((entry) => `<span class="${entry.done ? "done" : "missing"}">${entry.done ? "已成" : "待补"} · ${entry.label}</span>`).join("")}</div>
-      <button type="button" data-ecology-goal="${row.comboId}" ${row.ready ? "" : "disabled"}>${row.claimed ? "已收录" : row.ready ? "收进生态庭院" : "继续造景"}</button>
-    `;
-    refs.goalBookPanel.append(node);
-  }
-
-  if (!isYear2Open) {
-    const freeLocked = document.createElement("div");
-    freeLocked.className = "goal-summary active";
-    freeLocked.innerHTML = "<strong>后主线自由目标 未开启</strong><span>蟠桃大宴后，这里会展开日常、周常、收藏、挑战和关系线奖励。</span>";
-    refs.goalBookPanel.append(freeLocked);
-    return;
-  }
-
-  const freeGoals = data.freeplayGoals.filter((goal) => freeplayGoalUnlocked(goal));
-  const freeReadyCount = freeGoals.filter(freeplayGoalReady).length;
-  const freeHeader = document.createElement("div");
-  freeHeader.className = `goal-summary ${freeReadyCount > 0 ? "pass" : "active"}`;
-  freeHeader.innerHTML = `<strong>后主线自由目标 ${freeGoals.filter(freeplayGoalClaimed).length}/${freeGoals.length} · 可领取 ${freeReadyCount}</strong><span>把日常、周常、收藏、挑战和关系线真正变成通关后的长期留存内容。</span>`;
-  refs.goalBookPanel.append(freeHeader);
-
-  for (const goal of freeGoals) {
-    const progress = metricProgress(goal.target_metric);
-    const target = Number(goal.target_value || 1);
-    const claimed = freeplayGoalClaimed(goal);
-    const ready = freeplayGoalReady(goal);
-    const rewardPreview = rewardPoolEntries(goal.reward_pool_id).slice(0, 2).map((entry) => applyRewardEntryPreview(entry)).join("、");
-    const node = document.createElement("div");
-    node.dataset.freeplayGoalId = goal.goal_id;
-    node.className = `goal-card ${claimed ? "done" : ready ? "ready" : "pending"}`;
-    node.innerHTML = `
-      <strong>${localize(goal.goal_name_key, goal.goal_id)} · ${goal.goal_type}</strong>
-      <span>${goal.retention_intent} · ${goal.cycle_type}</span>
-      <small>当前进度 ${Math.min(progress, target)}/${target} · 奖励 ${rewardPreview || goal.reward_pool_id}</small>
-      <button type="button" data-freeplay-goal="${goal.goal_id}" ${ready && !claimed ? "" : "disabled"}>${claimed ? "已领取" : ready ? "领取自由奖励" : "继续推进"}</button>
-    `;
-    refs.goalBookPanel.append(node);
-  }
+  renderGoalBookPanelUi({
+    refs,
+    state,
+    data,
+    uiPressureReliefMarkup,
+    dailyIntentJournalRows,
+    dailyIntentTrendMarkup,
+    solarTermMoodStampArchiveSpec,
+    solarTermMoodStampArchiveMarkup,
+    careChainJournalRows,
+    normalizeCareChainState,
+    year2Unlocked,
+    year2OpeningTenDayMarkup,
+    year2TodayRecommendationMarkup,
+    recommendedYear2Goals,
+    year2GoalUnlocked,
+    year2GoalReady,
+    year2GoalClaimed,
+    year2GoalProgress,
+    year2GoalRewardText,
+    year2GoalTitle,
+    year2GoalPriorityScore,
+    year2FirstWeekStatus,
+    syncGoalBookState,
+    metricProgress,
+    rewardPoolEntries,
+    applyRewardEntryPreview,
+    freeplayPanelGuideMarkup,
+    freeplayGoalGuidanceSpec,
+    freeplayGoalUnlocked,
+    freeplayGoalReady,
+    freeplayGoalClaimed,
+    postMainlineTenHourGoalMarkup,
+    postMainlineRhythmMarkup,
+    finalBanquetAfterwordBridgeMarkup,
+    earlyRewardCadenceAuditMarkup,
+    earlyRewardDone,
+    syncFailureCodexState,
+    failureCodexRows,
+    failureCodexTypeLabel,
+    failureLearningTriptychSpec,
+    failureLearningTriptychMarkup,
+    syncEcologyDailyState,
+    ecologyCourtyardSummary,
+    ecologyCourtyardGoalRows,
+    ecologyDailyMemoryRows,
+    ecologyInspectionMemoryRows,
+    ecologyInspectionConfirmRows,
+    ecologyDailyMemoryResonanceSnapshot,
+    ecologyDailyMemoryResonanceText,
+    dungeonCompendiumProgress,
+    dungeonCompendiumMemoryPages,
+    dungeonCompendiumEntrySummary,
+    dungeonDayEchoArchiveRows,
+    dungeonDayEchoArchiveScrollMarkup,
+    missionCropCodexRows,
+    missionCropCodexGoalActionsMarkup,
+    rareSpiritLifeCodexRows,
+    currentLifeCodexFilterId,
+    lifeCodexFilterMatches,
+    rareSpiritCharacterShowcaseSpec,
+    rareSpiritCharacterShowcaseMarkup,
+    rareSpiritLifeSnapshot,
+    rareSpiritLifeSnapshotMarkup,
+    rareSpiritActionPromenadeSpec,
+    rareSpiritActionPromenadeMarkup,
+    rareSpiritClueTrackerRows,
+    rareSpiritEventReady,
+    rareSpiritEventDone,
+    rareSpiritEventRewardText,
+    rareSpiritClueForEvent,
+    rareSpiritLineId,
+    rareSpiritMomentForSpirit,
+    rareSpiritTheaterArchiveEntries,
+    spiritEventGoalRows,
+    spiritEventStageLabel,
+    spiritLine,
+    spiritJobGoalRows,
+    spiritJobProgress,
+    spiritJobGoalReady,
+    spiritJobGoalClaimed,
+    spiritJobGoalRewardText,
+    spiritJobTaskReady,
+    spiritJobTaskText,
+    spiritJobTaskRewardText,
+    spiritJobTaskPersistentEffectText,
+    spiritFinaleEffectSummary,
+    spiritFinaleEffectRows,
+    spiritFinaleEffectCompactText,
+    shopCrowdHeatUiSpec,
+    syncShopOpeningState,
+    conditionTarget,
+    conditionLabel,
+    areaName,
+    orderTitle,
+    itemName,
+    jobName,
+    localize,
+    selectorDataValue,
+    seasonalCropGuideKeyForTermId,
+    currentTermId,
+  });
 }
 
 function renderOrders() {
-  refs.orderPanel.innerHTML = "";
-  const deliveryFeedback = state.orderDeliveryFeedback;
-  const deliveryMoment = activeOrderDeliveryMoment();
-  const waterCropOrderMoment = activeWaterCropOrderFeedback();
-  const ecologyOrderMoment = activeEcologyOrderFeedback();
-  const storyVisit = activeStoryVisitFeedback();
-  const herbValleyHint = herbValleyUnlockPanelHint();
-  const chapter3TradeHint = chapter3TradePanelHint();
-  const chapter4DroughtHint = chapter4DroughtPanelHint();
-  if (deliveryFeedback) {
-    const summary = document.createElement("div");
-    summary.className = `order-card delivered${deliveryMoment ? " live" : ""}`;
-    summary.innerHTML = `
-      <strong>${deliveryFeedback.headline}</strong>
-      <span>${deliveryFeedback.title} · ${deliveryFeedback.typeLabel} · ${deliveryFeedback.npcLabel}</span>
-      ${deliveryMoment ? `<small class="order-delivery-hint">${deliveryFeedback.firstOrder && storyVisit ? `${storyVisit.npcLabel} 已顺着这波口碑找上门，医馆那边很快会有一张真正重要的药材委托。` : deliveryFeedback.firstOrder ? `${deliveryFeedback.npcLabel} 已把第一张单记到账本下，下一位来访者很快就会顺着这波口碑找上门。` : `${deliveryFeedback.npcLabel} 刚收下这单，趁货热继续把后面的委托也接起来。`}</small>` : ""}
-      ${waterCropOrderMoment?.orderId === deliveryFeedback.orderId ? `<small class="order-water-chain-hint live">${waterCropOrderMoment.routeText} · ${waterCropOrderMoment.rewardText}</small>` : ""}
-      ${ecologyOrderMoment?.orderId === deliveryFeedback.orderId ? `<small class="order-ecology-hint live">${ecologyOrderMoment.comboName}回响：${ecologyOrderMoment.matchedTagText} 已顺着这张单留在庭院里。</small>` : ""}
-      <small>${deliveryFeedback.response}</small>
-      <small>入账 ${deliveryFeedback.rewardGold} 灵石 · 声望 +${deliveryFeedback.rewardFame} · ${deliveryFeedback.nextAdvice}</small>
-    `;
-    refs.orderPanel.append(summary);
-  }
-  const orders = visibleOrders();
-  const ecologyGarden = ecologyCourtyardSummary();
-  if (orders.length === 0) {
-    refs.orderPanel.insertAdjacentHTML("beforeend", '<div class="order-card done"><strong>暂无订单</strong>今天的订单都交完了。</div>');
-    return;
-  }
-  const workshopBoardMarkup = workshopOrderBoardMarkup(workshopOrderBoardSpec(orders));
-  if (workshopBoardMarkup) {
-    const board = document.createElement("div");
-    board.innerHTML = workshopBoardMarkup.trim();
-    refs.orderPanel.append(board.firstElementChild);
-  }
-  const ecologySummary = orderBoardEcologySummary(orders, ecologyGarden);
-  if (ecologySummary) {
-    const summary = document.createElement("div");
-    summary.className = "order-card ready ecology-order";
-    summary.innerHTML = `
-      <strong>${ecologySummary.title}</strong>
-      <span>${ecologySummary.text}</span>
-      <small class="order-ecology-hint">${ecologySummary.detail}</small>
-    `;
-    refs.orderPanel.append(summary);
-  }
-
-  for (const order of orders) {
-    const deliverable = canDeliverOrder(order);
-    const needs = orderNeeds(order).map(({ itemId, count }) => `${itemName(itemId)} ${state.inventory[itemId] || 0}/${count}`).join(" · ");
-    const craftFeedback = state.workshopCraftFeedback?.orderId === order.order_id ? state.workshopCraftFeedback : null;
-    const herbValleyOrder = herbValleyHint && order.order_id === "order_story_0001";
-    const chapter3TradeOrder = chapter3TradeHint && order.order_id === FACTION_ORDER_ID && !fireRuinUnlocked();
-    const droughtReliefOrderLive = chapter4DroughtHint && order.order_id === CHAPTER_4_DROUGHT_ORDER_ID;
-    const ecologyHint = orderEcologyHint(order, ecologyGarden);
-    const craftOrderMatch = craftFeedback?.orderMatch || null;
-    const recovery = deliverable ? null : orderRecoverySpec(order);
-    const node = document.createElement("div");
-    node.className = `order-card ${deliverable ? "ready" : "pending"}${recovery ? " recovery" : ""}${craftFeedback || herbValleyOrder || chapter3TradeOrder || droughtReliefOrderLive ? " live" : ""}${herbValleyOrder || chapter3TradeOrder || droughtReliefOrderLive ? " herb-valley-order" : ""}${ecologyHint ? " ecology-order" : ""}`;
-    node.dataset.orderCardId = order.order_id;
-    node.innerHTML = `
-      <strong>${orderTitle(order)}</strong>
-      <span>${needs}</span>
-      ${craftFeedback ? `<small class="order-live-hint">刚出锅：${craftFeedback.outputItemName} x${craftFeedback.outputCount} · ${craftOrderMatch?.ready ? "这张单已经备齐，可以交付" : `这张单接上了，还差 ${craftOrderMatch?.missingText || "余料"}`}</small>` : ""}
-      ${herbValleyOrder ? `<small class="order-live-hint">${herbValleyHint.orderHint}</small>` : ""}
-      ${chapter3TradeOrder ? `<small class="order-live-hint">${chapter3TradeHint.orderHint}</small>` : ""}
-      ${droughtReliefOrderLive ? `<small class="order-live-hint">${chapter4DroughtHint.orderHint}</small>` : ""}
-      ${ecologyHint ? `<small class="order-ecology-hint">${ecologyHint}</small>` : ""}
-      ${recovery ? `<small class="order-recovery-hint">补救小票：${recovery.missingText} · ${recovery.action} · ${recovery.supportText}</small><button type="button" class="order-recovery-button" data-order-recovery="${order.order_id}">${recovery.claimed ? "查看补救路线" : "查看补救并领托底"}</button>` : ""}
-      ${orderProductionPlanMarkup(order)}
-      <small>奖励 ${order.reward_gold} 灵石 · 声望 +${order.reward_fame} · ${npcName(order.issuer_id)}</small>
-      <button type="button" data-order-id="${order.order_id}" ${deliverable ? "" : "disabled"}>交付订单</button>
-    `;
-    refs.orderPanel.append(node);
-  }
+  renderOrdersUi({
+    refs,
+    state,
+    visibleOrders,
+    ecologyCourtyardSummary,
+    activeOrderDeliveryMoment,
+    activeWaterCropOrderFeedback,
+    activeEcologyOrderFeedback,
+    activeStoryVisitFeedback,
+    herbValleyUnlockPanelHint,
+    chapter3TradePanelHint,
+    chapter4DroughtPanelHint,
+    workshopOrderBoardMarkup,
+    workshopOrderBoardSpec,
+    orderBoardEcologySummary,
+    canDeliverOrder,
+    orderNeeds,
+    itemName,
+    factionOrderId: FACTION_ORDER_ID,
+    fireRuinUnlocked,
+    chapter4DroughtOrderId: CHAPTER_4_DROUGHT_ORDER_ID,
+    orderEcologyHint,
+    orderRecoverySpec,
+    orderProductionPlanMarkup,
+    orderTitle,
+    npcName,
+  });
 }
 
 function renderRisks() {
-  refs.riskPanel.innerHTML = "";
-  const risks = state.activeRisks.slice(0, 4);
-  if (risks.length === 0) {
-    refs.riskPanel.innerHTML = '<div class="risk-card resolved"><strong>暂无风险</strong>当前节气没有触发灾害事件。</div>';
-    return;
-  }
-
-  for (const risk of risks) {
-    const patrolGuard = patrolRiskGuardSpec(risk);
-    const node = document.createElement("div");
-    node.className = `risk-card ${risk.resolved ? "resolved" : "warning"} ${patrolGuard.state}`;
-    node.dataset.riskCardId = risk.id;
-    node.innerHTML = `
-      <strong>${risk.title}</strong>
-      <span>${risk.guide}</span>
-      <small>${localize((data.solarTermsById.get(risk.termId) || {}).term_name_key, risk.termId)} · 强度 ${risk.severity} · ${risk.resolved ? (risk.failed ? "已结算为损失" : "已处理") : "入夜前处理可避免损失"}</small>
-      <small class="risk-patrol-hint">${patrolGuard.label}：${patrolGuard.detail}</small>
-      ${risk.failed && risk.compensation ? `<small class="risk-compensation-hint">失败见闻：${risk.compensation.title} · ${risk.compensation.rewardText} · ${risk.compensation.nextHint}</small>` : ""}
-      <button type="button" data-risk-id="${risk.id}" ${risk.resolved ? "disabled" : ""}>${risk.actionLabel}</button>
-    `;
-    refs.riskPanel.append(node);
-  }
+  renderRisksUi({
+    refs,
+    state,
+    data,
+    patrolRiskGuardSpec,
+    localize,
+  });
 }
 
 function renderDungeonPanel() {
-  refs.dungeonPanel.innerHTML = "";
-  const run = state.dungeon;
-  const chapterFinishHint = baizhiChapterFinishPanelHint();
-  const herbValleyHint = chapterFinishHint ? null : herbValleyUnlockPanelHint();
-  const chapter3TradeHint = chapter3TradePanelHint();
-  const revealedRotation = dengyingRevealedRotation();
-  const revealedDungeon = data.dungeonsById.get(revealedRotation?.area_id || "");
-  const lanternState = syncDengyingLanternState();
-  const revealUsedToday = Number(lanternState.revealUsedDay || 0) === state.day;
-  if (run && !run.finished) {
-    const dungeon = currentDungeonConfig();
-    const mechanic = currentDungeonMechanic(dungeon);
-    const mechanicStatus = dungeonMechanicStatus(run, mechanic, dungeon);
-    const mechanicAction = dungeonMechanicActionSpec(run, mechanic, dungeon);
-    const mechanicHud = dungeonMechanicHudSpec(run, mechanic, dungeon);
-    const spiritSolution = dungeonSpiritSolutionSpec(run, mechanic, dungeon);
-    const solutionTriptych = dungeonMechanicSolutionTriptychSpec(run, mechanic, dungeon, spiritSolution);
-    const structureRoute = dungeonStructureRouteSpec(run, mechanic, dungeon, mechanicHud, spiritSolution);
-    const firstMechanicTheater = dungeonFirstMechanicTheaterSpec(run, mechanic, dungeon, mechanicHud, spiritSolution);
-    const lootText = run.loot.slice(-4).map((entry) => `${itemName(entry.itemId)} x${entry.count}`).join("、") || "暂无";
-    const skillText = run.skillLog?.[0] || "等待下一次技能交锋";
-    const hazards = run.hazards?.length ? run.hazards : dungeonHazards(mechanic, run, dungeon);
-    const playerHpPercent = Math.max(0, Math.min(100, run.hp));
-    const bossPercent = Math.ceil(bossHpPercent(run, dungeon) * 100);
-    const lastEnemy = data.enemiesById.get(run.lastEnemyId);
-    const bossId = dungeonBossId(dungeon, run);
-    const nextBossSkill = run.bossReady ? bossSkillForTurn(bossId, run.turn, bossHpPercent(run, dungeon)) : null;
-    const bossTelegraph = run.bossReady ? dungeonBossTelegraphSpec(nextBossSkill, bossId, run) : null;
-    const stampEntry = dungeonCompendiumEntry(dungeon, mechanic);
-    const stampSummary = dungeonCompendiumEntrySummary(stampEntry);
-    const failureInsight = (run.failureInsightKey && state.dungeonFailureInsights?.[run.failureInsightKey]) || dungeonFailureInsight(dungeon, mechanic);
-    const failureSummary = dungeonFailureInsightSummary(failureInsight);
-    const hiddenRevealText = run.hiddenReveal
-      ? (!run.hiddenRevealConsumed
-          ? `灯影先把入口照亮了，本层开局压力 -${Number(run.hiddenRevealPressureDown || 0)}。`
-          : "灯影已经替你看清了入口前半段路。")
-      : "";
-    const rotationText = run.rotationLabel
-      ? `${run.rotationLabel}${run.rotationRewardFocus ? ` · 奖励焦点 ${run.rotationRewardFocus}` : ""}${run.rotationRewards?.length ? ` · 回响 ${run.rotationRewards.join(" / ")}` : ""}`
-      : "";
-    const node = document.createElement("div");
-    node.className = "dungeon-card active";
-    node.innerHTML = `
-      <strong>${dungeonName(dungeon)} · 第 ${run.floor}/${run.maxFloor} 层</strong>
-      <span>HP ${run.hp}/100 · 随行战力 ${companionPower()} · 最近收获：${lootText}</span>
-      <div class="dungeon-meter"><span style="width:${playerHpPercent}%"></span></div>
-      ${run.bossReady ? `<span>Boss ${bossName(bossId)} · HP ${run.bossHp}/${run.bossMaxHp} · ${bossPercent}% · 阶段 P${run.bossPhase || bossPhaseForPercent(bossId, bossHpPercent(run, dungeon))}${run.bossShield ? ` · 护盾 ${run.bossShield}` : ""}</span><div class="dungeon-meter boss"><span style="width:${bossPercent}%"></span></div>` : ""}
-      ${bossTelegraph ? `<div class="dungeon-boss-skill ${bossTelegraph.tier}"><strong>下一招 · ${bossTelegraph.skillLabel}</strong><span>${bossTelegraph.targetLabel} · 前摇 ${bossTelegraph.castLabel} · ${bossTelegraph.effectLabel}</span><small>${bossTelegraph.note}</small></div>` : ""}
-      ${dungeonBossCounterMarkup(bossTelegraph)}
-      ${stampSummary ? `<small>节气印记：${stampSummary.title} · ${stampSummary.detail}</small>` : `<small>节气印记：当前还没在这处秘境留下可收录的印记。</small>`}
-      ${failureSummary ? `<div class="dungeon-failure-insight"><strong>${failureSummary.title}</strong><span>${failureSummary.body}</span><small>${failureSummary.detail}</small></div>` : ""}
-      ${dungeonBossFamiliarityMarkup(failureInsight)}
-      <small>${mechanic?.field_rule || "当前节气机制未记录"} · ${skillText}</small>
-      ${dungeonMechanicSolutionTriptychMarkup(solutionTriptych)}
-      ${dungeonFirstMechanicTheaterMarkup(firstMechanicTheater)}
-      ${dungeonStructureRouteMarkup(structureRoute)}
-      ${mechanicHud ? dungeonMechanicHudMarkup(mechanicHud) : mechanicStatus ? `<small>${mechanicStatus.label}：${mechanicStatus.summary} · ${mechanicStatus.detail}</small>` : ""}
-      ${dungeonSpiritSolutionMarkup(spiritSolution)}
-      ${!mechanicHud && mechanicAction ? `<small>顺应节气：${mechanicAction.detail}${mechanicAction.used ? "" : ` · 可用 ${mechanicAction.label}（体力 -${mechanicAction.cost}）`}</small>` : ""}
-      ${rotationText ? `<small>${rotationText}</small>` : ""}
-      <div class="dungeon-hazards">${hazards.map((hazard) => `<b>${hazard.label} ${hazard.severity}</b>`).join("")}</div>
-      ${lastEnemy ? `<small>最近敌人：${enemyName(lastEnemy)} · ${enemyAiLabel(lastEnemy)} · 弱点 ${enemyWeaknessText(lastEnemy)}</small>` : ""}
-      ${hiddenRevealText ? `<small>${hiddenRevealText}</small>` : ""}
-      <div class="dungeon-actions">
-        ${mechanicAction ? `<button type="button" data-dungeon-action="attune" ${mechanicAction.disabled ? "disabled" : ""}>${mechanicAction.label}</button>` : ""}
-        <button type="button" data-dungeon-action="explore" ${run.bossReady ? "disabled" : ""}>探索一层</button>
-        <button type="button" data-dungeon-action="boss" ${run.bossReady ? "" : "disabled"}>挑战 Boss</button>
-        <button type="button" data-dungeon-action="leave">撤离</button>
-      </div>
-    `;
-    refs.dungeonPanel.append(node);
-    for (const line of run.log.slice(0, 3)) {
-      const log = document.createElement("div");
-      log.className = "dungeon-card";
-      log.innerHTML = `<span>${line}</span>`;
-      refs.dungeonPanel.append(log);
-    }
-    for (const line of (run.skillLog || []).slice(0, 2)) {
-      const log = document.createElement("div");
-      log.className = "dungeon-card skill";
-      log.innerHTML = `<span>${line}</span>`;
-      refs.dungeonPanel.append(log);
-    }
-    return;
-  }
-
-  if (revealedRotation) {
-    const revealCard = document.createElement("div");
-    const dungeonLabel = revealedDungeon ? dungeonName(revealedDungeon) : "今夜秘境";
-    revealCard.className = "dungeon-card ready";
-    revealCard.dataset.dungeonRevealCard = "hidden_rotation";
-    revealCard.innerHTML = `
-      <strong>今夜隐藏入口已显形</strong>
-      <span>${dungeonLabel} · ${revealedRotation.theme_tag || "night_hidden_entry"}</span>
-      <small>${revealUsedToday ? "这段灯路今晚已经被你走过一回，入口轮廓还留在眼前。" : "灯影先把入口照亮了，下一次进入会更容易看清前一段路。"}${revealedRotation.reward_focus ? ` · 奖励焦点 ${revealedRotation.reward_focus}` : ""}</small>
-    `;
-    refs.dungeonPanel.append(revealCard);
-  }
-
-  if ((state.dungeonWorldChanges || []).length > 0) {
-    const summary = document.createElement("div");
-    summary.className = "dungeon-card complete";
-    summary.innerHTML = `
-      <strong>秘境余波 ${state.dungeonWorldChanges.length}</strong>
-      <span>${state.dungeonWorldChanges.slice(-3).map((change) => change.title).join("；")}</span>
-      <small>稀有精怪线索 ${(state.rareSpiritClues || []).length} 条 · 这些变化会直接显示在洞天主场景。</small>
-    `;
-    refs.dungeonPanel.append(summary);
-  }
-
-  if (herbValleyHint) {
-    const unlockNode = document.createElement("div");
-    unlockNode.className = "dungeon-card ready herb-valley-unlock";
-    unlockNode.innerHTML = `
-      <strong>${herbValleyHint.title}：${herbValleyHint.headline}</strong>
-      <span>${herbValleyHint.detail}</span>
-      <small>${herbValleyHint.dungeonHint} · ${herbValleyHint.cta}</small>
-    `;
-    refs.dungeonPanel.append(unlockNode);
-  }
-
-  if (chapterFinishHint) {
-    const finishNode = document.createElement("div");
-    finishNode.className = "dungeon-card complete herb-valley-unlock";
-    finishNode.innerHTML = `
-      <strong>${chapterFinishHint.title}：${chapterFinishHint.headline}</strong>
-      <span>${chapterFinishHint.detail}</span>
-      <small>${chapterFinishHint.rewardHint} · ${chapterFinishHint.cta}</small>
-    `;
-    refs.dungeonPanel.append(finishNode);
-  }
-
-  if (chapter3TradeHint) {
-    const tradeNode = document.createElement("div");
-    tradeNode.className = `dungeon-card ${fireRuinEntered() ? "complete" : fireRuinUnlocked() ? "ready" : "locked"} herb-valley-unlock`;
-    tradeNode.innerHTML = `
-      <strong>${chapter3TradeHint.title}：${chapter3TradeHint.headline}</strong>
-      <span>${chapter3TradeHint.detail}</span>
-      <small>${chapter3TradeHint.dungeonHint} · ${chapter3TradeHint.cta}</small>
-    `;
-    refs.dungeonPanel.append(tradeNode);
-  }
-
-  for (const dungeon of availableDungeons()) {
-    const cleared = state.dungeonClears.has(dungeon.area_id);
-    const change = (state.dungeonWorldChanges || []).find((entry) => entry.dungeonId === dungeon.area_id);
-    const mechanic = currentDungeonMechanic(dungeon);
-    const spiritSolution = dungeonSpiritSolutionSpec(null, mechanic, dungeon);
-    const solutionTriptych = dungeonMechanicSolutionTriptychSpec(null, mechanic, dungeon, spiritSolution);
-    const herbValleyFresh = herbValleyHint && dungeon.area_id === HERB_VALLEY_AREA_ID && !cleared;
-    const fireRuinFresh = chapter3TradeHint && dungeon.area_id === FIRE_RUIN_AREA_ID && !cleared;
-    const activeRotation = activeHiddenRotationForDungeon(dungeon);
-    const stampEntry = dungeonCompendiumEntry(dungeon, mechanic);
-    const stampSummary = dungeonCompendiumEntrySummary(stampEntry);
-    const failureInsight = dungeonFailureInsight(dungeon, mechanic);
-    const failureSummary = dungeonFailureInsightSummary(failureInsight);
-    const bossId = dungeonBossId(dungeon);
-    const revealNote = revealedRotation?.area_id === dungeon.area_id
-      ? ` · 今夜灯影已照出隐藏入口${revealUsedToday ? "（已启用）" : ""}`
-      : "";
-    const rotationPreview = activeRotation ? rewardPoolPreviewText(activeRotation.rare_drop_pool) : "";
-    const node = document.createElement("div");
-    node.className = `dungeon-card ${cleared ? "complete" : ""}${herbValleyFresh || fireRuinFresh ? " ready herb-valley-unlock" : ""}`;
-    node.dataset.dungeonCardId = dungeon.area_id;
-    node.innerHTML = `
-      <strong>${dungeonName(dungeon)}${cleared ? " · 已通关" : herbValleyFresh || fireRuinFresh ? " · 新入口" : ""}</strong>
-      <span>${dungeon.dungeon_type} · ${dungeon.floor_start}-${dungeon.floor_end} 层 · Boss ${bossName(bossId)}</span>
-      <small>${mechanic?.puzzle_core || "探索、战斗、带回材料。"} · ${change ? `已生效：${change.title}` : `外部变化：${mechanic?.external_change || "洞天生态变化"}`}${revealNote} · Boss 技能 ${bossSkillsFor(bossId).slice(0, 2).map(skillName).join(" / ") || "待配置"}</small>
-      ${herbValleyFresh ? `<small class="dungeon-live-hint">${herbValleyHint.cta}</small>` : ""}
-      ${fireRuinFresh ? `<small class="dungeon-live-hint">${chapter3TradeHint.cta}</small>` : ""}
-      ${dungeonMechanicSolutionTriptychMarkup(solutionTriptych)}
-      ${activeRotation ? `<small>隐藏轮换：${dungeonRotationLabel(activeRotation, dungeon)} · ${dungeonRotationEntryEffect(activeRotation).entryText}${rotationPreview ? ` · 回响奖励 ${rotationPreview}` : ""}</small>` : ""}
-      ${stampSummary ? `<small>节气印记：${stampSummary.title} · ${stampSummary.detail}</small>` : `<small>节气印记：尚未留下这处秘境的碎片或印记。</small>`}
-      ${failureSummary ? `<div class="dungeon-failure-insight stored"><strong>${failureSummary.title}</strong><span>${failureSummary.body}</span><small>${failureSummary.detail}</small></div>` : ""}
-      ${dungeonBossFamiliarityMarkup(failureInsight)}
-      <div class="dungeon-actions">
-        <button type="button" data-dungeon-enter="${dungeon.area_id}">进入秘境</button>
-      </div>
-    `;
-    refs.dungeonPanel.append(node);
-  }
+  renderDungeonPanelUi({
+    refs,
+    state,
+    data,
+    baizhiChapterFinishPanelHint,
+    herbValleyUnlockPanelHint,
+    chapter3TradePanelHint,
+    dengyingRevealedRotation,
+    syncDengyingLanternState,
+    currentDungeonConfig,
+    currentDungeonMechanic,
+    dungeonMechanicStatus,
+    dungeonMechanicActionSpec,
+    dungeonMechanicHudSpec,
+    dungeonSpiritSolutionSpec,
+    dungeonMechanicSolutionTriptychSpec,
+    dungeonStructureRouteSpec,
+    dungeonFirstMechanicTheaterSpec,
+    itemName,
+    dungeonHazards,
+    bossHpPercent,
+    dungeonBossId,
+    bossSkillForTurn,
+    dungeonBossTelegraphSpec,
+    dungeonCompendiumEntry,
+    dungeonCompendiumEntrySummary,
+    dungeonFailureInsight,
+    dungeonFailureInsightSummary,
+    dungeonName,
+    companionPower,
+    bossName,
+    bossPhaseForPercent,
+    dungeonBossCounterMarkup,
+    dungeonBossFamiliarityMarkup,
+    dungeonMechanicSolutionTriptychMarkup,
+    dungeonFirstMechanicTheaterMarkup,
+    dungeonStructureRouteMarkup,
+    dungeonMechanicHudMarkup,
+    dungeonSpiritSolutionMarkup,
+    enemyName,
+    enemyAiLabel,
+    enemyWeaknessText,
+    fireRuinEntered,
+    fireRuinUnlocked,
+    dungeonSeasonPrimerMarkup,
+    dungeonSeasonPrimerSpec,
+    availableDungeons,
+    herbValleyAreaId: HERB_VALLEY_AREA_ID,
+    fireRuinAreaId: FIRE_RUIN_AREA_ID,
+    activeHiddenRotationForDungeon,
+    rewardPoolPreviewText,
+    bossSkillsFor,
+    skillName,
+    dungeonRotationLabel,
+    dungeonRotationEntryEffect,
+  });
 }
 
 function renderBuildPanel() {
-  refs.buildPanel.innerHTML = "";
-  syncPondState();
-  const workshopFocus = updateWorkshopLiveFocus();
-  const workshopLine = workshopProductionLineSpec();
-  const selectedRecipe = data.recipes.find((entry) => entry.recipe_id === state.selectedRecipeId) || data.recipes[0];
-  const selectedMachine = selectedRecipe ? recipeMachine(selectedRecipe) : null;
-  const workshopOrderMatch = workshopFocus.orderMatch || state.workshopAromaState?.history?.[0]?.orderMatch || null;
-  const workshopFinaleRows = spiritFinaleEffectPanelRows(spiritFinaleEffectSummary(), "workshop");
-  const summary = document.createElement("div");
-  summary.className = "build-card built";
-  summary.innerHTML = `
-    <strong>工坊效率 ${multiplierText(workshopMultiplier() * workshopSpiritBonus())}</strong>
-    <span>已建 ${state.builtBuildings.size}/${data.buildings.length} · 设备 ${state.unlockedMachines.size}/${data.machines.length} · 队列 ${state.workshopQueue.length}</span>
-    <span>当前排产：${selectedRecipe ? recipeName(selectedRecipe) : "未选配方"} · ${selectedMachine ? machineName(selectedMachine) : "缺少设备"}</span>
-    <div class="workshop-live-focus"><strong>火候看板：${workshopFocus.headline}</strong><span>${workshopFocus.detail}</span><small>精怪帮工 ${workshopFocus.helperCount} · 效率 ${workshopFocus.speedText} · ${workshopFocus.advice}</small></div>
-    ${workshopProductionLineMarkup(workshopLine)}
-    ${workshopOrderBoardMarkup(workshopOrderBoardSpec(visibleOrders(), 3))}
-    ${workshopFinaleRows.length > 0 ? `<div class="workshop-finale-boost"><strong>终章灶火常驻</strong><span>${workshopFinaleRows.map((row) => `${row.spiritName}·${row.shortTitle}：${row.valueText}`).join(" / ")}</span><small>${workshopFinaleRows.map((row) => row.detail).join(" · ")}</small></div>` : ""}
-    ${workshopOrderMatch ? `<div class="workshop-order-match ${workshopOrderMatch.ready ? "ready" : "pending"}"><strong>${workshopOrderMatch.ready ? "这锅已让订单可交" : "这锅已接上订单"}</strong><span>${workshopOrderMatch.outputItemName} → ${workshopOrderMatch.orderTitle} · ${workshopOrderMatch.orderNpc}</span><small>${workshopOrderMatch.ready ? `可直接交付，奖励 ${workshopOrderMatch.rewardGold} 灵石 / 声望 +${workshopOrderMatch.rewardFame}` : `还差 ${workshopOrderMatch.missingText || "余料"}，补齐后即可交付。`}</small></div>` : ""}
-    <button type="button" data-workshop-queue="true" ${selectedRecipe ? "" : "disabled"}>安排当前配方入夜生产</button>
-  `;
-  refs.buildPanel.append(summary);
-
-  for (const job of state.workshopQueue) {
-    const node = document.createElement("div");
-    const progress = 1 - Number(job.remainingWork || 0) / Math.max(1, Number(job.totalWork || 1));
-    node.className = "build-card ready";
-    node.innerHTML = `
-      <strong>${job.recipeName} · ${Math.max(0, Math.round(progress * 100))}%</strong>
-      <span>${job.machineType} · 剩余工时 ${Math.ceil(job.remainingWork)} · 约 ${Math.max(1, Math.ceil(Number(job.remainingWork || 0) / Math.max(1, 60 * Number(job.speed || 1))))} 夜 · 效率 ${multiplierText(job.speed || 1)}</span>
-      <small>${job.honeyInfused ? "蜂蜜精调蜜中 · " : ""}完成后产出 ${itemName(job.outputItemId)} x${job.outputCount}</small>
-    `;
-    refs.buildPanel.append(node);
-  }
-
-  const pondQuest = data.sideQuests.find((entry) => entry.quest_id === "quest_side_0205_qinghe_pond");
-  const pondBuilt = state.builtBuildings.has("build_fishpond_lv1");
-  const pondKnown = pondBuilt || state.activeSideQuests.has("quest_side_0205_qinghe_pond") || state.claimedQuestRewards.has("quest_side_0205_qinghe_pond");
-  if (pondQuest && pondKnown) {
-    const pondNode = document.createElement("div");
-    const ready = pondCatchReady();
-    const waterSpec = pondWaterLevelSpec(state.pondState.waterLevel);
-    const waterControl = pondWaterControlUnlocked();
-    const waterMastery = pondWaterMasteryUnlocked();
-    const lotusText = pondLotusStageText(state.pondState.lotusStage);
-    const yuelianEvent = data.rareSpiritEvents.find((entry) => entry.spirit_id === "spirit_yuelian" && entry.event_stage === "first_meet");
-    const yuelianEvolutionEvent = data.rareSpiritEvents.find((entry) => entry.entry_id === "rsea_017");
-    const yuelianBondFinalEvent = data.rareSpiritEvents.find((entry) => entry.entry_id === "rsea_006");
-    const yuelianReady = rareSpiritEventReady(yuelianEvent);
-    const yuelianEvolutionReady = yuelianEvolutionEvent && rareSpiritEventReady(yuelianEvolutionEvent);
-    const yuelianEvolutionDone = yuelianEvolutionEvent && rareSpiritEventDone(yuelianEvolutionEvent);
-    const yuelianOwned = state.spirits.some((spirit) => (spirit.lineId || spiritLine(spirit.id)) === "spirit_line_yuelian");
-    const moonPondReady = yuelianBondFinalEvent && rareSpiritEventReady(yuelianBondFinalEvent);
-    const moonPondDone = yuelianBondFinalEvent && rareSpiritEventDone(yuelianBondFinalEvent);
-    const lastCatchText = state.pondState.lastCatch
-      ? `上次捞起 ${state.pondState.lastCatch.itemName} x${state.pondState.lastCatch.count} · 第 ${state.pondState.lastCatch.day} 天`
-      : "还没试过第一网。";
-    const detailText = !pondBuilt
-      ? localize("subtitle_side_0205_beat_01", "池底还没死透。")
-      : ready
-        ? localize("subtitle_side_0205_beat_02", "去吧。以后这池水里，也该有点会游的热闹了。")
-        : "今天已经试过一网，等明天水口再聚鱼。";
-    const waterStatusText = pondBuilt
-      ? `当前水位：${pondWaterLevelText(state.pondState.waterLevel)}`
-      : "";
-    const waterEffectText = pondBuilt
-      ? waterControl
-        ? waterSpec.level === 0
-          ? "浅水适合歇水，但会压低露珠芹收成。"
-          : waterSpec.level === 1
-            ? "平水最稳露珠芹收成，今夜也会替水生田续水。"
-            : "丰水更利于回鱼，今夜会替水生田续水。"
-        : "先把青禾这条池塘线收尾，才能学会调水。"
-      : "";
-    const waterMasteryText = pondBuilt && waterMastery ? "青禾已经把稳水看口的诀窍教给你了。" : "";
-    const ecologyText = pondBuilt
-      ? `静池生态：${lotusText} · 夜护水生田 ${Number(state.pondState.nightWaterCropCareDays || 0)} 夜 · 留白静养 ${Number(state.pondState.restRespiteNights || 0)}/2 夜${yuelianReady ? " · 月莲精初见已可触发" : yuelianEvolutionReady ? " · 凝露留白已可触发" : yuelianEvolutionDone ? " · 凝露莲席正在收露" : moonPondReady ? " · 无月之月已可触发" : moonPondDone ? " · 月池静养已经落成" : yuelianOwned ? " · 月莲已经在池边住下" : ""}`
-      : "";
-    const yuelianRestText = pondBuilt && yuelianOwned
-      ? yuelianRestRespiteActive()
-        ? `凝露留白：庭院岗精怪每日饱腹消耗 -${Math.round(Number(yuelianRestRespiteSkill()?.effect_param_1 || 0.08) * 100)}%。`
-        : `留白静养：当有精怪体力≤26、心情≤52或饱腹≤36时直接入夜，月莲会记下这份休息。`
-      : "";
-    pondNode.className = `build-card ${ready ? "ready" : pondBuilt ? "built" : "locked"}`;
-    pondNode.innerHTML = `
-      <strong>${questTitle(pondQuest)}${pondBuilt ? " · 灵池已成" : " · 等待动工"}</strong>
-      <span>${pondBuilt ? (state.pondState.firstCatchDone ? "第一尾灵鱼已经认路回来" : "池底刚养住第一口活水") : "青禾说这口旧池还没死透，只差有人把水口重新稳住。"}${hasItem("item_tool_fishing_net", 1) ? " · 引水鱼网已备" : ""}</span>
-      <small>${detailText} · ${lastCatchText}</small>
-      ${waterStatusText ? `<small>${waterStatusText}</small>` : ""}
-      ${waterEffectText || waterMasteryText ? `<small>${[waterEffectText, waterMasteryText].filter(Boolean).join(" · ")}</small>` : ""}
-      ${ecologyText ? `<small>${ecologyText}</small>` : ""}
-      ${yuelianRestText ? `<small>${yuelianRestText}</small>` : ""}
-      ${pondBuilt ? `
-        <div class="dungeon-actions">
-          <button type="button" data-pond-action="catch" ${ready ? "" : "disabled"}>${state.pondState.firstCatchDone ? "再试一网" : "试网捞鱼"}</button>
-          ${waterControl ? `<button type="button" data-pond-action="level_0" ${waterSpec.level === 0 ? "disabled" : ""}>调成浅水</button>` : ""}
-          ${waterControl ? `<button type="button" data-pond-action="level_1" ${waterSpec.level === 1 ? "disabled" : ""}>调回平水</button>` : ""}
-          ${waterControl ? `<button type="button" data-pond-action="level_2" ${waterSpec.level === 2 ? "disabled" : ""}>蓄成丰水</button>` : ""}
-        </div>
-      ` : ""}
-    `;
-    refs.buildPanel.append(pondNode);
-  }
-
-  const spiritManorHint = spiritManorPanelHint();
-  if (spiritManorHint && !state.builtBuildings.has(SPIRIT_MANOR_BUILDING_ID)) {
-    const resource = spiritManorHint.resource || spiritManorResourceStatus();
-    const building = spiritManorBuilding();
-    const ready = canBuild(building);
-    const manorNode = document.createElement("div");
-    manorNode.className = `build-card spirit-manor-plan ${ready ? "ready" : "locked"}`;
-    manorNode.innerHTML = `
-      <strong>${buildingName(building)}蓝图 · ${resource.done}/${resource.total} 项就绪</strong>
-      <span>${spiritManorHint.detail}</span>
-      <small>${resource.missing ? `缺口：${resource.missing}` : "材料齐备，阿檀已经把榫卯线画好。"} · 建成后解锁岗位总览、宿舍分配与情绪管理。</small>
-      <button type="button" data-build-id="${SPIRIT_MANOR_BUILDING_ID}" ${ready ? "" : "disabled"}>${ready ? "按蓝图建造" : "材料未齐"}</button>
-    `;
-    refs.buildPanel.append(manorNode);
-  }
-
-  for (const building of buildableBuildings()) {
-    const built = state.builtBuildings.has(building.building_id);
-    const ready = canBuild(building);
-    const machine = data.machinesByBuilding.get(building.building_id);
-    const node = document.createElement("div");
-    node.className = `build-card ${built ? "built" : ready ? "ready" : "locked"}`;
-    node.innerHTML = `
-      <strong>${buildingName(building)}${built ? " · 已建成" : ""}</strong>
-      <span>${building.category} · ${building.function_tags || "基础功能"}${machine ? ` · 解锁 ${machineName(machine)}` : ""}</span>
-      <small>Demo 成本：${costText(building)} · 正式成本：灵石 ${building.cost_gold} / 木 ${building.cost_wood} / 石 ${building.cost_stone} / 金属 ${building.cost_metal}</small>
-      <button type="button" data-build-id="${building.building_id}" ${ready ? "" : "disabled"}>${built ? "已建成" : "建造"}</button>
-    `;
-    refs.buildPanel.append(node);
-  }
+  renderBuildPanelUi({
+    refs,
+    state,
+    data,
+    syncPondState,
+    updateWorkshopLiveFocus,
+    workshopProductionLineSpec,
+    recipeMachine,
+    spiritFinaleEffectPanelRows,
+    spiritFinaleEffectSummary,
+    spiritManorPanelHint,
+    buildableBuildings,
+    buildingUiSpec,
+    multiplierText,
+    workshopMultiplier,
+    workshopSpiritBonus,
+    recipeName,
+    machineName,
+    workshopProductionLineMarkup,
+    workshopOrderBoardMarkup,
+    workshopOrderBoardSpec,
+    visibleOrders,
+    itemName,
+    canalRepairPrepSpec,
+    pondCatchReady,
+    pondWaterLevelSpec,
+    pondWaterControlUnlocked,
+    pondWaterMasteryUnlocked,
+    pondLotusStageText,
+    rareSpiritEventReady,
+    rareSpiritEventDone,
+    spiritLine,
+    localize,
+    pondWaterLevelText,
+    yuelianRestRespiteActive,
+    yuelianRestRespiteSkill,
+    questTitle,
+    hasItem,
+    spiritManorBuildingId: SPIRIT_MANOR_BUILDING_ID,
+    spiritManorResourceStatus,
+    spiritManorBuilding,
+    canBuild,
+    buildingName,
+  });
 }
 
 function renderLogs() {
-  refs.eventLog.innerHTML = "";
-  for (const entry of state.log) {
-    const node = document.createElement("div");
-    node.className = "log-entry";
-    node.innerHTML = `<strong>${entry.title}</strong><br>${entry.detail}`;
-    refs.eventLog.append(node);
-  }
+  renderLogPanel({ refs, state });
 }
 
 function renderShop() {
-  refs.shopReport.innerHTML = "";
-  const opening = syncShopOpeningState();
-  const ecologyGarden = ecologyCourtyardSummary();
-  const liveGoods = sellableInventoryGoods();
-  const liveTheme = currentShelfTheme();
-  const liveHotTag = shopHotTag(liveGoods, liveTheme, ecologyGarden);
-  const liveCompendiumDisplays = activeShopCompendiumDisplays(liveGoods, liveTheme, 2, liveHotTag);
-  const liveCompendiumEffect = shopCompendiumDisplayEffect(liveCompendiumDisplays, liveTheme, liveHotTag);
-  const liveEcologyShopAura = activeEcologyShopAura(state.day, ecologyGarden, liveGoods);
-  const liveQingboSignatureAura = qingboWaterFreshSignatureAura(liveGoods, liveTheme);
-  const shopWordOfMouth = shopWordOfMouthDisplaySpec(state.day);
-  const shopWordOfMouthVisit = opening.lastSession?.day === state.day
-    ? opening.lastSession.shopWordOfMouthVisit || null
-    : shopWordOfMouthVisitLeadSpec(shopWordOfMouth);
-  const visitPledge = shopVisitPledgeDisplaySpec(opening);
-  const townErrand = shopTownErrandDisplaySpec(opening);
-  const displayDiagnosis = shopDisplayDiagnosisMarkup(shopDisplayDiagnosisSpec(liveGoods, liveTheme, data.customers, ecologyGarden));
-  const saleFeedback = state.shopSaleFeedback;
-  const restockFulfillmentFeedback = state.shopRestockFulfillmentFeedback;
-  const focusReview = shopCustomerFocusReviewMarkup();
-  if (focusReview) refs.shopReport.insertAdjacentHTML("beforeend", focusReview);
-  const restockTracker = shopRestockTrackerMarkup();
-  if (restockTracker) refs.shopReport.insertAdjacentHTML("beforeend", restockTracker);
-  if (opening.opened || opening.lastSession || liveCompendiumDisplays.length > 0 || liveEcologyShopAura || liveQingboSignatureAura || displayDiagnosis) {
-    const board = document.createElement("div");
-    const qingboSignatureAura = opening.lastSession?.day === state.day
-      ? opening.lastSession?.qingboSignatureAura || liveQingboSignatureAura
-      : liveQingboSignatureAura || opening.lastSession?.qingboSignatureAura || null;
-    const waterwayBrokerScene = opening.lastSession?.day === state.day ? shopWaterwayBrokerSceneSpec(opening) : null;
-    const waterwayShelfSpotlight = shopWaterwayShelfSpotlightSpec(liveGoods, liveTheme, waterwayBrokerScene);
-    const waterwayBrowse = shopWaterwayCustomerBrowseSpec(opening, state.shopReport, waterwayShelfSpotlight);
-    const waterwayReorderFollowupScene = shopWaterwayReorderFollowupSceneSpec(opening, state.shopReport, waterwayReorderFollowupSpec(liveGoods, liveTheme));
-    const waterwayLongOrderLedger = waterwayLongOrderLedgerSpec(state.shopReport, waterwayReorderFollowupSpec(liveGoods, liveTheme));
-    const waterwayStandingOrderSupply = waterwayStandingOrderSupplySpec(liveGoods, liveTheme);
-    board.className = `shop-opening-card ${opening.summaryUnlocked ? "summary" : "opening"}${saleFeedback?.firstSale ? " sale-live" : ""}${saleFeedback?.qingboFirstSale ? " qingbo-live" : ""}${restockFulfillmentFeedback ? " restock-live" : ""}${restockFulfillmentFeedback?.waterFresh ? " water-fresh-restock" : ""}${qingboSignatureAura ? " water-fresh-signature" : ""}${waterwayBrokerScene?.active ? " waterway-broker-live" : ""}${waterwayShelfSpotlight?.active ? " waterway-shelf-live" : ""}${waterwayReorderFollowupScene?.active ? " waterway-reorder-live" : ""}${waterwayLongOrderLedger?.active ? " waterway-long-order-live" : ""}${waterwayStandingOrderSupply?.active ? " waterway-standing-order-live" : ""}`;
-    board.dataset.shopBoard = "opening";
-    const needs = opening.needBubbles.map((entry) => `${entry.name}${entry.returningCustomer ? "（回门）" : entry.introducedCustomer ? "（熟客带来）" : ""}：${entry.text}`).join(" · ") || "等第一批顾客进店";
-    const firstSale = opening.firstSale ? `${opening.firstSale.name} 买走 ${opening.firstSale.itemName}，成交 ${opening.firstSale.price} 灵石` : "首单尚未成交";
-    const featuredMoment = opening.lastSession?.featuredMomentText || "";
-    const liveFocus = opening.liveFocus || opening.lastSession?.liveFocus || null;
-    const crowdHeat = liveFocus ? shopCrowdHeatUiSpec(liveFocus) : null;
-    const doorstepScene = opening.lastSession?.day === state.day ? shopDoorstepSceneSpec(opening) : null;
-    const displaySummary = opening.lastSession?.compendiumDisplaySummary || liveCompendiumEffect.summary;
-    const displayDetail = opening.lastSession?.compendiumDisplayDetail || liveCompendiumEffect.detail;
-    const restockFulfillment = opening.lastSession?.restockFulfillment || null;
-    const failureRecovery = opening.failureRecovery || opening.lastSession?.failureRecovery || null;
-    const decisionLedger = opening.customerDecisionLedger || opening.lastSession?.customerDecisionLedger || null;
-    const journeySpec = shopCustomerJourneySpec(opening);
-    const reasonCards = shopCustomerReasonCardsMarkup(shopCustomerReasonCardsSpec(opening, state.shopReport, decisionLedger, journeySpec, failureRecovery));
-    const saleReflection = shopSaleReflectionMarkup(shopSaleReflectionSpec(opening));
-    const returningDigest = opening.lastSession?.day === state.day
-      ? shopReturningVisitDigestMarkup(shopReturningVisitDigestSpec(opening))
-      : "";
-    const introducedDigest = opening.lastSession?.day === state.day
-      ? shopIntroducedCustomerDigestMarkup(shopIntroducedCustomerDigestSpec(opening))
-      : "";
-    const wordOfMouthMarkup = shopWordOfMouthMarkup(shopWordOfMouth);
-    const wordOfMouthVisitMarkup = shopWordOfMouthVisitMarkup(shopWordOfMouthVisit);
-    const qingboSignatureMarkup = qingboWaterFreshSignatureMarkup(qingboSignatureAura);
-    const visitPledgeMarkup = shopVisitPledgeMarkup(visitPledge);
-    const townErrandMarkup = shopTownErrandMarkup(townErrand, { includeFocus: true });
-    const regularBoard = shopRegularBoardMarkup(opening.regularBoard || opening.lastSession?.regularBoard || shopRegularBoardSpec(opening));
-    const reputationStage = shopReputationStageMarkup(shopReputationStageSpec(opening));
-    const seasonalDoorstep = shopSeasonalDoorstepSceneMarkup(shopSeasonalDoorstepSceneSpec({ opening }));
-    const weatherCustomerReaction = shopWeatherCustomerReactionMarkup(shopWeatherCustomerReactionSpec({ opening }));
-    const shopFinaleEffects = opening.lastSession?.spiritFinaleEffects || spiritFinaleEffectSnapshot(spiritFinaleEffectSummary());
-    const shopFinaleText = spiritFinaleEffectPanelText(shopFinaleEffects, "shop", 2);
-    const shopFinaleRows = Array.isArray(shopFinaleEffects?.rows)
-      ? shopFinaleEffects.rows.filter((row) => row.panel === "shop" && Number(row.value || 0) > 0)
-      : [];
-    const ecologyShopAura = opening.lastSession?.day === state.day
-      ? opening.lastSession?.ecologyShopAura
-      : liveEcologyShopAura;
-    const decisionChains = shopCustomerDecisionChainsMarkup(opening);
-    board.innerHTML = `
-      <strong>${opening.summaryUnlocked ? "第一次成交日结已解锁" : "旧铺试营业看板"}</strong>
-      <span>热卖标签预告：${opening.hotTagLabel || "等待陈列"} · ${needs}</span>
-      <small>${firstSale}</small>
-      ${reputationStage}
-      ${seasonalDoorstep}
-      ${weatherCustomerReaction}
-      ${saleReflection}
-      ${doorstepScene ? shopDoorstepSceneMarkup(doorstepScene) : ""}
-      ${waterwayBrokerScene ? shopWaterwayBrokerSceneMarkup(waterwayBrokerScene) : ""}
-      ${waterwayShelfSpotlight ? shopWaterwayShelfSpotlightMarkup(waterwayShelfSpotlight) : ""}
-      ${waterwayBrowse ? shopWaterwayCustomerBrowseMarkup(waterwayBrowse) : ""}
-      ${waterwayReorderFollowupScene ? shopWaterwayReorderFollowupMarkup(waterwayReorderFollowupScene) : ""}
-      ${waterwayLongOrderLedger ? waterwayLongOrderLedgerMarkup(waterwayLongOrderLedger) : ""}
-      ${waterwayStandingOrderSupply ? waterwayStandingOrderSupplyMarkup(waterwayStandingOrderSupply) : ""}
-      ${returningDigest}
-      ${introducedDigest}
-      ${wordOfMouthMarkup}
-      ${wordOfMouthVisitMarkup}
-      ${qingboSignatureMarkup}
-      ${visitPledgeMarkup}
-      ${townErrandMarkup}
-      ${regularBoard}
-      ${displayDiagnosis}
-      ${shopCustomerDecisionLedgerMarkup(decisionLedger)}
-      ${reasonCards}
-      ${shopCustomerJourneyMarkup(journeySpec)}
-      ${decisionChains}
-      ${liveFocus ? `<div class="shop-live-focus"><strong>今日焦点：${liveFocus.headline}</strong><span>成交 ${liveFocus.buyers} · 犹豫离店 ${liveFocus.leavers} · 主题 ${liveFocus.themeScore}%</span><small>短板：${liveFocus.topBlockerLabel} · ${liveFocus.shelfAdvice}</small></div>` : ""}
-      ${shopLeaveRecoveryMarkup(failureRecovery)}
-      ${crowdHeat?.active ? `<div class="shop-crowd-heat ${crowdHeat.stateClass}"><strong>${crowdHeat.title}</strong><span>${crowdHeat.detail}</span><div class="shop-crowd-heat-chips">${crowdHeat.chips.map((chip) => `<b class="${chip.tone}">${chip.label} ${chip.value}</b>`).join("")}</div><small>画面反馈：${crowdHeat.queueText} · ${crowdHeat.mood}</small><small>掌柜建议：${crowdHeat.nextAction}</small></div>` : ""}
-      ${featuredMoment ? `<small>${featuredMoment}</small>` : ""}
-      ${shopFinaleText ? `<div class="shop-finale-boost"><strong>终章伙伴常驻</strong><span>${shopFinaleText}</span><small>${shopFinaleRows.map((row) => row.detail).join(" · ")}</small></div>` : ""}
-      ${ecologyShopAura ? `<small>庭院夜事余韵：${ecologyShopAura.title} · ${ecologyShopAura.focusText} · 来客 +${ecologyShopAura.visitorBonus}，相关预算 +${Math.round(Number(ecologyShopAura.budgetBonus || 0) * 100)}%</small>` : ""}
-      ${ecologyShopAura?.matchedGoodsText ? `<small>货架呼应：${ecologyShopAura.matchedGoodsText}</small>` : ""}
-      ${displaySummary ? `<small>节气印记陈设：${displaySummary}</small>` : ""}
-      ${displayDetail ? `<small>${displayDetail}</small>` : ""}
-      ${restockFulfillment ? `<small>补货兑现：${restockFulfillment.summary} · ${restockFulfillment.detail}${restockFulfillmentFeedback ? " · 货签刚兑现" : ""}</small>` : ""}
-    `;
-    refs.shopReport.append(board);
-  }
-  const solarMoodShopDisplayMarkup = solarTermMoodShopDisplayMarkup();
-  if (solarMoodShopDisplayMarkup) {
-    const solarMoodShopDisplayNode = document.createElement("div");
-    solarMoodShopDisplayNode.innerHTML = solarMoodShopDisplayMarkup.trim();
-    refs.shopReport.append(solarMoodShopDisplayNode.firstElementChild);
-  }
-  renderShopSeasonPanel();
-  if (state.shopReport.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "sale-row";
-    empty.dataset.shopBoard = "empty";
-    empty.innerHTML = "<span>今日未营业</span><strong>--</strong>";
-    refs.shopReport.append(empty);
-    return;
-  }
-
-  for (const [index, sale] of state.shopReport.entries()) {
-    const liveSale = sale.reason === "buy"
-      && saleFeedback
-      && saleFeedback.itemId === sale.itemId
-      && saleFeedback.customerName === sale.name;
-    const row = document.createElement("div");
-    row.className = `sale-row ${sale.reason || "note"}${sale.customerArchetype === "waterway_broker" ? " waterway" : ""}${liveSale ? " live" : ""}${liveSale && saleFeedback.qingboFirstSale ? " qingbo-live" : ""}`;
-    row.dataset.shopReportIndex = String(index);
-    row.dataset.shopReportReason = sale.reason || "note";
-    const liveRestock = sale.reason === "restock" && restockFulfillmentFeedback && sale.name === "补货兑现";
-    row.innerHTML = `<span>${sale.name}<small>${sale.detail || ""}</small>${sale.returningCustomer ? `<small class="sale-returning-note">熟脸回门：${sale.returnVisitText || sale.returnVisitLabel || "昨天被记住的人又来了。"}${sale.returnVisitChance ? ` · 回头苗头 ${sale.returnVisitChance}%` : ""}</small>` : ""}${sale.introducedCustomer ? `<small class="sale-introduced-note">熟客带新客：${sale.introducedVisitText || `${sale.introducedByLabel || "熟客"}把新脚步领进门了。`}</small>` : ""}${sale.wordOfMouthLead ? `<small class="sale-introduced-note">铺前来帖：${sale.wordOfMouthLeadText || "这位来客正是顺着昨天传出去的话头找来的。"}</small>` : ""}${liveSale ? `<small class="sale-live-hint">${saleFeedback.qingboFirstSale ? "灵池水鲜首卖" : saleFeedback.firstSale ? "首单刚成交" : saleFeedback.returningCustomer ? "熟脸刚回门成交" : saleFeedback.introducedCustomer ? "熟客刚带新客成交" : saleFeedback.wordOfMouthLead ? "来帖刚兑现成交" : "刚完成一笔成交"} · ${saleFeedback.reasonText}</small>${saleFeedback.reviewQuote ? `<small class="sale-live-review">顾客短评：${saleFeedback.reviewQuote}</small>` : ""}${(saleFeedback.firstSale || saleFeedback.qingboFirstSale) && saleFeedback.returnPreview ? `<small class="sale-live-review">回头客预告：${saleFeedback.returnPreview.summary} · ${saleFeedback.returnPreview.cta}</small>` : ""}` : ""}${liveRestock ? `<small class="sale-live-hint">货签刚兑现 · ${restockFulfillmentFeedback.headline}</small>` : ""}</span><strong>${sale.text}</strong>`;
-    refs.shopReport.append(row);
-  }
+  renderShopPanelUi({
+    refs,
+    state,
+    data,
+    syncShopOpeningState,
+    ecologyCourtyardSummary,
+    sellableInventoryGoods,
+    currentShelfTheme,
+    shopHotTag,
+    activeShopCompendiumDisplays,
+    shopCompendiumDisplayEffect,
+    activeEcologyShopAura,
+    qingboWaterFreshSignatureAura,
+    shopWordOfMouthDisplaySpec,
+    shopWordOfMouthVisitLeadSpec,
+    shopVisitPledgeDisplaySpec,
+    shopTownErrandDisplaySpec,
+    shopDisplayDiagnosisSpec,
+    shopDisplayDiagnosisMarkup,
+    shopThoughtShelfBridgeMarkup,
+    shopThoughtShelfBridgeSpec,
+    shopCustomerFocusReviewMarkup,
+    shopRestockTrackerMarkup,
+    shopWaterwayBrokerSceneSpec,
+    shopWaterwayShelfSpotlightSpec,
+    shopWaterwayCustomerBrowseSpec,
+    shopWaterwayReorderFollowupSceneSpec,
+    waterwayReorderFollowupSpec,
+    waterwayLongOrderLedgerSpec,
+    waterwayStandingOrderSupplySpec,
+    shopCustomerJourneySpec,
+    shopCustomerReasonCardsMarkup,
+    shopCustomerReasonCardsSpec,
+    shopSaleReflectionMarkup,
+    shopSaleReflectionSpec,
+    shopReturningVisitDigestMarkup,
+    shopReturningVisitDigestSpec,
+    shopIntroducedCustomerDigestMarkup,
+    shopIntroducedCustomerDigestSpec,
+    shopWordOfMouthMarkup,
+    shopWordOfMouthVisitMarkup,
+    qingboWaterFreshSignatureMarkup,
+    shopVisitPledgeMarkup,
+    shopTownErrandMarkup,
+    shopRegularBoardMarkup,
+    shopRegularBoardSpec,
+    shopReputationStageMarkup,
+    shopReputationStageSpec,
+    shopSeasonalDoorstepSceneMarkup,
+    shopSeasonalDoorstepSceneSpec,
+    shopWeatherCustomerReactionMarkup,
+    shopWeatherCustomerReactionSpec,
+    spiritFinaleEffectSnapshot,
+    spiritFinaleEffectSummary,
+    spiritFinaleEffectPanelText,
+    shopCustomerDecisionChainsMarkup,
+    shopDoorstepSceneSpec,
+    shopDoorstepSceneMarkup,
+    shopWaterwayBrokerSceneMarkup,
+    shopWaterwayShelfSpotlightMarkup,
+    shopWaterwayCustomerBrowseMarkup,
+    shopWaterwayReorderFollowupMarkup,
+    waterwayLongOrderLedgerMarkup,
+    waterwayStandingOrderSupplyMarkup,
+    shopCustomerDecisionLedgerMarkup,
+    shopCustomerJourneyMarkup,
+    shopLeaveRecoveryMarkup,
+    shopCrowdHeatUiSpec,
+    solarTermMoodShopDisplayMarkup,
+    renderShopSeasonPanel,
+  });
 }
 
 function renderShopSeasonPanel() {
-  state.shopStats = normalizeShopStats(state.shopStats);
-  syncGoalBookState();
-  const ecologyGarden = ecologyCourtyardSummary();
-  if (!year2Unlocked()) {
-    const locked = document.createElement("div");
-    locked.className = "shop-season-card locked";
-    locked.innerHTML = `
-      <strong>第二年名铺赛季 未开榜</strong>
-      <span>旧铺现在仍是日常试营业；等蟠桃大宴后，许伯会把月评榜、赛季奖励和长期名铺订单一起翻出来。</span>
-      <small>开启路径：终章决战 → 二十四节气大阵 → 万年蟠桃成熟入席。届时会解锁赛季评分、书契账页批注、灯影夜巡和第二年订单预览。</small>
-    `;
-    refs.shopReport.append(locked);
-    return;
-  }
-  const honeyTeaParty = syncFengmiTeaPartyState();
-  const cycle = shopSeasonCycleInfo();
-  const season = cycle.season;
-  if (!season) return;
-  const settlement = shopSeasonScore(season, currentShopSeasonStats());
-  const rank = shopSeasonRank(settlement.score, season);
-  const focusTags = splitTags(season.score_focus_tags).join(" / ");
-  const pending = state.shopStats.pendingSettlement;
-  const activeBuffs = Object.entries(state.shopStats.activeBuffs || {})
-    .filter(([, value]) => Number(value) > 0)
-    .slice(0, 3)
-    .map(([buffId, value]) => shopSeasonBuffText(buffId, Number(value)))
-    .join(" · ");
-
-  if (pending) {
-    const settlementCard = document.createElement("div");
-    settlementCard.className = `shop-season-card settlement rank-${pending.rankTier}`;
-    settlementCard.dataset.shopSeasonBoard = "settlement";
-    const theme = data.shelfThemesByTag.get(pending.topThemeId);
-    const bestSellerText = pending.bestSellerItemId ? `${itemName(pending.bestSellerItemId)} x${pending.bestSellerCount}` : "本季还没有形成爆款";
-    const mainCustomerText = pending.mainCustomer ? customerDisplayName(pending.mainCustomer) : "客群尚未稳定";
-    settlementCard.innerHTML = `
-      <strong>${pending.seasonName} 结算 · ${String(pending.rankTier).toUpperCase()} 档</strong>
-      <span>${pending.titleLine}</span>
-      <small>赛季日程 第 ${pending.cycleStartDay}-${pending.cycleEndDay} 天 · 总分 ${pending.score} · 奖励 ${shopSeasonRewardText(pending.reward)}</small>
-      <small>本季回顾：爆款 ${bestSellerText} · 热门主题 ${theme?.note || pending.topThemeId || "未成型"} · 主顾客群 ${mainCustomerText}</small>
-      <small>短板 ${pending.weakPart || "暂无"} · 下季建议：${pending.advice}</small>
-      ${pending.memoryPageTitle ? `<small>回忆页：${pending.memoryPageTitle} · 账册已经把这一季压进金边页里。</small>` : ""}
-      <button type="button" data-shop-season-claim="pending" ${pending.rewardClaimed ? "disabled" : ""}>${pending.rewardClaimed ? "奖励已领取" : "领取赛季奖励"}</button>
-    `;
-    refs.shopReport.append(settlementCard);
-
-    for (const part of pending.parts.slice(0, 4)) {
-      const row = document.createElement("div");
-      row.className = "shop-season-row settlement";
-      row.innerHTML = `<span>${part.displayName}<small>${part.note}</small></span><strong>${part.raw}%</strong>`;
-      refs.shopReport.append(row);
-    }
-  }
-
-  const panel = document.createElement("div");
-  panel.className = `shop-season-card rank-${String(rank.rank_tier).toLowerCase()}`;
-  panel.dataset.shopSeasonBoard = "rank";
-  panel.innerHTML = `
-    <strong>${season.season_name} · 当前评级 ${String(rank.rank_tier).toUpperCase()}</strong>
-    <span>赛季第 ${cycle.dayInSeason}/${cycle.cycleDays} 天 · 当前分 ${settlement.score} · 重点 ${focusTags}</span>
-    <small>${shopSeasonTitle(rank.rank_tier)} ${activeBuffs ? `· 生效加成 ${activeBuffs}` : ""}</small>
-    <small>本季预计奖励：${shopSeasonRewardText(rank)}</small>
-  `;
-  refs.shopReport.append(panel);
-
-  const compendiumDisplays = activeShopCompendiumDisplays(sellableInventoryGoods(), currentShelfTheme(), 2);
-  const compendiumEffect = shopCompendiumDisplayEffect(compendiumDisplays, currentShelfTheme(), shopHotTag(sellableInventoryGoods(), currentShelfTheme(), ecologyGarden));
-  if (compendiumDisplays.length > 0) {
-    const compendiumCard = document.createElement("div");
-    compendiumCard.className = "shop-season-card compendium";
-    compendiumCard.dataset.shopSeasonBoard = "compendium";
-    compendiumCard.innerHTML = `
-      <strong>节气印记陈设</strong>
-      <span>${compendiumEffect.summary}</span>
-      <small>${compendiumEffect.detail}</small>
-      ${compendiumDisplays.map((display) => `<small>${display.shortTitle}：${display.marketText}</small>`).join("")}
-      <div class="shop-display-actions">${compendiumDisplays.map((display) => `<button type="button" data-shop-memory-page="${display.key}">翻看${display.shortTitle}</button>`).join("")}</div>
-    `;
-    refs.shopReport.append(compendiumCard);
-  }
-
-  const dengyingSpirit = state.spirits.find((entry) => (entry.lineId || spiritLine(entry.id)) === "spirit_line_dengying");
-  const dengyingEvolutionDone = state.completedRareSpiritEvents.has("rsea_008");
-  const dengyingBondFinalDone = state.completedRareSpiritEvents.has("rsea_018");
-  const dengyingBondFinalEvent = data.rareSpiritEvents.find((entry) => entry.entry_id === "rsea_018");
-  const dengyingBondReady = Boolean(dengyingBondFinalEvent && rareSpiritEventReady(dengyingBondFinalEvent));
-  const dengyingBondLevel = dengyingSpirit ? Math.max(Number(dengyingSpirit.bondLevel || 0), bondLevelFor(dengyingSpirit, dengyingSpirit.bondExp)) : 0;
-  const dengyingLanternClears = Number(state.goalBookState?.seasonal?.lanternDungeonClears || 0);
-  const dengyingSkillBonus = Number(dengyingFestivalCustomerSkill()?.effect_param_1 || 0.10);
-  const dengyingWinterShopWindow = currentTermId() === "term_dongzhi" || season?.season_id === "season_shop_005";
-  const dengyingRevealOptions = dengyingRevealCandidates();
-  const dengyingReveal = dengyingRevealedRotation();
-  const dengyingRevealUsed = Number(syncDengyingLanternState().lastRevealDay || 0) === state.day;
-  if (dengyingEvolutionDone || dengyingBondReady || dengyingBondFinalDone) {
-    const revealReady = dengyingHiddenRevealReady();
-    const revealedDungeon = data.dungeonsById.get(dengyingReveal?.area_id || "");
-    const revealedLabel = revealedDungeon ? dungeonName(revealedDungeon) : "今夜秘境";
-    const revealButtonText = dengyingReveal
-      ? "今夜灯路已亮"
-      : dengyingRevealOptions.length === 0
-        ? "今夜暂无可照入口"
-        : "点亮今夜灯路";
-    const dengyingCard = document.createElement("div");
-    dengyingCard.className = "shop-season-card ledger";
-    dengyingCard.dataset.shopSeasonBoard = "lantern";
-    dengyingCard.innerHTML = `
-      <strong>${dengyingBondFinalDone ? "灯影精冬至长灯路" : "灯影精夜巡灯径"}</strong>
-      <span>冬至通关 ${dengyingLanternClears} 次 · 羁绊 ${dengyingBondLevel}/10 · ${dengyingWinterShopWindow ? "今夜正是灯市" : "等冬至再把灯路用满"}</span>
-      <small>夜巡灯径：冬至开铺时额外留客 +1，夜客预算更稳 +${Math.round(dengyingSkillBonus * 30)}%。${dengyingWinterShopWindow ? "门前长灯会比平时更会把人往回留。" : "等到冬至节气或冬至名铺榜时最见效。"}</small>
-      <small>${dengyingBondFinalDone
-        ? dengyingReveal
-          ? `${revealedLabel} 的隐藏入口今夜已显形，进入后前一段路会更容易看清。${dengyingReveal.reward_focus ? ` 奖励焦点 ${dengyingReveal.reward_focus}。` : ""}`
-          : revealReady
-            ? "可以手动点亮今夜灯路，把一个已解锁的隐藏入口先照出来。"
-            : dengyingRevealUsed
-              ? "今日已经点亮过一回长灯路了。"
-              : "当前还没有符合轮换与主线条件的隐藏入口可照。"
-        : dengyingBondReady
-          ? "冬至长灯路已可触发，去目标册把这段满羁绊事件接上。"
-          : `还差冬至窗口、羁绊 10 与至少 1 次冬至灯影秘境通关。当前冬至通关 ${dengyingLanternClears}/1。`}</small>
-      ${dengyingBondFinalDone ? `<button type="button" data-dengying-hidden-reveal="true" ${revealReady ? "" : "disabled"}>${revealButtonText}</button>` : ""}
-    `;
-    refs.shopReport.append(dengyingCard);
-  }
-
-  if (shuqiLedgerInsightActive()) {
-    const insight = shuqiLedgerInsight();
-    const ledgerTarget = shuqiLegacyLedgerActive() ? shuqiLegacyLedgerTarget() : null;
-    const ledgerBonusRate = Number(shuqiSeasonScoreBonusSkill()?.effect_param_1 || 0.08);
-    const ledgerPages = shuqiLegacyLedgerActive()
-      ? shuqiLedgerMemoryPages(3).map((entry) => `${entry.title} · ${String(entry.rankTier || "c").toUpperCase()} 档 · ${entry.score} 分`).join("；")
-      : "";
-    const ledgerUsed = Boolean(ledgerTarget && Number(state.shopStats.seasonScoreBoosts?.[ledgerTarget.cycleKey] || 0) >= ledgerBonusRate);
-    const ledgerCard = document.createElement("div");
-    ledgerCard.className = "shop-season-card ledger";
-    ledgerCard.dataset.shopSeasonBoard = "ledger";
-    ledgerCard.innerHTML = `
-      <strong>书契账页批注</strong>
-      <span>${insight.headline}</span>
-      <small>${insight.diagnosis}</small>
-      <small>订单预判：${insight.forecast}</small>
-      ${shuqiStockWarningActive() ? `<small>${insight.stockAlert}</small><small>${insight.restock}</small>` : ""}
-      ${shuqiLegacyLedgerActive() ? `<small>旧账新编：手动誊写回忆页，可让${ledgerTarget?.pending ? "待领取" : "本季"}名铺结算分 +${Math.round(ledgerBonusRate * 100)}%。${ledgerPages ? ` 近三页：${ledgerPages}` : " 还没誊出第一页。"} </small>` : ""}
-      ${shuqiLegacyLedgerActive() ? `<button type="button" data-shuqi-ledger-page="true" ${!ledgerTarget || ledgerUsed ? "disabled" : ""}>${ledgerUsed ? "本季回忆页已誊好" : ledgerTarget?.pending ? "誊写本季回忆页" : "预写本季回忆页"}</button>` : ""}
-    `;
-    refs.shopReport.append(ledgerCard);
-  }
-  if (fengmiDessertQualityActive()) {
-    const dessertOrders = fengmiDessertOrdersCompleted();
-    const dessertCrafts = fengmiDessertCraftCount();
-    const dessertThemes = fengmiDessertThemeSessions();
-    const qualityRate = Number(fengmiDessertQualitySkill()?.effect_param_1 || 0.08);
-    const feastRate = Number(fengmiHoneyFeastSkill()?.effect_param_1 || 0.15);
-    const feastReady = fengmiHoneyFeastActive() && honeyTeaParty.lastHostedDay !== state.day;
-    const latestTeaParty = honeyTeaParty.history[0] || null;
-    const dessertOrderNames = fengmiDessertOrderTitles(2).join(" / ");
-    const dessertCraftNames = fengmiDessertCraftTitles(2).join(" / ");
-    const honeyCard = document.createElement("div");
-    honeyCard.className = "shop-season-card ledger";
-    honeyCard.dataset.shopSeasonBoard = "honey";
-    honeyCard.innerHTML = `
-      <strong>${fengmiHoneyFeastActive() ? "蜂蜜精百花茶会" : "蜂蜜精花蜜调和"}</strong>
-      <span>甜品单 ${dessertOrders} · 调蜜出锅 ${dessertCrafts} 次 · 甜系陈列 ${dessertThemes} 回</span>
-      <small>花蜜调和：甜品出锅额外声望 +1，甜品订单回款 +${Math.round(qualityRate * 100)}%。${dessertCraftNames ? ` 近来最香的两锅：${dessertCraftNames}。` : ""}</small>
-      <small>${dessertOrderNames ? `最近接住的甜单：${dessertOrderNames}。` : "还没把第一串甜单真正连起来，继续让花蜜和锅火多碰几次。"}${fengmiHoneyFeastActive() ? ` 百花茶会可让甜口顾客当日更容易成交 +${Math.round(feastRate * 100)}%。` : ""}</small>
-      ${fengmiHoneyFeastActive() ? `<small>${honeyTeaParty.lastHostedDay === state.day ? `今日茶会已开，甜口客多留住 ${honeyTeaParty.lastBoostedCustomers} 位，甜品成交 ${honeyTeaParty.lastDessertSales} 单。` : latestTeaParty ? `上次茶会在第 ${latestTeaParty.day} 天，请来了 ${latestTeaParty.spiritGuests || 0} 位精怪同席。` : "茶会席面已经齐了，只差你点头开席。"} </small>` : ""}
-      ${fengmiHoneyFeastActive() ? `<button type="button" data-fengmi-honey-feast="true" ${feastReady ? "" : "disabled"}>${honeyTeaParty.lastHostedDay === state.day ? "今日茶会已开" : "开百花茶会"}</button>` : ""}
-    `;
-    refs.shopReport.append(honeyCard);
-  }
-
-  for (const part of settlement.parts.slice(0, 4)) {
-    const row = document.createElement("div");
-    row.className = "shop-season-row";
-    row.innerHTML = `<span>${part.rule.display_name}<small>${part.rule.calc_formula} · ${part.rule.note}</small></span><strong>${Math.round(part.raw)}%</strong>`;
-    refs.shopReport.append(row);
-  }
-
-  if (state.shopStats.history.length > 0) {
-    const historyHeader = document.createElement("div");
-    historyHeader.className = "shop-season-card history";
-    historyHeader.innerHTML = "<strong>近三季回顾</strong><span>看清自己是怎么把旧铺一点点做成招牌的。</span>";
-    refs.shopReport.append(historyHeader);
-    for (const entry of state.shopStats.history.slice(0, 3)) {
-      const row = document.createElement("div");
-      row.className = "shop-season-row history";
-      row.innerHTML = `<span>${entry.seasonName}<small>${String(entry.rankTier).toUpperCase()} 档 · ${entry.weakPart || "无明显短板"} · ${entry.rewardClaimed ? "奖励已领取" : "奖励待领"}</small></span><strong>${entry.score}</strong>`;
-      refs.shopReport.append(row);
-    }
-  }
-
-  const orderHeader = document.createElement("div");
-  orderHeader.className = "shop-season-card orders";
-  orderHeader.dataset.shopSeasonBoard = "orders";
-  orderHeader.innerHTML = "<strong>第二年名铺订单预览</strong><span>长线经营做起来以后，订单会越来越像“谁会来找你做什么”。</span>";
-  refs.shopReport.append(orderHeader);
-
-  for (const order of year2OrderPreview()) {
-    const row = document.createElement("div");
-    const ecologyHint = orderEcologyHint(order, ecologyGarden);
-    row.className = `shop-season-row order${ecologyHint ? " ecology-match" : ""}`;
-    row.dataset.year2OrderId = order.order_id;
-    const needs = order.need_item_ids.split("|").slice(0, 3).map(itemName).join(" / ");
-    const needStatus = year2OrderNeedStatus(order);
-    const shuqiNote = shuqiLedgerInsightActive()
-      ? needStatus.completion >= 1
-        ? " · 书契批注：现成可接"
-        : ` · 书契批注：还差 ${needStatus.missing.slice(0, 2).join(" / ") || "补货"}`
-      : "";
-    row.innerHTML = `<span>${localize(order.order_name_key, order.order_id)}<small>${order.note} · ${needs}${shuqiNote}</small>${ecologyHint ? `<small>${ecologyHint}</small>` : ""}</span><strong>${order.reward_gold} 灵石</strong>`;
-    refs.shopReport.append(row);
-  }
+  renderShopSeasonPanelUi({
+    refs,
+    state,
+    data,
+    normalizeShopStats,
+    syncGoalBookState,
+    ecologyCourtyardSummary,
+    year2Unlocked,
+    syncFengmiTeaPartyState,
+    shopSeasonCycleInfo,
+    shopSeasonScore,
+    currentShopSeasonStats,
+    shopSeasonRank,
+    splitTags,
+    shopSeasonBuffText,
+    itemName,
+    customerDisplayName,
+    shopSeasonRewardText,
+    shopSeasonReviewRows,
+    shopSeasonTitle,
+    shopSeasonReviewMarkup,
+    activeShopCompendiumDisplays,
+    sellableInventoryGoods,
+    currentShelfTheme,
+    shopCompendiumDisplayEffect,
+    shopHotTag,
+    spiritLine,
+    rareSpiritEventReady,
+    bondLevelFor,
+    dengyingFestivalCustomerSkill,
+    currentTermId,
+    dengyingRevealCandidates,
+    dengyingRevealedRotation,
+    syncDengyingLanternState,
+    dengyingHiddenRevealReady,
+    dungeonName,
+    shuqiLedgerInsightActive,
+    shuqiLedgerInsight,
+    shuqiLegacyLedgerActive,
+    shuqiLegacyLedgerTarget,
+    shuqiSeasonScoreBonusSkill,
+    shuqiLedgerMemoryPages,
+    shuqiStockWarningActive,
+    fengmiDessertQualityActive,
+    fengmiDessertOrdersCompleted,
+    fengmiDessertCraftCount,
+    fengmiDessertThemeSessions,
+    fengmiDessertQualitySkill,
+    fengmiHoneyFeastSkill,
+    fengmiHoneyFeastActive,
+    fengmiDessertOrderTitles,
+    fengmiDessertCraftTitles,
+    year2OrderPreview,
+    orderEcologyHint,
+    year2OrderNeedStatus,
+    localize,
+  });
 }
 
 function render() {
@@ -102670,6 +100696,11 @@ function bindControls() {
     const rareSpiritIdentityPortraitTarget = rareSpiritIdentityPortraitWorldAtCanvasPoint(px, py);
     if (rareSpiritIdentityPortraitTarget) {
       focusRareSpiritIdentityPortraitFromCanvas(rareSpiritIdentityPortraitTarget);
+      return;
+    }
+    const rareSpiritMemoryCompassTarget = rareSpiritMemoryCompassWorldAtCanvasPoint(px, py);
+    if (rareSpiritMemoryCompassTarget) {
+      focusRareSpiritMemoryCompassWorldFromCanvas(rareSpiritMemoryCompassTarget);
       return;
     }
     const leizhuWindGuideTarget = leizhuWindGuideAtCanvasPoint(px, py);
@@ -102997,6 +101028,16 @@ function bindControls() {
       focusDungeonDayEchoWorldPlaqueFromCanvas(dungeonDayEchoWorldTarget);
       return;
     }
+    const finalBanquetAfterwordBridgeTarget = finalBanquetAfterwordBridgeWorldAtCanvasPoint(px, py);
+    if (isFinalBanquetAfterwordBridgeTarget(finalBanquetAfterwordBridgeTarget)) {
+      focusFinalBanquetAfterwordBridge(finalBanquetAfterwordBridgeTarget.focusNode?.key, finalBanquetAfterwordBridgeTarget);
+      return;
+    }
+    const year2OpeningTenDayTarget = year2OpeningTenDayWorldAtCanvasPoint(px, py);
+    if (isYear2OpeningTenDayTarget(year2OpeningTenDayTarget)) {
+      focusYear2OpeningTenDay(year2OpeningTenDayTarget.focusNode?.key, year2OpeningTenDayTarget);
+      return;
+    }
     const dungeonWorldChangeLandmarkTarget = dungeonWorldChangeLandmarkAtCanvasPoint(px, py);
     if (dungeonWorldChangeLandmarkTarget) {
       focusDungeonWorldChangeLandmarkFromCanvas(dungeonWorldChangeLandmarkTarget);
@@ -103292,6 +101333,26 @@ function bindControls() {
       focusShopFromCanvas(shopWordOfMouthMorningFollowupTarget);
       return;
     }
+    const shopThoughtRouteMorningFollowupTarget = shopThoughtRouteMorningFollowupWorldAtCanvasPoint(px, py);
+    if (shopThoughtRouteMorningFollowupTarget) {
+      focusShopFromCanvas(shopThoughtRouteMorningFollowupTarget);
+      return;
+    }
+    const shopThoughtRouteReadyMorningTarget = shopThoughtRouteReadyMorningWorldAtCanvasPoint(px, py);
+    if (shopThoughtRouteReadyMorningTarget) {
+      focusShopFromCanvas(shopThoughtRouteReadyMorningTarget);
+      return;
+    }
+    const shopThoughtRouteCaughtTarget = shopThoughtRouteCaughtWorldAtCanvasPoint(px, py);
+    if (shopThoughtRouteCaughtTarget) {
+      focusShopFromCanvas(shopThoughtRouteCaughtTarget);
+      return;
+    }
+    const shopThoughtRouteMissedTarget = shopThoughtRouteMissedWorldAtCanvasPoint(px, py);
+    if (shopThoughtRouteMissedTarget) {
+      focusShopFromCanvas(shopThoughtRouteMissedTarget);
+      return;
+    }
     const shopWordOfMouthRestockedMorningTarget = shopWordOfMouthRestockedMorningWorldAtCanvasPoint(px, py);
     if (shopWordOfMouthRestockedMorningTarget) {
       focusShopFromCanvas(shopWordOfMouthRestockedMorningTarget);
@@ -103525,9 +101586,15 @@ function bindControls() {
     const rareButton = event.target.closest("[data-rare-spirit-event]");
     const jobGoalButton = event.target.closest("[data-spirit-job-goal]");
     const jobTaskButton = event.target.closest("[data-spirit-job-task]");
+    const missionCodexFocusButton = event.target.closest("[data-mission-codex-focus]");
+    const missionCodexRouteButton = event.target.closest("[data-mission-codex-route]");
+    const finalBanquetAfterwordButton = event.target.closest("[data-final-banquet-afterword-node]");
+    const year2OpeningButton = event.target.closest("[data-year2-opening-node]");
     const year2GoalButton = event.target.closest("[data-year2-goal]");
     const year2RecommendButton = event.target.closest("[data-year2-recommend-focus]");
     const freeplayGoalButton = event.target.closest("[data-freeplay-goal]");
+    const freeplayGoalRouteButton = event.target.closest("[data-freeplay-goal-route]");
+    const freeplayGuideButton = event.target.closest("[data-freeplay-guide-action]");
     const postMainlineGoalRouteButton = event.target.closest("[data-post-mainline-goal-route]");
     const ecologyGoalButton = event.target.closest("[data-ecology-goal]");
     const ecologyInspectionConfirmButton = event.target.closest("[data-ecology-inspection-confirm]");
@@ -103542,8 +101609,14 @@ function bindControls() {
     const dungeonEchoArchiveButton = event.target.closest("[data-dungeon-echo-archive]");
     const lifeCodexFilterButton = event.target.closest("[data-life-codex-filter]");
     const lifeCodexFocusButton = event.target.closest("[data-life-codex-focus]");
+    const seasonalGuideFocusButton = event.target.closest("[data-seasonal-crop-guide-focus]");
+    if (missionCodexFocusButton) return focusMissionCropCodex(missionCodexFocusButton.dataset.missionCodexFocus);
+    if (missionCodexRouteButton) return focusMissionCropCodexAction(missionCodexRouteButton.dataset.missionCodexRoute, missionCodexRouteButton.dataset.missionCodexAction);
+    if (finalBanquetAfterwordButton) return focusFinalBanquetAfterwordBridge(finalBanquetAfterwordButton.dataset.finalBanquetAfterwordNode);
+    if (year2OpeningButton) return focusYear2OpeningTenDay(year2OpeningButton.dataset.year2OpeningNode);
     if (lifeCodexFilterButton) return setLifeCodexFilter(lifeCodexFilterButton.dataset.lifeCodexFilter);
     if (lifeCodexFocusButton) return focusLifeCodexTarget(lifeCodexFocusButton.dataset.lifeCodexLine, lifeCodexFocusButton.dataset.lifeCodexFocus);
+    if (seasonalGuideFocusButton) return focusSeasonalCropGuideCard(seasonalGuideFocusButton.dataset.seasonalCropGuideFocus, seasonalGuideFocusButton.dataset.seasonalCropGuideSource || "stamp");
     if (uiPressureButton) return focusUiPressureRelief(uiPressureButton.dataset.uiPressureFocus);
     if (earlyCadenceButton) return focusEarlyRewardCadenceAudit();
     if (careChainJournalButton) return focusCareChainRecentEvent("journal", careChainJournalButton.dataset.careChainJournalEvent || "");
@@ -103556,6 +101629,10 @@ function bindControls() {
     if (solarMoodStampButton) return focusSolarTermMoodStampArchive(solarMoodStampButton.dataset.solarMoodStamp);
     if (dailyIntentJournalButton) return focusDailyIntentJournalAction(dailyIntentJournalButton.dataset.dailyIntentJournalKey, dailyIntentJournalButton.dataset.dailyIntentJournalAction);
     if (postMainlineGoalRouteButton) return focusPostMainlineTenHourGoalEvidence();
+    const postMainlineRhythmButton = event.target.closest("[data-post-mainline-rhythm-focus]");
+    if (postMainlineRhythmButton) return focusPostMainlineRhythmGoal(postMainlineRhythmButton.dataset.postMainlineRhythmFocus);
+    if (freeplayGuideButton) return handleFreeplayGuideAction(freeplayGuideButton.dataset.freeplayGuideAction);
+    if (freeplayGoalRouteButton) return focusFreeplayGoalRoute(freeplayGoalRouteButton.dataset.freeplayGoalRoute);
     if (year2RecommendButton) return focusYear2TodayRecommendation(year2RecommendButton.dataset.year2RecommendFocus);
     if (year2GoalButton) claimYear2Goal(year2GoalButton.dataset.year2Goal);
     if (freeplayGoalButton) claimFreeplayGoal(freeplayGoalButton.dataset.freeplayGoal);
@@ -103570,6 +101647,8 @@ function bindControls() {
     const mainStoryClearButton = event.target.closest("[data-main-story-clear-focus]");
     const dailyIntentButton = event.target.closest("[data-daily-intent-action]");
     const dailyIntentMicroButton = event.target.closest("[data-daily-intent-micro-task]");
+    const missionCodexFocusButton = event.target.closest("[data-mission-codex-focus]");
+    const missionCodexRouteButton = event.target.closest("[data-mission-codex-route]");
     const sideQuestActionButton = event.target.closest("[data-side-quest-action]");
     const sideQuestRouteButton = event.target.closest("[data-side-quest-route]");
     const shopTownErrandButton = event.target.closest("[data-shop-town-errand-action]");
@@ -103578,6 +101657,8 @@ function bindControls() {
     const yearOneRhythmButton = event.target.closest("[data-year-one-rhythm-focus]");
     if (storyCompassButton) return runStoryCompassAction();
     if (mainStoryClearButton) return focusMainStoryFullClearEvidence();
+    if (missionCodexFocusButton) return focusMissionCropCodex(missionCodexFocusButton.dataset.missionCodexFocus);
+    if (missionCodexRouteButton) return focusMissionCropCodexAction(missionCodexRouteButton.dataset.missionCodexRoute, missionCodexRouteButton.dataset.missionCodexAction);
     if (yearOneRhythmClaimButton) return claimYearOneRhythmCheckpoint(yearOneRhythmClaimButton.dataset.yearOneRhythmClaim);
     if (yearOneRhythmGapButton) return focusYearOneRhythmRequirementGap(yearOneRhythmGapButton.dataset.yearOneRhythmStage, yearOneRhythmGapButton.dataset.yearOneRhythmGap);
     if (yearOneRhythmButton) return focusYearOneRhythmPanelCheckpoint(yearOneRhythmButton.dataset.yearOneRhythmFocus);
@@ -103615,17 +101696,25 @@ function bindControls() {
     const weatherLifeButton = event.target.closest("[data-day-summary-weather-life]");
     const townWeatherButton = event.target.closest("[data-day-summary-town-weather]");
     const townWeatherErrandButton = event.target.closest("[data-day-summary-town-weather-errand]");
+    const postMainlineRhythmSummaryButton = event.target.closest("[data-day-summary-post-mainline-rhythm-focus]");
+    const postMainlineEveningButton = event.target.closest("[data-day-summary-post-mainline-evening-action]");
+    const postMainlineLongTailButton = event.target.closest("[data-day-summary-post-mainline-longtail-action]");
     const spiritSeasonalButton = event.target.closest("[data-day-summary-spirit-seasonal]");
     const rareTheaterSummaryButton = event.target.closest("[data-day-summary-rare-theater]");
     const shopCustomerLessonButton = event.target.closest("[data-day-summary-shop-customer-lesson]");
     const dungeonEchoButton = event.target.closest("[data-day-summary-dungeon-echo]");
     const careChainRecentButton = event.target.closest("[data-care-chain-recent-event]");
     const canalPlanButton = event.target.closest("[data-day-summary-canal-plan]");
+    const automationLedgerButton = event.target.closest("[data-day-summary-automation-line]");
     if (careChainRecentButton) return focusCareChainRecentEvent("summary");
     if (canalPlanButton) return focusCanalDaySummaryPlan(canalPlanButton.dataset.daySummaryCanalPlan);
+    if (automationLedgerButton) return focusDaySummaryAutomationLedger(automationLedgerButton.dataset.daySummaryAutomationLine);
     if (dungeonEchoButton) return focusDaySummaryDungeonEcho(dungeonEchoButton.dataset.daySummaryDungeonEcho);
     if (shopCustomerLessonButton) return focusDaySummaryShopCustomerLesson(shopCustomerLessonButton.dataset.daySummaryShopCustomerLesson);
     if (rareTheaterSummaryButton) return replayRareSpiritTheaterFromSummary(rareTheaterSummaryButton.dataset.daySummaryRareTheater);
+    if (postMainlineLongTailButton) return focusPostMainlineLongTailResonance(postMainlineLongTailButton.dataset.daySummaryPostMainlineLongtailAction);
+    if (postMainlineEveningButton) return focusPostMainlineEveningEcho(postMainlineEveningButton.dataset.daySummaryPostMainlineEveningAction);
+    if (postMainlineRhythmSummaryButton) return focusPostMainlineRhythmGoal(postMainlineRhythmSummaryButton.dataset.daySummaryPostMainlineRhythmFocus);
     if (spiritSeasonalButton) return focusDaySummarySpiritSeasonalWork(spiritSeasonalButton.dataset.daySummarySpiritSeasonal);
     if (townWeatherErrandButton) return focusDaySummaryTownWeather(townWeatherErrandButton.dataset.daySummaryTownWeatherErrand);
     if (townWeatherButton) return focusDaySummaryTownWeather(townWeatherButton.dataset.daySummaryTownWeather);
@@ -103815,6 +101904,13 @@ function bindControls() {
       shopTag: weatherRouteButton.dataset.shopWeatherTag,
       itemId: weatherRouteButton.dataset.shopWeatherItem,
     });
+    const thoughtShelfRouteButton = event.target.closest("[data-shop-thought-shelf-route]");
+    if (thoughtShelfRouteButton) return focusShopThoughtShelfBridgeRoute(thoughtShelfRouteButton.dataset.shopThoughtShelfRoute, {
+      recipeId: thoughtShelfRouteButton.dataset.shopThoughtShelfRecipe,
+      seedId: thoughtShelfRouteButton.dataset.shopThoughtShelfSeed,
+      shopTag: thoughtShelfRouteButton.dataset.shopThoughtShelfTag,
+      itemId: thoughtShelfRouteButton.dataset.shopThoughtShelfItem,
+    });
     const restockRouteButton = event.target.closest("[data-shop-restock-route]");
     if (restockRouteButton) return focusShopRestockRoute(restockRouteButton.dataset.shopRestockRoute, {
       recipeId: restockRouteButton.dataset.shopRestockRecipe,
@@ -103845,7 +101941,11 @@ function bindControls() {
     if (button) resolveRisk(button.dataset.riskId);
   });
   refs.termPanel.addEventListener("click", (event) => {
+    const seasonalGuideFocusButton = event.target.closest("[data-seasonal-crop-guide-focus]");
+    const seasonalGuideActionButton = event.target.closest("[data-seasonal-crop-action]");
     const moodButton = event.target.closest("[data-solar-term-mood-action]");
+    if (seasonalGuideFocusButton) return focusSeasonalCropGuideCard(seasonalGuideFocusButton.dataset.seasonalCropGuideFocus, seasonalGuideFocusButton.dataset.seasonalCropGuideSource || "term");
+    if (seasonalGuideActionButton) return focusSeasonalCropGuideAction(seasonalGuideActionButton.dataset.seasonalCropAction, seasonalGuideActionButton.dataset.seasonalCropGuide);
     if (moodButton) {
       recordSolarTermMoodPanelRoute(
         moodButton.dataset.solarTermMoodRoute,
@@ -103858,6 +101958,8 @@ function bindControls() {
     if (plotButton) return focusSolarFieldBoardPlot(plotButton.dataset.solarFieldPlot);
   });
   refs.solarTrialPanel.addEventListener("click", (event) => {
+    const seasonalGuideFocusButton = event.target.closest("[data-seasonal-crop-guide-focus]");
+    if (seasonalGuideFocusButton) return focusSeasonalCropGuideCard(seasonalGuideFocusButton.dataset.seasonalCropGuideFocus, seasonalGuideFocusButton.dataset.seasonalCropGuideSource || "year2_goal");
     const actionButton = event.target.closest("[data-solar-trial-action]");
     if (actionButton) return advanceSolarTrialAction(actionButton.dataset.solarTrialId, actionButton.dataset.solarTrialAction);
     const button = event.target.closest("[data-solar-trial]");
@@ -103876,8 +101978,10 @@ function bindControls() {
     if (overlayButton) requestSteamOverlay(overlayButton.dataset.platformOverlay);
   });
   refs.dungeonPanel.addEventListener("click", (event) => {
+    const seasonPrimerButton = event.target.closest("[data-dungeon-season-primer]");
     const enterButton = event.target.closest("[data-dungeon-enter]");
     const actionButton = event.target.closest("[data-dungeon-action]");
+    if (seasonPrimerButton) return focusDungeonSeasonPrimer(seasonPrimerButton.dataset.dungeonSeasonPrimer);
     if (enterButton) startDungeon(enterButton.dataset.dungeonEnter);
     if (!actionButton) return;
     if (actionButton.dataset.dungeonAction === "attune") useDungeonMechanicAction();
@@ -103886,9 +101990,13 @@ function bindControls() {
     if (actionButton.dataset.dungeonAction === "leave") leaveDungeon();
   });
   refs.buildPanel.addEventListener("click", (event) => {
+    const focusButton = event.target.closest("[data-build-focus]");
+    const costFocusButton = event.target.closest("[data-build-cost-focus]");
     const button = event.target.closest("[data-build-id]");
     const queueButton = event.target.closest("[data-workshop-queue]");
     const pondButton = event.target.closest("[data-pond-action]");
+    if (focusButton) return focusBuildStructure(focusButton.dataset.buildFocus);
+    if (costFocusButton) return focusBuildCostSource(costFocusButton.dataset.buildCostFocus, costFocusButton.dataset.buildCostBuilding);
     if (button) buildStructure(button.dataset.buildId);
     if (queueButton) queueWorkshopRecipe();
     if (!pondButton) return;

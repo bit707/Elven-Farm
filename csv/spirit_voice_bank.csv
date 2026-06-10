@@ -17,3 +17,21 @@ voice_yunshu_final_01,spirit_yunshu_03,final,has_faction_order_active,voice_yuns
 voice_bucao_idle_01,spirit_bucao_01,idle,always_true,voice_bucao_idle_01,10,needle hum
 voice_bucao_work_01,spirit_bucao_02,work,always_true,voice_bucao_work_01,8,cloth wrap
 voice_bucao_final_01,spirit_bucao_03,final,quest_main_0403_active,voice_bucao_final_01,6,banquet finish
+voice_hualing_idle_01,spirit_line_hualing,idle,always_true,voice_hualing_idle_01,10,rare flower-bell idle
+voice_hualing_work_01,spirit_line_hualing,work,always_true,voice_hualing_work_01,8,rare flower-bell greeting
+voice_hualing_happy_01,spirit_line_hualing,happy,always_true,voice_hualing_happy_01,8,rare flower-bell return guest
+voice_leizhu_idle_01,spirit_line_leizhu,idle,always_true,voice_leizhu_idle_01,10,rare thunder-bamboo idle
+voice_leizhu_work_01,spirit_line_leizhu,work,always_true,voice_leizhu_work_01,8,rare thunder-bamboo escort
+voice_leizhu_happy_01,spirit_line_leizhu,happy,always_true,voice_leizhu_happy_01,8,rare thunder-bamboo smooth route
+voice_yuelian_idle_01,spirit_line_yuelian,idle,always_true,voice_yuelian_idle_01,10,rare moon-lotus idle
+voice_yuelian_work_01,spirit_line_yuelian,work,always_true,voice_yuelian_work_01,8,rare moon-lotus respite
+voice_yuelian_happy_01,spirit_line_yuelian,happy,always_true,voice_yuelian_happy_01,8,rare moon-lotus calm night
+voice_dengying_idle_01,spirit_line_dengying,idle,always_true,voice_dengying_idle_01,10,rare lamp-shadow idle
+voice_dengying_work_01,spirit_line_dengying,work,always_true,voice_dengying_work_01,8,rare lamp-shadow scouting
+voice_dengying_happy_01,spirit_line_dengying,happy,always_true,voice_dengying_happy_01,8,rare lamp-shadow lantern road
+voice_shuqi_idle_01,spirit_line_shuqi,idle,always_true,voice_shuqi_idle_01,10,rare ledger-sprite idle
+voice_shuqi_work_01,spirit_line_shuqi,work,always_true,voice_shuqi_work_01,8,rare ledger-sprite stock warning
+voice_shuqi_happy_01,spirit_line_shuqi,happy,always_true,voice_shuqi_happy_01,8,rare ledger-sprite smooth books
+voice_fengmi_idle_01,spirit_line_fengmi,idle,always_true,voice_fengmi_idle_01,10,rare honey-sprite idle
+voice_fengmi_work_01,spirit_line_fengmi,work,always_true,voice_fengmi_work_01,8,rare honey-sprite blending
+voice_fengmi_happy_01,spirit_line_fengmi,happy,always_true,voice_fengmi_happy_01,8,rare honey-sprite feast warmth
