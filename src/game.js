@@ -26,6 +26,7 @@ import {
 } from "./game/world/background-world.js";
 import {
   drawSpiritAuraWorld,
+  drawSpiritCompanionCareHintWorld,
   drawSpiritCropScoutWorldWorld,
   drawSpiritDailyChorePropWorld,
   drawSpiritJobEffectWorld,
@@ -76904,64 +76905,14 @@ function drawSpiritCareNeedWorldBoard(ctx, spec = spiritCareNeedWorldBoardSpec(c
 function drawSpiritCompanionCareHint(ctx, spirit, station, index = 0) {
   const care = spiritCompanionCanvasSpec(spirit);
   const motion = settings.reducedMotion ? 0 : performance.now() / 520 + index * 0.7;
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion) * 3;
-  const centerX = station.x + station.size * 0.54;
-  const centerY = station.y + station.size * 0.58;
-  const shouldShowBadge = care.tone !== "good" || care.status === "还在熟悉你" || care.rareMoment;
-
-  ctx.save();
-  ctx.fillStyle = care.halo;
-  ctx.beginPath();
-  ctx.ellipse(centerX, centerY + station.size * 0.28, station.size * 0.44 + pulse, station.size * 0.16 + pulse / 3, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  if (!shouldShowBadge) {
-    ctx.strokeStyle = care.stroke;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(centerX + station.size * 0.36, station.y + station.size * 0.18 + pulse, 7, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-    return;
-  }
-
-  const width = care.label.length > 5 ? 122 : 104;
-  const x = Math.max(12, Math.min(ctx.canvas.width - width - 12, station.x + station.size * 0.2));
-  const y = Math.max(18, station.y + station.size * 0.82 + pulse);
-  drawCanvasCard(ctx, x, y, width, 42, care.fill);
-  ctx.fillStyle = care.color;
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(care.label.slice(0, 8), x + 12, y + 17);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(care.detail.slice(0, 9), x + 12, y + 33);
-
-  ctx.fillStyle = care.mark;
-  const iconX = x + width - 22;
-  const iconY = y + 14;
-  if (care.tone === "rare") {
-    ctx.beginPath();
-    ctx.moveTo(iconX, iconY - 7);
-    ctx.lineTo(iconX + 8, iconY + 2);
-    ctx.lineTo(iconX + 1, iconY + 11);
-    ctx.lineTo(iconX - 7, iconY + 2);
-    ctx.closePath();
-    ctx.fill();
-  } else if (care.tone === "need") {
-    ctx.beginPath();
-    ctx.arc(iconX, iconY + 2, 7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
-    ctx.fillRect(iconX - 4, iconY, 8, 2);
-  } else {
-    ctx.beginPath();
-    ctx.arc(iconX - 4, iconY, 5, 0, Math.PI * 2);
-    ctx.arc(iconX + 4, iconY, 5, 0, Math.PI * 2);
-    ctx.moveTo(iconX - 9, iconY + 3);
-    ctx.quadraticCurveTo(iconX, iconY + 13, iconX + 9, iconY + 3);
-    ctx.fill();
-  }
-  ctx.restore();
+  return drawSpiritCompanionCareHintWorld({
+    ctx,
+    care,
+    station,
+    motion,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+  });
 }
 
 function drawSpiritIdentityMemoryNameplate(ctx, spirit, station, index = 0) {
