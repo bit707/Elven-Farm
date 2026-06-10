@@ -449,3 +449,78 @@ export function drawSpiritWorldLifeStatusWorld({
   ctx.restore();
   return true;
 }
+
+export function drawSpiritDailyChorePropWorld({
+  ctx,
+  chore = null,
+  station = null,
+  index = 0,
+  motion = 0,
+  reducedMotion = false,
+} = {}) {
+  if (!ctx || !chore || !station) return false;
+  const palette = {
+    water: { fill: "rgba(232, 246, 242, 0.9)", stroke: "#4d91a6", text: "#286f58" },
+    ember: { fill: "rgba(255, 240, 232, 0.9)", stroke: "#be4f37", text: "#8f5f3f" },
+    gold: { fill: "rgba(255, 248, 232, 0.92)", stroke: "#b47d2f", text: "#8f5f3f" },
+    jade: { fill: "rgba(237, 243, 223, 0.9)", stroke: "#286f58", text: "#286f58" },
+    sky: { fill: "rgba(232, 246, 242, 0.88)", stroke: "#4d91a6", text: "#286f58" },
+    flower: { fill: "rgba(255, 242, 238, 0.9)", stroke: "#d87f8d", text: "#8f5f3f" },
+  };
+  const colors = palette[chore.tone] || palette.jade;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.1) * 2;
+  const cardWidth = chore.seasonal ? 138 : 116;
+  const x = Math.max(12, Math.min(ctx.canvas.width - cardWidth - 2, station.x - 8 + (index % 2) * 22));
+  const y = Math.max(20, station.y + station.size * 0.58 + pulse);
+
+  ctx.save();
+  ctx.fillStyle = colors.fill;
+  ctx.strokeStyle = colors.stroke;
+  ctx.lineWidth = 1.7;
+  ctx.beginPath();
+  ctx.roundRect(x, y, cardWidth, 38, 14);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = `${colors.stroke}24`;
+  ctx.beginPath();
+  ctx.arc(x + 20, y + 19, 14 + pulse, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = colors.stroke;
+  ctx.font = "900 13px Microsoft YaHei";
+  ctx.fillText(chore.glyph.slice(0, 1), x + 15, y + 24);
+  ctx.fillStyle = colors.text;
+  ctx.font = "700 10px Microsoft YaHei";
+  ctx.fillText(chore.prop.slice(0, 6), x + 38, y + 16);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText(chore.action.slice(0, 8), x + 38, y + 30);
+
+  if (chore.seasonal) {
+    const seasonalTone = chore.seasonal.tone || "clear";
+    const seasonalColor = seasonalTone.includes("rain") ? "#4d91a6"
+      : seasonalTone.includes("heat") ? "#be4f37"
+        : seasonalTone.includes("cold") ? "#8f5f3f"
+          : seasonalTone.includes("mist") ? "#5d6f65"
+            : seasonalTone.includes("dew") ? "#286f58"
+              : "#b47d2f";
+    ctx.fillStyle = `${seasonalColor}22`;
+    ctx.beginPath();
+    ctx.roundRect(x + cardWidth - 42, y + 7, 32, 24, 9);
+    ctx.fill();
+    ctx.strokeStyle = `${seasonalColor}66`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.fillStyle = seasonalColor;
+    ctx.font = "900 11px Microsoft YaHei";
+    ctx.fillText(chore.seasonal.glyph.slice(0, 1), x + cardWidth - 33, y + 23);
+  }
+
+  if (chore.rareMoment || chore.synergy) {
+    ctx.fillStyle = chore.rareMoment ? "#d87f8d" : "#e0b66d";
+    ctx.beginPath();
+    ctx.arc(x + 104, y + 10, 4 + pulse * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+  return true;
+}
