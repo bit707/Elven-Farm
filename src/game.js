@@ -133,6 +133,8 @@ import {
   drawShopCustomerReasonCompassWorldWorld,
   drawShopDiagnosisWorldBoardWorld,
   drawShopThoughtBubbleChainWorldWorld,
+  shopCustomerReasonCompassWorldAtCanvasPointWorld,
+  shopCustomerReasonCompassWorldSpecWorld,
   shopDiagnosisWorldBoardAtCanvasPointWorld,
   shopDiagnosisWorldBoardSpecWorld,
 } from "./game/world/shop-analysis-world.js";
@@ -32384,42 +32386,21 @@ function shopCustomerReasonCompassWorldSpec(
   journey = shopCustomerJourneySpec(),
   diagnosis = shopDiagnosisWorldBoardSpec(),
 ) {
-  if (!lesson?.active) return null;
-  const buyCard = lesson.cards?.find((card) => card.key === "buy_reason") || lesson.cards?.[0] || null;
-  const hesitateCard = lesson.cards?.find((card) => card.key === "hesitate_reason") || lesson.cards?.[1] || null;
-  const fixCard = lesson.cards?.find((card) => card.key === "tomorrow_fix") || lesson.cards?.[2] || null;
-  return {
-    key: `${lesson.key}:reason_compass`,
+  return shopCustomerReasonCompassWorldSpecWorld({
+    lesson,
+    journey,
+    diagnosis,
     day: state.day,
-    title: "顾客三因罗盘 · 可点",
-    headline: lesson.headline || "把旧铺顾客三因复盘成一张能回看的罗盘。",
-    selector: '[data-shop-board="reason-cards"]',
-    fallbackSelector: '[data-shop-board="customer-journey"]',
-    rect: { x: 696, y: 338, width: 214, height: 126 },
-    anchor: { x: 640, y: 402 },
-    rows: [
-      { key: "buy", title: "为什么买", text: buyCard?.body || lesson.reviewLine || "先把最有力的成交原因说清楚。", accent: "#286f58" },
-      { key: "hesitate", title: "为什么犹豫/离店", text: hesitateCard?.body || lesson.blockerLine || journey?.blockerText || "把离店短板钉在旧铺报告上。", accent: "#be4f37" },
-      { key: "fix", title: "明日怎么改", text: fixCard?.body || diagnosis?.nextAction || lesson.nextAction || "先改最明显的一处短板。", accent: "#b47d2f" },
-    ],
-    safety: "只定位旧铺三因复盘、顾客旅线和诊断牌，不会自动开铺、调价、补货、成交、交单或消耗资源",
-  };
+  });
 }
 
 function shopCustomerReasonCompassWorldAtCanvasPoint(px, py) {
   const spec = shopCustomerReasonCompassWorldSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? {
-      type: "customer_reason_compass",
-      label: spec.title,
-      selector: spec.selector,
-      fallbackSelector: spec.fallbackSelector,
-      customerReasonCompass: spec,
-      rect,
-    }
-    : null;
+  return shopCustomerReasonCompassWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec,
+  });
 }
 
 const SHOP_THOUGHT_BUBBLE_POSITIONS = [
