@@ -337,3 +337,181 @@ export function drawPlantingAftercareWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function manualWaterAfterglowSafetyTextWorld() {
+  return "只定位已润田块和入夜按钮，不会自动入夜、浇水、收获、推进天数、扣除体力或消耗资源";
+}
+
+export function manualWaterAfterglowFeedbackSpecWorld({
+  plot = null,
+  crop = null,
+  day = 1,
+  itemName = (itemId) => itemId,
+} = {}) {
+  if (!plot?.cropId) return null;
+  const growDays = Number(crop?.grow_days || 1);
+  const age = Math.max(0, Number(day || 1) - Number(plot.plantedDay || day || 1));
+  const remaining = plot.mature ? 0 : Math.max(0, growDays - age);
+  return {
+    key: `${day}:${plot.x}_${plot.y}:${plot.cropId}:manual_water_afterglow`,
+    day,
+    plot: { x: plot.x, y: plot.y },
+    cropId: plot.cropId,
+    cropName: itemName(plot.cropId),
+    seedId: plot.seedItemId || crop?.seed_item_id || "",
+    growDays,
+    age,
+    remaining,
+    routeText: "水痕已稳 -> 手动入夜 -> 明晨长势",
+    safety: manualWaterAfterglowSafetyTextWorld(),
+  };
+}
+
+export function manualWaterAfterglowWorldSpecWorld({
+  width = 960,
+  height = 640,
+  feedback = null,
+  day = 1,
+  metrics = null,
+  plot = null,
+} = {}) {
+  if (!feedback?.plot || feedback.day !== day || !metrics) return null;
+  if (!plot?.cropId || plot.cropId !== feedback.cropId || !plot.watered) return null;
+  const plotRect = {
+    x: metrics.originX + plot.x * (metrics.tile + metrics.gap),
+    y: metrics.originY + plot.y * (metrics.tile + metrics.gap),
+    width: metrics.tile,
+    height: metrics.tile,
+  };
+  const cardWidth = 300;
+  const cardHeight = 108;
+  const cardX = Math.max(30, Math.min(width - cardWidth - 28, plotRect.x - cardWidth - 30));
+  const cardY = Math.max(128, Math.min(height - cardHeight - 30, plotRect.y + 14));
+  return {
+    ...feedback,
+    key: `${feedback.key}:${plot.mature ? "mature" : "growing"}`,
+    mature: Boolean(plot.mature),
+    action: plot.mature ? "明晨可收" : "手动入夜",
+    selector: plot.mature ? "#harvestButton" : "#sleepButton",
+    fallbackSelector: "#selectedPlotCard",
+    rect: { x: cardX, y: cardY, width: cardWidth, height: cardHeight },
+    plotRect,
+    anchor: { x: plotRect.x + plotRect.width / 2, y: plotRect.y + plotRect.height * 0.62 },
+  };
+}
+
+export function manualWaterAfterglowWorldAtCanvasPointWorld({ px, py, spec = null } = {}) {
+  if (!spec?.rect || !spec.plotRect) return null;
+  const { rect, plotRect } = spec;
+  const onCard = px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
+  const onPlot = px >= plotRect.x && px <= plotRect.x + plotRect.width && py >= plotRect.y && py <= plotRect.y + plotRect.height;
+  return onCard || onPlot ? spec : null;
+}
+
+export function drawManualWaterAfterglowWorldWorld({
+  ctx,
+  spec = null,
+  focus = null,
+  day = 1,
+  reducedMotion = false,
+  motion = performance.now() / 1000,
+  drawCanvasCard,
+} = {}) {
+  if (!spec?.rect || !spec.plotRect || !drawCanvasCard) return false;
+  const { rect, plotRect, anchor } = spec;
+  const active = focus?.day === day && focus?.key === spec.key;
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.85) * 2;
+  const ripple = reducedMotion ? 0.5 : (Math.sin(motion * 2.8) + 1) / 2;
+  const accent = "#4d91a6";
+  const cardY = rect.y + bob;
+
+  ctx.save();
+  ctx.fillStyle = `rgba(159, 209, 223, ${0.18 + ripple * 0.12})`;
+  ctx.beginPath();
+  ctx.roundRect(plotRect.x + 8, plotRect.y + 8, plotRect.width - 16, plotRect.height - 16, 14);
+  ctx.fill();
+  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.9)" : "rgba(77, 145, 166, 0.68)";
+  ctx.lineWidth = active ? 3 : 2;
+  ctx.beginPath();
+  ctx.ellipse(anchor.x, anchor.y + 10, plotRect.width * (0.22 + ripple * 0.06), plotRect.height * 0.1, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(246, 240, 182, 0.58)";
+  ctx.lineWidth = 1.6;
+  for (let i = 0; i < 3; i += 1) {
+    ctx.beginPath();
+    ctx.arc(anchor.x, anchor.y + 10, 12 + i * 9 + ripple * 4, 0.08 * Math.PI, 0.92 * Math.PI);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.86)" : "rgba(77, 145, 166, 0.62)";
+  ctx.lineWidth = active ? 2.7 : 1.7;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 11;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x - 16, anchor.y + 4);
+  ctx.quadraticCurveTo((anchor.x + rect.x + rect.width) / 2, cardY + rect.height + 28, rect.x + rect.width - 34, cardY + rect.height - 12);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(240, 248, 242, 0.96)");
+  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.92)" : "rgba(77, 145, 166, 0.72)";
+  ctx.lineWidth = active ? 2.5 : 1.4;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(77, 145, 166, 0.18)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, cardY + 16, 56, 48, 16);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 21px Microsoft YaHei";
+  ctx.fillText("水", rect.x + 34, cardY + 49);
+  ctx.fillStyle = accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText("补水润田入夜签 · 可点", rect.x + 86, cardY + 24);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(`${spec.cropName}水痕已稳`.slice(0, 18), rect.x + 86, cardY + 46);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText(`生长 ${spec.age}/${spec.growDays} 夜 · ${spec.action}`.slice(0, 34), rect.x + 86, cardY + 62);
+
+  const steps = [
+    { title: "水痕", value: "已稳", color: "#4d91a6" },
+    { title: "入夜", value: "手动", color: "#8f5f3f" },
+    { title: "明晨", value: spec.mature ? "可收" : `${spec.remaining}夜`, color: "#286f58" },
+  ];
+  steps.forEach((step, index) => {
+    const stepX = rect.x + 18 + index * 92;
+    const stepY = cardY + 76;
+    ctx.fillStyle = `${step.color}1b`;
+    ctx.beginPath();
+    ctx.roundRect(stepX, stepY, 82, 21, 10);
+    ctx.fill();
+    ctx.fillStyle = step.color;
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(step.title, stepX + 8, stepY + 9);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "800 8px Microsoft YaHei";
+    ctx.fillText(String(step.value || "").slice(0, 8), stepX + 8, stepY + 18);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 18, cardY + rect.height - 15, rect.width - 36, 11, 6);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText(`${spec.routeText} · ${spec.safety}`.slice(0, 48), rect.x + 26, cardY + rect.height - 7);
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + rect.width - 50, cardY + 13, 36, 18, 9);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText("可点", rect.x + rect.width - 42, cardY + 26);
+  ctx.restore();
+  return true;
+}
