@@ -452,3 +452,112 @@ export function drawSpiritAssistNineGridActionWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function drawSpiritAssistSavingsLedgerWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  bob = 0,
+  active = false,
+  activePlotKey = "",
+  activeRowKey = "",
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec?.points?.length || !spec?.profile || !spec?.anchor || !spec?.rows?.length) return false;
+  const { rect, profile, rows } = spec;
+  const accent = profile?.accent || "#4d91a6";
+
+  ctx.save();
+
+  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.86)" : "rgba(77, 145, 166, 0.44)";
+  ctx.lineWidth = active ? 2.8 : 1.8;
+  ctx.setLineDash([6, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 12;
+  ctx.beginPath();
+  ctx.moveTo(spec.anchor.x, spec.anchor.y + 8);
+  ctx.quadraticCurveTo((spec.anchor.x + rect.x) / 2, rect.y + rect.height + 22 + bob, rect.x + 34, rect.y + rect.height - 14 + bob);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  spec.points.forEach((point, index) => {
+    const focused = active && activePlotKey === `${point.x},${point.y}`;
+    const shimmer = reducedMotion ? 0.5 : (Math.sin(motion * 2.8 + index * 0.6) + 1) / 2;
+    ctx.fillStyle = focused ? "rgba(255, 253, 245, 0.36)" : `rgba(159, 209, 223, ${0.14 + shimmer * 0.12})`;
+    ctx.beginPath();
+    ctx.roundRect(point.rect.x + 12, point.rect.y + 12, point.rect.width - 24, point.rect.height - 24, 12);
+    ctx.fill();
+    ctx.strokeStyle = focused ? "rgba(224, 182, 109, 0.82)" : "rgba(77, 145, 166, 0.36)";
+    ctx.lineWidth = focused ? 2.4 : 1.4;
+    ctx.beginPath();
+    ctx.ellipse(point.screenX, point.screenY + 14, point.rect.width * 0.2, point.rect.height * 0.07, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  });
+
+  if (spec.nextPlot) {
+    const focused = active && activePlotKey === `${spec.nextPlot.x},${spec.nextPlot.y}`;
+    ctx.fillStyle = focused ? "rgba(255, 248, 232, 0.32)" : "rgba(190, 79, 55, 0.12)";
+    ctx.beginPath();
+    ctx.roundRect(spec.nextPlot.rect.x + 7, spec.nextPlot.rect.y + 7, spec.nextPlot.rect.width - 14, spec.nextPlot.rect.height - 14, 12);
+    ctx.fill();
+    ctx.strokeStyle = focused ? "rgba(190, 79, 55, 0.86)" : "rgba(190, 79, 55, 0.42)";
+    ctx.lineWidth = focused ? 2.6 : 1.5;
+    ctx.beginPath();
+    ctx.roundRect(spec.nextPlot.rect.x + 10, spec.nextPlot.rect.y + 10, spec.nextPlot.rect.width - 20, spec.nextPlot.rect.height - 20, 10);
+    ctx.stroke();
+    ctx.fillStyle = "#be4f37";
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText("下一片", spec.nextPlot.rect.x + 16, spec.nextPlot.rect.y + spec.nextPlot.rect.height - 14);
+  }
+
+  drawCanvasCard(ctx, rect.x, rect.y + bob, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
+  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.92)" : "rgba(77, 145, 166, 0.52)";
+  ctx.lineWidth = active ? 2.8 : 1.6;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, rect.y + 1 + bob, rect.width - 2, rect.height - 2, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(77, 145, 166, 0.18)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, rect.y + 14 + bob, 48, 44, 15);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 18px Microsoft YaHei";
+  ctx.fillText("账", rect.x + 28, rect.y + 42 + bob);
+  ctx.fillStyle = accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title.slice(0, 18), rect.x + 74, rect.y + 24 + bob);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 14px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 21), rect.x + 74, rect.y + 46 + bob);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "800 10px Microsoft YaHei";
+  ctx.fillText(spec.nextText.slice(0, 35), rect.x + 74, rect.y + 63 + bob);
+
+  rows.forEach((row) => {
+    const rowActive = active && activeRowKey === row.key;
+    ctx.fillStyle = rowActive ? "rgba(255, 253, 245, 0.96)" : `${row.color}18`;
+    ctx.strokeStyle = rowActive ? `${row.color}cc` : `${row.color}55`;
+    ctx.lineWidth = rowActive ? 2 : 1;
+    ctx.beginPath();
+    ctx.roundRect(row.rect.x, row.rect.y + bob, row.rect.width, row.rect.height, 12);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = row.color;
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(row.label, row.rect.x + 8, row.rect.y + 12 + bob);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "900 10px Microsoft YaHei";
+    ctx.fillText(String(row.value).slice(0, 8), row.rect.x + 8, row.rect.y + 24 + bob);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, rect.y + rect.height - 14 + bob, rect.width - 32, 10, 5);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "800 8px Microsoft YaHei";
+  ctx.fillText("只定位省力账 · 不再次协助 / 不自动浇水", rect.x + 24, rect.y + rect.height - 6 + bob);
+  ctx.restore();
+  return true;
+}
