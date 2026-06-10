@@ -46,6 +46,7 @@ import {
   drawYuelianMoonlitPondWorld,
   drawDengyingLanternPathWorld,
   drawShuqiLedgerDeskWorld,
+  drawFengmiHoneyYardWorld,
   drawSpiritInteractionWorldEchoWorld,
   drawSpiritInteractionMemoryTriptychWorldWorld,
   drawSpiritJobEffectWorld,
@@ -77931,7 +77932,6 @@ function drawShuqiLedgerDesk(ctx, spec = shuqiLedgerDeskSpec(), motion = setting
 
 function drawFengmiHoneyYard(ctx, spec = fengmiHoneyYardSpec(), motion = settings.reducedMotion ? 0 : performance.now() / 1000) {
   if (!spec?.rect) return false;
-  const { rect, anchor } = spec;
   const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 1.86) * 2.4;
   const active = fengmiHoneyYardWorldFocus?.day === state.day
     && fengmiHoneyYardWorldFocus?.key === spec.key;
@@ -77943,179 +77943,18 @@ function drawFengmiHoneyYard(ctx, spec = fengmiHoneyYardSpec(), motion = setting
     ready: { accent: "#4d91a6", fill: "rgba(232, 247, 250, 0.96)", soft: "rgba(77, 145, 166, 0.2)", honey: "#f0a54e", leaf: "#286f58" },
   };
   const palette = palettes[spec.tone] || palettes.hive;
-  const cardY = rect.y + pulse;
-
-  ctx.save();
-  ctx.fillStyle = "rgba(40, 111, 88, 0.14)";
-  ctx.beginPath();
-  ctx.ellipse(anchor.x + 8, anchor.y + 72, 118, 28, -0.04, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = active ? `${palette.accent}dd` : `${palette.accent}77`;
-  ctx.lineWidth = active ? 3 : 2;
-  ctx.setLineDash([7, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 12;
-  ctx.beginPath();
-  ctx.moveTo(anchor.x + 18, anchor.y + 26);
-  ctx.quadraticCurveTo(rect.x + 48, cardY - 10, rect.x + 46, cardY + 18);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  for (let i = 0; i < 4; i += 1) {
-    const flowerX = anchor.x - 86 + i * 42;
-    const flowerY = anchor.y + 42 + Math.sin(motion * 1.1 + i) * (settings.reducedMotion ? 0 : 3);
-    ctx.fillStyle = i % 2 ? "rgba(216, 127, 141, 0.74)" : "rgba(246, 240, 182, 0.82)";
-    for (let p = 0; p < 5; p += 1) {
-      ctx.beginPath();
-      ctx.ellipse(flowerX + Math.cos(p * 1.26) * 8, flowerY + Math.sin(p * 1.26) * 6, 5, 8, p, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.fillStyle = palette.leaf;
-    ctx.beginPath();
-    ctx.arc(flowerX, flowerY, 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(93, 139, 82, 0.76)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(flowerX, flowerY + 6);
-    ctx.lineTo(flowerX - 2, flowerY + 28);
-    ctx.stroke();
-  }
-
-  const hiveX = anchor.x - 20;
-  const hiveY = anchor.y - 38 + pulse * 0.35;
-  ctx.fillStyle = "rgba(143, 95, 63, 0.58)";
-  ctx.beginPath();
-  ctx.roundRect(hiveX - 12, hiveY + 20, 92, 24, 10);
-  ctx.fill();
-  for (let i = 0; i < 4; i += 1) {
-    ctx.fillStyle = i % 2 ? "#f2d28b" : palette.honey;
-    ctx.beginPath();
-    ctx.ellipse(hiveX + 26, hiveY + i * 13, 42 - i * 4, 13, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(91, 51, 40, 0.28)";
-    ctx.lineWidth = 1.4;
-    ctx.stroke();
-  }
-  ctx.fillStyle = "rgba(91, 51, 40, 0.76)";
-  ctx.beginPath();
-  ctx.arc(hiveX + 26, hiveY + 27, 8, 0, Math.PI * 2);
-  ctx.fill();
-
-  const spiritX = anchor.x - 62 + Math.sin(motion * 1.3) * (settings.reducedMotion ? 0 : 4);
-  const spiritY = anchor.y - 8 + pulse * 0.45;
-  ctx.fillStyle = palette.soft;
-  ctx.beginPath();
-  ctx.arc(spiritX, spiritY, 25, 0, Math.PI * 2);
-  ctx.fill();
-  drawRareSpiritTheaterGlyph(ctx, "spirit_line_fengmi", spiritX, spiritY, motion);
-  ctx.fillStyle = "#17231d";
-  ctx.beginPath();
-  ctx.arc(spiritX - 4, spiritY - 1, 2.2, 0, Math.PI * 2);
-  ctx.arc(spiritX + 6, spiritY - 1, 2.2, 0, Math.PI * 2);
-  ctx.fill();
-
-  const jarX = anchor.x + 66;
-  const jarY = anchor.y + 8 + pulse * 0.25;
-  ctx.fillStyle = "rgba(255, 248, 232, 0.9)";
-  ctx.beginPath();
-  ctx.roundRect(jarX, jarY, 34, 42, 9);
-  ctx.fill();
-  ctx.strokeStyle = palette.accent;
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  ctx.fillStyle = palette.honey;
-  ctx.beginPath();
-  ctx.roundRect(jarX + 5, jarY + 18, 24, 20, 7);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("蜜", jarX + 12, jarY + 32);
-
-  if (spec.tone === "dessert" || spec.tone === "feast" || spec.tone === "active") {
-    const potX = anchor.x + 16;
-    const potY = anchor.y + 58;
-    ctx.fillStyle = "rgba(91, 51, 40, 0.84)";
-    ctx.beginPath();
-    ctx.roundRect(potX, potY - 22, 58, 28, 9);
-    ctx.fill();
-    ctx.fillStyle = palette.honey;
-    ctx.beginPath();
-    ctx.ellipse(potX + 30, potY - 22, 28, 8, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(255, 253, 245, 0.58)";
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 3; i += 1) {
-      ctx.beginPath();
-      ctx.moveTo(potX + 14 + i * 14, potY - 34 + Math.sin(motion + i) * 2);
-      ctx.quadraticCurveTo(potX + 20 + i * 12, potY - 48, potX + 26 + i * 10, potY - 34);
-      ctx.stroke();
-    }
-  }
-
-  if (spec.tone === "feast" || spec.tone === "active") {
-    for (let i = 0; i < 4; i += 1) {
-      const cupX = anchor.x - 72 + i * 36;
-      const cupY = anchor.y + 92 + Math.sin(motion * 1.1 + i) * (settings.reducedMotion ? 0 : 1.6);
-      ctx.fillStyle = i % 2 ? "rgba(216, 127, 141, 0.68)" : "rgba(255, 253, 245, 0.86)";
-      ctx.beginPath();
-      ctx.roundRect(cupX, cupY, 22, 16, 7);
-      ctx.fill();
-      ctx.strokeStyle = "rgba(143, 95, 63, 0.34)";
-      ctx.lineWidth = 1.3;
-      ctx.stroke();
-    }
-  }
-
-  if (!settings.reducedMotion) {
-    for (let i = 0; i < 9; i += 1) {
-      const moteX = anchor.x - 104 + i * 24 + Math.sin(motion * 1.4 + i) * 6;
-      const moteY = anchor.y - 52 + (i % 4) * 20 + Math.cos(motion * 1.2 + i) * 4;
-      ctx.fillStyle = i % 2 ? "rgba(246, 240, 182, 0.82)" : `${palette.accent}77`;
-      ctx.beginPath();
-      ctx.arc(moteX, moteY, i % 2 ? 2.2 : 2.8, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, palette.fill);
-  ctx.strokeStyle = active ? `${palette.accent}ee` : `${palette.accent}88`;
-  ctx.lineWidth = active ? 2.9 : 1.8;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = palette.soft;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 60, 60, 16);
-  ctx.fill();
-  drawRareSpiritTheaterGlyph(ctx, "spirit_line_fengmi", rect.x + 44, cardY + 43, motion);
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 10px Microsoft YaHei";
-  ctx.fillText(spec.stageLabel, rect.x + 27, cardY + 77);
-
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(`${spec.title} · 可点`, rect.x + 86, cardY + 23);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 18), rect.x + 86, cardY + 47);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(spec.detail.slice(0, 36), rect.x + 86, cardY + 67);
-  ctx.fillStyle = spec.tone === "active" ? "#286f58" : spec.tone === "feast" ? "#d87f8d" : "#8f5f3f";
-  ctx.font = "800 10px Microsoft YaHei";
-  ctx.fillText(`“${spec.quote}”`.slice(0, 31), rect.x + 86, cardY + 86);
-
-  ctx.fillStyle = active ? "rgba(224, 182, 109, 0.24)" : "rgba(255, 253, 245, 0.78)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 16, cardY + rect.height - 21, rect.width - 32, 16, 8);
-  ctx.fill();
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText(`${spec.actionText} · ${spec.cta}`.slice(0, 38), rect.x + 24, cardY + rect.height - 10);
-  ctx.restore();
-  return true;
+  return drawFengmiHoneyYardWorld({
+    ctx,
+    spec,
+    motion,
+    pulse,
+    active,
+    palette,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+    drawRareSpiritTheaterGlyph: (glyphCtx, lineId, x, y, glyphMotion) =>
+      drawRareSpiritTheaterGlyph(glyphCtx, lineId, x, y, glyphMotion),
+  });
 }
 
 function drawSpiritSproutPreview(ctx, originX, originY, tile, gap) {
