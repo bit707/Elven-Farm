@@ -75,6 +75,7 @@ import {
 } from "./game/world/daily-intent-world.js";
 import {
   drawFirstSpiritAssistPrimerWorldWorld,
+  drawSpiritAssistNineGridActionWorldWorld,
   drawSpiritAssistTrailWorldWorld,
 } from "./game/world/spirit-assist-world.js";
 import { drawNewPlayerTutorWorldWorld } from "./game/world/new-player-tutor-world.js";
@@ -10056,159 +10057,23 @@ function focusSpiritAssistNineGridActionWorldFromCanvas(spec = spiritAssistNineG
 
 function drawSpiritAssistNineGridActionWorld(ctx, spec = spiritAssistNineGridActionWorldSpec(), motion = performance.now() / 1000) {
   if (!spec?.rect || !spec.points?.length) return false;
-  const { rect, bounds, profile } = spec;
   const active = spiritAssistNineGridActionWorldFocus?.day === state.day
     && spiritAssistNineGridActionWorldFocus?.key === spec.key;
   const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.85) * 2;
   const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.8) * 2.4;
-  const routeT = settings.reducedMotion ? 0.68 : (motion * 0.58) % 1;
-  const routeIndex = Math.max(0, Math.min(spec.points.length - 1, Math.floor(routeT * spec.points.length)));
-  const bead = spec.points[routeIndex] || spec.points[0];
-  ctx.save();
-
-  ctx.fillStyle = active ? "rgba(202, 235, 210, 0.24)" : "rgba(202, 235, 210, 0.13)";
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.76)" : "rgba(77, 145, 166, 0.42)";
-  ctx.lineWidth = active ? 3 : 1.8;
-  ctx.setLineDash([8, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 16;
-  ctx.beginPath();
-  ctx.roundRect(bounds.minX - 12, bounds.minY - 12, bounds.maxX - bounds.minX + 24, bounds.maxY - bounds.minY + 24, 18);
-  ctx.fill();
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  ctx.strokeStyle = active ? "rgba(77, 145, 166, 0.9)" : "rgba(77, 145, 166, 0.62)";
-  ctx.lineWidth = active ? 3.2 : 2.2;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.beginPath();
-  spec.points.forEach((point, index) => {
-    if (index === 0) ctx.moveTo(point.screenX, point.screenY + bob * 0.2);
-    else {
-      const prev = spec.points[index - 1];
-      ctx.quadraticCurveTo((prev.screenX + point.screenX) / 2, Math.min(prev.screenY, point.screenY) - 20 + bob, point.screenX, point.screenY + bob * 0.2);
-    }
+  return drawSpiritAssistNineGridActionWorldWorld({
+    ctx,
+    spec,
+    motion,
+    bob,
+    pulse,
+    active,
+    activePlotKey: spiritAssistNineGridActionWorldFocus?.plotKey || "",
+    activeStepKey: spiritAssistNineGridActionWorldFocus?.stepKey || "",
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+    drawSpiritSprite,
   });
-  ctx.stroke();
-
-  spec.points.forEach((point, index) => {
-    const focused = active && spiritAssistNineGridActionWorldFocus?.plotKey === `${point.x},${point.y}`;
-    const passed = index <= routeIndex;
-    const shimmer = settings.reducedMotion ? 0.5 : (Math.sin(motion * 2.4 + index * 0.48) + 1) / 2;
-    ctx.fillStyle = focused
-      ? "rgba(255, 253, 245, 0.48)"
-      : passed
-        ? `rgba(159, 209, 223, ${0.22 + shimmer * 0.16})`
-        : "rgba(255, 253, 245, 0.14)";
-    ctx.beginPath();
-    ctx.roundRect(point.rect.x + 8, point.rect.y + 8, point.rect.width - 16, point.rect.height - 16, 12);
-    ctx.fill();
-    ctx.strokeStyle = focused ? "rgba(224, 182, 109, 0.9)" : passed ? "rgba(77, 145, 166, 0.58)" : "rgba(141, 164, 98, 0.38)";
-    ctx.lineWidth = focused ? 3 : 1.5;
-    ctx.beginPath();
-    ctx.roundRect(point.rect.x + 11, point.rect.y + 11, point.rect.width - 22, point.rect.height - 22, 10);
-    ctx.stroke();
-    ctx.fillStyle = passed ? "#4d91a6" : "#7a8d80";
-    ctx.beginPath();
-    ctx.arc(point.screenX + point.rect.width * 0.22, point.screenY - point.rect.height * 0.2, 11, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "rgba(255, 253, 245, 0.96)";
-    ctx.font = "900 9px Microsoft YaHei";
-    ctx.fillText(String(index + 1), point.screenX + point.rect.width * 0.22 - 3, point.screenY - point.rect.height * 0.2 + 3);
-    if (passed) {
-      ctx.fillStyle = "rgba(255, 253, 245, 0.78)";
-      ctx.beginPath();
-      ctx.ellipse(point.screenX, point.screenY + 15, point.rect.width * 0.2, 5 + shimmer * 3, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  });
-
-  if (bead) {
-    ctx.fillStyle = profile.glow || "rgba(202, 235, 210, 0.74)";
-    ctx.beginPath();
-    ctx.ellipse(bead.screenX, bead.screenY + 20 + bob, 27 + pulse, 9, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "rgba(255, 253, 245, 0.96)";
-    ctx.strokeStyle = profile.accent || "#286f58";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(bead.screenX, bead.screenY - 8 + bob, 15, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = profile.accent || "#286f58";
-    ctx.font = "900 11px Microsoft YaHei";
-    ctx.fillText((profile.glyph || "灵").slice(0, 1), bead.screenX - 6, bead.screenY - 4 + bob);
-    ctx.fillStyle = "#4d91a6";
-    ctx.beginPath();
-    ctx.ellipse(bead.screenX + 23, bead.screenY - 6 + bob, 5, 8, -0.2, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.82)" : "rgba(77, 145, 166, 0.46)";
-  ctx.lineWidth = active ? 2.6 : 1.8;
-  ctx.setLineDash([6, 7]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 10;
-  ctx.beginPath();
-  ctx.moveTo(spec.anchor.x, spec.anchor.y);
-  ctx.quadraticCurveTo((spec.anchor.x + rect.x + 34) / 2, rect.y + rect.height / 2 + bob, rect.x + 34, rect.y + rect.height - 18 + bob);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, rect.y + bob, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.86)" : `${profile.accent || "#286f58"}88`;
-  ctx.lineWidth = active ? 3 : 1.8;
-  ctx.beginPath();
-  ctx.roundRect(rect.x, rect.y + bob, rect.width, rect.height, 20);
-  ctx.stroke();
-
-  ctx.fillStyle = `${profile.accent || "#286f58"}22`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 16, rect.y + 16 + bob, 58, 58, 18);
-  ctx.fill();
-  drawSpiritSprite(ctx, spec.spirit, rect.x + 20, rect.y + 18 + bob + pulse * 0.24, 52);
-
-  ctx.fillStyle = profile.accent || "#286f58";
-  ctx.font = "900 12px Microsoft YaHei";
-  ctx.fillText(spec.title, rect.x + 90, rect.y + 25 + bob);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 18), rect.x + 90, rect.y + 49 + bob);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "800 10px Microsoft YaHei";
-  ctx.fillText(`${spec.wateredCount} 格水痕按序亮起 · 省下约 ${spec.staminaSaved} 体力`, rect.x + 90, rect.y + 67 + bob);
-
-  spec.steps.forEach((step, index) => {
-    const focused = active && spiritAssistNineGridActionWorldFocus?.stepKey === step.key;
-    ctx.fillStyle = focused ? "rgba(255, 253, 245, 0.96)" : `${step.color}18`;
-    ctx.strokeStyle = focused ? `${step.color}cc` : `${step.color}55`;
-    ctx.lineWidth = focused ? 2 : 1;
-    ctx.beginPath();
-    ctx.roundRect(step.rect.x, step.rect.y + bob, step.rect.width, step.rect.height, 12);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = step.color;
-    ctx.font = "900 10px Microsoft YaHei";
-    ctx.fillText(step.label, step.rect.x + 10, step.rect.y + 16 + bob);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "900 9px Microsoft YaHei";
-    ctx.fillText(step.value.slice(0, 12), step.rect.x + 10, step.rect.y + 31 + bob);
-    if (index < spec.steps.length - 1) {
-      ctx.fillStyle = "rgba(77, 145, 166, 0.62)";
-      ctx.font = "900 12px Microsoft YaHei";
-      ctx.fillText(">", step.rect.x + step.rect.width + 4, step.rect.y + 27 + bob);
-    }
-  });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 18, rect.y + rect.height - 16 + bob, rect.width - 36, 18, 9);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText("只定位九宫格动作 · 不再次协助 / 不自动浇水 / 不消耗体力", rect.x + 28, rect.y + rect.height - 3 + bob);
-
-  ctx.restore();
-  return true;
 }
 
 function spiritAssistSavingsLedgerWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, originX = gridMetrics().originX, originY = gridMetrics().originY, tile = gridMetrics().tile, gap = gridMetrics().gap) {
