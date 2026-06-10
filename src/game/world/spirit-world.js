@@ -2406,3 +2406,162 @@ export function drawHualingWelcomeDanceWorld({
   ctx.restore();
   return true;
 }
+
+export function drawLeizhuWindGuideWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  pulse = 0,
+  active = false,
+  palette = null,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+  drawRareSpiritTheaterGlyph = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.anchor || !palette) return false;
+  const { rect, anchor } = spec;
+  const cardY = rect.y + pulse;
+
+  ctx.save();
+  ctx.strokeStyle = active ? `${palette.bolt}dd` : `${palette.bolt}77`;
+  ctx.lineWidth = active ? 4 : 3;
+  ctx.setLineDash([11, 9]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 16;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x - 28, anchor.y + 12);
+  ctx.bezierCurveTo(anchor.x + 8, anchor.y - 34, anchor.x + 28, anchor.y - 76, anchor.x + 72, anchor.y - 118);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  if (spec.stage === "old_route" || spec.stage === "old_route_run" || spec.stage === "route_ready") {
+    for (let i = 0; i < 4; i += 1) {
+      const stakeX = anchor.x - 62 + i * 34;
+      const stakeY = anchor.y - 10 - i * 19;
+      ctx.strokeStyle = "rgba(143, 95, 63, 0.78)";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(stakeX, stakeY + 28);
+      ctx.lineTo(stakeX + 10, stakeY - 22);
+      ctx.stroke();
+      ctx.fillStyle = i % 2 ? "rgba(230, 198, 94, 0.88)" : "rgba(255, 253, 245, 0.82)";
+      ctx.beginPath();
+      ctx.arc(stakeX + 10, stakeY - 24, 5 + (active ? 1 : 0), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.fillStyle = palette.soft;
+  ctx.beginPath();
+  ctx.ellipse(anchor.x - 10, anchor.y + 28, 82, 20, -0.18, 0, Math.PI * 2);
+  ctx.fill();
+
+  const guideBob = pulse * 0.7;
+  ctx.strokeStyle = palette.accent;
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(anchor.x - 18, anchor.y - 52 + guideBob);
+  ctx.lineTo(anchor.x + 34, anchor.y + 28);
+  ctx.stroke();
+  ctx.lineCap = "butt";
+  ctx.fillStyle = "rgba(255, 253, 245, 0.94)";
+  ctx.beginPath();
+  ctx.arc(anchor.x - 6, anchor.y - 24 + guideBob, 15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#5d8b52";
+  ctx.beginPath();
+  ctx.roundRect(anchor.x - 18, anchor.y - 9 + guideBob, 32, 25, 8);
+  ctx.fill();
+  ctx.fillStyle = "#e6c65e";
+  ctx.beginPath();
+  ctx.ellipse(anchor.x - 13, anchor.y - 38 + guideBob, 12, 5, -0.6, 0, Math.PI * 2);
+  ctx.ellipse(anchor.x + 8, anchor.y - 39 + guideBob, 12, 5, 0.55, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#17231d";
+  ctx.beginPath();
+  ctx.arc(anchor.x - 11, anchor.y - 26 + guideBob, 2.4, 0, Math.PI * 2);
+  ctx.arc(anchor.x + 2, anchor.y - 27 + guideBob, 2.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = palette.bolt;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x + 24, anchor.y - 60 + pulse);
+  ctx.lineTo(anchor.x + 10, anchor.y - 28 + pulse);
+  ctx.lineTo(anchor.x + 27, anchor.y - 31 + pulse);
+  ctx.lineTo(anchor.x + 12, anchor.y + 2 + pulse);
+  ctx.lineTo(anchor.x + 44, anchor.y - 38 + pulse);
+  ctx.lineTo(anchor.x + 26, anchor.y - 35 + pulse);
+  ctx.closePath();
+  ctx.fill();
+
+  if (spec.stage === "escort" || spec.stage === "escort_ready" || spec.stage === "old_route_run") {
+    const cartX = anchor.x - 92;
+    const cartY = anchor.y + 26;
+    ctx.fillStyle = "rgba(143, 95, 63, 0.84)";
+    ctx.beginPath();
+    ctx.roundRect(cartX, cartY - 28, 56, 24, 6);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(230, 198, 94, 0.78)";
+    ctx.lineWidth = 2.4;
+    for (let i = 0; i < 3; i += 1) {
+      ctx.beginPath();
+      ctx.moveTo(cartX + 8 + i * 16, cartY - 29);
+      ctx.lineTo(cartX + 10 + i * 14, cartY - 4);
+      ctx.stroke();
+    }
+    ctx.fillStyle = "rgba(23, 35, 29, 0.24)";
+    ctx.beginPath();
+    ctx.arc(cartX + 12, cartY - 2, 6, 0, Math.PI * 2);
+    ctx.arc(cartX + 46, cartY - 2, 6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, palette.fill);
+  ctx.strokeStyle = active ? `${palette.bolt}ee` : `${palette.accent}88`;
+  ctx.lineWidth = active ? 2.9 : 1.8;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = palette.soft;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 15, 62, 62, 17);
+  ctx.fill();
+  drawRareSpiritTheaterGlyph(ctx, "spirit_line_leizhu", rect.x + 45, cardY + 45, motion);
+  ctx.fillStyle = palette.accent;
+  ctx.font = "900 10px Microsoft YaHei";
+  ctx.fillText(spec.stageLabel, rect.x + 28, cardY + 79);
+
+  ctx.fillStyle = palette.accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(`${spec.title} · 可点`, rect.x + 88, cardY + 24);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 18), rect.x + 88, cardY + 48);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(spec.detail.slice(0, 34), rect.x + 88, cardY + 68);
+  ctx.fillStyle = spec.tone === "old" ? "#4d91a6" : "#8f5f3f";
+  ctx.font = "800 10px Microsoft YaHei";
+  ctx.fillText(`“${spec.quote}”`.slice(0, 30), rect.x + 88, cardY + 86);
+
+  ctx.fillStyle = active ? "rgba(230, 198, 94, 0.24)" : "rgba(255, 253, 245, 0.8)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, cardY + rect.height - 22, rect.width - 32, 16, 8);
+  ctx.fill();
+  ctx.fillStyle = palette.accent;
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText(`${spec.actionText} · ${spec.cta}`.slice(0, 35), rect.x + 24, cardY + rect.height - 11);
+
+  if (!reducedMotion) {
+    for (let i = 0; i < 5; i += 1) {
+      const sparkX = rect.x + rect.width - 42 - i * 16;
+      const sparkY = cardY + 16 + Math.sin(motion * 2.2 + i) * 4;
+      ctx.fillStyle = i % 2 ? "rgba(230, 198, 94, 0.82)" : "rgba(255, 253, 245, 0.9)";
+      ctx.beginPath();
+      ctx.arc(sparkX, sparkY, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+  return true;
+}
