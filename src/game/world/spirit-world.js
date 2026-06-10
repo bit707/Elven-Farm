@@ -1845,3 +1845,108 @@ export function drawRareSpiritTheaterMomentWorld({
   ctx.restore();
   return true;
 }
+
+export function drawRareSpiritDailyStageWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  bob = 0,
+  active = false,
+  profile = {},
+  accent = "#286f58",
+  rowAccents = [],
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+  drawRareSpiritTheaterGlyph = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.focus) return false;
+  const { rect, focus } = spec;
+  const cardY = rect.y + bob;
+  const anchorX = spec.anchor?.anchorX || rect.x + rect.width - 62;
+  const anchorY = spec.anchor?.anchorY || rect.y + rect.height + 32;
+
+  ctx.save();
+  ctx.strokeStyle = active ? `${accent}dd` : `${accent}66`;
+  ctx.lineWidth = active ? 3 : 1.8;
+  ctx.setLineDash([7, 9]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 12;
+  ctx.beginPath();
+  ctx.moveTo(anchorX, anchorY);
+  ctx.quadraticCurveTo(rect.x + rect.width - 36, cardY + rect.height + 28, rect.x + rect.width - 42, cardY + rect.height - 8);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = profile.glow || "rgba(246, 240, 182, 0.18)";
+  ctx.beginPath();
+  ctx.ellipse(anchorX, anchorY + 13, 58 + Math.abs(bob), 16, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, focus.giftReady ? "rgba(255, 240, 238, 0.96)" : "rgba(255, 253, 245, 0.96)");
+  ctx.strokeStyle = active ? `${accent}ee` : `${accent}88`;
+  ctx.lineWidth = active ? 2.7 : 1.6;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}22`;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 15, 60, 58, 16);
+  ctx.fill();
+  drawRareSpiritTheaterGlyph(ctx, focus.lineId, rect.x + 44, cardY + 43, motion);
+  ctx.fillStyle = accent;
+  ctx.font = "900 10px Microsoft YaHei";
+  ctx.fillText(focus.giftReady ? "回礼" : "日常", rect.x + 31, cardY + 76);
+
+  ctx.fillStyle = accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title, rect.x + 86, cardY + 24);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 15px Microsoft YaHei";
+  ctx.fillText(`${focus.spiritName} · ${focus.actionShort}`.slice(0, 18), rect.x + 86, cardY + 47);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(`在${focus.focus}${focus.action}`.slice(0, 32), rect.x + 86, cardY + 65);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "800 10px Microsoft YaHei";
+  ctx.fillText(`“${focus.quote}”`.slice(0, 30), rect.x + 86, cardY + 83);
+
+  ctx.fillStyle = focus.giftReady ? "rgba(216, 127, 141, 0.16)" : "rgba(202, 235, 210, 0.62)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + rect.width - 78, cardY + 13, 62, 20, 10);
+  ctx.fill();
+  ctx.fillStyle = focus.giftReady ? "#be4f37" : "#286f58";
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText(spec.cta.slice(0, 7), rect.x + rect.width - 69, cardY + 27);
+
+  const rowStart = cardY + 104;
+  spec.rows.slice(0, 3).forEach((row, index) => {
+    const rowY = rowStart + index * 18;
+    if (rowY > cardY + rect.height - 8) return;
+    const rowAccent = rowAccents[index] || (row.giftReady ? "#d87f8d" : "#286f58");
+    ctx.fillStyle = row.giftReady ? "rgba(255, 240, 238, 0.74)" : "rgba(255, 248, 232, 0.74)";
+    ctx.beginPath();
+    ctx.roundRect(rect.x + 16, rowY - 13, rect.width - 32, 16, 8);
+    ctx.fill();
+    ctx.fillStyle = rowAccent;
+    ctx.font = "900 9px Microsoft YaHei";
+    ctx.fillText(row.stateLabel.slice(0, 3), rect.x + 28, rowY - 2);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "800 10px Microsoft YaHei";
+    ctx.fillText(`${row.spiritName} · ${row.actionShort}`.slice(0, 14), rect.x + 64, rowY - 2);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "800 9px Microsoft YaHei";
+    ctx.fillText(`Lv.${row.bondLevel}`, rect.x + rect.width - 48, rowY - 2);
+  });
+
+  if (!reducedMotion) {
+    for (let i = 0; i < 7; i += 1) {
+      ctx.fillStyle = i % 2 ? "rgba(255, 253, 245, 0.9)" : `${accent}88`;
+      ctx.beginPath();
+      ctx.arc(rect.x + 28 + i * 18, cardY + rect.height + 4 + Math.sin(motion * 2.2 + i) * 2, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.restore();
+  return true;
+}

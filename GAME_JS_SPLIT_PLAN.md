@@ -301,6 +301,7 @@ npm run verify
 - 已完成：`drawSpiritInteractionMemoryTriptychWorld` 的“精怪互动记忆三联画/生活图鉴提示卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritInteractionMemoryTriptychWorldSpec`、Canvas 命中、聚焦状态、伙伴栏/生活图鉴定位和动效开关注入仍留在 `src/game.js`。
 - 已完成：`drawFirstTwoSpiritDuoWorld` 的“萝卜精 x 辣椒火灵双精怪协作小景”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`firstTwoSpiritDuoWorldSpec`、Canvas 命中、聚焦状态、伙伴栏定位、工坊队列/任务状态读取和动效开关注入仍留在 `src/game.js`。
 - 已完成：`drawRareSpiritTheaterGlyph` 和 `drawRareSpiritTheaterMoment` 的“稀有精怪小剧场图标/互动卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritVisualProfile`、`spiritLine`、互动目标判断、过场返回、稀有精怪状态同步和其它稀有精怪卡片调度仍留在 `src/game.js`。
+- 已完成：`drawRareSpiritDailyStageWorld` 的“主世界稀有精怪生活舞台”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`rareSpiritDailyStageWorldSpec`、Canvas 命中、聚焦定位、`spiritVisualProfile` 行颜色计算、稀有精怪状态读取和动效开关注入仍留在 `src/game.js`。
 - 已完成：`tools/build-runtime-data.mjs` 已适配新数据清单模块，并保留旧 `src/game.js` 内联清单 fallback。
 - 已完成：`tools/package-standalone.mjs` 已内联 `src/game/**` 本地模块，避免离线单文件包被 ESM import 破坏。
 - 已完成：`tools/verify.mjs` 已把拆分模块纳入静态审计，避免门禁继续假设所有内容必须留在 `src/game.js`。
