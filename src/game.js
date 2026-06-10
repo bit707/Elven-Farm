@@ -26,6 +26,7 @@ import {
 } from "./game/world/background-world.js";
 import {
   drawSpiritAuraWorld,
+  drawSpiritCareNeedWorldBoardWorld,
   drawSpiritCompanionCareHintWorld,
   drawSpiritCropScoutWorldWorld,
   drawSpiritDailyChorePropWorld,
@@ -76752,82 +76753,17 @@ function drawSpiritMoodRepairWorldScene(ctx, spec = spiritMoodRepairWorldSpec(ct
 
 function drawSpiritCareNeedWorldBoard(ctx, spec = spiritCareNeedWorldBoardSpec(ctx.canvas.width, ctx.canvas.height)) {
   if (!spec?.rect) return false;
-  const { rect, anchor, profile } = spec;
   const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.72) * 2;
   const active = spiritCareNeedWorldBoardFocus?.day === state.day
     && spiritCareNeedWorldBoardFocus?.key === spec.key;
-  const accent = spec.needKind === "hunger" ? "#b47d2f" : spec.needKind === "mood" ? "#d87f8d" : profile.accent || "#4d91a6";
-  const glyph = spec.needKind === "hunger" ? "食" : spec.needKind === "mood" ? "摸" : "歇";
-  const cardY = rect.y + bob;
-
-  ctx.save();
-  ctx.strokeStyle = active ? `${accent}dd` : `${accent}66`;
-  ctx.lineWidth = active ? 2.8 : 1.7;
-  ctx.setLineDash([7, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 10;
-  ctx.beginPath();
-  ctx.moveTo(rect.x + 34, cardY + rect.height - 12);
-  ctx.quadraticCurveTo(anchor.x - 26, cardY + rect.height + 26, anchor.x, anchor.y);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  ctx.fillStyle = `${accent}18`;
-  ctx.beginPath();
-  ctx.ellipse(anchor.x, anchor.y + 18, 42 + Math.abs(bob), 13, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, spec.needKind === "hunger" ? "rgba(255, 248, 232, 0.96)" : "rgba(255, 253, 245, 0.96)");
-  ctx.strokeStyle = active ? `${accent}ee` : `${accent}88`;
-  ctx.lineWidth = active ? 2.6 : 1.5;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 17);
-  ctx.stroke();
-
-  ctx.fillStyle = `${accent}22`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 15, 50, 48, 14);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 20px Microsoft YaHei";
-  ctx.fillText(glyph, rect.x + 30, cardY + 45);
-  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 19, cardY + 55, 40, 17, 8);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText(spec.actionLabel.slice(0, 4), rect.x + 27, cardY + 67);
-
-  ctx.fillStyle = accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(spec.cta, rect.x + 80, cardY + 24);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 15px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 17), rect.x + 80, cardY + 47);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(spec.statusText.slice(0, 30), rect.x + 80, cardY + 65);
-
-  ctx.fillStyle = "rgba(237, 243, 223, 0.74)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 18, cardY + 76, rect.width - 36, 18, 9);
-  ctx.fill();
-  ctx.fillStyle = "#286f58";
-  ctx.font = "800 10px Microsoft YaHei";
-  ctx.fillText(`下一步：${spec.detail}`.slice(0, 34), rect.x + 28, cardY + 89);
-
-  if (!settings.reducedMotion) {
-    ctx.fillStyle = `${accent}88`;
-    for (let i = 0; i < 4; i += 1) {
-      ctx.beginPath();
-      ctx.arc(rect.x + rect.width - 42 + i * 8, cardY + 21 + Math.sin(motion * 2.1 + i) * 2, 2.2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  ctx.restore();
-  return true;
+  return drawSpiritCareNeedWorldBoardWorld({
+    ctx,
+    spec,
+    motion,
+    reducedMotion: settings.reducedMotion,
+    active,
+    drawCanvasCard,
+  });
 }
 
 function drawSpiritCompanionCareHint(ctx, spirit, station, index = 0) {
