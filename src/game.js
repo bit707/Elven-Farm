@@ -155,7 +155,7 @@ import {
   shopAtCanvasPointWorld,
   shopCanvasTargetsWorld,
 } from "./game/world/shop-targets-world.js";
-import { shopFocusWorldData } from "./game/world/shop-focus-world.js";
+import { shopCustomerFocusReviewSpecWorld, shopFocusWorldData } from "./game/world/shop-focus-world.js";
 import {
   drawShopCustomerLessonMorningFollowupWorldWorld,
   drawShopCustomerLessonVerificationEchoWorldWorld,
@@ -28244,156 +28244,20 @@ function shopRestockTrackerMarkup() {
 }
 
 function shopCustomerFocusReviewSpec(focus = canvasShopCustomerFocus) {
-  if (!focus || focus.day !== state.day) return null;
-  const opening = syncShopOpeningState();
-  const liveFocus = opening.liveFocus || opening.lastSession?.liveFocus || null;
-  const entry = focus.entry || null;
-  if (focus.type === "waterway_browse") {
-    const browse = shopWaterwayCustomerBrowseSpec(opening);
-    if (browse?.active) {
-      return {
-        name: browse.customerLabel,
-        title: browse.title,
-        need: browse.headline,
-        result: browse.bubble,
-        reason: browse.detail,
-        advice: browse.nextAction,
-        tone: browse.tone,
-        reportIndex: browse.reportIndex,
-        hotTagLabel: browse.targetGood?.tagText || "水航货",
-        blockers: liveFocus ? `成交 ${liveFocus.buyers} · 犹豫 ${liveFocus.leavers} · 主题 ${liveFocus.themeScore}%` : "",
-      };
-    }
-  }
-  if (focus.type === "customer_forecast") {
-    const forecast = focus.forecastSpec || shopCustomerForecastWorldSpec(opening);
-    if (forecast) {
-      return {
-        name: forecast.customerName,
-        title: forecast.title,
-        need: `${forecast.customerName} 今日更看重 ${forecast.hotTagLabel}`,
-        result: `主推：${forecast.itemText}`,
-        reason: `${forecast.weatherLine} · ${forecast.themeLine} · ${forecast.openingLine}`,
-        advice: forecast.advice,
-        tone: forecast.tone === "warn" ? "warn" : forecast.tone === "ready" ? "good" : forecast.tone === "empty" ? "note" : "mid",
-        reportIndex: -1,
-        hotTagLabel: forecast.hotTagLabel,
-        blockers: forecast.openingLine,
-      };
-    }
-  }
-  if (focus.type === "shop_diagnosis_world") {
-    const diagnosis = focus.diagnosisBoard || shopDiagnosisWorldBoardSpec(opening);
-    if (diagnosis) {
-      return {
-        name: diagnosis.mainCustomer || "旧铺顾客",
-        title: diagnosis.title || "主世界旧铺诊断挂签",
-        need: `${diagnosis.mainCustomer || "路过客"} · ${diagnosis.hotTagLabel || "今日客需"}`,
-        result: `成交 ${diagnosis.buyers}/${diagnosis.visitors} · 离店 ${diagnosis.leavers} · 成交率 ${diagnosis.conversion}%`,
-        reason: diagnosis.evidence,
-        advice: diagnosis.nextAction,
-        tone: diagnosis.tone === "warn" ? "warn" : diagnosis.tone === "good" ? "good" : "note",
-        reportIndex: -1,
-        hotTagLabel: diagnosis.hotTagLabel,
-        blockers: diagnosis.headline,
-      };
-    }
-  }
-  if (focus.type === "shop_trial_theater") {
-    const theater = focus.trialTheater || shopTrialTheaterWorldSpec(opening);
-    if (theater) {
-      return {
-        name: theater.leadCustomer || "第一批顾客",
-        title: theater.title || "旧铺试营业小剧场",
-        need: `${theater.leadCustomer || "顾客"}想看 ${theater.hotTagLabel || "热卖标签"}`,
-        result: theater.resultText,
-        reason: theater.reasonText,
-        advice: theater.nextAction,
-        tone: theater.tone === "warn" ? "warn" : theater.tone === "good" ? "good" : theater.tone === "empty" ? "note" : "mid",
-        reportIndex: -1,
-        hotTagLabel: theater.hotTagLabel,
-        blockers: theater.headline,
-      };
-    }
-  }
-  if (focus.type === "first_sale_lesson") {
-    const lesson = focus.firstSaleLesson || shopFirstSaleLessonWorldSpec(opening);
-    if (lesson) {
-      return {
-        name: lesson.customerName || "第一位买客",
-        title: lesson.title || "首单原因续航牌",
-        need: `${lesson.customerName || "顾客"}为什么买单？`,
-        result: `${lesson.itemName || "第一件货"} 成交 ${lesson.price || 0} 灵石 · 回头苗头 ${lesson.returnChance || 0}%`,
-        reason: `${lesson.reasonText || "商品、价格和热卖标签刚好对上。"} · 顾客短评：${lesson.reviewQuote || "这家旧铺，像是会记得客人要什么。"}`,
-        advice: `${lesson.returnText || "下轮继续摆同类货，顾客更容易记住这扇门。"} ${lesson.nextAction || "继续补同标签货。"}`,
-        tone: Number(lesson.returnChance || 0) >= 60 ? "good" : Number(lesson.returnChance || 0) >= 35 ? "mid" : "note",
-        reportIndex: Number.isFinite(Number(lesson.reportIndex)) ? Number(lesson.reportIndex) : -1,
-        hotTagLabel: opening.hotTagLabel || "",
-        blockers: "只定位旧铺报告，不会自动补货或开铺",
-      };
-    }
-  }
-  if (focus.type === "first_sale_keepsake") {
-    const keepsake = focus.firstSaleKeepsake || shopFirstSaleKeepsakeWorldSpec(opening);
-    if (keepsake) {
-      return {
-        name: keepsake.customerName || "第一位买客",
-        title: keepsake.title || "首单钱签余温",
-        need: `${keepsake.customerName || "顾客"}已经把旧铺和${keepsake.itemName || "第一件货"}记在一起`,
-        result: `${keepsake.headline} · 成交 ${keepsake.price || 0} 灵石 · 回头苗头 ${keepsake.returnChance || 0}%`,
-        reason: `购买原因：${keepsake.reasonText || "商品、价格和热卖标签刚好对上。"} · 顾客短评：${keepsake.reviewQuote || "这家旧铺，像是会记得客人要什么。"}`,
-        advice: `${keepsake.returnText || "把这条脚印接成明天的熟脸路。"} ${keepsake.nextAction || "继续补同标签货。"}`,
-        tone: Number(keepsake.returnChance || 0) >= 60 ? "good" : Number(keepsake.returnChance || 0) >= 40 ? "mid" : "note",
-        reportIndex: Number.isFinite(Number(keepsake.reportIndex)) ? Number(keepsake.reportIndex) : -1,
-        hotTagLabel: keepsake.hotTagLabel || opening.hotTagLabel || "",
-        blockers: "只定位旧铺报告，不会自动开铺、补货或改价",
-      };
-    }
-  }
-  if (focus.type === "returning_trail") {
-    const trail = focus.returningTrail || shopReturningTrailWorldSpec(opening);
-    if (trail) {
-      return {
-        name: trail.customerLabel || "熟脸顾客",
-        title: trail.title || "熟脸回门路牌",
-        need: `${trail.customerLabel || "熟脸顾客"}正在认 ${trail.itemText || "旧铺货架"}`,
-        result: trail.resultText || `${trail.customerLabel || "顾客"} 回头苗头 ${trail.chance || 0}%`,
-        reason: trail.detailText || "昨天被记住的货、价格和陈列，让这条路有了回头可能。",
-        advice: trail.nextAction || "明天继续把熟脸记住的那件货留在显眼处。",
-        tone: trail.realized || Number(trail.chance || 0) >= 60 ? "good" : Number(trail.chance || 0) >= 45 ? "mid" : "note",
-        reportIndex: -1,
-        hotTagLabel: opening.hotTagLabel || trail.regularBoard?.hotTagLabel || "",
-        blockers: "只定位旧铺报告，不会自动开铺、补货或改价",
-      };
-    }
-  }
-  const isNeed = focus.type === "need" || entry?.reason === "need";
-  const decision = !isNeed && entry
-    ? shopCustomerDecisionChains(opening, [entry])[0]
-    : null;
-  const needText = entry?.detail || entry?.text || liveFocus?.hotTagLabel || "先观察门口来客";
-  const result = decision?.result
-    || (isNeed ? "尚未买单：这是进店前的需求气泡" : entry?.text || "还没有形成明确反馈");
-  const reason = decision?.reason
-    || (isNeed ? `偏好线索：${needText}` : entry?.detail || liveFocus?.topBlockerLabel || "原因待观察");
-  const advice = decision?.advice
-    || (isNeed
-      ? `围绕 ${entry?.tag ? shopTagLabel(entry.tag) : liveFocus?.hotTagLabel || "门口需求"} 准备一件更对口的货，再开铺更稳。`
-      : liveFocus?.shelfAdvice || "先看顾客话里的需求，再调整货架和价格。");
-  const tone = decision?.tone
-    || (entry?.reason === "buy" ? "good" : entry?.reason === "price" ? "warn" : isNeed ? "note" : "mid");
-  return {
-    name: focus.label || decision?.name || entry?.name || "旧铺看板",
-    title: isNeed ? "顾客进店前想法" : entry?.reason === "buy" ? "顾客成交复盘" : focus.type === "board" ? "旧铺看板复盘" : "顾客离店复盘",
-    need: decision?.need || needText,
-    result,
-    reason,
-    advice,
-    tone,
-    reportIndex: Number.isFinite(focus.reportIndex) ? focus.reportIndex : Number(entry?.reportIndex ?? -1),
-    hotTagLabel: liveFocus?.hotTagLabel || opening.hotTagLabel || "",
-    blockers: liveFocus ? `成交 ${liveFocus.buyers} · 犹豫 ${liveFocus.leavers} · 主题 ${liveFocus.themeScore}%` : "",
-  };
+  return shopCustomerFocusReviewSpecWorld({
+    focus,
+    day: state.day,
+    opening: syncShopOpeningState(),
+    shopWaterwayCustomerBrowseSpec,
+    shopCustomerForecastWorldSpec,
+    shopDiagnosisWorldBoardSpec,
+    shopTrialTheaterWorldSpec,
+    shopFirstSaleLessonWorldSpec,
+    shopFirstSaleKeepsakeWorldSpec,
+    shopReturningTrailWorldSpec,
+    shopCustomerDecisionChains,
+    shopTagLabel,
+  });
 }
 
 function shopCustomerFocusReviewMarkup() {
