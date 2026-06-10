@@ -53,6 +53,7 @@ import {
   drawSpiritSproutAnomalyWorldWorld,
   drawSpiritSproutTimelineWorldCardWorld,
   drawSpiritSproutForeshadowTrailWorldWorld,
+  drawFirstSpiritPromiseWorldWorld,
   drawSpiritInteractionWorldEchoWorld,
   drawSpiritInteractionMemoryTriptychWorldWorld,
   drawSpiritJobEffectWorld,
@@ -78263,115 +78264,21 @@ function drawPrologueWorldMarks(ctx, originX, originY, tile, gap) {
 
 function drawFirstSpiritPromiseWorld(ctx, spec = firstSpiritPromiseWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
   if (!spec?.rect || !spec.rows?.length) return false;
-  const { rect, plotAnchor, rows, activeRow } = spec;
   const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.5) * 2;
   const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 3.2) * 2.4;
   const focused = firstSpiritPromiseWorldFocus?.day === state.day
     && firstSpiritPromiseWorldFocus?.key === spec.key;
-  const accent = spec.completed >= 4 ? "#be4f37" : activeRow?.key === "signal" ? "#b47d2f" : "#286f58";
-  const cardY = rect.y + bob;
-
-  ctx.save();
-  if (plotAnchor) {
-    ctx.strokeStyle = `${accent}66`;
-    ctx.lineWidth = focused ? 3 : 2;
-    ctx.setLineDash([7, 8]);
-    ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 12;
-    ctx.beginPath();
-    ctx.moveTo(plotAnchor.x, plotAnchor.y);
-    ctx.quadraticCurveTo((plotAnchor.x + rect.x) / 2, Math.min(plotAnchor.y, rect.y) - 36, rect.x + 38, cardY + rect.height - 22);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    ctx.fillStyle = "rgba(246, 240, 182, 0.22)";
-    ctx.beginPath();
-    ctx.ellipse(plotAnchor.x, plotAnchor.y + 16, 34 + pulse, 11 + pulse * 0.3, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 253, 245, 0.92)");
-  ctx.strokeStyle = focused ? "rgba(224, 182, 109, 0.86)" : `${accent}77`;
-  ctx.lineWidth = focused ? 2.8 : 1.8;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = `${accent}1f`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 52, 52, 15);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 20px Microsoft YaHei";
-  ctx.fillText(spec.completed >= spec.total ? "达" : "灵", rect.x + 31, cardY + 47);
-  ctx.fillStyle = "#fffdf5";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText("30m", rect.x + 28, cardY + 63);
-
-  ctx.fillStyle = accent;
-  ctx.font = "900 12px Microsoft YaHei";
-  ctx.fillText(`${spec.title} · ${spec.completed}/${spec.total}`, rect.x + 80, cardY + 24);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 14px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 24), rect.x + 80, cardY + 45);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "10px Microsoft YaHei";
-  ctx.fillText(spec.promiseText.slice(0, 38), rect.x + 80, cardY + 62);
-
-  ctx.strokeStyle = "rgba(141, 164, 98, 0.42)";
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  rows.forEach((row, index) => {
-    const x = row.point.x;
-    const y = row.point.y + bob;
-    if (index === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+  return drawFirstSpiritPromiseWorldWorld({
+    ctx,
+    spec,
+    motion,
+    bob,
+    pulse,
+    focused,
+    focusNodeKey: firstSpiritPromiseWorldFocus?.nodeKey || "",
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
   });
-  ctx.stroke();
-
-  rows.forEach((row) => {
-    const x = row.point.x;
-    const y = row.point.y + bob;
-    const active = row.active;
-    const nodeFocused = focused && firstSpiritPromiseWorldFocus?.nodeKey === row.key;
-    const radius = active ? 13 + Math.max(0, pulse) : 11;
-    ctx.fillStyle = row.done
-      ? "rgba(141, 164, 98, 0.24)"
-      : active
-        ? "rgba(190, 79, 55, 0.2)"
-        : "rgba(23, 35, 29, 0.1)";
-    ctx.beginPath();
-    ctx.arc(x, y, radius + 8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = row.done ? "#8da462" : active ? "#be4f37" : "#a8b2aa";
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#fffdf5";
-    ctx.font = "900 11px Microsoft YaHei";
-    ctx.textAlign = "center";
-    ctx.fillText(row.glyph, x, y + 4);
-    ctx.fillStyle = active ? "#17231d" : "#5d6f65";
-    ctx.font = active ? "800 10px Microsoft YaHei" : "700 9px Microsoft YaHei";
-    ctx.fillText(row.label.slice(0, 5), x, cardY + 100);
-    if (nodeFocused) {
-      ctx.strokeStyle = "rgba(224, 182, 109, 0.82)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(x, y, radius + 12, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-  });
-  ctx.textAlign = "left";
-
-  ctx.fillStyle = "rgba(255, 248, 232, 0.9)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 66, cardY + 13, 48, 20, 10);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + rect.width - 53, cardY + 27);
-  ctx.restore();
-  return true;
 }
 
 function drawEarlyRewardWorldRoadsign(ctx, spec = earlyRewardWorldRoadsignSpec(), motion = performance.now() / 1000) {

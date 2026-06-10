@@ -318,6 +318,7 @@ npm run verify
 - 已完成：`drawSpiritSproutAnomalyWorld` 的“萝卜苗异动/问号气泡安全说明卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritSproutAnomalyWorldSpec`、Canvas 命中、聚焦状态、motion/pulse/bob/active 与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`drawSpiritSproutTimelineWorldCard` 的“成精三步线索/时间线提示卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritSproutTimelineWorldSpec`、Canvas 命中、聚焦状态、motion/bob/active 与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`drawSpiritSproutForeshadowTrailWorld` 的“第一夜成精伏笔灯/四步路线提示卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritSproutForeshadowTrailWorldSpec`、Canvas 命中、聚焦状态、motion/bob/pulse/focused/focusStepKey 与 `drawCanvasCard` 注入仍留在 `src/game.js`。
+- 已完成：`drawFirstSpiritPromiseWorld` 的“前30分钟成精承诺牌/五步进度路线卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`firstSpiritPromiseWorldSpec`、Canvas 命中、聚焦状态、motion/bob/pulse/focused/focusNodeKey 与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`tools/build-runtime-data.mjs` 已适配新数据清单模块，并保留旧 `src/game.js` 内联清单 fallback。
 - 已完成：`tools/package-standalone.mjs` 已内联 `src/game/**` 本地模块，避免离线单文件包被 ESM import 破坏。
 - 已完成：`tools/verify.mjs` 已把拆分模块纳入静态审计，避免门禁继续假设所有内容必须留在 `src/game.js`。
