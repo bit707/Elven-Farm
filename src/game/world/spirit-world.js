@@ -2565,3 +2565,176 @@ export function drawLeizhuWindGuideWorld({
   ctx.restore();
   return true;
 }
+
+export function drawYuelianMoonlitPondWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  pulse = 0,
+  active = false,
+  palette = null,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+  drawRareSpiritTheaterGlyph = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.anchor || !palette) return false;
+  const { rect, anchor } = spec;
+  const cardY = rect.y + pulse;
+
+  ctx.save();
+  ctx.fillStyle = palette.soft;
+  ctx.beginPath();
+  ctx.ellipse(anchor.x, anchor.y + 4, 98, 42, -0.1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = active ? `${palette.accent}cc` : `${palette.accent}66`;
+  ctx.lineWidth = active ? 3 : 2;
+  ctx.setLineDash([7, 9]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 10;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x - 18, anchor.y - 8);
+  ctx.quadraticCurveTo(rect.x + rect.width - 46, cardY - 18, rect.x + rect.width - 36, cardY + 18);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  for (let i = 0; i < 3; i += 1) {
+    const ring = reducedMotion ? i * 9 : ((motion * 11 + i * 13) % 34);
+    ctx.strokeStyle = `rgba(223, 247, 238, ${Math.max(0.08, 0.32 - ring / 120)})`;
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.ellipse(anchor.x - 20 + i * 20, anchor.y + 12, 12 + ring, 5 + ring * 0.34, -0.08, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  const lotusX = anchor.x - 42;
+  const lotusY = anchor.y - 12 + pulse * 0.4;
+  ctx.fillStyle = "rgba(79, 130, 120, 0.92)";
+  ctx.beginPath();
+  ctx.arc(lotusX, lotusY + 18, 18, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(223, 247, 238, 0.32)";
+  ctx.beginPath();
+  ctx.moveTo(lotusX, lotusY + 18);
+  ctx.arc(lotusX, lotusY + 18, 16, -0.35, 0.78);
+  ctx.closePath();
+  ctx.fill();
+
+  if (spec.stage === "moon_pond" || spec.stage === "moon_ready") {
+    ctx.strokeStyle = palette.glow;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(anchor.x + 46, anchor.y - 58 + pulse * 0.4, 22, Math.PI * 0.18, Math.PI * 1.82);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(159, 209, 223, 0.16)";
+    ctx.beginPath();
+    ctx.arc(anchor.x + 46, anchor.y - 58 + pulse * 0.4, 32, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    ctx.fillStyle = palette.glow;
+    ctx.beginPath();
+    ctx.arc(lotusX + 12, lotusY + 4, 5 + (active ? 1 : 0), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const spiritX = anchor.x - 8 + Math.sin(motion * 0.8) * (reducedMotion ? 0 : 4);
+  const spiritY = anchor.y - 38 + pulse * 0.5;
+  ctx.fillStyle = "rgba(159, 209, 223, 0.22)";
+  ctx.beginPath();
+  ctx.arc(spiritX, spiritY, 20, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#fffdf5";
+  ctx.beginPath();
+  ctx.ellipse(spiritX, spiritY, 8, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = palette.accent;
+  ctx.beginPath();
+  ctx.ellipse(spiritX - 7, spiritY - 12, 13, 5, -0.55, 0, Math.PI * 2);
+  ctx.ellipse(spiritX + 8, spiritY - 13, 13, 5, 0.55, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#286f58";
+  ctx.beginPath();
+  ctx.arc(spiritX - 4, spiritY - 2, 2.4, 0, Math.PI * 2);
+  ctx.arc(spiritX + 5, spiritY - 2, 2.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "#4d91a6";
+  ctx.lineWidth = 1.7;
+  ctx.beginPath();
+  ctx.arc(spiritX + 1, spiritY + 2, 5, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(159, 209, 223, 0.82)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(spiritX - 6, spiritY + 12);
+  ctx.quadraticCurveTo(spiritX - 18, spiritY + 28, spiritX - 8, spiritY + 34);
+  ctx.moveTo(spiritX + 6, spiritY + 12);
+  ctx.quadraticCurveTo(spiritX + 18, spiritY + 28, spiritX + 5, spiritY + 34);
+  ctx.stroke();
+
+  if (spec.stage === "respite" || spec.stage === "respite_ready" || spec.stage === "rest_prompt") {
+    for (let i = 0; i < 3; i += 1) {
+      const restX = anchor.x - 82 + i * 28;
+      const restY = anchor.y + 46 + Math.sin(motion + i) * (reducedMotion ? 0 : 1.5);
+      ctx.fillStyle = "rgba(255, 253, 245, 0.5)";
+      ctx.beginPath();
+      ctx.ellipse(restX, restY, 22, 8, -0.18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = i % 2 ? "rgba(140, 122, 184, 0.42)" : "rgba(159, 209, 223, 0.42)";
+      ctx.beginPath();
+      ctx.arc(restX - 4, restY - 7, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255, 253, 245, 0.58)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(restX + 4, restY - 10);
+      ctx.quadraticCurveTo(restX + 14, restY - 18, restX + 20, restY - 10);
+      ctx.stroke();
+    }
+  }
+
+  for (let i = 0; i < 7; i += 1) {
+    const moteX = anchor.x - 72 + i * 22 + Math.sin(motion * 0.9 + i) * (reducedMotion ? 0 : 5);
+    const moteY = anchor.y - 52 + (i % 3) * 18 + Math.cos(motion * 1.1 + i) * (reducedMotion ? 0 : 4);
+    ctx.fillStyle = i % 2 ? "rgba(255, 253, 245, 0.78)" : "rgba(159, 209, 223, 0.68)";
+    ctx.beginPath();
+    ctx.arc(moteX, moteY, i % 2 ? 2.4 : 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, palette.fill);
+  ctx.strokeStyle = active ? `${palette.accent}ee` : `${palette.accent}88`;
+  ctx.lineWidth = active ? 2.8 : 1.8;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = palette.soft;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 58, 58, 16);
+  ctx.fill();
+  drawRareSpiritTheaterGlyph(ctx, "spirit_line_yuelian", rect.x + 43, cardY + 43, motion);
+  ctx.fillStyle = palette.accent;
+  ctx.font = "900 10px Microsoft YaHei";
+  ctx.fillText(spec.stageLabel, rect.x + 27, cardY + 76);
+
+  ctx.fillStyle = palette.accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(`${spec.title} · 可点`, rect.x + 86, cardY + 23);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 18), rect.x + 86, cardY + 47);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(spec.detail.slice(0, 34), rect.x + 86, cardY + 66);
+  ctx.fillStyle = spec.tone === "moon" ? "#286f58" : "#8f5f3f";
+  ctx.font = "800 10px Microsoft YaHei";
+  ctx.fillText(`“${spec.quote}”`.slice(0, 30), rect.x + 86, cardY + 84);
+
+  ctx.fillStyle = active ? "rgba(159, 209, 223, 0.24)" : "rgba(255, 253, 245, 0.78)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, cardY + rect.height - 21, rect.width - 32, 16, 8);
+  ctx.fill();
+  ctx.fillStyle = palette.accent;
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText(`${spec.actionText} · ${spec.cta}`.slice(0, 36), rect.x + 24, cardY + rect.height - 10);
+  ctx.restore();
+  return true;
+}
