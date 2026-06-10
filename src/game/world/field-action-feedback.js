@@ -1377,3 +1377,66 @@ export function drawNightGrowthRouteBadgeWorld({
   ctx.restore();
   return true;
 }
+
+export function drawMorningHarvestPlanFlagsWorld({
+  ctx,
+  plans = [],
+  originX = 0,
+  originY = 0,
+  tile = 72,
+  gap = 6,
+  reducedMotion = false,
+  motion = 0,
+  routeSafe = (route) => route,
+  badgeForRoute = () => ({ fill: "rgba(255, 253, 245, 0.86)", stroke: "#9aa99d", text: "#5d6f65", glyph: "仓", label: "先入仓" }),
+} = {}) {
+  if (!ctx || !plans.length) return false;
+  ctx.save();
+  for (const [index, plan] of plans.entries()) {
+    const x = originX + plan.x * (tile + gap);
+    const y = originY + plan.y * (tile + gap);
+    const route = routeSafe(plan.route);
+    const badge = badgeForRoute(route);
+    const bob = reducedMotion ? 0 : Math.sin(motion * 2.2 + index) * 2.4;
+    const flagX = x + tile * 0.5;
+    const flagY = y - 18 + bob;
+    const label = index === 0 ? "先收" : badge.glyph;
+    const width = index === 0 ? 54 : 30;
+
+    ctx.strokeStyle = "rgba(91, 51, 40, 0.42)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(flagX - width / 2 + 8, flagY + 24);
+    ctx.lineTo(flagX - width / 2 + 8, flagY + 50);
+    ctx.stroke();
+
+    ctx.fillStyle = badge.fill;
+    ctx.strokeStyle = badge.stroke;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(flagX - width / 2, flagY, width, 24, 10);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = badge.text;
+    ctx.font = index === 0 ? "800 12px Microsoft YaHei" : "900 13px Microsoft YaHei";
+    ctx.textAlign = "center";
+    ctx.fillText(label, flagX, flagY + 16);
+
+    if (index === 0 && route?.badge) {
+      ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
+      ctx.strokeStyle = "rgba(224, 182, 109, 0.3)";
+      const text = route.badge.slice(0, 7);
+      ctx.font = "700 11px Microsoft YaHei";
+      const textWidth = Math.min(94, Math.max(46, ctx.measureText(text).width + 14));
+      ctx.beginPath();
+      ctx.roundRect(flagX - textWidth / 2, flagY + 28, textWidth, 20, 9);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#8f5f3f";
+      ctx.fillText(text, flagX, flagY + 42);
+    }
+  }
+  ctx.restore();
+  return true;
+}
