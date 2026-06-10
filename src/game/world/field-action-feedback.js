@@ -978,3 +978,213 @@ export function drawHarvestStorageRouteWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function matureHarvestBasketSafetyTextWorld() {
+  return "只定位成熟田、订单板、配方栏或旧铺货签，不会自动收获、加物品、交单、加工、上架、开铺、入夜或消耗资源";
+}
+
+export function matureHarvestBasketRouteNodesWorld({ route = null, badge = null } = {}) {
+  const safe = route || {};
+  const safeBadge = badge || { glyph: "仓", label: "再决定", stroke: "#9aa99d" };
+  const routeType = safe?.type || "stock";
+  const middle = routeType === "order"
+    ? { key: "order", badge: "单", title: "订单口", detail: safe.orderTitle || safe.targetName || "待交订单", accent: "#d19a4a" }
+    : routeType === "recipe"
+      ? { key: "recipe", badge: "锅", title: "工坊口", detail: safe.recipeName || safe.targetName || "可入锅", accent: "#be4f37" }
+      : routeType === "shop"
+        ? { key: "shop", badge: "铺", title: "旧铺口", detail: safe.shopTagLabel || safe.targetName || "可挂货签", accent: "#4d91a6" }
+        : { key: "stock", badge: "仓", title: "先入仓", detail: safe?.targetName || "库存沉淀", accent: "#9aa99d" };
+  return [
+    { key: "crop", badge: "收", title: "成熟田", detail: safe?.itemName || "今日收成", accent: "#b47d2f" },
+    middle,
+    {
+      key: "confirm",
+      badge: safeBadge.glyph,
+      title: "手动确认",
+      detail: safe?.cta || safe?.badge || safeBadge.label || "再决定",
+      accent: safeBadge.stroke,
+    },
+  ];
+}
+
+export function matureHarvestBasketWorldSpecWorld({
+  width = 960,
+  height = 640,
+  rows = [],
+  top = null,
+  route = null,
+  badge = null,
+  day = 1,
+  metrics = null,
+  nodes = null,
+} = {}) {
+  if (!rows.length || !top || !metrics) return null;
+  const safeBadge = badge || { label: "入仓", text: "#286f58", stroke: "#286f58", fill: "rgba(202, 235, 210, 0.35)", glyph: "仓" };
+  const plotPoint = {
+    x: metrics.originX + top.x * (metrics.tile + metrics.gap) + metrics.tile * 0.5,
+    y: metrics.originY + top.y * (metrics.tile + metrics.gap) + metrics.tile * 0.5,
+  };
+  const cardWidth = 306;
+  const cardHeight = 112;
+  const x = Math.max(18, Math.min(width - cardWidth - 18, plotPoint.x + (plotPoint.x > width * 0.56 ? -cardWidth - 46 : 70)));
+  const y = Math.max(64, Math.min(height - cardHeight - 28, plotPoint.y + (plotPoint.y > height * 0.54 ? -cardHeight - 42 : 46)));
+  return {
+    key: `${day}:${top.x},${top.y}:${route?.type || "stock"}:${route?.orderId || route?.recipeId || route?.shopTag || route?.itemId || top.itemId}`,
+    day,
+    top,
+    rows,
+    route,
+    badge: safeBadge,
+    title: "成熟入筐去向小景 · 可点",
+    headline: `${top.itemName} 已熟，先看入筐去向`,
+    detail: route?.detail || route?.headline || "收进竹筐后再接订单、工坊或旧铺。",
+    routeText: `成熟发光 -> 竹筐接住 -> ${route?.badge || safeBadge.label}`,
+    itemName: top.itemName,
+    plotLabel: `(${top.x + 1},${top.y + 1})`,
+    targetText: route?.targetName || route?.cta || route?.badge || safeBadge.label,
+    safetyText: matureHarvestBasketSafetyTextWorld(),
+    rect: { x, y, width: cardWidth, height: cardHeight },
+    plotPoint,
+    basketPoint: {
+      x: plotPoint.x + (x > plotPoint.x ? 38 : -38),
+      y: plotPoint.y + metrics.tile * 0.34,
+    },
+    nodes: nodes || matureHarvestBasketRouteNodesWorld({ route, badge: safeBadge }),
+  };
+}
+
+export function matureHarvestBasketWorldAtCanvasPointWorld({ px, py, spec = null } = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return (
+    px >= rect.x
+    && px <= rect.x + rect.width
+    && py >= rect.y
+    && py <= rect.y + rect.height
+  ) ? spec : null;
+}
+
+export function drawMatureHarvestBasketWorldWorld({
+  ctx,
+  spec = null,
+  focus = null,
+  day = 1,
+  reducedMotion = false,
+  motion = performance.now() / 1000,
+  drawCanvasCard,
+} = {}) {
+  if (!spec?.rect || !spec.top || !drawCanvasCard) return false;
+  const { rect, plotPoint, basketPoint, route, badge } = spec;
+  const active = focus?.day === day && focus?.key === spec.key;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.1) * 2.4;
+  const cardY = rect.y + pulse * 0.4;
+
+  ctx.save();
+  ctx.strokeStyle = active ? `${badge.stroke}dd` : `${badge.stroke}68`;
+  ctx.lineWidth = active ? 3 : 1.8;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 13;
+  ctx.beginPath();
+  ctx.moveTo(plotPoint.x, plotPoint.y - 8);
+  ctx.quadraticCurveTo((plotPoint.x + rect.x + 34) / 2, Math.min(plotPoint.y, cardY) - 38, rect.x + 34, cardY + 66);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = "rgba(246, 240, 182, 0.26)";
+  ctx.beginPath();
+  ctx.ellipse(plotPoint.x, plotPoint.y + 16, 54 + Math.abs(pulse) * 3, 16, 0, 0, Math.PI * 2);
+  ctx.fill();
+  for (let i = 0; i < 5; i += 1) {
+    const angle = motion * 1.4 + i * (Math.PI * 2 / 5);
+    const sparkX = plotPoint.x + Math.cos(angle) * (24 + (i % 2) * 8);
+    const sparkY = plotPoint.y - 4 + Math.sin(angle) * 12;
+    ctx.fillStyle = i % 2 ? "rgba(224, 182, 109, 0.86)" : "rgba(255, 253, 245, 0.88)";
+    ctx.beginPath();
+    ctx.arc(sparkX, sparkY, 3.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = "rgba(143, 95, 63, 0.18)";
+  ctx.beginPath();
+  ctx.ellipse(basketPoint.x, basketPoint.y + 14, 30, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(224, 182, 109, 0.88)";
+  ctx.strokeStyle = "rgba(143, 95, 63, 0.7)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(basketPoint.x - 24, basketPoint.y - 4 + pulse * 0.25, 48, 28, 9);
+  ctx.fill();
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(143, 95, 63, 0.74)";
+  ctx.beginPath();
+  ctx.arc(basketPoint.x, basketPoint.y - 3 + pulse * 0.25, 18, Math.PI, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = badge.stroke;
+  ctx.font = "900 12px Microsoft YaHei";
+  ctx.textAlign = "center";
+  ctx.fillText(badge.glyph, basketPoint.x, basketPoint.y + 15 + pulse * 0.25);
+  ctx.textAlign = "left";
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
+  ctx.strokeStyle = active ? `${badge.stroke}ee` : `${badge.stroke}8a`;
+  ctx.lineWidth = active ? 2.8 : 1.7;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = badge.fill;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 52, 48, 15);
+  ctx.fill();
+  ctx.strokeStyle = badge.stroke;
+  ctx.lineWidth = 1.3;
+  ctx.stroke();
+  ctx.fillStyle = badge.stroke;
+  ctx.font = "900 20px Microsoft YaHei";
+  ctx.fillText("筐", rect.x + 29, cardY + 44);
+
+  ctx.fillStyle = badge.text;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title.slice(0, 18), rect.x + 80, cardY + 23);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 21), rect.x + 80, cardY + 45);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText(`${spec.plotLabel} · ${spec.targetText} · ${route?.ready ? "已接上" : "先确认"}`.slice(0, 37), rect.x + 80, cardY + 62);
+
+  const nodeY = cardY + 82;
+  spec.nodes.forEach((node, index) => {
+    const nodeX = rect.x + 14 + index * 96;
+    ctx.fillStyle = index === 1 ? `${node.accent}18` : "rgba(255, 253, 245, 0.76)";
+    ctx.strokeStyle = `${node.accent}50`;
+    ctx.lineWidth = active && index === 1 ? 1.8 : 1.1;
+    ctx.beginPath();
+    ctx.roundRect(nodeX, nodeY - 10, 84, 25, 10);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = node.accent;
+    ctx.beginPath();
+    ctx.arc(nodeX + 14, nodeY + 2, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fffdf5";
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(node.badge.slice(0, 1), nodeX + 10, nodeY + 5);
+    ctx.fillStyle = node.accent;
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(node.title.slice(0, 4), nodeX + 28, nodeY - 2);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "800 8px Microsoft YaHei";
+    ctx.fillText(String(node.detail || "").slice(0, 8), nodeX + 28, nodeY + 11);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 18, cardY + rect.height - 16, rect.width - 36, 12, 6);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText(`${spec.routeText} · ${spec.safetyText}`.slice(0, 46), rect.x + 26, cardY + rect.height - 7);
+  ctx.restore();
+  return true;
+}
