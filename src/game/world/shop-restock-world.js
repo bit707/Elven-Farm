@@ -8,6 +8,29 @@ export function shopRestockTargetIsWaterFreshWorld({
     || (typeof target === "object" && target?.source === "lianze_waterway_reorder");
 }
 
+export function shopRestockFocusSnapshotWorld({
+  target = null,
+  day = 1,
+  inventory = {},
+} = {}) {
+  if (!target || target.status !== "active") return null;
+  return {
+    day,
+    itemId: target.itemId,
+    itemName: target.itemName,
+    note: target.note || `目标 ${Number((inventory || {})[target.itemId] || 0)}/${target.desiredCount}`,
+  };
+}
+
+export function shopRestockActiveFocusWorld({
+  syncedRestock = null,
+  cachedRestock = null,
+  day = 1,
+} = {}) {
+  if (syncedRestock) return syncedRestock;
+  return cachedRestock?.day === day ? cachedRestock : null;
+}
+
 export function shopRestockRouteCandidatesWorld({
   restock = null,
   day = 1,
@@ -155,6 +178,34 @@ export function shopRestockSummarySpecWorld({
   };
 }
 
+export function shopRestockTrackerSpecWorld({
+  target = null,
+  day = 1,
+  inventory = {},
+  sellableCount = 0,
+  restock = null,
+  shopRestockTargetReady = () => false,
+  shopRestockTargetIsWaterFresh = () => false,
+  shopRestockRouteMarkup = () => "",
+} = {}) {
+  if (!target || target.status !== "active") return null;
+  const have = target.itemId ? Number((inventory || {})[target.itemId] || 0) : Number(sellableCount || 0);
+  const ready = shopRestockTargetReady(target);
+  const overdue = day > Number(target.dueDay || day);
+  const waterFresh = shopRestockTargetIsWaterFresh(target);
+  const waterwayReorder = target.source === "lianze_waterway_reorder";
+  return {
+    target,
+    have,
+    ready,
+    overdue,
+    restock,
+    waterFresh,
+    waterwayReorder,
+    routeMarkup: shopRestockRouteMarkup(restock),
+  };
+}
+
 export function shopRestockTrackerMarkupWorld({
   target = null,
   have = 0,
@@ -177,5 +228,16 @@ export function shopRestockTrackerMarkupWorld({
         <button type="button" data-shop-restock-cancel="true">取消追踪</button>
       </div>
     </div>
+  `;
+}
+
+export function shopCustomerFocusRestockMarkupWorld({
+  restock = null,
+  routeMarkup = "",
+} = {}) {
+  if (!restock) return "";
+  return `
+      <small class="shop-customer-restock-mark">已标记补货：${restock.itemName} · ${restock.note}</small>
+      ${routeMarkup}
   `;
 }

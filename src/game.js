@@ -164,10 +164,14 @@ import {
   shopThemeForFocusWorld,
 } from "./game/world/shop-focus-world.js";
 import {
+  shopCustomerFocusRestockMarkupWorld,
+  shopRestockActiveFocusWorld,
+  shopRestockFocusSnapshotWorld,
   shopRestockRouteCandidatesWorld,
   shopRestockRouteMarkupWorld,
   shopRestockSummarySpecWorld,
   shopRestockTargetIsWaterFreshWorld,
+  shopRestockTrackerSpecWorld,
   shopRestockTrackerMarkupWorld,
 } from "./game/world/shop-restock-world.js";
 import {
@@ -1418,13 +1422,11 @@ function syncShopOpeningState() {
 
 function syncShopRestockFocusFromTarget() {
   const target = syncShopOpeningState().restockTarget;
-  if (!target || target.status !== "active") return null;
-  shopRestockFocus = {
+  shopRestockFocus = shopRestockFocusSnapshotWorld({
+    target,
     day: state.day,
-    itemId: target.itemId,
-    itemName: target.itemName,
-    note: target.note || `目标 ${Number(state.inventory[target.itemId] || 0)}/${target.desiredCount}`,
-  };
+    inventory: state.inventory,
+  });
   return shopRestockFocus;
 }
 
@@ -28120,25 +28122,31 @@ function shopRestockRouteMarkup(restock = shopRestockFocus) {
   });
 }
 
-function shopRestockTrackerMarkup() {
-  const target = syncShopOpeningState().restockTarget;
-  if (!target || target.status !== "active") return "";
-  const have = target.itemId ? Number(state.inventory[target.itemId] || 0) : sellableInventoryGoods().length;
-  const ready = shopRestockTargetReady(target);
-  const overdue = state.day > target.dueDay;
-  const restock = syncShopRestockFocusFromTarget();
-  const waterFresh = shopRestockTargetIsWaterFresh(target);
-  const waterwayReorder = target.source === "lianze_waterway_reorder";
-  return shopRestockTrackerMarkupWorld({
-    target,
-    have,
-    ready,
-    overdue,
-    restock,
-    waterFresh,
-    waterwayReorder,
-    routeMarkup: shopRestockRouteMarkup(restock),
+function shopRestockActiveFocus() {
+  return shopRestockActiveFocusWorld({
+    syncedRestock: syncShopRestockFocusFromTarget(),
+    cachedRestock: shopRestockFocus,
+    day: state.day,
   });
+}
+
+function shopRestockTrackerSpec() {
+  const target = syncShopOpeningState().restockTarget;
+  return shopRestockTrackerSpecWorld({
+    target,
+    day: state.day,
+    inventory: state.inventory,
+    sellableCount: sellableInventoryGoods().length,
+    restock: syncShopRestockFocusFromTarget(),
+    shopRestockTargetReady,
+    shopRestockTargetIsWaterFresh,
+    shopRestockRouteMarkup,
+  });
+}
+
+function shopRestockTrackerMarkup() {
+  const spec = shopRestockTrackerSpec();
+  return spec ? shopRestockTrackerMarkupWorld(spec) : "";
 }
 
 function shopCustomerFocusReviewSpec(focus = canvasShopCustomerFocus) {
@@ -28162,12 +28170,15 @@ function shopCustomerFocusReviewMarkup() {
   const spec = shopCustomerFocusReviewSpec();
   if (!spec) return "";
   const entry = canvasShopCustomerFocus?.entry || null;
-  const restock = syncShopRestockFocusFromTarget() || (shopRestockFocus?.day === state.day ? shopRestockFocus : null);
+  const restock = shopRestockActiveFocus();
   const reportLink = spec.reportIndex >= 0
     ? `<button type="button" data-shop-focus-report="${spec.reportIndex}">定位这条反馈</button>`
     : "";
   const actions = shopCustomerFocusActionsMarkup(spec, entry);
-  const restockRoutes = restock ? shopRestockRouteMarkup(restock) : "";
+  const restockMarkup = shopCustomerFocusRestockMarkupWorld({
+    restock,
+    routeMarkup: restock ? shopRestockRouteMarkup(restock) : "",
+  });
   return `
     <div class="shop-customer-focus ${spec.tone}" data-shop-board="customer-focus">
       <strong>${spec.title} · ${spec.name}</strong>
@@ -28175,8 +28186,7 @@ function shopCustomerFocusReviewMarkup() {
       <span>结果：${spec.result}</span>
       <small>原因：${spec.reason}</small>
       <small>下一步：${spec.advice}${spec.blockers ? ` · 今日盘面：${spec.blockers}` : ""}${spec.hotTagLabel ? ` · 热点：${spec.hotTagLabel}` : ""}</small>
-      ${restock ? `<small class="shop-customer-restock-mark">已标记补货：${restock.itemName} · ${restock.note}</small>` : ""}
-      ${restockRoutes}
+      ${restockMarkup}
       ${actions}
       ${reportLink}
     </div>
