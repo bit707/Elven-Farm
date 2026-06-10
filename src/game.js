@@ -139,6 +139,7 @@ import {
   shopCustomerReasonCompassWorldSpecWorld,
   shopDiagnosisWorldBoardAtCanvasPointWorld,
   shopDiagnosisWorldBoardSpecWorld,
+  shopLiveFocusSpecWorld,
   shopThoughtBubbleChainAtCanvasPointWorld,
   shopThoughtBubbleChainSpecWorld,
   shopThoughtBubbleChainStatusWorld,
@@ -26774,53 +26775,17 @@ function shopCustomerForecastCanvasTarget(spec = shopCustomerForecastWorldSpec()
 }
 
 function shopLiveFocusSpec(report = [], goods = [], theme = currentShelfTheme(), themeScore = 0, hotTag = "") {
-  const buys = report.filter((entry) => entry.reason === "buy");
-  const leaves = report.filter((entry) => ["price", "stock", "tag"].includes(entry.reason));
-  const itemCounts = buys.reduce((counts, entry) => {
-    if (!entry.itemId) return counts;
-    counts[entry.itemId] = Number(counts[entry.itemId] || 0) + 1;
-    return counts;
-  }, {});
-  const topItem = Object.entries(itemCounts).sort((a, b) => b[1] - a[1])[0] || null;
-  const blockerCounts = leaves.reduce((counts, entry) => {
-    counts[entry.reason] = Number(counts[entry.reason] || 0) + 1;
-    return counts;
-  }, {});
-  const topBlocker = Object.entries(blockerCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "";
   const lowStockGoods = shuqiLowStockGoods(goods);
-  const blockerLabels = {
-    price: "价格偏高",
-    stock: "货架太薄",
-    tag: "标签不合",
-  };
-  const advice = topBlocker === "price"
-    ? "下次先把倍率压低一点，让第一批熟客留下来。"
-    : topBlocker === "stock"
-      ? `先补 ${lowStockGoods[0] ? itemName(lowStockGoods[0].itemId) : "热卖货"}，薄货架会让谨慎顾客退开。`
-      : topBlocker === "tag"
-        ? `围绕“${shopTagLabel(hotTag)}”补一件匹配商品，主题会更像真正的货架。`
-        : buys.length > 0
-          ? "成交理由已经写进账页，可以沿着这个标签继续补货。"
-          : "先准备一件高匹配加工品，再开铺更稳。";
-  return {
-    buyers: buys.length,
-    leavers: leaves.length,
-    topItemId: topItem?.[0] || "",
-    topItemName: topItem ? itemName(topItem[0]) : "",
-    topItemCount: topItem ? Number(topItem[1] || 0) : 0,
-    topBlocker,
-    topBlockerLabel: blockerLabels[topBlocker] || (buys.length > 0 ? "成交顺利" : "等待首单"),
-    themeName: theme?.note || state.shopShelfTheme,
-    themeScore: Math.round(themeScore * 100),
+  return shopLiveFocusSpecWorld({
+    report,
+    theme,
+    themeName: state.shopShelfTheme,
+    themeScore,
     hotTag,
-    hotTagLabel: shopTagLabel(hotTag),
-    shelfAdvice: advice,
-    headline: topItem
-      ? `${itemName(topItem[0])} 今日最亮眼`
-      : leaves.length > 0
-        ? `${blockerLabels[topBlocker] || "顾客犹豫"} 是今日短板`
-        : "旧铺等下一批客人",
-  };
+    lowStockGoods: lowStockGoods.map((good) => ({ ...good, itemName: itemName(good.itemId) })),
+    itemName,
+    shopTagLabel,
+  });
 }
 
 function shopFailureRecoverySpec(report = [], goods = [], theme = currentShelfTheme(), themeScore = 0, hotTag = "") {
