@@ -330,6 +330,8 @@ npm run verify
 - 已完成：`drawWorkshopIngredientReadyWorld`、`drawWorkshopOpeningValueWorld`、`drawWorkshopSpiritAssistActionWorld` 与 `drawWorkshopOrderQueueWorldBoard` 的工坊“原料就绪/开锅增值/精怪帮火/订单锅排产”Canvas 绘制实现继续拆到 `src/game/world/workshop-world.js`，对应 `spec`、Canvas 命中、聚焦状态、state 写入、动效时间读取与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：新建 `src/game/world/automation-world.js`，承接 `drawSpiritAutomationRelayWorld`、`drawSpiritAutomationGroundTrace`、`drawAutomationHubWorldNote` 与 `drawSpiritAutomationBenefitBoard` 的自动化世界卡/路线/收益看板 Canvas 绘制实现；对应 `spec`、Canvas 命中、聚焦状态、`spiritCanvasTargets()`、`pointOnPolyline`、`settings.reducedMotion`、`drawCanvasCard` 与收益色板包装仍留在 `src/game.js`，`tools/verify.mjs` 也已纳入新模块审计。
 - 已完成：`spiritAutomationBenefitToneColor` 的纯色板映射下沉到 `src/game/world/automation-world.js`，`src/game.js` 仅保留同名兼容包装，继续给自动化世界绘制函数注入配色 helper，避免改动现有调用点。
+- 已完成：新建 `src/game/world/progression-world.js`，承接 `drawSpiritJobReadyWorldBoard`、`drawYear2GoalWorldBoard`、`drawPostMainlineTenHourRouteWorld`、`drawPostMainlineTodayRouteWorld` 与 `drawPostMainlineRouteStations` 的“岗位修行 / 第二年目标 / 主线后年路”Canvas 绘制实现；对应 `spec`、Canvas 命中、聚焦状态、`drawCanvasCard`、`settings.reducedMotion` 与 route focus key 包装仍留在 `src/game.js`，`tools/verify.mjs` 也已纳入新模块审计。
+- 已完成：`drawYearOneRhythmWorldBoard`、`drawYearOneRhythmStampWorld`、`drawYearOneRhythmStampLandmarks` 与 `spiritJobReadyWorldAccent` 的“首年阶段验收 / 印记台 / 印记地标”纯绘制与配色 helper 一并下沉到 `src/game/world/progression-world.js`，`src/game.js` 保留同名兼容包装、focus 状态判断与 landmark spec 组装，避免改动现有调用点。
 - 已完成：`tools/build-runtime-data.mjs` 已适配新数据清单模块，并保留旧 `src/game.js` 内联清单 fallback。
 - 已完成：`tools/package-standalone.mjs` 已内联 `src/game/**` 本地模块，避免离线单文件包被 ESM import 破坏。
 - 已完成：`tools/verify.mjs` 已把拆分模块纳入静态审计，避免门禁继续假设所有内容必须留在 `src/game.js`。
