@@ -91,6 +91,7 @@ import {
   drawHarvestRouteWorldBoardWorld,
   drawManualWaterAfterglowWorldWorld,
   drawHarvestStorageRouteWorldWorld,
+  drawNightGrowthRouteBadgeWorld,
   drawMorningGrowthDewWorldWorld,
   drawPlantingAftercareWorldWorld,
   drawSeedRestockBagWorldWorld,
@@ -74437,33 +74438,18 @@ function drawMatureHarvestBasketWorld(ctx, spec = matureHarvestBasketWorldSpec(c
 }
 
 function drawNightGrowthRouteBadge(ctx, plot, cx, cy, tile, index, fade, progress) {
-  const badge = nightGrowthRouteBadgeSpec(plot.useRoute);
-  const label = badge.label.slice(0, 7);
-  const bob = settings.reducedMotion ? 0 : Math.sin(progress * Math.PI * 2 + index) * 2;
-  ctx.save();
-  ctx.font = "800 12px Microsoft YaHei";
-  const width = Math.max(58, Math.min(108, ctx.measureText(label).width + 36));
-  const x = Math.max(12, Math.min(ctx.canvas.width - width - 12, cx - width / 2));
-  const y = Math.max(18, cy - tile * 0.88 - bob);
-  ctx.globalAlpha = Math.max(0.18, fade);
-  ctx.fillStyle = badge.fill;
-  ctx.strokeStyle = badge.stroke;
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.roundRect(x, y, width, 25, 12);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = badge.stroke;
-  ctx.beginPath();
-  ctx.arc(x + 14, y + 12.5, 8, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#fffdf5";
-  ctx.textAlign = "center";
-  ctx.fillText(badge.glyph, x + 14, y + 17);
-  ctx.fillStyle = badge.text;
-  ctx.textAlign = "left";
-  ctx.fillText(label, x + 27, y + 17);
-  ctx.restore();
+  return drawNightGrowthRouteBadgeWorld({
+    ctx,
+    plot,
+    cx,
+    cy,
+    tile,
+    index,
+    fade,
+    progress,
+    reducedMotion: settings.reducedMotion,
+    badgeForRoute: nightGrowthRouteBadgeSpec,
+  });
 }
 
 function activeMorningHarvestPlans() {
