@@ -280,6 +280,7 @@ npm run verify
 - 已完成：`drawNewPlayerTutorWorld` 的“新手三步口授牌”Canvas 绘制实现拆到新模块 `src/game/world/new-player-tutor-world.js`，`newPlayerTutorWorldSpec`、Canvas 命中、聚焦、state 写入、按钮定位、动效开关与 `drawCanvasCard` 注入仍留在 `src/game.js`，`tools/verify.mjs` 已把新模块纳入静态审计。
 - 已完成：`fieldActionFeedbackSpec` 和 `colorWithAlpha` 的“田块动作反馈配置/颜色工具”实现拆到 `src/game/world/field-action-feedback.js`，`src/game.js` 保留同名包装函数以兼容现有绘制与 verify 审计。
 - 已完成：`drawTownLifeErrandRouteWorldFocus` 的“城镇生活委托备货路线聚焦”Canvas 绘制实现拆到新模块 `src/game/world/town-life-world.js`，`townLifeErrandRouteWorldFocus` 的生命周期、过期清理、命中与实际定位副作用仍留在 `src/game.js`，`tools/verify.mjs` 已把新模块纳入静态审计。
+- 已完成：`drawLayeredHills` 和 `drawCanalAndTown` 的主世界背景山丘、雾带、水渠与镇口建筑 Canvas 绘制实现拆到新模块 `src/game/world/background-world.js`，节气气氛、`state.canalRepaired`、动效开关和世界绘制顺序仍留在 `src/game.js`，`tools/verify.mjs` 已把新模块纳入静态审计。
 - 已完成：`tools/build-runtime-data.mjs` 已适配新数据清单模块，并保留旧 `src/game.js` 内联清单 fallback。
 - 已完成：`tools/package-standalone.mjs` 已内联 `src/game/**` 本地模块，避免离线单文件包被 ESM import 破坏。
 - 已完成：`tools/verify.mjs` 已把拆分模块纳入静态审计，避免门禁继续假设所有内容必须留在 `src/game.js`。
