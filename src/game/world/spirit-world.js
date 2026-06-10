@@ -2018,3 +2018,86 @@ export function drawRareSpiritWorldInvitationWorld({
   ctx.restore();
   return true;
 }
+
+export function drawRareSpiritClueRoadsignWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  pulse = 0,
+  active = false,
+  palette = {},
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+  drawRareSpiritTheaterGlyph = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.anchor) return false;
+  const { rect, anchor } = spec;
+  const cardY = rect.y + pulse;
+
+  ctx.save();
+  ctx.strokeStyle = active ? `${palette.accent}dd` : `${palette.accent}66`;
+  ctx.lineWidth = active ? 3 : 1.8;
+  ctx.setLineDash([5, 7]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 10;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y);
+  ctx.quadraticCurveTo(rect.x + 38, cardY + rect.height + 24, rect.x + 36, cardY + rect.height - 4);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = palette.soft;
+  ctx.beginPath();
+  ctx.ellipse(anchor.x, anchor.y + 10, 52 + Math.abs(pulse), 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+  drawRareSpiritTheaterGlyph(ctx, spec.lineId, anchor.x, anchor.y - 12 + pulse * 0.25, motion);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, palette.fill);
+  ctx.strokeStyle = active ? `${palette.accent}ee` : `${palette.accent}99`;
+  ctx.lineWidth = active ? 2.7 : 1.8;
+  ctx.beginPath();
+  ctx.roundRect(rect.x, cardY, rect.width, rect.height, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = palette.soft;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 58, 58, 17);
+  ctx.fill();
+  ctx.fillStyle = palette.accent;
+  ctx.font = "900 24px Microsoft YaHei";
+  ctx.fillText(palette.badge, rect.x + 31, cardY + 50);
+  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 22, cardY + 58, 42, 16, 8);
+  ctx.fill();
+  ctx.fillStyle = palette.accent;
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText("可点", rect.x + 32, cardY + 69);
+
+  ctx.fillStyle = palette.accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title.slice(0, 17), rect.x + 84, cardY + 23);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 18), rect.x + 84, cardY + 45);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(`${spec.sceneText} · ${spec.actionText}`.slice(0, 38), rect.x + 84, cardY + 62);
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
+  ctx.strokeStyle = `${palette.accent}44`;
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, cardY + 78, rect.width - 32, 20, 10);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = spec.tone === "clue" ? "#4d91a6" : "#8f5f3f";
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText((spec.clueSource || spec.hint || "继续推进相关系统").slice(0, 35), rect.x + 26, cardY + 91);
+
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 8px Microsoft YaHei";
+  const queueText = spec.count > 1 ? `另有 ${spec.count - 1} 条线索：${spec.nextEvents.join(" / ")}` : `奖励预告：${spec.rewardText}`;
+  ctx.fillText(`只定位目标册，不会自动触发事件 · ${queueText}`.slice(0, 44), rect.x + 22, cardY + 108);
+  ctx.restore();
+  return true;
+}
