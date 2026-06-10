@@ -324,6 +324,7 @@ npm run verify
 - 已完成：`drawSpiritAssistTrailWorld` 的“精怪代浇足迹/水痕路线提示卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-assist-world.js`，`spiritAssistTrailWorldSpec`、Canvas 命中、聚焦状态、motion/bob/pulse/active/activePlotKey 与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`drawSpiritAssistNineGridActionWorld` 的“精怪代浇九宫格动作签”Canvas 绘制实现继续拆到 `src/game/world/spirit-assist-world.js`，`spiritAssistNineGridActionWorldSpec`、Canvas 命中、聚焦状态、motion/bob/pulse/active/activePlotKey/activeStepKey 与 `drawCanvasCard`、`drawSpiritSprite` 注入仍留在 `src/game.js`。
 - 已完成：`drawSpiritAssistSavingsLedgerWorld` 的“精怪省力账”Canvas 绘制实现继续拆到 `src/game/world/spirit-assist-world.js`，`spiritAssistSavingsLedgerWorldSpec`、Canvas 命中、聚焦状态、motion/bob/active/activePlotKey/activeRowKey 与 `drawCanvasCard` 注入仍留在 `src/game.js`。
+- 已完成：`drawSpiritAssistToWorkshopBridgeWorld` 的“精怪省力去向桥”Canvas 绘制实现继续拆到 `src/game/world/spirit-assist-world.js`，`spiritAssistToWorkshopBridgeWorldSpec`、Canvas 命中、聚焦状态、motion/bob/pulse/active/activeStepKey 与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`tools/build-runtime-data.mjs` 已适配新数据清单模块，并保留旧 `src/game.js` 内联清单 fallback。
 - 已完成：`tools/package-standalone.mjs` 已内联 `src/game/**` 本地模块，避免离线单文件包被 ESM import 破坏。
 - 已完成：`tools/verify.mjs` 已把拆分模块纳入静态审计，避免门禁继续假设所有内容必须留在 `src/game.js`。

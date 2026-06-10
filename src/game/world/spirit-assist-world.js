@@ -561,3 +561,108 @@ export function drawSpiritAssistSavingsLedgerWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function drawSpiritAssistToWorkshopBridgeWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  bob = 0,
+  pulse = 0,
+  active = false,
+  activeStepKey = "",
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec?.top || !spec?.anchor || !spec?.workshopAnchor || !spec?.steps?.length) return false;
+  const { rect, anchor, workshopAnchor, top } = spec;
+  const cardY = rect.y + bob;
+  const accent = top.orderMatch?.ready ? "#286f58" : top.orderMatch ? "#be4f37" : "#b47d2f";
+
+  ctx.save();
+  ctx.strokeStyle = active ? `${accent}cc` : `${accent}66`;
+  ctx.lineWidth = active ? 3 : 2;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 14;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y + 10);
+  ctx.bezierCurveTo(anchor.x + 36, anchor.y + 62, rect.x + 22, cardY + rect.height - 22, rect.x + 34, cardY + rect.height - 16);
+  ctx.moveTo(rect.x + rect.width - 38, cardY + rect.height - 18);
+  ctx.bezierCurveTo(rect.x + rect.width + 34, cardY + 98, workshopAnchor.x - 52, workshopAnchor.y + 8, workshopAnchor.x, workshopAnchor.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  spec.points.forEach((point, index) => {
+    const shimmer = reducedMotion ? 0.45 : (Math.sin(motion * 2.1 + index * 0.6) + 1) / 2;
+    ctx.fillStyle = `rgba(77, 145, 166, ${0.12 + shimmer * 0.14})`;
+    ctx.beginPath();
+    ctx.roundRect(point.rect.x + 10, point.rect.y + 10, point.rect.width - 20, point.rect.height - 20, 12);
+    ctx.fill();
+  });
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.95)");
+  ctx.strokeStyle = active ? `${accent}dd` : `${accent}88`;
+  ctx.lineWidth = active ? 2.8 : 1.6;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, cardY + 1, rect.width - 2, rect.height - 2, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}22`;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 50, 48, 15);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 20px Microsoft YaHei";
+  ctx.fillText("桥", rect.x + 29, cardY + 45);
+  ctx.fillStyle = accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title, rect.x + 78, cardY + 23);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 14px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 20), rect.x + 78, cardY + 45);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "800 10px Microsoft YaHei";
+  ctx.fillText(`${top.recipeTitle} · ${spec.orderText}`.slice(0, 36), rect.x + 78, cardY + 63);
+
+  ctx.strokeStyle = "rgba(141, 164, 98, 0.42)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  spec.steps.forEach((step, index) => {
+    const pointY = step.point.y + bob;
+    if (index === 0) ctx.moveTo(step.point.x, pointY);
+    else ctx.lineTo(step.point.x, pointY);
+  });
+  ctx.stroke();
+
+  spec.steps.forEach((step) => {
+    const focused = active && activeStepKey === step.key;
+    const live = step.active || focused;
+    const radius = live ? 12 + Math.max(0, pulse) : 10;
+    const pointY = step.point.y + bob;
+    ctx.fillStyle = step.done ? "rgba(141, 164, 98, 0.22)" : live ? `${accent}22` : "rgba(23, 35, 29, 0.08)";
+    ctx.beginPath();
+    ctx.arc(step.point.x, pointY, radius + 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = step.done ? "#8da462" : live ? accent : "#a8b2aa";
+    ctx.beginPath();
+    ctx.arc(step.point.x, pointY, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fffdf5";
+    ctx.font = "900 10px Microsoft YaHei";
+    ctx.textAlign = "center";
+    ctx.fillText(step.glyph, step.point.x, pointY + 4);
+    ctx.fillStyle = live ? "#17231d" : "#5d6f65";
+    ctx.font = live ? "800 9px Microsoft YaHei" : "700 8px Microsoft YaHei";
+    ctx.fillText(step.label.slice(0, 5), step.point.x, cardY + 108);
+  });
+  ctx.textAlign = "left";
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + rect.width - 68, cardY + 13, 50, 20, 10);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText("只定位", rect.x + rect.width - 57, cardY + 27);
+  ctx.restore();
+  return true;
+}
