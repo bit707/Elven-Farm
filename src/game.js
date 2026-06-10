@@ -170,10 +170,12 @@ import {
   shopRestockFulfillmentEffectWorld,
   shopRestockFulfillmentFeedbackSpecWorld,
   shopRestockFulfillmentReportEntryWorld,
+  shopRestockProgressNoticeSpecWorld,
   shopRestockRouteCandidatesWorld,
   shopRestockRouteMarkupWorld,
   shopRestockSummarySpecWorld,
   shopRestockTargetIsWaterFreshWorld,
+  shopRestockTargetReadyWorld,
   shopRestockTrackerSpecWorld,
   shopRestockTrackerMarkupWorld,
 } from "./game/world/shop-restock-world.js";
@@ -1538,9 +1540,11 @@ function shopRestockTargetIsWaterFresh(target = null) {
 }
 
 function shopRestockTargetReady(target = syncShopOpeningState().restockTarget) {
-  if (!target || target.status !== "active") return false;
-  if (!target.itemId) return sellableInventoryGoods().length > 0;
-  return Number(state.inventory[target.itemId] || 0) >= Number(target.desiredCount || 1);
+  return shopRestockTargetReadyWorld({
+    target,
+    inventory: state.inventory,
+    sellableCount: sellableInventoryGoods().length,
+  });
 }
 
 function shopRestockSummarySpec(target = syncShopOpeningState().restockTarget) {
@@ -1559,15 +1563,17 @@ function recordShopRestockItemProgress(itemId = "", gained = 0) {
   if (!itemId || Number(gained || 0) <= 0) return;
   const target = syncShopOpeningState().restockTarget;
   if (!target || target.status !== "active" || target.itemId !== itemId) return;
-  const have = Number(state.inventory[itemId] || 0);
-  const ready = shopRestockTargetReady(target);
-  const noticeKey = `${target.id}:${state.day}:${have}:${ready ? "ready" : "progress"}`;
-  if (shopRestockProgressNoticeKey === noticeKey) return;
-  shopRestockProgressNoticeKey = noticeKey;
-  addLog(
-    ready ? "旧铺补货可完成" : "旧铺补货进度",
-    `${target.itemName} +${Number(gained || 0)}，当前 ${have}/${target.desiredCount}。${ready ? "已经够数，去旧铺追踪卡完成补货。" : `期限第 ${target.dueDay} 天，继续按路线准备。`}`,
-  );
+  const spec = shopRestockProgressNoticeSpecWorld({
+    target,
+    gained,
+    inventory: state.inventory,
+    sellableCount: sellableInventoryGoods().length,
+    day: state.day,
+    shopRestockTargetReady,
+  });
+  if (!spec || shopRestockProgressNoticeKey === spec.noticeKey) return;
+  shopRestockProgressNoticeKey = spec.noticeKey;
+  addLog(spec.title, spec.detail);
 }
 
 function shopRestockFulfillmentEffect(goods = sellableInventoryGoods(), theme = currentShelfTheme()) {

@@ -8,6 +8,17 @@ export function shopRestockTargetIsWaterFreshWorld({
     || (typeof target === "object" && target?.source === "lianze_waterway_reorder");
 }
 
+function shopRestockCurrentCountWorld({
+  target = null,
+  inventory = {},
+  sellableCount = 0,
+} = {}) {
+  if (!target) return 0;
+  return target.itemId
+    ? Number((inventory || {})[target.itemId] || 0)
+    : Number(sellableCount || 0);
+}
+
 export function shopRestockFocusSnapshotWorld({
   target = null,
   day = 1,
@@ -29,6 +40,35 @@ export function shopRestockActiveFocusWorld({
 } = {}) {
   if (syncedRestock) return syncedRestock;
   return cachedRestock?.day === day ? cachedRestock : null;
+}
+
+export function shopRestockTargetReadyWorld({
+  target = null,
+  inventory = {},
+  sellableCount = 0,
+} = {}) {
+  if (!target || target.status !== "active") return false;
+  return shopRestockCurrentCountWorld({ target, inventory, sellableCount }) >= Math.max(1, Number(target.desiredCount || 1));
+}
+
+export function shopRestockProgressNoticeSpecWorld({
+  target = null,
+  gained = 0,
+  inventory = {},
+  sellableCount = 0,
+  day = 1,
+  shopRestockTargetReady = () => false,
+} = {}) {
+  if (!target || target.status !== "active" || Number(gained || 0) <= 0) return null;
+  const have = shopRestockCurrentCountWorld({ target, inventory, sellableCount });
+  const ready = shopRestockTargetReady(target);
+  return {
+    noticeKey: `${target.id}:${day}:${have}:${ready ? "ready" : "progress"}`,
+    title: ready ? "旧铺补货可完成" : "旧铺补货进度",
+    detail: `${target.itemName} +${Number(gained || 0)}，当前 ${have}/${target.desiredCount}。${ready ? "已经够数，去旧铺追踪卡完成补货。" : `期限第 ${target.dueDay} 天，继续按路线准备。`}`,
+    have,
+    ready,
+  };
 }
 
 export function shopRestockRouteCandidatesWorld({
@@ -144,7 +184,7 @@ export function shopRestockSummarySpecWorld({
   shopRestockTargetIsWaterFresh = () => false,
 } = {}) {
   if (!target || target.status !== "active") return null;
-  const have = target.itemId ? Number((inventory || {})[target.itemId] || 0) : Number(sellableCount || 0);
+  const have = shopRestockCurrentCountWorld({ target, inventory, sellableCount });
   const ready = shopRestockTargetReady(target);
   const overdue = day > Number(target.dueDay || day);
   const waterwayReorder = target.source === "lianze_waterway_reorder";
@@ -263,7 +303,7 @@ export function shopRestockTrackerSpecWorld({
   shopRestockRouteMarkup = () => "",
 } = {}) {
   if (!target || target.status !== "active") return null;
-  const have = target.itemId ? Number((inventory || {})[target.itemId] || 0) : Number(sellableCount || 0);
+  const have = shopRestockCurrentCountWorld({ target, inventory, sellableCount });
   const ready = shopRestockTargetReady(target);
   const overdue = day > Number(target.dueDay || day);
   const waterFresh = shopRestockTargetIsWaterFresh(target);
