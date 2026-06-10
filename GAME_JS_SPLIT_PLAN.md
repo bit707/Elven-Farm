@@ -283,6 +283,7 @@ npm run verify
 - 已完成：`drawLayeredHills` 和 `drawCanalAndTown` 的主世界背景山丘、雾带、水渠与镇口建筑 Canvas 绘制实现拆到新模块 `src/game/world/background-world.js`，节气气氛、`state.canalRepaired`、动效开关和世界绘制顺序仍留在 `src/game.js`，`tools/verify.mjs` 已把新模块纳入静态审计。
 - 已完成：`drawSpiritAura` 和 `drawSpiritCropScoutWorld` 的精怪随行光环与作物巡视提示卡 Canvas 绘制实现拆到新模块 `src/game/world/spirit-world.js`，`spiritCropScoutWorldSpec`、命中、聚焦、state 写入、动效开关与 `drawCanvasCard` 注入仍留在 `src/game.js`，`tools/verify.mjs` 已把新模块纳入静态审计。
 - 已完成：`drawSpiritJobShiftTheaterWorld` 的“主世界精怪岗位班次/岗位小剧场”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritJobShiftTheaterWorldSpec`、命中、聚焦、state 写入、伙伴栏定位、动效开关与 `drawCanvasCard` 注入仍留在 `src/game.js`。
+- 已完成：`drawSpiritJobEffect` 的“精怪岗位视觉特效”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，岗位读取、巡逻风险判断、动效开关、精怪世界调度与 `spiritVisualProfile` 注入仍留在 `src/game.js`。
 - 已完成：`tools/build-runtime-data.mjs` 已适配新数据清单模块，并保留旧 `src/game.js` 内联清单 fallback。
 - 已完成：`tools/package-standalone.mjs` 已内联 `src/game/**` 本地模块，避免离线单文件包被 ESM import 破坏。
 - 已完成：`tools/verify.mjs` 已把拆分模块纳入静态审计，避免门禁继续假设所有内容必须留在 `src/game.js`。

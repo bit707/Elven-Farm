@@ -212,3 +212,80 @@ export function drawSpiritJobShiftTheaterWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function drawSpiritJobEffectWorld({
+  ctx,
+  spirit = null,
+  x = 0,
+  y = 0,
+  size = 112,
+  profile = {},
+  tick = 0,
+  hasRisk = false,
+} = {}) {
+  if (!ctx || !spirit) return false;
+  const job = spirit.job || "farm";
+  ctx.save();
+  ctx.strokeStyle = profile.accent;
+  ctx.fillStyle = profile.glow;
+  ctx.lineWidth = 3;
+
+  if (job === "farm") {
+    ctx.beginPath();
+    ctx.arc(x + size * 0.82, y + size * 0.28, 12 + Math.sin(tick) * 2, 0, Math.PI * 2);
+    ctx.stroke();
+    for (let i = 0; i < 3; i += 1) {
+      ctx.fillStyle = "rgba(77, 145, 166, 0.55)";
+      ctx.beginPath();
+      ctx.ellipse(x + size * 0.78 + i * 12, y + size * 0.42 + i * 8, 4, 8, 0.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (job === "workshop") {
+    for (let i = 0; i < 4; i += 1) {
+      ctx.fillStyle = i % 2 ? profile.accent : "#fffdf5";
+      ctx.beginPath();
+      ctx.arc(x + size * 0.82 + Math.cos(tick + i) * 18, y + size * 0.42 + Math.sin(tick + i) * 14, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (job === "shop") {
+    ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
+    ctx.beginPath();
+    ctx.roundRect(x + size * 0.62, y + size * 0.08, 54, 26, 10);
+    ctx.fill();
+    ctx.fillStyle = "#b47d2f";
+    ctx.font = "700 13px Microsoft YaHei";
+    ctx.fillText("招客", x + size * 0.7, y + size * 0.26);
+  } else if (job === "expedition") {
+    ctx.setLineDash([7, 7]);
+    ctx.beginPath();
+    ctx.moveTo(x + size * 0.7, y + size * 0.42);
+    ctx.bezierCurveTo(x + size * 1.1, y + size * 0.14, x + size * 1.24, y + size * 0.82, x + size * 1.5, y + size * 0.44);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  } else if (job === "patrol") {
+    ctx.fillStyle = hasRisk ? "rgba(246, 240, 182, 0.42)" : "rgba(246, 240, 182, 0.3)";
+    ctx.beginPath();
+    ctx.moveTo(x + size * 0.5, y + size * 0.48);
+    ctx.arc(x + size * 0.5, y + size * 0.48, hasRisk ? size * 0.88 : size * 0.72, -0.38, 0.38);
+    ctx.closePath();
+    ctx.fill();
+    if (hasRisk) {
+      ctx.strokeStyle = "rgba(224, 182, 109, 0.58)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + size * 0.5, y + size * 0.48);
+      ctx.lineTo(x + size * 1.25, y + size * 0.2 + Math.sin(tick) * 6);
+      ctx.stroke();
+    }
+  } else if (job === "garden") {
+    for (let i = 0; i < 5; i += 1) {
+      ctx.fillStyle = i % 2 ? profile.base : profile.accent;
+      ctx.beginPath();
+      ctx.ellipse(x + size * 0.78 + Math.cos(tick + i) * 24, y + size * 0.32 + Math.sin(tick * 0.8 + i) * 16, 5, 9, i, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.restore();
+  return true;
+}

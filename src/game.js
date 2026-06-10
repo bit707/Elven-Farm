@@ -27,6 +27,7 @@ import {
 import {
   drawSpiritAuraWorld,
   drawSpiritCropScoutWorldWorld,
+  drawSpiritJobEffectWorld,
   drawSpiritJobShiftTheaterWorldWorld,
 } from "./game/world/spirit-world.js";
 import {
@@ -76035,71 +76036,17 @@ function drawSpiritJobShiftTheaterWorld(ctx, spec = spiritJobShiftTheaterWorldSp
 }
 
 function drawSpiritJobEffect(ctx, spirit, x, y, size, profile) {
-  const job = spirit.job || "farm";
   const tick = settings.reducedMotion ? 0 : performance.now() / 420;
-  ctx.save();
-  ctx.strokeStyle = profile.accent;
-  ctx.fillStyle = profile.glow;
-  ctx.lineWidth = 3;
-
-  if (job === "farm") {
-    ctx.beginPath();
-    ctx.arc(x + size * 0.82, y + size * 0.28, 12 + Math.sin(tick) * 2, 0, Math.PI * 2);
-    ctx.stroke();
-    for (let i = 0; i < 3; i += 1) {
-      ctx.fillStyle = "rgba(77, 145, 166, 0.55)";
-      ctx.beginPath();
-      ctx.ellipse(x + size * 0.78 + i * 12, y + size * 0.42 + i * 8, 4, 8, 0.2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  } else if (job === "workshop") {
-    for (let i = 0; i < 4; i += 1) {
-      ctx.fillStyle = i % 2 ? profile.accent : "#fffdf5";
-      ctx.beginPath();
-      ctx.arc(x + size * 0.82 + Math.cos(tick + i) * 18, y + size * 0.42 + Math.sin(tick + i) * 14, 3.5, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  } else if (job === "shop") {
-    ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
-    ctx.beginPath();
-    ctx.roundRect(x + size * 0.62, y + size * 0.08, 54, 26, 10);
-    ctx.fill();
-    ctx.fillStyle = "#b47d2f";
-    ctx.font = "700 13px Microsoft YaHei";
-    ctx.fillText("招客", x + size * 0.7, y + size * 0.26);
-  } else if (job === "expedition") {
-    ctx.setLineDash([7, 7]);
-    ctx.beginPath();
-    ctx.moveTo(x + size * 0.7, y + size * 0.42);
-    ctx.bezierCurveTo(x + size * 1.1, y + size * 0.14, x + size * 1.24, y + size * 0.82, x + size * 1.5, y + size * 0.44);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  } else if (job === "patrol") {
-    const risk = unresolvedRisks()[0];
-    ctx.fillStyle = risk ? "rgba(246, 240, 182, 0.42)" : "rgba(246, 240, 182, 0.3)";
-    ctx.beginPath();
-    ctx.moveTo(x + size * 0.5, y + size * 0.48);
-    ctx.arc(x + size * 0.5, y + size * 0.48, risk ? size * 0.88 : size * 0.72, -0.38, 0.38);
-    ctx.closePath();
-    ctx.fill();
-    if (risk) {
-      ctx.strokeStyle = "rgba(224, 182, 109, 0.58)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x + size * 0.5, y + size * 0.48);
-      ctx.lineTo(x + size * 1.25, y + size * 0.2 + Math.sin(tick) * 6);
-      ctx.stroke();
-    }
-  } else if (job === "garden") {
-    for (let i = 0; i < 5; i += 1) {
-      ctx.fillStyle = i % 2 ? profile.base : profile.accent;
-      ctx.beginPath();
-      ctx.ellipse(x + size * 0.78 + Math.cos(tick + i) * 24, y + size * 0.32 + Math.sin(tick * 0.8 + i) * 16, 5, 9, i, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  ctx.restore();
+  return drawSpiritJobEffectWorld({
+    ctx,
+    spirit,
+    x,
+    y,
+    size,
+    profile,
+    tick,
+    hasRisk: unresolvedRisks().length > 0,
+  });
 }
 
 function spiritAutomationTrailSpec(spirit, station, index = 0) {
