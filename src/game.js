@@ -44,6 +44,7 @@ import {
   drawHualingWelcomeDanceWorld,
   drawLeizhuWindGuideWorld,
   drawYuelianMoonlitPondWorld,
+  drawDengyingLanternPathWorld,
   drawSpiritInteractionWorldEchoWorld,
   drawSpiritInteractionMemoryTriptychWorldWorld,
   drawSpiritJobEffectWorld,
@@ -77875,7 +77876,6 @@ function drawYuelianMoonlitPond(ctx, spec = yuelianMoonlitPondSpec(), motion = s
 
 function drawDengyingLanternPath(ctx, spec = dengyingLanternPathSpec(), motion = settings.reducedMotion ? 0 : performance.now() / 1000) {
   if (!spec?.rect) return false;
-  const { rect, anchor } = spec;
   const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 1.8) * 2.5;
   const active = dengyingLanternPathWorldFocus?.day === state.day
     && dengyingLanternPathWorldFocus?.key === spec.key;
@@ -77886,152 +77886,18 @@ function drawDengyingLanternPath(ctx, spec = dengyingLanternPathSpec(), motion =
     revealed: { accent: "#4d91a6", fill: "rgba(232, 247, 250, 0.96)", soft: "rgba(77, 145, 166, 0.2)", glow: "rgba(255, 253, 245, 0.9)" },
   };
   const palette = palettes[spec.tone] || palettes.shadow;
-  const cardY = rect.y + pulse;
-
-  ctx.save();
-  ctx.fillStyle = "rgba(23, 35, 29, 0.18)";
-  ctx.beginPath();
-  ctx.ellipse(anchor.x + 8, anchor.y + 58, 88, 18, 0.06, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = active ? `${palette.glow}` : "rgba(224, 182, 109, 0.48)";
-  ctx.lineWidth = active ? 4 : 3;
-  ctx.setLineDash([10, 9]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 15;
-  ctx.beginPath();
-  ctx.moveTo(anchor.x - 74, anchor.y + 52);
-  ctx.bezierCurveTo(anchor.x - 24, anchor.y + 4, anchor.x + 58, anchor.y + 18, anchor.x + 116, anchor.y - 42);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  const lampCount = spec.stage === "revealed" || spec.stage === "reveal_ready" || spec.stage === "winter_lantern" ? 5 : 3;
-  for (let i = 0; i < lampCount; i += 1) {
-    const t = lampCount <= 1 ? 0 : i / (lampCount - 1);
-    const lampX = anchor.x - 70 + t * 178;
-    const lampY = anchor.y + 42 - Math.sin(t * Math.PI) * 46 + Math.sin(motion * 1.4 + i) * (settings.reducedMotion ? 0 : 3);
-    ctx.strokeStyle = "rgba(91, 51, 40, 0.74)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(lampX, lampY - 26);
-    ctx.lineTo(lampX, lampY - 8);
-    ctx.stroke();
-    ctx.fillStyle = i < 2 || spec.tone !== "shadow" ? palette.glow : "rgba(143, 95, 63, 0.34)";
-    ctx.beginPath();
-    ctx.roundRect(lampX - 8, lampY - 8, 16, 24, 7);
-    ctx.fill();
-    ctx.strokeStyle = palette.accent;
-    ctx.lineWidth = 1.6;
-    ctx.stroke();
-    ctx.fillStyle = "rgba(255, 253, 245, 0.74)";
-    ctx.fillRect(lampX - 5, lampY + 1, 10, 2);
-  }
-
-  if (spec.stage === "revealed") {
-    ctx.fillStyle = "rgba(77, 145, 166, 0.18)";
-    ctx.strokeStyle = "rgba(255, 253, 245, 0.72)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.ellipse(anchor.x + 124, anchor.y - 52 + pulse * 0.5, 34, 22, -0.18, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = "rgba(255, 253, 245, 0.8)";
-    ctx.font = "900 13px Microsoft YaHei";
-    ctx.fillText("隐", anchor.x + 116, anchor.y - 47 + pulse * 0.5);
-  }
-
-  const spiritX = anchor.x - 6 + Math.sin(motion * 0.9) * (settings.reducedMotion ? 0 : 4);
-  const spiritY = anchor.y + 2 + pulse * 0.45;
-  ctx.fillStyle = "rgba(91, 51, 40, 0.3)";
-  ctx.beginPath();
-  ctx.ellipse(spiritX - 4, spiritY + 36, 32, 8, 0.12, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "rgba(246, 240, 182, 0.24)";
-  ctx.beginPath();
-  ctx.arc(spiritX, spiritY - 4, 24, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#f2d28b";
-  ctx.beginPath();
-  ctx.roundRect(spiritX - 10, spiritY - 18, 20, 30, 9);
-  ctx.fill();
-  ctx.strokeStyle = "#5b3328";
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  ctx.fillStyle = "#5b3328";
-  ctx.beginPath();
-  ctx.arc(spiritX - 4, spiritY - 6, 2.3, 0, Math.PI * 2);
-  ctx.arc(spiritX + 5, spiritY - 6, 2.3, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = "#5b3328";
-  ctx.lineWidth = 1.6;
-  ctx.beginPath();
-  ctx.arc(spiritX + 1, spiritY - 1, 4.5, 0.2, Math.PI - 0.2);
-  ctx.stroke();
-  ctx.strokeStyle = palette.accent;
-  ctx.lineWidth = 2.2;
-  ctx.beginPath();
-  ctx.moveTo(spiritX, spiritY + 12);
-  ctx.lineTo(spiritX, spiritY + 34 + pulse);
-  ctx.stroke();
-
-  if (spec.stage === "night_patrol" || spec.stage === "bond_ready" || spec.stage === "winter_lantern" || spec.stage === "reveal_ready") {
-    ctx.strokeStyle = "rgba(255, 253, 245, 0.52)";
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 4; i += 1) {
-      const rayX = spiritX - 54 + i * 36;
-      ctx.beginPath();
-      ctx.moveTo(rayX, spiritY + 42);
-      ctx.quadraticCurveTo(rayX + 16, spiritY + 30 - i * 3, rayX + 34, spiritY + 42);
-      ctx.stroke();
-    }
-  }
-
-  for (let i = 0; i < 8; i += 1) {
-    const moteX = anchor.x - 96 + i * 28 + Math.sin(motion * 1.1 + i) * (settings.reducedMotion ? 0 : 5);
-    const moteY = anchor.y - 34 + (i % 3) * 18 + Math.cos(motion * 1.3 + i) * (settings.reducedMotion ? 0 : 4);
-    ctx.fillStyle = i % 2 ? "rgba(246, 240, 182, 0.78)" : "rgba(255, 253, 245, 0.72)";
-    ctx.beginPath();
-    ctx.arc(moteX, moteY, i % 2 ? 2.2 : 2.8, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, palette.fill);
-  ctx.strokeStyle = active ? `${palette.accent}ee` : `${palette.accent}88`;
-  ctx.lineWidth = active ? 2.8 : 1.8;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = palette.soft;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 60, 60, 16);
-  ctx.fill();
-  drawRareSpiritTheaterGlyph(ctx, "spirit_line_dengying", rect.x + 44, cardY + 44, motion);
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 10px Microsoft YaHei";
-  ctx.fillText(spec.stageLabel, rect.x + 28, cardY + 78);
-
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(`${spec.title} · 可点`, rect.x + 88, cardY + 23);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 18), rect.x + 88, cardY + 47);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(spec.detail.slice(0, 34), rect.x + 88, cardY + 67);
-  ctx.fillStyle = spec.tone === "revealed" ? "#4d91a6" : "#8f5f3f";
-  ctx.font = "800 10px Microsoft YaHei";
-  ctx.fillText(`“${spec.quote}”`.slice(0, 30), rect.x + 88, cardY + 86);
-
-  ctx.fillStyle = active ? "rgba(246, 240, 182, 0.24)" : "rgba(255, 253, 245, 0.78)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 16, cardY + rect.height - 21, rect.width - 32, 16, 8);
-  ctx.fill();
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText(`${spec.actionText} · ${spec.cta}`.slice(0, 36), rect.x + 24, cardY + rect.height - 10);
-  ctx.restore();
-  return true;
+  return drawDengyingLanternPathWorld({
+    ctx,
+    spec,
+    motion,
+    pulse,
+    active,
+    palette,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+    drawRareSpiritTheaterGlyph: (glyphCtx, lineId, x, y, glyphMotion) =>
+      drawRareSpiritTheaterGlyph(glyphCtx, lineId, x, y, glyphMotion),
+  });
 }
 
 function drawShuqiLedgerDesk(ctx, spec = shuqiLedgerDeskSpec(), motion = settings.reducedMotion ? 0 : performance.now() / 1000) {
