@@ -49,6 +49,7 @@ import {
   drawFengmiHoneyYardWorld,
   drawSpiritSproutPreviewWorld,
   drawSpiritSproutHeartbeatWorldWorld,
+  drawSpiritSproutStageVignetteWorld,
   drawSpiritInteractionWorldEchoWorld,
   drawSpiritInteractionMemoryTriptychWorldWorld,
   drawSpiritJobEffectWorld,
@@ -78062,114 +78063,23 @@ function drawSpiritSproutStageVignette(ctx, originX, originY, tile, gap) {
   if (!spec) return false;
   const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
   const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.4) * 4;
-  const { centerX, centerY, preview } = spec;
-  ctx.save();
-
-  const glow = ctx.createRadialGradient(centerX, centerY, 8, centerX, centerY, preview.tile * 1.36);
-  glow.addColorStop(0, spec.soft);
-  glow.addColorStop(0.54, "rgba(246, 240, 182, 0.16)");
-  glow.addColorStop(1, "rgba(246, 240, 182, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, preview.tile * 1.36 + pulse, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = `${spec.accent}66`;
-  ctx.lineWidth = 2;
-  ctx.setLineDash([6, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 14;
-  for (let i = 0; i < 3; i += 1) {
-    ctx.beginPath();
-    ctx.ellipse(centerX, centerY + 4, preview.tile * (0.42 + i * 0.17) + pulse / 2, preview.tile * (0.18 + i * 0.07), -0.05, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  ctx.setLineDash([]);
-
-  if (spec.sprout.stage === "tremble") {
-    ctx.fillStyle = "rgba(255, 253, 245, 0.82)";
-    for (let i = 0; i < 5; i += 1) {
-      const angle = motion * 1.2 + i * 1.25;
-      const x = centerX + Math.cos(angle) * (preview.tile * 0.48);
-      const y = centerY + Math.sin(angle) * (preview.tile * 0.22);
-      ctx.beginPath();
-      ctx.arc(x, y, 2.5 + (i % 2), 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.fillStyle = spec.accent;
-    ctx.font = "900 18px Microsoft YaHei";
-    ctx.fillText("?", centerX + preview.tile * 0.32 + pulse / 2, centerY - preview.tile * 0.38);
-  } else if (spec.sprout.stage === "peek") {
-    ctx.fillStyle = "rgba(143, 95, 63, 0.22)";
-    ctx.beginPath();
-    ctx.ellipse(centerX, centerY + 13, preview.tile * 0.34, preview.tile * 0.13, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#fffdf5";
-    ctx.beginPath();
-    ctx.arc(centerX + pulse / 2, centerY - 8, preview.tile * 0.18, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#286f58";
-    ctx.beginPath();
-    ctx.arc(centerX - 8 + pulse / 2, centerY - 12, 3, 0, Math.PI * 2);
-    ctx.arc(centerX + 8 + pulse / 2, centerY - 12, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "rgba(180, 125, 47, 0.46)";
-    for (let i = 0; i < 4; i += 1) {
-      ctx.beginPath();
-      ctx.ellipse(centerX - 34 + i * 22, centerY + 28 + (i % 2) * 4, 5, 2.2, 0.2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  } else if (spec.sprout.stage === "born") {
-    const spirit = state.spirits.find((entry) => entry.lineId === "spirit_line_luobo") || {
-      id: "spirit_luobo_01",
-      lineId: "spirit_line_luobo",
-      name: "大胖萝卜精",
-      job: "farm",
-    };
-    ctx.strokeStyle = "rgba(246, 240, 182, 0.72)";
-    ctx.lineWidth = 4;
-    ctx.setLineDash([10, 8]);
-    ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 18;
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY - 8);
-    ctx.bezierCurveTo(centerX + 78, centerY - 74, centerX + 158, centerY - 32, centerX + 224, centerY - 94);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    drawSpiritSprite(ctx, spirit, centerX + 22, centerY - 56 + pulse / 2, 64);
-    ctx.fillStyle = "rgba(246, 240, 182, 0.82)";
-    for (let i = 0; i < 6; i += 1) {
-      const angle = motion * 1.3 + i;
-      ctx.beginPath();
-      ctx.arc(centerX + 106 + Math.cos(angle) * 34, centerY - 48 + Math.sin(angle) * 16, 2.8, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  const card = spec.cardRect;
-  drawCanvasCard(ctx, card.x, card.y, card.width, card.height, "rgba(255, 253, 245, 0.9)");
-  ctx.strokeStyle = `${spec.accent}88`;
-  ctx.lineWidth = 1.8;
-  ctx.beginPath();
-  ctx.roundRect(card.x + 1, card.y + 1, card.width - 2, card.height - 2, 15);
-  ctx.stroke();
-  ctx.fillStyle = spec.soft;
-  ctx.beginPath();
-  ctx.roundRect(card.x + 12, card.y + 13, 42, 38, 12);
-  ctx.fill();
-  ctx.fillStyle = spec.accent;
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(spec.glyph, card.x + 25, card.y + 38);
-  ctx.fillStyle = spec.accent;
-  ctx.font = "900 10px Microsoft YaHei";
-  ctx.fillText(`成精苗圃小演出 ${spec.stepText}`, card.x + 66, card.y + 20);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 13px Microsoft YaHei";
-  ctx.fillText(`${spec.title} · ${spec.subtitle}`.slice(0, 18), card.x + 66, card.y + 39);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "800 8px Microsoft YaHei";
-  ctx.fillText(spec.action.slice(0, 24), card.x + 66, card.y + 54);
-
-  ctx.restore();
-  return true;
+  const bornSpirit = state.spirits.find((entry) => entry.lineId === "spirit_line_luobo") || {
+    id: "spirit_luobo_01",
+    lineId: "spirit_line_luobo",
+    name: "大胖萝卜精",
+    job: "farm",
+  };
+  return drawSpiritSproutStageVignetteWorld({
+    ctx,
+    spec,
+    motion,
+    pulse,
+    reducedMotion: settings.reducedMotion,
+    bornSpirit,
+    drawCanvasCard,
+    drawSpiritSprite: (spriteCtx, spirit, x, y, size) =>
+      drawSpiritSprite(spriteCtx, spirit, x, y, size),
+  });
 }
 
 function drawSpiritSproutAnomalyWorld(ctx, originX, originY, tile, gap) {
