@@ -28,6 +28,7 @@ import {
   drawSpiritAuraWorld,
   drawSpiritCropScoutWorldWorld,
   drawSpiritJobEffectWorld,
+  drawSpiritJobPersonaBubbleWorld,
   drawSpiritJobShiftTheaterWorldWorld,
   drawSpiritWorkRangeAuraWorld,
 } from "./game/world/spirit-world.js";
@@ -76606,18 +76607,13 @@ function drawSpiritWorkRangeAura(ctx, spirit, station, index = 0) {
 function drawSpiritJobPersonaBubble(ctx, spirit, station, index = 0) {
   const persona = spiritJobPersonaSpec(spirit, spirit.job || "farm");
   const pulse = settings.reducedMotion ? 0 : Math.sin((performance.now() + index * 180) / 520) * 3;
-  const x = station.x + station.size * 0.42;
-  const y = station.y - 28 + pulse;
-  const width = Math.min(172, Math.max(112, persona.shortLine.length * 11));
-  ctx.save();
-  drawCanvasCard(ctx, x, y, width, 42, "rgba(255, 253, 245, 0.84)");
-  ctx.fillStyle = persona.tone === "ember" ? "#be4f37" : persona.tone === "gold" ? "#b47d2f" : persona.tone === "water" || persona.tone === "sky" ? "#4d91a6" : persona.tone === "flower" ? "#d87f8d" : "#286f58";
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(`${persona.glyph} ${persona.action}`.slice(0, 14), x + 12, y + 18);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(persona.focus.slice(0, 12), x + 12, y + 34);
-  ctx.restore();
+  return drawSpiritJobPersonaBubbleWorld({
+    ctx,
+    persona,
+    station,
+    pulse,
+    drawCanvasCard,
+  });
 }
 
 function spiritCompanionCanvasSpec(spirit) {
