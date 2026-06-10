@@ -247,6 +247,12 @@ import {
   drawShopWordOfMouthMissingShelfWorldNoteWorld,
   drawShopWordOfMouthReadyShelfEchoWorldNoteWorld,
   drawShopWordOfMouthWorldNoteWorld,
+  shopWordOfMouthFollowupRestockWorldAtCanvasPointWorld,
+  shopWordOfMouthFollowupRestockWorldSpecWorld,
+  shopWordOfMouthSaleEchoWorldAtCanvasPointWorld,
+  shopWordOfMouthSaleEchoWorldSpecWorld,
+  shopWordOfMouthSaleReasonWorldAtCanvasPointWorld,
+  shopWordOfMouthSaleReasonWorldSpecWorld,
 } from "./game/world/shop-world.js";
 import { drawTownLifeErrandRouteWorldFocusWorld } from "./game/world/town-life-world.js";
 import { renderAssetPanelUi } from "./game/ui/asset-panel.js";
@@ -32701,166 +32707,52 @@ function shopFirstSaleActionTrailWorldAtCanvasPoint(px, py) {
 }
 
 function shopWordOfMouthSaleEchoWorldSpec(opening = normalizeShopOpeningState(state.shopOpeningState)) {
-  const visit = opening.lastSession?.day === state.day ? opening.lastSession.shopWordOfMouthVisit || null : null;
-  if (!visit?.bought) return null;
-  const reportIndex = state.shopReport.findIndex((entry) => entry.wordOfMouthLead && entry.reason === "buy");
-  const reportEntry = reportIndex >= 0
-    ? state.shopReport[reportIndex]
-    : state.shopReport.find((entry) => entry.customerArchetype === visit.customerArchetype && entry.reason === "buy") || null;
-  const itemId = reportEntry?.itemId || "";
-  const itemNameText = itemId ? itemName(itemId) : visit.leadItemName || visit.hotTagLabel || "对口货";
-  const price = Number((String(reportEntry?.text || visit.resultText || "").match(/成交 (\d+)/) || [0, 0])[1] || 0);
-  const customerName = reportEntry?.name || visit.customerLabel || "来帖客";
-  const sourceLabel = visit.sourceLabel || "铺前市闻";
-  const resultText = visit.resultText || reportEntry?.text || `${customerName}顺着市闻进门买走了${itemNameText}。`;
-  const path = [
-    { x: 82, y: 258 },
-    { x: 142, y: 246 },
-    { x: 198, y: 270 },
-    { x: 260, y: 298 },
-    { x: 326, y: 324 },
-  ];
-  return {
-    key: `${state.day}:${visit.sourceId || "word"}:${customerName}:${itemNameText}:${price}:word_of_mouth_sale_echo`,
+  return shopWordOfMouthSaleEchoWorldSpecWorld({
+    opening,
+    report: state.shopReport,
     day: state.day,
-    title: "来帖成交回响 · 可点",
-    headline: "市闻真的变成一笔买卖",
-    customerName,
-    sourceLabel,
-    itemId,
-    itemName: itemNameText,
-    price,
-    resultText,
-    reportIndex,
-    selector: reportIndex >= 0
-      ? `[data-shop-report-index="${Number(reportIndex)}"]`
-      : ".shop-word-of-mouth-visit",
-    fallbackSelector: '[data-shop-board="opening"]',
-    rect: { x: 330, y: 360, width: 326, height: 118 },
-    anchor: { x: 180, y: 278 },
-    path,
-    steps: [
-      { key: "word", label: "闻", title: "市闻传来", text: sourceLabel, accent: "#b47d2f" },
-      { key: "visit", label: "客", title: "来客认门", text: customerName, accent: "#4d91a6" },
-      { key: "goods", label: "货", title: "头排接货", text: itemNameText, accent: "#286f58" },
-      { key: "sale", label: "成", title: "成交入账", text: price ? `${price} 灵石` : "成交", accent: "#be4f37" },
-    ],
-    cta: "只回看旧铺报告和市闻来帖，不会自动开铺、接客、成交、改价、补货或消耗库存",
-  };
+    itemName,
+  });
 }
 
 function shopWordOfMouthSaleEchoWorldAtCanvasPoint(px, py) {
-  const spec = shopWordOfMouthSaleEchoWorldSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? {
-      type: "shop_word_of_mouth_sale_echo",
-      label: spec.title,
-      selector: spec.selector,
-      fallbackSelector: spec.fallbackSelector,
-      shopWordOfMouthSaleEcho: spec,
-      rect,
-    }
-    : null;
+  return shopWordOfMouthSaleEchoWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: shopWordOfMouthSaleEchoWorldSpec(),
+  });
 }
 
 function shopWordOfMouthSaleReasonWorldSpec(opening = normalizeShopOpeningState(state.shopOpeningState)) {
   const echo = shopWordOfMouthSaleEchoWorldSpec(opening);
-  if (!echo) return null;
-  const itemText = echo.itemName || "对口货";
-  const sourceText = echo.sourceLabel || "铺前市闻";
-  const customerText = echo.customerName || "来帖客";
-  const priceText = echo.price ? `${echo.price} 灵石` : "成交入账";
-  const nextText = itemText === "对口货" ? "明日继续按市闻标签备货" : `明日把 ${itemText} 留在头排`;
-  return {
-    key: `${echo.key}:reason_card`,
+  return shopWordOfMouthSaleReasonWorldSpecWorld({
+    echo,
     day: state.day,
-    title: "来帖成交三因签 · 可点",
-    headline: "这单为什么能成",
-    customerName: customerText,
-    sourceLabel: sourceText,
-    itemId: echo.itemId || "",
-    itemName: itemText,
-    price: echo.price,
-    resultText: echo.resultText,
-    reportIndex: echo.reportIndex,
-    selector: echo.selector,
-    fallbackSelector: echo.fallbackSelector,
-    rect: { x: 666, y: 236, width: 214, height: 126 },
-    anchor: { x: echo.rect.x + echo.rect.width - 24, y: echo.rect.y + 24 },
-    reasons: [
-      { key: "source", title: "话头命中", text: sourceText, accent: "#b47d2f" },
-      { key: "goods", title: "头排有货", text: itemText, accent: "#286f58" },
-      { key: "result", title: "买单成立", text: priceText, accent: "#be4f37" },
-    ],
-    nextText,
-    cta: "只复盘成交原因和定位旧铺报告，不会自动开铺、接客、成交、改价、补货或消耗库存",
-  };
+  });
 }
 
 function shopWordOfMouthSaleReasonWorldAtCanvasPoint(px, py) {
-  const spec = shopWordOfMouthSaleReasonWorldSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? {
-      type: "shop_word_of_mouth_sale_reason",
-      label: spec.title,
-      selector: spec.selector,
-      fallbackSelector: spec.fallbackSelector,
-      shopWordOfMouthSaleReason: spec,
-      rect,
-    }
-    : null;
+  return shopWordOfMouthSaleReasonWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: shopWordOfMouthSaleReasonWorldSpec(),
+  });
 }
 
 function shopWordOfMouthFollowupRestockWorldSpec(opening = normalizeShopOpeningState(state.shopOpeningState)) {
   const reason = shopWordOfMouthSaleReasonWorldSpec(opening);
-  if (!reason) return null;
-  const itemText = reason.itemName || "对口货";
-  const sourceText = reason.sourceLabel || "铺前市闻";
-  const customerText = reason.customerName || "来帖客";
-  const stockText = reason.price ? `刚成交 ${reason.price} 灵石` : "刚完成一笔来帖单";
-  const tomorrowText = itemText === "对口货" ? "按来帖标签补一批" : `补 2 份 ${itemText}`;
-  return {
-    key: `${reason.key}:followup_restock`,
+  return shopWordOfMouthFollowupRestockWorldSpecWorld({
+    reason,
     day: state.day,
-    title: "来帖续货明日签 · 可点",
-    headline: "别让这股口碑断档",
-    customerName: customerText,
-    sourceLabel: sourceText,
-    itemId: reason.itemId || "",
-    itemName: itemText,
-    price: reason.price,
-    reportIndex: reason.reportIndex,
-    selector: reason.selector,
-    fallbackSelector: reason.fallbackSelector,
-    rect: { x: 664, y: 374, width: 218, height: 112 },
-    anchor: { x: reason.rect.x + 34, y: reason.rect.y + reason.rect.height - 8 },
-    steps: [
-      { key: "sold", title: "今日卖出", text: stockText, accent: "#be4f37" },
-      { key: "restock", title: "明日续货", text: tomorrowText, accent: "#286f58" },
-      { key: "front", title: "仍放头排", text: sourceText, accent: "#b47d2f" },
-    ],
-    cta: "只提示明日续货和定位旧铺报告，不会自动制作、播种、补货、开铺、接客、成交、改价或消耗库存",
-  };
+  });
 }
 
 function shopWordOfMouthFollowupRestockWorldAtCanvasPoint(px, py) {
-  const spec = shopWordOfMouthFollowupRestockWorldSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? {
-      type: "shop_word_of_mouth_followup_restock",
-      label: spec.title,
-      selector: spec.selector,
-      fallbackSelector: spec.fallbackSelector,
-      shopWordOfMouthFollowupRestock: spec,
-      rect,
-    }
-    : null;
+  return shopWordOfMouthFollowupRestockWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: shopWordOfMouthFollowupRestockWorldSpec(),
+  });
 }
 
 function shopWordOfMouthMorningFollowupWorldSpec(summary = state.lastDaySummary?.shopWordOfMouthMorningFollowup || null) {
