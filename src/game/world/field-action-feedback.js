@@ -1188,3 +1188,149 @@ export function drawMatureHarvestBasketWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function harvestRouteWorldBoardSpecWorld({
+  width = 960,
+  height = 640,
+  rows = [],
+  day = 1,
+  metrics = null,
+  route = null,
+} = {}) {
+  if (!rows.length || !metrics) return null;
+  const top = rows[0];
+  const targetX = metrics.originX + top.x * (metrics.tile + metrics.gap) + metrics.tile * 0.5;
+  const targetY = metrics.originY + top.y * (metrics.tile + metrics.gap) + metrics.tile * 0.5;
+  const routeCounts = rows.reduce((counts, row) => {
+    const key = row.route?.type || "stock";
+    counts[key] = Number(counts[key] || 0) + 1;
+    return counts;
+  }, {});
+  const cardWidth = 318;
+  const cardHeight = rows.length > 2 ? 142 : 118;
+  const x = Math.max(386, Math.min(width - cardWidth - 286, metrics.originX + 96));
+  const y = Math.max(42, Math.min(height - cardHeight - 24, metrics.originY - 98));
+  return {
+    key: `${day}:${rows.map((row) => `${row.x},${row.y}:${row.route?.type || "stock"}`).join("|")}`,
+    day,
+    rows,
+    top,
+    route,
+    rect: { x, y, width: cardWidth, height: cardHeight },
+    anchor: { x: targetX, y: targetY },
+    routeCounts,
+    title: "今日收成去向 · 可点",
+    headline: `${rows.length} 块成熟田等收`,
+    detail: route?.headline || `先收 ${top.itemName}`,
+    nextAction: route?.cta || "先收成熟作物",
+  };
+}
+
+export function harvestRouteWorldBoardAtCanvasPointWorld({ px, py, spec = null } = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return (
+    px >= rect.x
+    && px <= rect.x + rect.width
+    && py >= rect.y
+    && py <= rect.y + rect.height
+  ) ? spec : null;
+}
+
+export function drawHarvestRouteWorldBoardWorld({
+  ctx,
+  spec = null,
+  focus = null,
+  day = 1,
+  reducedMotion = false,
+  motion = performance.now() / 1000,
+  drawCanvasCard,
+  badgeForRoute = () => ({ fill: "rgba(255, 253, 245, 0.86)", stroke: "#9aa99d", text: "#5d6f65", glyph: "仓" }),
+} = {}) {
+  if (!spec?.rect || !drawCanvasCard) return false;
+  const { rect, rows, top, route, anchor } = spec;
+  const badge = badgeForRoute(route);
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.85) * 2;
+  const active = focus?.day === day && focus?.key === spec.key;
+  const cardY = rect.y + bob;
+  const orderCount = Number(spec.routeCounts.order || 0);
+  const recipeCount = Number(spec.routeCounts.recipe || 0);
+  const shopCount = Number(spec.routeCounts.shop || 0);
+  const summaryText = [
+    orderCount ? `订单 ${orderCount}` : "",
+    recipeCount ? `入锅 ${recipeCount}` : "",
+    shopCount ? `旧铺 ${shopCount}` : "",
+  ].filter(Boolean).join(" · ") || "先入仓";
+
+  ctx.save();
+  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.82)" : `${badge.stroke}66`;
+  ctx.lineWidth = active ? 2.8 : 1.8;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 12;
+  ctx.beginPath();
+  ctx.moveTo(rect.x + 30, cardY + rect.height - 12);
+  ctx.quadraticCurveTo((rect.x + anchor.x) / 2, cardY + rect.height + 42, anchor.x, anchor.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
+  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.88)" : `${badge.stroke}88`;
+  ctx.lineWidth = active ? 2.8 : 1.8;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = badge.fill;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 54, 48, 15);
+  ctx.fill();
+  ctx.strokeStyle = badge.stroke;
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 54, 48, 15);
+  ctx.stroke();
+  ctx.fillStyle = badge.stroke;
+  ctx.font = "900 20px Microsoft YaHei";
+  ctx.fillText(badge.glyph, rect.x + 32, cardY + 43);
+
+  ctx.fillStyle = badge.text;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title, rect.x + 82, cardY + 24);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 18), rect.x + 82, cardY + 46);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(`${summaryText} · ${spec.nextAction}`.slice(0, 34), rect.x + 82, cardY + 64);
+
+  rows.slice(0, 3).forEach((row, index) => {
+    const rowBadge = badgeForRoute(row.route);
+    const rowY = cardY + 86 + index * 18;
+    ctx.fillStyle = `${rowBadge.stroke}18`;
+    ctx.beginPath();
+    ctx.roundRect(rect.x + 16, rowY - 12, rect.width - 32, 15, 7);
+    ctx.fill();
+    ctx.fillStyle = rowBadge.stroke;
+    ctx.font = "900 9px Microsoft YaHei";
+    ctx.fillText(rowBadge.glyph, rect.x + 28, rowY);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "800 10px Microsoft YaHei";
+    ctx.fillText(`${row.itemName} (${row.x + 1},${row.y + 1})`.slice(0, 15), rect.x + 46, rowY);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "10px Microsoft YaHei";
+    ctx.fillText(String(row.route?.badge || "入仓").slice(0, 11), rect.x + 170, rowY);
+    ctx.fillStyle = rowBadge.text;
+    ctx.font = "800 9px Microsoft YaHei";
+    ctx.fillText(String(row.route?.targetName || row.route?.cta || "").slice(0, 11), rect.x + 228, rowY);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + rect.width - 54, cardY + 12, 40, 19, 10);
+  ctx.fill();
+  ctx.fillStyle = badge.text;
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText("可点", rect.x + rect.width - 45, cardY + 26);
+  ctx.restore();
+  return true;
+}

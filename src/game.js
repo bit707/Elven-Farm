@@ -88,11 +88,14 @@ import {
   drawCropGrowthMemoWorldWorld,
 } from "./game/world/crop-growth-memo.js";
 import {
+  drawHarvestRouteWorldBoardWorld,
   drawManualWaterAfterglowWorldWorld,
   drawHarvestStorageRouteWorldWorld,
   drawMorningGrowthDewWorldWorld,
   drawPlantingAftercareWorldWorld,
   drawSeedRestockBagWorldWorld,
+  harvestRouteWorldBoardAtCanvasPointWorld,
+  harvestRouteWorldBoardSpecWorld,
   harvestStorageRouteFeedbackSpecWorld,
   harvestStorageRouteSafetyTextWorld,
   harvestStorageRouteWorldAtCanvasPointWorld,
@@ -74236,49 +74239,26 @@ function harvestRouteWorldBoardSpec(width = 960, height = 640, originXInput = nu
   const rows = harvestRouteWorldRows(4);
   if (!rows.length) return null;
   const { tile, gap, originX, originY } = gridMetrics();
-  const safeOriginX = Number(originXInput ?? originX);
-  const safeOriginY = Number(originYInput ?? originY);
-  const safeTile = Number(tileInput ?? tile);
-  const safeGap = Number(gapInput ?? gap);
   const top = rows[0];
-  const targetX = safeOriginX + top.x * (safeTile + safeGap) + safeTile * 0.5;
-  const targetY = safeOriginY + top.y * (safeTile + safeGap) + safeTile * 0.5;
-  const routeCounts = rows.reduce((counts, row) => {
-    const key = row.route?.type || "stock";
-    counts[key] = Number(counts[key] || 0) + 1;
-    return counts;
-  }, {});
-  const cardWidth = 318;
-  const cardHeight = rows.length > 2 ? 142 : 118;
-  const x = Math.max(386, Math.min(width - cardWidth - 286, safeOriginX + 96));
-  const y = Math.max(42, Math.min(height - cardHeight - 24, safeOriginY - 98));
   const route = top.route || harvestUseRouteSpec(top.itemId, 1);
-  return {
-    key: `${state.day}:${rows.map((row) => `${row.x},${row.y}:${row.route?.type || "stock"}`).join("|")}`,
+  return harvestRouteWorldBoardSpecWorld({
+    width,
+    height,
     day: state.day,
     rows,
-    top,
     route,
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: targetX, y: targetY },
-    routeCounts,
-    title: "今日收成去向 · 可点",
-    headline: `${rows.length} 块成熟田等收`,
-    detail: route?.headline || `先收 ${top.itemName}`,
-    nextAction: route?.cta || "先收成熟作物",
-  };
+    metrics: {
+      originX: Number(originXInput ?? originX),
+      originY: Number(originYInput ?? originY),
+      tile: Number(tileInput ?? tile),
+      gap: Number(gapInput ?? gap),
+    },
+  });
 }
 
 function harvestRouteWorldBoardAtCanvasPoint(px, py) {
   const spec = harvestRouteWorldBoardSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return harvestRouteWorldBoardAtCanvasPointWorld({ px, py, spec });
 }
 
 function focusHarvestRouteWorldBoardFromCanvas(spec = harvestRouteWorldBoardSpec()) {
@@ -74657,94 +74637,16 @@ function drawMorningGrowthDewWorld(ctx, spec = morningGrowthDewWorldSpec(ctx.can
 }
 
 function drawHarvestRouteWorldBoard(ctx, spec = harvestRouteWorldBoardSpec(ctx.canvas.width, ctx.canvas.height)) {
-  if (!spec?.rect) return false;
-  const { rect, rows, top, route, anchor } = spec;
-  const badge = nightGrowthRouteBadgeSpec(route);
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.85) * 2;
-  const active = harvestRouteWorldBoardFocus?.day === state.day
-    && harvestRouteWorldBoardFocus?.key === spec.key;
-  const cardY = rect.y + bob;
-  const orderCount = Number(spec.routeCounts.order || 0);
-  const recipeCount = Number(spec.routeCounts.recipe || 0);
-  const shopCount = Number(spec.routeCounts.shop || 0);
-  const summaryText = [
-    orderCount ? `订单 ${orderCount}` : "",
-    recipeCount ? `入锅 ${recipeCount}` : "",
-    shopCount ? `旧铺 ${shopCount}` : "",
-  ].filter(Boolean).join(" · ") || "先入仓";
-
-  ctx.save();
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.82)" : `${badge.stroke}66`;
-  ctx.lineWidth = active ? 2.8 : 1.8;
-  ctx.setLineDash([7, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 12;
-  ctx.beginPath();
-  ctx.moveTo(rect.x + 30, cardY + rect.height - 12);
-  ctx.quadraticCurveTo((rect.x + anchor.x) / 2, cardY + rect.height + 42, anchor.x, anchor.y);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.88)" : `${badge.stroke}88`;
-  ctx.lineWidth = active ? 2.8 : 1.8;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = badge.fill;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 54, 48, 15);
-  ctx.fill();
-  ctx.strokeStyle = badge.stroke;
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 54, 48, 15);
-  ctx.stroke();
-  ctx.fillStyle = badge.stroke;
-  ctx.font = "900 20px Microsoft YaHei";
-  ctx.fillText(badge.glyph, rect.x + 32, cardY + 43);
-
-  ctx.fillStyle = badge.text;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(spec.title, rect.x + 82, cardY + 24);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 15px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 18), rect.x + 82, cardY + 46);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(`${summaryText} · ${spec.nextAction}`.slice(0, 34), rect.x + 82, cardY + 64);
-
-  rows.slice(0, 3).forEach((row, index) => {
-    const rowBadge = nightGrowthRouteBadgeSpec(row.route);
-    const rowY = cardY + 86 + index * 18;
-    ctx.fillStyle = `${rowBadge.stroke}18`;
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 16, rowY - 12, rect.width - 32, 15, 7);
-    ctx.fill();
-    ctx.fillStyle = rowBadge.stroke;
-    ctx.font = "900 9px Microsoft YaHei";
-    ctx.fillText(rowBadge.glyph, rect.x + 28, rowY);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 10px Microsoft YaHei";
-    ctx.fillText(`${row.itemName} (${row.x + 1},${row.y + 1})`.slice(0, 15), rect.x + 46, rowY);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "10px Microsoft YaHei";
-    ctx.fillText(String(row.route?.badge || "入仓").slice(0, 11), rect.x + 170, rowY);
-    ctx.fillStyle = rowBadge.text;
-    ctx.font = "800 9px Microsoft YaHei";
-    ctx.fillText(String(row.route?.targetName || row.route?.cta || "").slice(0, 11), rect.x + 228, rowY);
+  return drawHarvestRouteWorldBoardWorld({
+    ctx,
+    spec,
+    focus: harvestRouteWorldBoardFocus,
+    day: state.day,
+    reducedMotion: settings.reducedMotion,
+    motion: performance.now() / 1000,
+    drawCanvasCard,
+    badgeForRoute: nightGrowthRouteBadgeSpec,
   });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 52, cardY + 12, 38, 17, 8);
-  ctx.fill();
-  ctx.fillStyle = badge.text;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + rect.width - 43, cardY + 24);
-  ctx.restore();
-  return true;
 }
 
 function drawSleepPrepChecklistCard(ctx, spec = sleepPrepChecklistSpec()) {
