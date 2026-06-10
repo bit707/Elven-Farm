@@ -3627,3 +3627,85 @@ export function drawSpiritSproutAnomalyWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function drawSpiritSproutTimelineWorldCardWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  bob = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec?.preview || !spec?.rows?.length) return false;
+  const { rect, preview } = spec;
+  const cardY = rect.y + bob;
+  const accent = spec.sprout.stage === "born" ? "#be4f37" : spec.sprout.stage === "peek" ? "#b47d2f" : "#286f58";
+
+  ctx.save();
+  ctx.strokeStyle = `${accent}55`;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 10;
+  ctx.beginPath();
+  ctx.moveTo(preview.x + preview.tile / 2, preview.y + preview.tile * 0.28);
+  ctx.quadraticCurveTo(rect.x + 18, cardY + rect.height + 16, rect.x + 22, cardY + rect.height - 10);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.94)");
+  ctx.strokeStyle = active ? accent : `${accent}77`;
+  ctx.lineWidth = active ? 3 : 2;
+  ctx.beginPath();
+  ctx.roundRect(rect.x, cardY, rect.width, rect.height, 16);
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}20`;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 10, cardY + 10, 38, 38, 12);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 18px Microsoft YaHei";
+  ctx.fillText(spec.sprout.stage === "born" ? "精" : "芽", rect.x + 20, cardY + 35);
+
+  ctx.fillStyle = accent;
+  ctx.font = "800 11px Microsoft YaHei";
+  ctx.fillText(`${spec.title} · 可点`, rect.x + 58, cardY + 19);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 13px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 14), rect.x + 58, cardY + 38);
+
+  ctx.strokeStyle = `${accent}44`;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(rect.x + 26, cardY + 60);
+  ctx.lineTo(rect.x + rect.width - 28, cardY + 60);
+  ctx.stroke();
+  spec.rows.forEach((row, index) => {
+    const dotX = rect.x + 32 + index * 72;
+    const dotY = cardY + 60;
+    ctx.fillStyle = row.done ? accent : "rgba(255, 253, 245, 0.95)";
+    ctx.strokeStyle = row.active ? "#fffdf5" : `${accent}77`;
+    ctx.lineWidth = row.active ? 3 : 1.6;
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, row.active ? 8 : 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = row.done ? "#fffdf5" : accent;
+    ctx.font = "900 9px Microsoft YaHei";
+    ctx.fillText(row.label.slice(0, 2), dotX - 8, dotY + 3);
+    ctx.fillStyle = row.active ? accent : "#8f5f3f";
+    ctx.font = "800 8px Microsoft YaHei";
+    ctx.fillText(row.detail.slice(0, 6), dotX - 20, dotY + 18);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 56, cardY + rect.height - 19, rect.width - 68, 14, 7);
+  ctx.fill();
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "800 8px Microsoft YaHei";
+  ctx.fillText(`下一步：${spec.nextAction}`.slice(0, 26), rect.x + 64, cardY + rect.height - 9);
+  ctx.restore();
+  return true;
+}
