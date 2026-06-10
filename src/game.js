@@ -17,6 +17,7 @@ import { applyVisiblePanelColumns, pulseFocusElement } from "./game/shared/focus
 import { selectorDataValue } from "./game/shared/selectors.js";
 import {
   drawMorningActionBoardCardWorld,
+  drawSolarMorningSignBadgeWorld,
   drawSleepPrepChecklistCardWorld,
 } from "./game/world/daily-action-cards.js";
 import { renderAssetPanelUi } from "./game/ui/asset-panel.js";
@@ -74625,59 +74626,13 @@ function drawMorningActionBoardCard(ctx, spec = morningActionBoardSpec()) {
 }
 
 function drawSolarMorningSignBadge(ctx, sign = solarMorningSignSpec()) {
-  if (!sign) return;
-  const palette = sign.tone === "urgent"
-    ? { accent: "#be4f37", soft: "rgba(190, 79, 55, 0.12)", glyph: "险" }
-    : sign.tone === "water"
-      ? { accent: "#4d91a6", soft: "rgba(77, 145, 166, 0.16)", glyph: "露" }
-      : sign.tone === "gold"
-        ? { accent: "#b47d2f", soft: "rgba(224, 182, 109, 0.18)", glyph: "时" }
-        : { accent: "#286f58", soft: "rgba(40, 111, 88, 0.14)", glyph: "签" };
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2) * 2;
-  const x = 44;
-  const y = 274;
-  const reading = (sign.reading || []).slice(0, 3);
-  const height = reading.length ? 98 : 74;
-  ctx.save();
-  drawCanvasCard(ctx, x, y + pulse, 250, height, "rgba(255, 253, 245, 0.86)");
-  ctx.fillStyle = palette.soft;
-  ctx.beginPath();
-  ctx.roundRect(x + 14, y + 14 + pulse, 46, 46, 15);
-  ctx.fill();
-  ctx.strokeStyle = palette.accent;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(x + 37, y + 37 + pulse, 15, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.fillStyle = palette.accent;
-  ctx.font = "800 17px Microsoft YaHei";
-  ctx.fillText(palette.glyph, x + 28, y + 43 + pulse);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(`${sign.title} · ${sign.termName}`.slice(0, 16), x + 72, y + 28 + pulse);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(`${sign.weatherName} · ${sign.cta}`.slice(0, 22), x + 72, y + 47 + pulse);
-  ctx.fillStyle = palette.accent;
-  ctx.font = "700 10px Microsoft YaHei";
-  ctx.fillText(sign.summary.slice(0, 24), x + 72, y + 63 + pulse);
-  reading.forEach((entry, index) => {
-    const chipX = x + 16 + index * 78;
-    const chipY = y + 73 + pulse;
-    ctx.fillStyle = index === 0
-      ? "rgba(40, 111, 88, 0.12)"
-      : index === 1
-        ? "rgba(190, 79, 55, 0.1)"
-        : "rgba(224, 182, 109, 0.14)";
-    ctx.beginPath();
-    ctx.roundRect(chipX, chipY, 70, 18, 8);
-    ctx.fill();
-    ctx.fillStyle = index === 1 ? "#be4f37" : index === 2 ? "#8f5f3f" : "#286f58";
-    ctx.font = "800 10px Microsoft YaHei";
-    ctx.fillText(`${entry.label}${entry.title}`.slice(0, 6), chipX + 7, chipY + 13);
+  return drawSolarMorningSignBadgeWorld({
+    ctx,
+    sign,
+    reducedMotion: settings.reducedMotion,
+    motion: performance.now() / 1000,
+    drawCanvasCard,
   });
-  ctx.restore();
 }
 
 function drawDailyIntentWorldGuide(ctx, width, height, originX, originY, tile, gap) {
