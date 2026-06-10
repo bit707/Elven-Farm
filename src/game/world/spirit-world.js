@@ -3709,3 +3709,119 @@ export function drawSpiritSproutTimelineWorldCardWorld({
   ctx.restore();
   return true;
 }
+
+export function drawSpiritSproutForeshadowTrailWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  bob = 0,
+  pulse = 0,
+  focused = false,
+  focusStepKey = "",
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec?.steps?.length || !spec?.lineStart || !spec?.preview) return false;
+  const accent = spec.sprout.stage === "peek" ? "#b47d2f" : spec.sprout.stage === "born" ? "#be4f37" : "#286f58";
+  const { rect, lineStart } = spec;
+  const cardY = rect.y + bob;
+
+  ctx.save();
+  ctx.strokeStyle = `${accent}${focused ? "aa" : "66"}`;
+  ctx.lineWidth = focused ? 3 : 2;
+  ctx.setLineDash([6, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 12;
+  ctx.beginPath();
+  ctx.moveTo(lineStart.x, lineStart.y);
+  ctx.bezierCurveTo(lineStart.x + 26, lineStart.y - 42, rect.x + 22, cardY + 18, rect.x + 34, cardY + rect.height - 22);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  const glow = ctx.createRadialGradient(lineStart.x, lineStart.y, 4, lineStart.x, lineStart.y, spec.preview.tile * 1.08 + pulse);
+  glow.addColorStop(0, "rgba(246, 240, 182, 0.26)");
+  glow.addColorStop(0.58, "rgba(202, 235, 210, 0.16)");
+  glow.addColorStop(1, "rgba(246, 240, 182, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.ellipse(lineStart.x, lineStart.y + 22, spec.preview.tile * 0.82 + pulse, spec.preview.tile * 0.32, -0.04, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.93)");
+  ctx.strokeStyle = focused ? "rgba(224, 182, 109, 0.86)" : `${accent}77`;
+  ctx.lineWidth = focused ? 2.8 : 1.8;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, cardY + 1, rect.width - 2, rect.height - 2, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}1f`;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 12, cardY + 10, 42, 32, 12);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 16px Microsoft YaHei";
+  ctx.fillText("伏", rect.x + 25, cardY + 32);
+  ctx.fillStyle = accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(`${spec.title} · 可点`, rect.x + 64, cardY + 19);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 13px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 18), rect.x + 64, cardY + 38);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "800 8px Microsoft YaHei";
+  ctx.fillText("夜动 -> 晨探 -> 手收 -> 代劳".slice(0, 28), rect.x + 174, cardY + 19);
+
+  ctx.strokeStyle = "rgba(141, 164, 98, 0.42)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  spec.steps.forEach((step, index) => {
+    const x = step.point.x;
+    const y = step.point.y + bob;
+    if (index === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  spec.steps.forEach((step) => {
+    const x = step.point.x;
+    const y = step.point.y + bob;
+    const nodeFocused = focused && focusStepKey === step.key;
+    const radius = step.active ? 12 + Math.max(0, pulse) : 10;
+    ctx.fillStyle = step.done
+      ? "rgba(141, 164, 98, 0.22)"
+      : step.active
+        ? "rgba(190, 79, 55, 0.2)"
+        : "rgba(23, 35, 29, 0.1)";
+    ctx.beginPath();
+    ctx.arc(x, y, radius + 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = step.done ? "#8da462" : step.active ? "#be4f37" : "#a8b2aa";
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fffdf5";
+    ctx.font = "900 10px Microsoft YaHei";
+    ctx.textAlign = "center";
+    ctx.fillText(step.glyph, x, y + 4);
+    ctx.fillStyle = step.active ? "#17231d" : "#5d6f65";
+    ctx.font = step.active ? "800 9px Microsoft YaHei" : "700 8px Microsoft YaHei";
+    ctx.fillText(step.label.slice(0, 4), x, cardY + 78);
+    if (nodeFocused) {
+      ctx.strokeStyle = "rgba(224, 182, 109, 0.86)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 12, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  });
+  ctx.textAlign = "left";
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + rect.width - 58, cardY + rect.height - 28, 42, 18, 9);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText("只定位", rect.x + rect.width - 49, cardY + rect.height - 16);
+  ctx.restore();
+  return true;
+}
