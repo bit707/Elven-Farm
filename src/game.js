@@ -202,6 +202,10 @@ import {
   drawShopThoughtRouteWorldCardWorld,
   shopFirstCustomerThresholdWorldAtCanvasPointWorld,
   shopFirstCustomerThresholdWorldSpecWorld,
+  shopFirstSaleActionTrailWorldAtCanvasPointWorld,
+  shopFirstSaleActionTrailWorldSpecWorld,
+  shopFirstSaleKeepsakeWorldAtCanvasPointWorld,
+  shopFirstSaleKeepsakeWorldSpecWorld,
   shopFirstSaleLessonWorldAtCanvasPointWorld,
   shopFirstSaleLessonWorldSpecWorld,
   shopFirstSaleReceiptWorldSpecWorld,
@@ -32662,126 +32666,38 @@ function drawShopFirstSaleLessonWorld(ctx, spec = shopFirstSaleLessonWorldSpec()
 function shopFirstSaleKeepsakeWorldSpec(opening = normalizeShopOpeningState(state.shopOpeningState)) {
   const safeOpening = normalizeShopOpeningState(opening);
   const receipt = shopFirstSaleReceiptWorldSpec(safeOpening);
-  if (!receipt?.firstSale) return null;
   const lesson = shopFirstSaleLessonWorldSpec(safeOpening);
-  const firstSale = receipt.firstSale || {};
-  const saleDay = Number(firstSale.day || safeOpening.firstSaleDay || state.day);
-  const age = Math.max(0, state.day - saleDay);
-  const returnChance = Number(lesson?.returnChance || receipt.returnChance || 0);
-  const hotTagLabel = safeOpening.hotTagLabel || safeOpening.lastSession?.hotTagLabel || "首单货签";
-  const nextAction = lesson?.nextAction
-    || receipt.returnCta
-    || safeOpening.lastSession?.liveFocus?.shelfAdvice
-    || `明天补一件${hotTagLabel}相关货，再开铺验证回头苗头。`;
-  const returnText = lesson?.returnText
-    || receipt.returnSummary
-    || "这位顾客已经把旧铺和第一件货连在一起。";
-  return {
-    key: `${state.day}:${receipt.customerName}:${receipt.itemName}:${returnChance}:first_sale_keepsake`,
-    day: state.day,
-    title: "首单钱签余温 · 可点",
-    headline: age > 0 ? `第一笔成交已经挂了 ${age} 天` : "第一笔成交刚挂上门口",
-    customerName: receipt.customerName,
-    itemName: receipt.itemName,
-    price: receipt.price,
-    reasonText: receipt.reasonText,
-    reviewQuote: receipt.reviewQuote,
-    returnChance,
-    returnText,
-    nextAction,
-    hotTagLabel,
-    reportIndex: receipt.reportIndex,
-    selector: receipt.reportIndex >= 0
-      ? `[data-shop-report-index="${Number(receipt.reportIndex)}"]`
-      : '[data-shop-board="decision-ledger"]',
-    fallbackSelector: '[data-shop-board="opening"]',
+  return shopFirstSaleKeepsakeWorldSpecWorld({
+    opening: safeOpening,
     receipt,
     lesson,
-    accent: returnChance >= 60 ? "#286f58" : returnChance >= 40 ? "#b47d2f" : "#8f5f3f",
-    rect: { x: 176, y: 262, width: 146, height: 72 },
-    anchor: { x: 214, y: 226 },
-  };
+    day: state.day,
+  });
 }
 
 function shopFirstSaleKeepsakeWorldAtCanvasPoint(px, py) {
   const spec = shopFirstSaleKeepsakeWorldSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? {
-      type: "first_sale_keepsake",
-      label: spec.title,
-      selector: spec.selector,
-      fallbackSelector: spec.fallbackSelector,
-      firstSaleKeepsake: spec,
-      firstSaleReceipt: spec.receipt,
-      entry: spec.receipt?.reportEntry || null,
-      rect,
-    }
-    : null;
+  return shopFirstSaleKeepsakeWorldAtCanvasPointWorld({ px, py, spec });
 }
 
 function shopFirstSaleActionTrailWorldSpec(opening = normalizeShopOpeningState(state.shopOpeningState)) {
   const lesson = shopFirstSaleLessonWorldSpec(opening);
   const receipt = shopFirstSaleReceiptWorldSpec(opening);
-  if (!lesson?.receipt || !receipt?.firstSale) return null;
-  const needText = lesson.needText || receipt.reviewQuote || "顾客先看懂了货架。";
-  const itemText = receipt.itemName || "首单货";
-  const priceText = receipt.price ? `${receipt.price} 灵石` : "价签成立";
-  const reviewText = receipt.reviewQuote || "顾客把这扇门记住了。";
-  const returnText = lesson.returnText || receipt.returnSummary || "明天沿着同类货补货。";
-  const path = [
-    { x: 86, y: 304 },
-    { x: 134, y: 286 },
-    { x: 184, y: 286 },
-    { x: 232, y: 306 },
-    { x: 288, y: 330 },
-  ];
-  return {
-    key: `${state.day}:${receipt.customerName}:${itemText}:${priceText}:first_sale_action_trail`,
+  return shopFirstSaleActionTrailWorldSpecWorld({
+    lesson,
+    receipt,
     day: state.day,
-    title: "首单成交动作线 · 可点",
-    headline: `${receipt.customerName}为什么掏钱`,
-    customerName: receipt.customerName,
-    itemName: itemText,
-    price: receipt.price,
-    reasonText: receipt.reasonText,
-    reviewText,
-    returnText,
-    reportIndex: receipt.reportIndex,
-    selector: receipt.reportIndex >= 0
-      ? `[data-shop-report-index="${Number(receipt.reportIndex)}"]`
-      : '[data-shop-board="customer-journey"]',
-    fallbackSelector: '[data-shop-board="opening"]',
-    rect: { x: 332, y: 236, width: 318, height: 112 },
-    anchor: { x: 174, y: 286 },
-    path,
-    steps: [
-      { key: "need", label: "想", title: "想法泡泡", text: needText, accent: "#4d91a6" },
-      { key: "goods", label: "货", title: "伸手拿货", text: itemText, accent: "#286f58" },
-      { key: "price", label: "价", title: "价签成立", text: priceText, accent: "#b47d2f" },
-      { key: "coin", label: "钱", title: "灵石入账", text: reviewText, accent: "#be4f37" },
-    ],
-    cta: "只定位旧铺报告，不会自动开铺、补货或改价",
-  };
+  });
 }
 
 function shopFirstSaleActionTrailWorldAtCanvasPoint(px, py) {
   const spec = shopFirstSaleActionTrailWorldSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? {
-      type: "first_sale_action_trail",
-      label: spec.title,
-      selector: spec.selector,
-      fallbackSelector: spec.fallbackSelector,
-      firstSaleActionTrail: spec,
-      firstSaleLesson: shopFirstSaleLessonWorldSpec(),
-      firstSaleReceipt: spec,
-      rect,
-    }
-    : null;
+  return shopFirstSaleActionTrailWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec,
+    lesson: shopFirstSaleLessonWorldSpec(),
+  });
 }
 
 function shopWordOfMouthSaleEchoWorldSpec(opening = normalizeShopOpeningState(state.shopOpeningState)) {
