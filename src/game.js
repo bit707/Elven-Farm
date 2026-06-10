@@ -219,6 +219,8 @@ import {
   shopReturningTrailWorldSpecWorld,
   shopTrialTheaterWorldAtCanvasPointWorld,
   shopTrialTheaterWorldSpecWorld,
+  shopTrialPreviewMarkupWorld,
+  shopTrialPreviewSpecWorld,
   drawShopTrialTheaterWorldWorld,
 } from "./game/world/shop-customer-journey-world.js";
 import {
@@ -26733,118 +26735,31 @@ function shopCustomerForecastWorldSpec(
 
 function shopTrialPreviewSpec(goods = sellableInventoryGoods(), theme = currentShelfTheme()) {
   const opening = syncShopOpeningState();
-  const customerReasonCompass = shopCustomerReasonCompassWorldSpec();
-  if (customerReasonCompass) {
-    targets.push({
-      type: "customer_reason_compass",
-      label: customerReasonCompass.title,
-      selector: customerReasonCompass.selector,
-      fallbackSelector: customerReasonCompass.fallbackSelector,
-      customerReasonCompass,
-      rect: customerReasonCompass.rect,
-    });
-  }
   const firstSaleReceipt = shopFirstSaleReceiptWorldSpec(opening);
-  if (firstSaleReceipt?.firstSale) {
-    const lesson = shopFirstSaleLessonWorldSpec(opening);
-    const returnChance = Number(lesson?.returnChance || firstSaleReceipt.returnChance || 0);
-    return {
-      active: true,
-      mode: "first-sale",
-      tone: "ready",
-      title: "首单复盘看板",
-      headline: `${firstSaleReceipt.customerName}买走${firstSaleReceipt.itemName}，第一笔成交已经写进旧铺账页。`,
-      goodsText: `${firstSaleReceipt.itemName} · 成交 ${firstSaleReceipt.price || 0} 灵石`,
-      themeText: opening.hotTagLabel ? `热卖标签 ${opening.hotTagLabel}` : "热卖标签已从首单生成",
-      hotTagLabel: opening.hotTagLabel || "首单货签",
-      priceText: `为什么买：${firstSaleReceipt.reasonText}`,
-      customerLabel: firstSaleReceipt.customerName,
-      thoughtText: firstSaleReceipt.reviewQuote,
-      thoughtDetail: `顾客短评：${firstSaleReceipt.reviewQuote}`,
-      returnText: lesson?.returnText || firstSaleReceipt.returnSummary || "继续围绕同类货补货，顾客更容易记住这扇门。",
-      returnChance,
-      nextAction: lesson?.nextAction || firstSaleReceipt.returnCta || "明天补同标签货，再开铺验证回头苗头。",
-      advice: lesson?.nextAction || firstSaleReceipt.returnCta || "把首单原因变成明天的补货路线。",
-      safety: "只复盘首单原因和回头苗头，不会自动开铺、补货或改价。",
-    };
-  }
   const safeGoods = goods.filter(({ item, count }) => item && Number(count || 0) > 0);
-  const display = shopDisplayDiagnosisSpec(safeGoods, theme, data.customers, ecologyCourtyardSummary());
-  const hotTag = display?.hotTag || shopHotTag(safeGoods, theme);
-  const hotTagLabel = display?.hotTagLabel || shopTagLabel(hotTag);
-  const topGood = display?.featuredGoods?.[0] || null;
-  const target = display?.customerTargets?.[0] || null;
-  const customer = target?.archetype
-    ? data.customers.find((entry) => entry.archetype === target.archetype)
-    : data.customers.find((entry) => Number(entry.fame_requirement || 0) <= state.fame);
-  const bubble = customer
-    ? customerNeedBubble(customer, segmentForCustomer(customer), hotTag, activeShopCompendiumDisplays(safeGoods, theme, 2, hotTag))
-    : null;
-  const pricePercent = Math.round(Number(state.shopPriceMultiplier || 1) * 100);
-  const priceText = pricePercent >= 125
-    ? `${pricePercent}% · 偏贵，可能劝退谨慎顾客`
-    : pricePercent <= 85
-      ? `${pricePercent}% · 亲民，适合先试营业留客`
-      : `${pricePercent}% · 稳价，适合观察第一批反馈`;
-  const tone = safeGoods.length === 0
-    ? "empty"
-    : pricePercent >= 125 || display.tone === "warn"
-      ? "warn"
-      : display.tone === "good"
-        ? "ready"
-        : "focus";
-  const goodsTotal = safeGoods.reduce((sum, entry) => sum + Number(entry.count || 0), 0);
-  return {
-    active: safeGoods.length > 0,
-    tone,
-    title: "旧铺试营业看板",
-    headline: safeGoods.length > 0
-      ? `${topGood?.itemName || "主推货"}可以试摆，先看${target?.name || "第一批顾客"}会不会停下。`
-      : "货架还空着，先准备一份作物或加工品再开铺。",
-    goodsText: safeGoods.length > 0 ? `${safeGoods.length} 类 / ${goodsTotal} 件可卖货` : "暂无可卖货",
-    themeText: `${display.themeName || theme?.note || "当前主题"} · 匹配 ${display.themeScore || 0}% / 门槛 ${display.minThemeScore || 0}%`,
-    hotTagLabel,
-    priceText,
-    customerLabel: target?.name || bubble?.name || "路过客",
-    thoughtText: bubble?.text || `想找${hotTagLabel}`,
-    thoughtDetail: bubble?.detail || `热卖标签预告：${hotTagLabel}`,
-    advice: safeGoods.length > 0
-      ? display.advice || `开铺后观察想法泡泡，确认${hotTagLabel}是否真的能成交。`
-      : "先做出一份加工品，或把可卖作物留到旧铺头排。",
-    safety: "只预告顾客需求和热卖标签，不会自动开铺、调价或补货。",
-  };
+  const display = firstSaleReceipt?.firstSale
+    ? null
+    : shopDisplayDiagnosisSpec(safeGoods, theme, data.customers, ecologyCourtyardSummary());
+  return shopTrialPreviewSpecWorld({
+    opening,
+    goods: safeGoods,
+    theme,
+    customers: data.customers,
+    fame: state.fame,
+    priceMultiplier: state.shopPriceMultiplier,
+    firstSaleReceipt,
+    firstSaleLesson: firstSaleReceipt?.firstSale ? shopFirstSaleLessonWorldSpec(opening) : null,
+    display,
+    shopHotTag,
+    shopTagLabel,
+    customerNeedBubble,
+    segmentForCustomer,
+    activeShopCompendiumDisplays,
+  });
 }
 
 function shopTrialPreviewMarkup(spec = shopTrialPreviewSpec()) {
-  if (!spec) return "";
-  if (spec.mode === "first-sale") {
-    return `
-      <strong>${spec.title}</strong>
-      <span>${spec.headline}</span>
-      <small>首单：${spec.goodsText} · ${spec.themeText}</small>
-      <small>${spec.priceText}</small>
-      <div class="shop-trial-preview-bubble receipt">
-        <b>顾客短评：${spec.customerLabel}</b>
-        <span>“${spec.thoughtText}”</span>
-        <small>${spec.thoughtDetail}</small>
-      </div>
-      <small class="shop-trial-preview-tag">回头苗头：${spec.returnChance || 0}% · ${spec.returnText}</small>
-      <small>明日补货：${spec.nextAction} · ${spec.safety}</small>
-    `;
-  }
-  return `
-    <strong>${spec.title}</strong>
-    <span>${spec.headline}</span>
-    <small>货架：${spec.goodsText} · ${spec.themeText}</small>
-    <small>价格：${spec.priceText}</small>
-    <div class="shop-trial-preview-bubble">
-      <b>想法泡泡：${spec.customerLabel}</b>
-      <span>“${spec.thoughtText}”</span>
-      <small>${spec.thoughtDetail}</small>
-    </div>
-    <small class="shop-trial-preview-tag">热卖标签预告：${spec.hotTagLabel}</small>
-    <small>${spec.advice} · ${spec.safety}</small>
-  `;
+  return shopTrialPreviewMarkupWorld(spec);
 }
 
 function updateShopTrialPreviewUi() {
