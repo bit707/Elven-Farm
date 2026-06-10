@@ -29,6 +29,7 @@ import {
   drawSpiritCompanionCareHintWorld,
   drawSpiritCropScoutWorldWorld,
   drawSpiritDailyChorePropWorld,
+  drawSpiritFinaleCompanionAnchorWorld,
   drawSpiritIdentityMemoryNameplateWorld,
   drawSpiritJobEffectWorld,
   drawSpiritJobPersonaBubbleWorld,
@@ -76949,53 +76950,15 @@ function drawSpiritFinaleCompanionAnchor(ctx, spirit, station, index = 0) {
   const finale = spiritFinaleCompanionSpec(spirit);
   if (!finale) return;
   const motion = settings.reducedMotion ? 0 : performance.now() / 1000 + index * 0.4;
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.1) * 4;
-  const centerX = station.x + station.size * 0.52;
-  const centerY = station.y + station.size * 0.78;
-  const accent = finale.accent || finale.profile.accent;
-
-  ctx.save();
-  ctx.fillStyle = finale.glow || "rgba(246, 240, 182, 0.24)";
-  ctx.globalAlpha = 0.72;
-  ctx.beginPath();
-  ctx.ellipse(centerX, centerY + 16, station.size * 0.62 + pulse, station.size * 0.2 + pulse / 4, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = 0.92;
-  ctx.strokeStyle = `${accent}88`;
-  ctx.lineWidth = 2.6;
-  ctx.setLineDash([10, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 18;
-  ctx.beginPath();
-  ctx.ellipse(centerX, centerY + 14, station.size * 0.62 + pulse, station.size * 0.2 + pulse / 4, 0, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  for (let i = 0; i < 5; i += 1) {
-    const angle = motion * 0.7 + i * 1.26;
-    ctx.fillStyle = i % 2 ? "rgba(246, 240, 182, 0.76)" : `${accent}99`;
-    ctx.beginPath();
-    ctx.arc(centerX + Math.cos(angle) * station.size * 0.44, centerY + 6 + Math.sin(angle) * station.size * 0.16, 2.7, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  const tagWidth = 146;
-  const tagX = Math.max(16, Math.min(ctx.canvas.width - tagWidth - 16, station.x + station.size * 0.18));
-  const tagY = Math.max(34, station.y + station.size + 62 + (index % 2) * 8);
-  drawCanvasCard(ctx, tagX, tagY, tagWidth, 48, "rgba(255, 248, 232, 0.86)");
-  ctx.fillStyle = accent;
-  ctx.font = "700 11px Microsoft YaHei";
-  ctx.fillText(`${finale.glyph} ${finale.title}`.slice(0, 12), tagX + 10, tagY + 18);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "10px Microsoft YaHei";
-  ctx.fillText(finale.anchorLabel.slice(0, 11), tagX + 10, tagY + 34);
-  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
-  ctx.beginPath();
-  ctx.roundRect(tagX + tagWidth - 34, tagY + 9, 22, 22, 9);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(finale.glyph.slice(0, 1), tagX + tagWidth - 27, tagY + 25);
-  ctx.restore();
+  drawSpiritFinaleCompanionAnchorWorld({
+    ctx,
+    finale,
+    station,
+    index,
+    motion,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+  });
 }
 
 function drawSpiritJobShiftFeedback(ctx, width, height, feedback = activeSpiritJobShiftFeedback()) {
