@@ -133,6 +133,8 @@ import {
   drawShopCustomerReasonCompassWorldWorld,
   drawShopDiagnosisWorldBoardWorld,
   drawShopThoughtBubbleChainWorldWorld,
+  shopCustomerForecastCanvasTargetWorld,
+  shopCustomerForecastWorldSpecWorld,
   shopCustomerReasonCompassWorldAtCanvasPointWorld,
   shopCustomerReasonCompassWorldSpecWorld,
   shopDiagnosisWorldBoardAtCanvasPointWorld,
@@ -26705,60 +26707,24 @@ function shopCustomerForecastWorldSpec(
   shelf = shopWeatherShelfRecommendationSpec(weatherReaction, goods),
   journey = shopCustomerJourneySpec(opening),
 ) {
-  const active = goods.length > 0 || display?.active || shelf?.active || opening.opened || state.shopReport.length > 0;
-  if (!active) return null;
-  const topGood = shelf?.topGoods?.[0] || display?.featuredGoods?.[0] || null;
-  const customerTarget = display?.customerTargets?.[0] || null;
-  const activeSegment = activeCustomerSegments()[0] || null;
-  const customerName = customerTarget?.name
-    || journey?.mainCustomer
-    || (activeSegment?.customer_archetype ? customerDisplayName(activeSegment.customer_archetype) : "第一批路过客");
   const hotTagLabel = shelf?.desiredTags?.[0]
     ? shopTagLabel(shelf.desiredTags[0])
     : display?.hotTagLabel || shopTagLabel(shopHotTag(goods, currentShelfTheme()));
-  const itemText = topGood
-    ? `${topGood.itemName} x${topGood.count}`
-    : display?.missingTagText
-      ? `缺 ${display.missingTagText}`
-      : "先补一件可卖货";
-  const weatherLine = shelf?.active
-    ? `${shelf.weatherName} · ${shelf.title}`
-    : weatherReaction?.active
-      ? `${weatherReaction.weatherName} · ${weatherReaction.tagHint}`
-      : `${localize(currentWeatherConfig().weather_name_key, currentWeatherConfig().weather_id)} · 日常客流`;
-  const themeLine = display?.active
-    ? `${display.themeName} ${display.themeScore}% · ${display.hotTagLabel}`
-    : "货架未成型 · 先备一件主推";
-  const openingLine = opening.liveFocus
-    ? `${opening.liveFocus.buyers || 0} 单成交 · ${opening.liveFocus.topBlockerLabel || "读顾客反馈"}`
-    : opening.opened
-      ? "今日已开铺，适合复盘顾客理由"
-      : goods.length
-        ? "可开铺试卖，先看客群和天气货签"
-        : "旧铺待备货";
-  const advice = shelf?.active
-    ? shelf.actionText
-    : display?.advice || "先准备一件能匹配节气或主题的商品，再开铺试卖。";
-  const tone = shopCustomerForecastTone(display, shelf, goods);
-  return {
-    key: `${state.day}:${tone}:${hotTagLabel}:${itemText}:${customerName}`,
-    day: state.day,
-    active,
-    tone,
-    title: "今日顾客风向",
-    customerName,
-    hotTagLabel,
-    itemText,
-    weatherLine,
-    themeLine,
-    openingLine,
-    advice,
-    topGood,
+  const weather = currentWeatherConfig();
+  return shopCustomerForecastWorldSpecWorld({
+    opening,
+    goods,
     display,
+    weatherReaction,
     shelf,
     journey,
-    rect: { x: 376, y: 64, width: 288, height: 100 },
-  };
+    activeSegment: activeCustomerSegments()[0] || null,
+    currentWeatherLine: `${localize(weather.weather_name_key, weather.weather_id)} · 日常客流`,
+    hotTagLabel,
+    customerDisplayName,
+    day: state.day,
+    reportCount: state.shopReport.length,
+  });
 }
 
 function shopTrialPreviewSpec(goods = sellableInventoryGoods(), theme = currentShelfTheme()) {
@@ -26885,15 +26851,7 @@ function updateShopTrialPreviewUi() {
 }
 
 function shopCustomerForecastCanvasTarget(spec = shopCustomerForecastWorldSpec()) {
-  if (!spec?.rect) return null;
-  return {
-    type: "customer_forecast",
-    label: "今日顾客风向",
-    selector: spec.shelf?.active ? '[data-shop-board="weather-shelf"]' : '[data-shop-board="display-diagnosis"]',
-    fallbackSelector: '[data-shop-board="opening"]',
-    forecastSpec: spec,
-    rect: spec.rect,
-  };
+  return shopCustomerForecastCanvasTargetWorld(spec);
 }
 
 function shopLiveFocusSpec(report = [], goods = [], theme = currentShelfTheme(), themeScore = 0, hotTag = "") {
