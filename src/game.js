@@ -89,12 +89,16 @@ import {
 } from "./game/world/crop-growth-memo.js";
 import {
   drawManualWaterAfterglowWorldWorld,
+  drawMorningGrowthDewWorldWorld,
   drawPlantingAftercareWorldWorld,
   drawSeedRestockBagWorldWorld,
   manualWaterAfterglowFeedbackSpecWorld,
   manualWaterAfterglowSafetyTextWorld,
   manualWaterAfterglowWorldAtCanvasPointWorld,
   manualWaterAfterglowWorldSpecWorld,
+  morningGrowthDewSafetyTextWorld,
+  morningGrowthDewWorldAtCanvasPointWorld,
+  morningGrowthDewWorldSpecWorld,
   plantingAftercareFeedbackSpecWorld,
   plantingAftercareSafetyTextWorld,
   plantingAftercareWorldAtCanvasPointWorld,
@@ -74849,7 +74853,7 @@ function drawMorningHarvestPlanFlags(ctx, originX, originY, tile, gap) {
 }
 
 function morningGrowthDewSafetyText() {
-  return "只定位田块、收获按钮或补水按钮，不会自动收获、浇水、入夜、播种、扣除体力、推进天数或消耗资源";
+  return morningGrowthDewSafetyTextWorld();
 }
 
 function morningGrowthDewGrowingPlot() {
@@ -74876,104 +74880,45 @@ function morningGrowthDewWorldSpec(width = refs.world?.width || 960, height = re
   const summary = state.lastDaySummary;
   if (!summary || Number(summary.nextDay || 0) !== Number(state.day || 0)) return null;
   const growth = summary.nightGrowth || {};
-  const maturedCount = Number(growth.maturedCount || summary.maturedPlotActions?.length || 0);
-  const grownCount = Number(growth.grownCount || 0);
-  const caredCount = Number(growth.caredCount || 0);
-  if (maturedCount <= 0 && grownCount <= 0 && caredCount <= 0) return null;
-
   const harvestPlans = activeMorningHarvestPlans();
   const maturePlan = harvestPlans[0] || null;
   const growing = maturePlan ? null : morningGrowthDewGrowingPlot();
-  if (!maturePlan && !growing?.plot) return null;
-
   const { tile, gap, originX, originY } = gridMetrics();
-  const safeOriginX = Number(originXInput ?? originX);
-  const safeOriginY = Number(originYInput ?? originY);
-  const safeTile = Number(tileInput ?? tile);
-  const safeGap = Number(gapInput ?? gap);
   const mode = maturePlan ? "mature" : "growing";
-  const plot = maturePlan?.plot || growing.plot;
+  const plot = maturePlan?.plot || growing?.plot || null;
+  if (!plot) return null;
   const route = mode === "mature"
     ? harvestUseRouteSafe(maturePlan.route || growingCropUseRouteSpec(plot))
     : harvestUseRouteSafe(growingCropUseRouteSpec(plot));
   const badge = nightGrowthRouteBadgeSpec(route);
   const cropName = mode === "mature" ? (maturePlan.cropName || itemName(plot.cropId)) : itemName(plot.cropId);
-  const plotRect = {
-    x: safeOriginX + plot.x * (safeTile + safeGap),
-    y: safeOriginY + plot.y * (safeTile + safeGap),
-    width: safeTile,
-    height: safeTile,
-  };
-  const anchor = {
-    x: plotRect.x + plotRect.width * 0.5,
-    y: plotRect.y + plotRect.height * 0.42,
-  };
-  const cardWidth = 326;
-  const cardHeight = 126;
-  const cardX = Math.max(24, Math.min(width - cardWidth - 24, anchor.x + (anchor.x > width * 0.54 ? -cardWidth - 62 : 68)));
-  const cardY = Math.max(72, Math.min(height - cardHeight - 32, anchor.y + (anchor.y > height * 0.52 ? -cardHeight - 54 : 42)));
   const weatherName = growth.weatherName || localize(currentWeatherConfig().weather_name_key, currentWeatherConfig().weather_id);
   const termName = growth.termName || localize(currentTermConfig()?.term_name_key, currentTermId());
-  const routeText = mode === "mature"
-    ? "夜间成长 -> 成熟亮起 -> 手动收获"
-    : "夜间成长 -> 今日补水 -> 等待成熟";
-  const headline = mode === "mature"
-    ? `晨露照出 ${cropName}`
-    : `${cropName} 还在续长`;
-  const detail = mode === "mature"
-    ? `昨夜${weatherName}过田，新熟 ${maturedCount} 块；先手动收获，再接${route?.badge || badge.label}。`
-    : `昨夜${weatherName}让 ${grownCount || caredCount || 1} 块田继续长势；今天先补水，约余 ${growing.remaining} 夜。`;
-  const nodes = mode === "mature"
-    ? [
-      { title: "夜间", value: weatherName, color: "#4d91a6" },
-      { title: "成熟", value: `${maturedCount}块`, color: "#b47d2f" },
-      { title: "手动", value: "收获", color: "#286f58" },
-    ]
-    : [
-      { title: "夜间", value: grownCount ? `续长${grownCount}` : `代顾${caredCount}`, color: "#4d91a6" },
-      { title: "今日", value: plot.watered ? "已润" : "补水", color: "#286f58" },
-      { title: "等待", value: `余${growing.remaining}夜`, color: "#8f5f3f" },
-    ];
-  return {
-    key: `${state.day}:${mode}:${plot.x},${plot.y}:${maturedCount}:${grownCount}:${caredCount}`,
+  return morningGrowthDewWorldSpecWorld({
+    width,
+    height,
+    summary,
     day: state.day,
-    mode,
-    title: "晨露长势牌 · 可点",
-    headline,
-    detail,
-    routeText,
-    safety: morningGrowthDewSafetyText(),
+    growth,
+    maturePlan,
+    growing,
+    metrics: {
+      originX: Number(originXInput ?? originX),
+      originY: Number(originYInput ?? originY),
+      tile: Number(tileInput ?? tile),
+      gap: Number(gapInput ?? gap),
+    },
+    route,
+    badge,
     cropName,
     weatherName,
     termName,
-    termChanged: Boolean(growth.termChanged),
-    grownCount,
-    maturedCount,
-    caredCount,
-    plot,
-    route,
-    badge,
-    nodes,
-    selector: mode === "mature" ? "#harvestButton" : "#waterButton",
-    fallbackSelector: "#selectedPlotCard",
-    action: mode === "mature" ? "手动收获" : "今日补水",
-    rect: { x: cardX, y: cardY, width: cardWidth, height: cardHeight },
-    plotRect,
-    anchor,
-    dewPoint: {
-      x: anchor.x + (mode === "mature" ? 24 : -22),
-      y: anchor.y - 24,
-    },
-  };
+  });
 }
 
 function morningGrowthDewWorldAtCanvasPoint(px, py) {
   const spec = morningGrowthDewWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect || !spec.plotRect) return null;
-  const { rect, plotRect } = spec;
-  const onCard = px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
-  const onPlot = px >= plotRect.x && px <= plotRect.x + plotRect.width && py >= plotRect.y && py <= plotRect.y + plotRect.height;
-  return onCard || onPlot ? spec : null;
+  return morningGrowthDewWorldAtCanvasPointWorld({ px, py, spec });
 }
 
 function focusMorningGrowthDewWorldFromCanvas(spec = morningGrowthDewWorldSpec()) {
@@ -74996,127 +74941,15 @@ function focusMorningGrowthDewWorldFromCanvas(spec = morningGrowthDewWorldSpec()
 }
 
 function drawMorningGrowthDewWorld(ctx, spec = morningGrowthDewWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
-  if (!spec?.rect || !spec.plotRect) return false;
-  const { rect, plotRect, anchor, dewPoint, badge } = spec;
-  const active = morningGrowthDewWorldFocus?.day === state.day
-    && morningGrowthDewWorldFocus?.key === spec.key;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.7) * 2;
-  const shimmer = settings.reducedMotion ? 0.45 : (Math.sin(motion * 2.4) + 1) / 2;
-  const accent = spec.mode === "mature" ? "#b47d2f" : "#4d91a6";
-  const leaf = spec.mode === "mature" ? "#286f58" : "#5b8f6a";
-  const cardY = rect.y + bob;
-
-  ctx.save();
-  ctx.fillStyle = spec.mode === "mature"
-    ? `rgba(246, 240, 182, ${0.2 + shimmer * 0.12})`
-    : `rgba(159, 209, 223, ${0.16 + shimmer * 0.12})`;
-  ctx.beginPath();
-  ctx.roundRect(plotRect.x + 7, plotRect.y + 7, plotRect.width - 14, plotRect.height - 14, 14);
-  ctx.fill();
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.95)" : `${accent}76`;
-  ctx.lineWidth = active ? 3 : 2;
-  ctx.beginPath();
-  ctx.ellipse(anchor.x, anchor.y + 18, plotRect.width * (0.23 + shimmer * 0.06), plotRect.height * 0.1, 0, 0, Math.PI * 2);
-  ctx.stroke();
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
-  ctx.strokeStyle = "rgba(77, 145, 166, 0.62)";
-  ctx.lineWidth = 1.5;
-  for (let i = 0; i < 4; i += 1) {
-    const dropX = dewPoint.x + Math.cos(motion + i * 1.7) * (14 + i * 4);
-    const dropY = dewPoint.y + Math.sin(motion * 1.2 + i) * 7 + i * 3;
-    ctx.beginPath();
-    ctx.ellipse(dropX, dropY, 4.5, 7, -0.18, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-  }
-
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.88)" : `${accent}66`;
-  ctx.lineWidth = active ? 2.8 : 1.8;
-  ctx.setLineDash([7, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 12;
-  ctx.beginPath();
-  ctx.moveTo(anchor.x + (spec.mode === "mature" ? 16 : -16), anchor.y - 10);
-  ctx.quadraticCurveTo((anchor.x + rect.x + 36) / 2, Math.min(anchor.y, cardY) - 24, rect.x + 36, cardY + rect.height - 16);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, spec.mode === "mature" ? "rgba(255, 248, 232, 0.96)" : "rgba(240, 248, 242, 0.96)");
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.94)" : `${accent}86`;
-  ctx.lineWidth = active ? 2.6 : 1.5;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = spec.mode === "mature" ? "rgba(246, 240, 182, 0.42)" : "rgba(159, 209, 223, 0.24)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 16, cardY + 16, 58, 52, 16);
-  ctx.fill();
-  ctx.strokeStyle = `${accent}70`;
-  ctx.lineWidth = 1.2;
-  ctx.stroke();
-  ctx.fillStyle = accent;
-  ctx.font = "900 22px Microsoft YaHei";
-  ctx.fillText("露", rect.x + 34, cardY + 50);
-  ctx.fillStyle = leaf;
-  ctx.beginPath();
-  ctx.ellipse(rect.x + 55, cardY + 30, 9, 5, -0.5, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(spec.title, rect.x + 88, cardY + 24);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 20), rect.x + 88, cardY + 46);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "10px Microsoft YaHei";
-  const termText = spec.termChanged ? `节气转入 ${spec.termName}` : `${spec.weatherName} · ${spec.action}`;
-  ctx.fillText(`${termText} · ${spec.detail}`.slice(0, 42), rect.x + 88, cardY + 64);
-
-  spec.nodes.forEach((node, index) => {
-    const nodeX = rect.x + 18 + index * 98;
-    const nodeY = cardY + 82;
-    ctx.fillStyle = `${node.color}1b`;
-    ctx.strokeStyle = `${node.color}55`;
-    ctx.lineWidth = active && index === 1 ? 1.8 : 1.1;
-    ctx.beginPath();
-    ctx.roundRect(nodeX, nodeY - 8, 88, 25, 11);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = node.color;
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(node.title, nodeX + 9, nodeY + 1);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(String(node.value || "").slice(0, 8), nodeX + 9, nodeY + 12);
-    if (index < spec.nodes.length - 1) {
-      ctx.strokeStyle = `${node.color}55`;
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.moveTo(nodeX + 88, nodeY + 4);
-      ctx.lineTo(nodeX + 98, nodeY + 4);
-      ctx.stroke();
-    }
+  return drawMorningGrowthDewWorldWorld({
+    ctx,
+    spec,
+    focus: morningGrowthDewWorldFocus,
+    day: state.day,
+    reducedMotion: settings.reducedMotion,
+    motion,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 50, cardY + 13, 36, 18, 9);
-  ctx.fill();
-  ctx.fillStyle = badge.text || accent;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + rect.width - 42, cardY + 26);
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 18, cardY + rect.height - 15, rect.width - 36, 11, 6);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText(`${spec.routeText} · ${spec.safety}`.slice(0, 52), rect.x + 26, cardY + rect.height - 7);
-  ctx.restore();
-  return true;
 }
 
 function drawHarvestRouteWorldBoard(ctx, spec = harvestRouteWorldBoardSpec(ctx.canvas.width, ctx.canvas.height)) {
