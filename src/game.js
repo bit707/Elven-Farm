@@ -34,6 +34,8 @@ import {
   drawSpiritIdentityMemoryNameplateWorld,
   drawSpiritBondHeartlineWorldWorld,
   drawFirstTwoSpiritDuoWorldWorld,
+  drawRareSpiritTheaterGlyphWorld,
+  drawRareSpiritTheaterMomentWorld,
   drawSpiritInteractionWorldEchoWorld,
   drawSpiritInteractionMemoryTriptychWorldWorld,
   drawSpiritJobEffectWorld,
@@ -77164,141 +77166,31 @@ function drawCareChainSpiritEcho(ctx, livingState = currentLivingWorldState()) {
 
 function drawRareSpiritTheaterGlyph(ctx, lineId, x, y, motion = 0) {
   const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.4) * 2;
-  ctx.save();
-  if (lineId === "spirit_line_hualing") {
-    ["#d87f8d", "#f2d28b", "#fffdf5"].forEach((color, index) => {
-      const angle = motion + index * 2.1;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.ellipse(x + Math.cos(angle) * 12, y + Math.sin(angle) * 8, 5, 10, angle, 0, Math.PI * 2);
-      ctx.fill();
-    });
-  } else if (lineId === "spirit_line_leizhu") {
-    ctx.strokeStyle = "#e6c65e";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(x - 5, y - 18);
-    ctx.lineTo(x - 14, y + 2 + pulse);
-    ctx.lineTo(x + 2, y - 1 + pulse);
-    ctx.lineTo(x - 7, y + 20);
-    ctx.lineTo(x + 16, y - 8);
-    ctx.stroke();
-  } else if (lineId === "spirit_line_yuelian") {
-    ctx.strokeStyle = "rgba(255, 253, 245, 0.86)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(x, y, 18 + pulse, Math.PI * 0.18, Math.PI * 1.82);
-    ctx.stroke();
-    ctx.fillStyle = "rgba(159, 209, 223, 0.36)";
-    ctx.beginPath();
-    ctx.ellipse(x, y + 14, 24, 7, 0, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (lineId === "spirit_line_dengying") {
-    ctx.fillStyle = "rgba(246, 240, 182, 0.82)";
-    ctx.beginPath();
-    ctx.roundRect(x - 9, y - 18, 18, 28, 8);
-    ctx.fill();
-    ctx.strokeStyle = "#5b3328";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y + 10);
-    ctx.lineTo(x, y + 24 + pulse);
-    ctx.stroke();
-  } else if (lineId === "spirit_line_shuqi") {
-    ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
-    ctx.beginPath();
-    ctx.roundRect(x - 18, y - 14, 36, 26, 5);
-    ctx.fill();
-    ctx.strokeStyle = "#8f5f3f";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.fillStyle = "#8f5f3f";
-    ctx.fillRect(x - 10, y - 5, 20, 2);
-    ctx.fillRect(x - 10, y + 2, 15, 2);
-  } else if (lineId === "spirit_line_fengmi") {
-    ctx.fillStyle = "#e0b66d";
-    ctx.beginPath();
-    ctx.arc(x, y, 12 + pulse / 2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "#17231d";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(x - 10, y - 3);
-    ctx.lineTo(x + 10, y + 3);
-    ctx.moveTo(x - 8, y + 5);
-    ctx.lineTo(x + 8, y - 5);
-    ctx.stroke();
-    ctx.fillStyle = "rgba(255, 253, 245, 0.72)";
-    ctx.beginPath();
-    ctx.ellipse(x - 14, y - 10, 6, 3, -0.5, 0, Math.PI * 2);
-    ctx.ellipse(x + 14, y - 10, 6, 3, 0.5, 0, Math.PI * 2);
-    ctx.fill();
-  } else {
-    ctx.fillStyle = "rgba(202, 235, 210, 0.76)";
-    ctx.beginPath();
-    ctx.arc(x, y, 13 + pulse / 2, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
+  return drawRareSpiritTheaterGlyphWorld({
+    ctx,
+    lineId,
+    x,
+    y,
+    motion,
+    pulse,
+  });
 }
 
 function drawRareSpiritTheaterMoment(ctx, interaction, spirit, station) {
   const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
   const profile = spiritVisualProfile(spirit);
   const lineId = spirit.lineId || spiritLine(spirit.id);
-  const x = station.x + station.size * 0.48;
-  const y = station.y - 78 + Math.sin(motion * 2.1) * (settings.reducedMotion ? 0 : 4);
-  const cardWidth = 232;
-  const cardHeight = 86;
-  const cardX = Math.max(36, Math.min(920 - cardWidth, x));
-  const cardY = Math.max(86, y);
-
-  ctx.save();
-  ctx.fillStyle = profile.glow || "rgba(246, 240, 182, 0.24)";
-  ctx.beginPath();
-  ctx.ellipse(station.x + station.size * 0.5, station.y + station.size * 0.72, station.size * 0.62, station.size * 0.24, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = profile.accent;
-  ctx.lineWidth = 3;
-  ctx.setLineDash([6, 8]);
-  ctx.beginPath();
-  ctx.moveTo(station.x + station.size * 0.5, station.y + 8);
-  ctx.bezierCurveTo(station.x + station.size * 0.72, cardY + cardHeight + 24, cardX + 42, cardY + cardHeight + 18, cardX + 44, cardY + cardHeight);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, cardX, cardY, cardWidth, cardHeight, "rgba(255, 248, 232, 0.94)");
-  ctx.fillStyle = profile.glow;
-  ctx.beginPath();
-  ctx.arc(cardX + 42, cardY + 42, 26, 0, Math.PI * 2);
-  ctx.fill();
-  drawRareSpiritTheaterGlyph(ctx, lineId, cardX + 42, cardY + 42, motion);
-
-  ctx.fillStyle = profile.accent;
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText("今日小剧场", cardX + 82, cardY + 24);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(`${interaction.spiritName} · ${interaction.floatingText || `羁绊 +${interaction.bondGain}`}`.slice(0, 18), cardX + 82, cardY + 45);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(String(interaction.actionText || "洞天日常").slice(0, 24), cardX + 82, cardY + 64);
-  if (interaction.extraText) {
-    ctx.fillStyle = "#8f5f3f";
-    ctx.font = "10px Microsoft YaHei";
-    ctx.fillText(String(interaction.extraText).slice(0, 30), cardX + 18, cardY + 78);
-  }
-
-  for (let i = 0; i < 6; i += 1) {
-    const moteX = cardX + 16 + i * 36;
-    const moteY = cardY - 4 + Math.sin(motion * 2.4 + i) * 4;
-    ctx.fillStyle = i % 2 ? "rgba(255, 253, 245, 0.84)" : profile.accent;
-    ctx.beginPath();
-    ctx.arc(moteX, moteY, i % 2 ? 2 : 2.6, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
+  return drawRareSpiritTheaterMomentWorld({
+    ctx,
+    interaction,
+    station,
+    profile,
+    lineId,
+    motion,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+    drawRareSpiritTheaterGlyph: (glyphCtx, glyphLineId, glyphX, glyphY, glyphMotion) => drawRareSpiritTheaterGlyph(glyphCtx, glyphLineId, glyphX, glyphY, glyphMotion),
+  });
 }
 
 function drawRareSpiritCompanionMoments(ctx) {
