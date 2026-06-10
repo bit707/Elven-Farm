@@ -32,6 +32,7 @@ import {
   drawSpiritDailyChorePropWorld,
   drawSpiritFinaleCompanionAnchorWorld,
   drawSpiritIdentityMemoryNameplateWorld,
+  drawSpiritInteractionWorldEchoWorld,
   drawSpiritJobEffectWorld,
   drawSpiritJobPersonaBubbleWorld,
   drawSpiritJobShiftFeedbackWorld,
@@ -76896,93 +76897,17 @@ function drawSpiritSprite(ctx, spirit, x, y, size = 112) {
 function drawSpiritInteractionWorldEcho(ctx, target = spiritInteractionWorldEchoTarget()) {
   if (!target?.spec) return false;
   const { station, index, spec } = target;
-  const { rect } = spec;
   const motion = settings.reducedMotion ? 0 : performance.now() / 1000 + index * 0.34;
   const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.5) * 3;
-  const spiritX = station.x + station.size * 0.5;
-  const spiritY = station.y + station.size * 0.38;
-
-  ctx.save();
-  ctx.fillStyle = spec.glow;
-  ctx.beginPath();
-  ctx.ellipse(spiritX, station.y + station.size * 0.82, station.size * 0.58 + pulse, station.size * 0.18, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = `${spec.accent}88`;
-  ctx.lineWidth = 1.8;
-  ctx.setLineDash([6, 7]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 14;
-  ctx.beginPath();
-  ctx.moveTo(rect.x + 22, rect.y + rect.height - 10);
-  ctx.quadraticCurveTo(rect.x - 16, rect.y + rect.height + 18, spiritX, spiritY);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, rect.y + pulse, rect.width, rect.height, spec.firstInteraction ? "rgba(255, 244, 224, 0.95)" : "rgba(255, 248, 232, 0.92)");
-  ctx.strokeStyle = `${spec.accent}aa`;
-  ctx.lineWidth = 1.8;
-  ctx.beginPath();
-  ctx.roundRect(rect.x, rect.y + pulse, rect.width, rect.height, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = `${spec.accent}22`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 12, rect.y + 13 + pulse, 44, 44, 15);
-  ctx.fill();
-  ctx.fillStyle = spec.accent;
-  ctx.font = "900 20px Microsoft YaHei";
-  ctx.fillText(spec.glyph.slice(0, 1), rect.x + 25, rect.y + 42 + pulse);
-
-  ctx.fillStyle = spec.type === "feed" ? "rgba(224, 182, 109, 0.22)" : spec.firstInteraction ? "rgba(246, 240, 182, 0.3)" : "rgba(202, 235, 210, 0.24)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 62, rect.y + 14 + pulse, 42, 42, 14);
-  ctx.fill();
-  ctx.fillStyle = spec.type === "feed" ? "#b47d2f" : spec.accent;
-  ctx.font = "900 18px Microsoft YaHei";
-  ctx.fillText(spec.propGlyph.slice(0, 1), rect.x + rect.width - 49, rect.y + 42 + pulse);
-  for (let mote = 0; mote < 4; mote += 1) {
-    const angle = motion * 2 + mote * 1.4;
-    ctx.fillStyle = mote % 2 ? "rgba(246, 240, 182, 0.82)" : `${spec.accent}66`;
-    ctx.beginPath();
-    ctx.arc(rect.x + rect.width - 42 + Math.cos(angle) * (20 + mote), rect.y + 35 + pulse + Math.sin(angle) * 8, 2.6, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 13px Microsoft YaHei";
-  ctx.fillText(spec.label.slice(0, 13), rect.x + 66, rect.y + 22 + pulse);
-  ctx.fillStyle = "#286f58";
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(spec.motionText.slice(0, 13), rect.x + 66, rect.y + 41 + pulse);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(`“${spec.quote}”`.slice(0, 20), rect.x + 66, rect.y + 59 + pulse);
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.72)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, rect.y + 66 + pulse, rect.width - 28, 22, 10);
-  ctx.fill();
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "700 10px Microsoft YaHei";
-  ctx.fillText(spec.warmthLine.slice(0, 31), rect.x + 24, rect.y + 81 + pulse);
-
-  ctx.fillStyle = "rgba(190, 79, 55, 0.12)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, rect.y + 92 + pulse, 76, 19, 8);
-  ctx.fill();
-  ctx.fillStyle = "#be4f37";
-  ctx.font = "800 10px Microsoft YaHei";
-  ctx.fillText(spec.bondText, rect.x + 25, rect.y + 106 + pulse);
-
-  ctx.fillStyle = spec.firstInteraction ? "rgba(224, 182, 109, 0.24)" : "rgba(40, 111, 88, 0.12)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 96, rect.y + 92 + pulse, rect.width - 112, 19, 8);
-  ctx.fill();
-  ctx.fillStyle = spec.firstInteraction ? "#b47d2f" : "#286f58";
-  ctx.font = "800 10px Microsoft YaHei";
-  ctx.fillText(spec.memoryLine.slice(0, 22), rect.x + 106, rect.y + 106 + pulse);
-  ctx.restore();
-  return true;
+  return drawSpiritInteractionWorldEchoWorld({
+    ctx,
+    spec,
+    station,
+    motion,
+    pulse,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+  });
 }
 
 function drawSpiritBondHeartlineWorld(ctx, spec = spiritBondHeartlineWorldSpec()) {
