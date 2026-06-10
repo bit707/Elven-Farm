@@ -40,6 +40,7 @@ import {
   drawRareSpiritWorldInvitationWorld,
   drawRareSpiritClueRoadsignWorldWorld,
   drawRareSpiritIdentityPortraitWorldWorld,
+  drawRareSpiritMemoryCompassWorldWorld,
   drawSpiritInteractionWorldEchoWorld,
   drawSpiritInteractionMemoryTriptychWorldWorld,
   drawSpiritJobEffectWorld,
@@ -77778,44 +77779,17 @@ function drawRareSpiritIdentityPortraitWorld(ctx, spec = rareSpiritIdentityPortr
 
 function drawRareSpiritMemoryCompassWorld(ctx, spec = rareSpiritMemoryCompassWorldSpec()) {
   if (!spec?.rect) return false;
-  const { rect, anchor } = spec;
   const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
   const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 1.7) * 2;
   const active = rareSpiritMemoryCompassWorldFocus?.day === state.day
     && rareSpiritMemoryCompassWorldFocus?.key === spec.key;
-  const cardY = rect.y + pulse;
-
-  ctx.save();
-  ctx.strokeStyle = active ? "rgba(125, 99, 63, 0.92)" : "rgba(125, 99, 63, 0.56)";
-  ctx.lineWidth = active ? 3 : 2;
-  ctx.setLineDash([6, 8]);
-  ctx.beginPath();
-  ctx.moveTo(anchor.x, anchor.y);
-  ctx.bezierCurveTo(anchor.x - 28, anchor.y - 38, rect.x + 42, cardY + 28, rect.x + 24, cardY + 62);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 249, 238, 0.95)");
-  ctx.strokeStyle = active ? "rgba(125, 99, 63, 0.92)" : "rgba(125, 99, 63, 0.6)";
-  ctx.lineWidth = active ? 2.5 : 1.6;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1, cardY + 1, rect.width - 2, rect.height - 2, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = "#7d633f";
-  ctx.font = "900 13px Microsoft YaHei";
-  ctx.fillText(spec.subtitle, rect.x + 18, cardY + 24);
-  ctx.font = "bold 12px Microsoft YaHei";
-  ctx.fillText(spec.sectionTitle, rect.x + 18, cardY + 46);
-  ctx.fillText(spec.overviewTitle, rect.x + 108, cardY + 46);
-  ctx.fillText(spec.moodTitle, rect.x + 18, cardY + 68);
-  ctx.fillText(spec.giftTitle, rect.x + 108, cardY + 68);
-  ctx.fillStyle = "#2d352c";
-  ctx.font = "12px Microsoft YaHei";
-  ctx.fillText(`${spec.leadName || "伙伴"} 的记忆正在发亮`, rect.x + 18, cardY + 92);
-  ctx.fillText("只定位生活图鉴与事件入口", rect.x + 18, cardY + 112);
-  ctx.restore();
-  return true;
+  return drawRareSpiritMemoryCompassWorldWorld({
+    ctx,
+    spec,
+    pulse,
+    active,
+    drawCanvasCard,
+  });
 }
 
 function drawHualingWelcomeDance(ctx, spec = hualingWelcomeDanceSpec(), motion = settings.reducedMotion ? 0 : performance.now() / 1000) {
