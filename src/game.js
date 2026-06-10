@@ -1584,6 +1584,7 @@ function shopRestockFulfillmentEffect(goods = sellableInventoryGoods(), theme = 
     shopTagsOverlap,
     shopRestockTargetIsWaterFresh,
   });
+  /* Legacy implementation migrated to shop-restock-world.js.
   const opening = syncShopOpeningState();
   const recent = (opening.restockHistory || [])
     .filter((entry) => entry.status === "done" && entry.itemId && Number(state.inventory[entry.itemId] || 0) > 0)
@@ -1628,6 +1629,7 @@ function shopRestockFulfillmentEffect(goods = sellableInventoryGoods(), theme = 
         ? `正好贴合 ${theme?.note || "当前陈列"}，顾客会觉得货架更稳。`
         : `虽然不是当前主题核心货，也能证明旧铺有认真备货。`,
   };
+  */
 }
 
 function completeShopRestockTarget() {
@@ -27419,6 +27421,7 @@ function shopRestockFulfillmentFeedbackSpec(restockFulfillment = {}) {
     createdAt: performance.now(),
     day: state.day,
   });
+  /* Legacy implementation migrated to shop-restock-world.js.
   if (!restockFulfillment?.active) return null;
   const itemId = restockFulfillment.itemId || restockFulfillment.target?.itemId || "";
   const waterwayReorder = restockFulfillment.target?.source === "lianze_waterway_reorder";
@@ -27449,6 +27452,7 @@ function shopRestockFulfillmentFeedbackSpec(restockFulfillment = {}) {
     createdAt: performance.now(),
     day: state.day,
   };
+  */
 }
 
 function triggerShopRestockFulfillmentFeedback(restockFulfillment = {}) {
