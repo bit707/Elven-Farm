@@ -49,6 +49,7 @@ const requiredFiles = [
   "src/game/world/spirit-assist-world.js",
   "src/game/world/spirit-world.js",
   "src/game/world/town-life-world.js",
+  "src/game/world/workshop-world.js",
   "src/styles.css",
   "src/core/combat/dungeon-runtime.ts",
   "src/core/data/runtime-data.ts",
@@ -2904,6 +2905,7 @@ const game = [
   readFileSync("src/game/world/spirit-assist-world.js", "utf8"),
   readFileSync("src/game/world/spirit-world.js", "utf8"),
   readFileSync("src/game/world/town-life-world.js", "utf8"),
+  readFileSync("src/game/world/workshop-world.js", "utf8"),
 ].join("\n");
 const styles = readFileSync("src/styles.css", "utf8");
 const readme = readFileSync("README_GAME.md", "utf8");
