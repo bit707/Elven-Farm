@@ -34,6 +34,7 @@ import {
   drawSpiritIdentityMemoryNameplateWorld,
   drawSpiritBondHeartlineWorldWorld,
   drawSpiritInteractionWorldEchoWorld,
+  drawSpiritInteractionMemoryTriptychWorldWorld,
   drawSpiritJobEffectWorld,
   drawSpiritJobPersonaBubbleWorld,
   drawSpiritJobShiftFeedbackWorld,
@@ -76930,102 +76931,18 @@ function drawSpiritBondHeartlineWorld(ctx, spec = spiritBondHeartlineWorldSpec()
 
 function drawSpiritInteractionMemoryTriptychWorld(ctx, spec = spiritInteractionMemoryTriptychWorldSpec(), motion = performance.now() / 1000) {
   if (!spec?.rect) return false;
-  const { rect } = spec;
   const active = spiritInteractionMemoryTriptychWorldFocus?.day === state.day
     && spiritInteractionMemoryTriptychWorldFocus?.key === spec.key;
   const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.9) * 2.4;
-  const cardY = rect.y + bob;
-
-  ctx.save();
-  ctx.strokeStyle = active ? `${spec.accent}dd` : `${spec.accent}66`;
-  ctx.lineWidth = active ? 2.8 : 1.7;
-  ctx.setLineDash([7, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 11;
-  ctx.beginPath();
-  ctx.moveTo(spec.anchor.x, spec.anchor.y);
-  ctx.quadraticCurveTo(rect.x + 16, cardY + rect.height + 18, rect.x + 30, cardY + rect.height - 10);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  const glow = ctx.createRadialGradient(spec.anchor.x, spec.anchor.y, 8, spec.anchor.x, spec.anchor.y, 96);
-  glow.addColorStop(0, active ? spec.glow : "rgba(246, 240, 182, 0.14)");
-  glow.addColorStop(1, "rgba(246, 240, 182, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(spec.anchor.x, spec.anchor.y, active ? 96 : 76, 0, Math.PI * 2);
-  ctx.fill();
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, active ? "rgba(255, 253, 245, 0.97)" : "rgba(255, 248, 232, 0.93)");
-  ctx.strokeStyle = active ? `${spec.accent}ee` : `${spec.accent}88`;
-  ctx.lineWidth = active ? 2.5 : 1.6;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1, cardY + 1, rect.width - 2, rect.height - 2, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = `${spec.accent}20`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 44, 44, 15);
-  ctx.fill();
-  ctx.fillStyle = spec.accent;
-  ctx.font = "900 18px Microsoft YaHei";
-  ctx.fillText("忆", rect.x + 27, cardY + 42);
-
-  ctx.fillStyle = spec.accent;
-  ctx.font = "900 10px Microsoft YaHei";
-  ctx.fillText(spec.title.slice(0, 18), rect.x + 70, cardY + 22);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 13px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 26), rect.x + 70, cardY + 41);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText("点开只定位伙伴栏和生活图鉴", rect.x + 70, cardY + 57);
-
-  const startX = rect.x + 20;
-  const nodeY = cardY + 78;
-  const gap = 94;
-  ctx.strokeStyle = `${spec.accent}44`;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(startX + 17, nodeY);
-  ctx.lineTo(startX + gap * 2 + 17, nodeY);
-  ctx.stroke();
-  spec.nodes.forEach((node, index) => {
-    const nodeX = startX + index * gap;
-    const strong = active || index === 0;
-    ctx.fillStyle = index === 0 ? "rgba(202, 235, 210, 0.95)" : index === 1 ? "rgba(246, 240, 182, 0.92)" : "rgba(255, 253, 245, 0.96)";
-    ctx.strokeStyle = strong ? spec.accent : `${spec.accent}88`;
-    ctx.lineWidth = strong ? 2.2 : 1.4;
-    ctx.beginPath();
-    ctx.arc(nodeX + 17, nodeY, strong ? 13 : 11, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = spec.accent;
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(node.short, nodeX + 12, nodeY + 3);
-    ctx.fillStyle = "#8f5f3f";
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(node.label.replace("记住", "").slice(0, 4), nodeX - 2, nodeY + 23);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(String(node.text || "").slice(0, 7), nodeX - 2, nodeY + 35);
+  return drawSpiritInteractionMemoryTriptychWorldWorld({
+    ctx,
+    spec,
+    motion,
+    bob,
+    active,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = active ? spec.accent : "#5d6f65";
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText(String(spec.recallCheckLine || spec.recallLine || "").slice(0, 36), rect.x + 18, cardY + rect.height - 12);
-
-  if (!settings.reducedMotion) {
-    for (let i = 0; i < 4; i += 1) {
-      const angle = motion * 1.8 + i * 1.25;
-      ctx.fillStyle = i % 2 ? "rgba(246, 240, 182, 0.78)" : `${spec.accent}66`;
-      ctx.beginPath();
-      ctx.arc(rect.x + rect.width - 28 + Math.cos(angle) * (12 + i * 2), cardY + 18 + Math.sin(angle) * 10, 2.2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  ctx.restore();
-  return true;
 }
 
 function drawSpiritColony(ctx) {

@@ -298,6 +298,7 @@ npm run verify
 - 已完成：`drawSpiritSprite` 的“精怪本体形态/名字牌”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritVisualProfile`、精怪图片资源、bob 动效计算与同名兼容包装函数仍留在 `src/game.js`。
 - 已完成：`drawSpiritInteractionWorldEcho` 的“伙伴回应世界回响卡/摸摸喂食反馈”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritInteractionWorldEchoTarget`、spec 构造、动效开关与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`drawSpiritBondHeartlineWorld` 的“精怪互动羁绊心线/三步进度卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritBondHeartlineWorldSpec`、Canvas 命中、聚焦状态、动效开关与 `drawCanvasCard` 注入仍留在 `src/game.js`。
+- 已完成：`drawSpiritInteractionMemoryTriptychWorld` 的“精怪互动记忆三联画/生活图鉴提示卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritInteractionMemoryTriptychWorldSpec`、Canvas 命中、聚焦状态、伙伴栏/生活图鉴定位和动效开关注入仍留在 `src/game.js`。
 - 已完成：`tools/build-runtime-data.mjs` 已适配新数据清单模块，并保留旧 `src/game.js` 内联清单 fallback。
 - 已完成：`tools/package-standalone.mjs` 已内联 `src/game/**` 本地模块，避免离线单文件包被 ESM import 破坏。
 - 已完成：`tools/verify.mjs` 已把拆分模块纳入静态审计，避免门禁继续假设所有内容必须留在 `src/game.js`。
