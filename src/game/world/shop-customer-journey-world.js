@@ -622,6 +622,66 @@ export function shopTrialTheaterWorldAtCanvasPointWorld({
     : null;
 }
 
+export const SHOP_CUSTOMER_JOURNEY_STAGES_WORLD = [
+  { key: "enter", label: "进店", short: "门口驻足" },
+  { key: "browse", label: "看牌", short: "看热卖牌" },
+  { key: "price", label: "试价", short: "掂预算" },
+  { key: "result", label: "成交/离店", short: "递货或回头" },
+  { key: "return", label: "复购建议", short: "明日补货" },
+];
+
+export function shopCustomerJourneyRowsWorld({
+  opening = null,
+  ledger = null,
+  sourceChains = [],
+  needBubbles = [],
+  shopTagLabel = (tag) => tag || "",
+  stages = SHOP_CUSTOMER_JOURNEY_STAGES_WORLD,
+} = {}) {
+  const safeChains = Array.isArray(sourceChains) ? sourceChains : [];
+  const safeNeedBubbles = Array.isArray(needBubbles) ? needBubbles : [];
+  const rows = safeChains.slice(0, 4).map((chain, index) => {
+    const resultText = chain.result || "";
+    const bought = chain.tone === "good" || resultText.includes("成交");
+    const warned = chain.tone === "warn" || resultText.includes("嫌贵") || resultText.includes("离店");
+    const bubble = safeNeedBubbles[index] || safeNeedBubbles.find((entry) => entry.name === chain.name) || null;
+    const path = [
+      { ...stages[0], text: bubble?.text || chain.need || "进门看看", state: "done" },
+      { ...stages[1], text: ledger?.hotTagLabel || opening?.hotTagLabel || "看热卖牌", state: "done" },
+      { ...stages[2], text: warned ? "价签卡住了" : "预算对上了", state: warned ? "warn" : "done" },
+      { ...stages[3], text: bought ? "递货收钱" : "回头离店", state: bought ? "good" : warned ? "warn" : "mid" },
+      { ...stages[4], text: chain.advice || ledger?.nextAction || "记到明日备货", state: bought ? "good" : "mid" },
+    ];
+    return {
+      name: chain.name || bubble?.name || "顾客",
+      need: chain.need || bubble?.text || "随手看看",
+      result: resultText || "等待下一次开铺复盘",
+      reason: chain.reason || chain.evidence || "原因待观察",
+      advice: chain.advice || ledger?.nextAction || "明天继续沿着这条反馈调整。",
+      tone: bought ? "good" : warned ? "warn" : "mid",
+      bought,
+      warned,
+      path,
+    };
+  });
+  if (rows.length) return rows;
+  return safeNeedBubbles.slice(0, 3).map((bubble) => ({
+    name: bubble.name || "顾客",
+    need: bubble.text || "想找一件顺眼的货",
+    result: "还没有形成成交旅线",
+    reason: bubble.detail || "等待下一次开铺",
+    advice: `围绕 ${bubble.tag ? shopTagLabel(bubble.tag) : opening?.hotTagLabel || "门口需求"} 准备一件对口商品。`,
+    tone: "mid",
+    bought: false,
+    warned: false,
+    path: stages.map((stage, index) => ({
+      ...stage,
+      text: index === 0 ? bubble.text || "进门看看" : index === 4 ? "等开铺验证" : stage.short,
+      state: index === 0 ? "done" : "pending",
+    })),
+  }));
+}
+
 export function shopCustomerJourneySpecWorld({
   opening = null,
   ledger = null,
