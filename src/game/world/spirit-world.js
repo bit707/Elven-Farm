@@ -374,3 +374,78 @@ export function drawSpiritJobPersonaBubbleWorld({
   ctx.restore();
   return true;
 }
+
+export function drawSpiritWorldLifeStatusWorld({
+  ctx,
+  spec = null,
+  station = null,
+  index = 0,
+  motion = 0,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec || !station) return false;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.2) * 2.5;
+  const compact = index >= 4 && spec.tone === "good";
+  const width = compact ? 104 : 168;
+  const height = compact ? 34 : 72;
+  const x = Math.max(16, Math.min(ctx.canvas.width - width - 16, station.x + station.size * 0.56));
+  const y = Math.max(18, Math.min(ctx.canvas.height - height - 18, station.y + station.size * 0.06 + (index % 2) * 10 + pulse));
+
+  ctx.save();
+  ctx.fillStyle = spec.glow;
+  ctx.beginPath();
+  ctx.ellipse(station.x + station.size * 0.52, station.y + station.size * 0.92, station.size * 0.54 + pulse, station.size * 0.18, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawCanvasCard(ctx, x, y, width, height, spec.fill);
+  ctx.strokeStyle = spec.stroke;
+  ctx.lineWidth = spec.tone === "need" || spec.tone === "rare" ? 2.2 : 1.4;
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, compact ? 12 : 16);
+  ctx.stroke();
+
+  ctx.fillStyle = spec.color;
+  ctx.beginPath();
+  ctx.roundRect(x + 10, y + 10, compact ? 24 : 34, compact ? 20 : 34, compact ? 8 : 12);
+  ctx.fill();
+  ctx.fillStyle = "#fffdf5";
+  ctx.font = compact ? "700 11px Microsoft YaHei" : "800 16px Microsoft YaHei";
+  ctx.fillText(spec.glyph.slice(0, 1), x + (compact ? 17 : 21), y + (compact ? 25 : 33));
+
+  ctx.fillStyle = "#17231d";
+  ctx.font = compact ? "700 10px Microsoft YaHei" : "700 12px Microsoft YaHei";
+  ctx.fillText((compact ? spec.headline.replace(" · 今日状态", "") : spec.headline).slice(0, compact ? 8 : 12), x + (compact ? 42 : 54), y + (compact ? 17 : 22));
+  ctx.fillStyle = spec.color;
+  ctx.font = compact ? "9px Microsoft YaHei" : "11px Microsoft YaHei";
+  ctx.fillText((compact ? spec.action : spec.detail).slice(0, compact ? 8 : 16), x + (compact ? 42 : 54), y + (compact ? 29 : 40));
+
+  if (!compact) {
+    spec.chips.forEach((chip, chipIndex) => {
+      const chipX = x + 12 + chipIndex * 50;
+      const chipY = y + 50;
+      const low = chip.value < (chip.key === "hunger" ? 45 : 60);
+      ctx.fillStyle = low ? "rgba(190, 79, 55, 0.12)" : "rgba(255, 253, 245, 0.62)";
+      ctx.beginPath();
+      ctx.roundRect(chipX, chipY, 44, 18, 7);
+      ctx.fill();
+      ctx.fillStyle = low ? "#be4f37" : "#5d6f65";
+      ctx.font = "700 9px Microsoft YaHei";
+      ctx.fillText(`${chip.glyph}${chip.value}`, chipX + 6, chipY + 13);
+    });
+  }
+
+  if (spec.tone === "need" || spec.tone === "rare") {
+    ctx.strokeStyle = spec.color;
+    ctx.lineWidth = 1.6;
+    ctx.setLineDash([5, 6]);
+    ctx.lineDashOffset = reducedMotion ? 0 : -motion * 16;
+    ctx.beginPath();
+    ctx.moveTo(x + 14, y + height - 8);
+    ctx.quadraticCurveTo(station.x + station.size * 0.8, station.y + station.size * 0.2, station.x + station.size * 0.5, station.y + station.size * 0.48);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
+  return true;
+}
