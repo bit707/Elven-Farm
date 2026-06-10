@@ -24,6 +24,7 @@ import {
   drawDailyIntentFeedbackWorld,
   drawDailyIntentWorldEchoWorld,
   drawDailyIntentWorldGuideWorld,
+  drawDailyIntentWorldScenesWorld,
 } from "./game/world/daily-intent-world.js";
 import { renderAssetPanelUi } from "./game/ui/asset-panel.js";
 import { renderBuildPanelUi } from "./game/ui/build-panel.js";
@@ -74859,114 +74860,14 @@ function drawDailyIntentWorldEcho(ctx, feedback = activeDailyIntentFeedback(), o
 
 function drawDailyIntentWorldScenes(ctx, originX = 300, originY = 142, tile = 72, gap = 8) {
   const targets = dailyIntentWorldSceneTargets(originX, originY, tile, gap);
-  if (!targets.length) return;
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  ctx.save();
-  for (const target of targets) {
-    const { point, trend } = target;
-    const palette = dailyIntentWorldPalette(target.intent);
-    const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.8) * 3;
-    const glow = Math.max(0, Math.sin(motion * 2.4) * 0.5 + 0.5);
-    ctx.fillStyle = palette.soft;
-    ctx.beginPath();
-    ctx.ellipse(point.x, point.y + 18, 46 + glow * 8, 16 + glow * 3, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = palette.accent;
-    ctx.lineWidth = trend.activeToday ? 3 : 2;
-    ctx.globalAlpha = trend.activeToday ? 0.82 : 0.52;
-    ctx.beginPath();
-    ctx.ellipse(point.x, point.y + 18, 34 + glow * 6, 11 + glow * 3, 0, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-
-    if (target.intent === "money") {
-      ctx.fillStyle = "rgba(255, 248, 232, 0.94)";
-      ctx.beginPath();
-      ctx.roundRect(point.x - 28, point.y - 20 + bob, 56, 42, 12);
-      ctx.fill();
-      ctx.strokeStyle = palette.accent;
-      ctx.stroke();
-      ctx.fillStyle = palette.accent;
-      ctx.font = "800 18px Microsoft YaHei";
-      ctx.fillText("钱签", point.x - 18, point.y + 7 + bob);
-      for (let i = 0; i < Math.min(3, Math.max(1, Number(trend.count || 1))); i += 1) {
-        ctx.beginPath();
-        ctx.arc(point.x - 20 + i * 20, point.y + 30 - i * 3 + bob, 5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    } else if (target.intent === "build") {
-      ctx.strokeStyle = palette.accent;
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(point.x - 36, point.y + 24 + bob);
-      ctx.lineTo(point.x + 36, point.y + 2 + bob);
-      ctx.stroke();
-      ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-      ctx.beginPath();
-      ctx.roundRect(point.x - 30, point.y - 26 + bob, 60, 30, 10);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = palette.accent;
-      ctx.font = "800 16px Microsoft YaHei";
-      ctx.fillText("墨线", point.x - 17, point.y - 6 + bob);
-    } else if (target.intent === "explore") {
-      ctx.strokeStyle = palette.accent;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(point.x, point.y - 30 + bob);
-      ctx.lineTo(point.x, point.y - 4 + bob);
-      ctx.stroke();
-      ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-      ctx.beginPath();
-      ctx.roundRect(point.x - 20, point.y - 4 + bob, 40, 44, 14);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = palette.accent;
-      ctx.beginPath();
-      ctx.arc(point.x, point.y + 18 + bob, 10 + glow * 3, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (target.intent === "relationship") {
-      ctx.fillStyle = "rgba(255, 250, 247, 0.94)";
-      ctx.beginPath();
-      ctx.roundRect(point.x - 24, point.y - 22 + bob, 48, 40, 12);
-      ctx.fill();
-      ctx.strokeStyle = palette.accent;
-      ctx.stroke();
-      ctx.fillStyle = palette.accent;
-      ctx.font = "800 18px Microsoft YaHei";
-      ctx.fillText("笺", point.x - 8, point.y + 4 + bob);
-      ctx.strokeStyle = "rgba(216, 127, 141, 0.42)";
-      ctx.beginPath();
-      ctx.moveTo(point.x - 16, point.y + 24 + bob);
-      ctx.quadraticCurveTo(point.x, point.y + 34 + bob, point.x + 18, point.y + 22 + bob);
-      ctx.stroke();
-    } else {
-      ctx.fillStyle = palette.accent;
-      for (let i = 0; i < 5; i += 1) {
-        ctx.beginPath();
-        ctx.ellipse(point.x - 28 + i * 14, point.y + 10 + Math.sin(motion * 2 + i) * 3, 4, 13, -0.24 + i * 0.08, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
-      ctx.beginPath();
-      ctx.roundRect(point.x - 28, point.y - 28 + bob, 56, 28, 12);
-      ctx.fill();
-      ctx.strokeStyle = palette.accent;
-      ctx.stroke();
-      ctx.fillStyle = palette.accent;
-      ctx.font = "800 14px Microsoft YaHei";
-      ctx.fillText("露痕", point.x - 16, point.y - 10 + bob);
-    }
-
-    drawCanvasCard(ctx, point.x - 54, point.y + 46, 108, 34, "rgba(255, 253, 245, 0.84)");
-    ctx.fillStyle = palette.accent;
-    ctx.font = "800 11px Microsoft YaHei";
-    ctx.fillText(target.label.slice(0, 6), point.x - 42, point.y + 66);
-    ctx.fillStyle = "#8f5f3f";
-    ctx.font = "10px Microsoft YaHei";
-    ctx.fillText(trend.pendingToday ? "今日可续线" : `${trend.title}`.slice(0, 8), point.x + 3, point.y + 66);
-  }
-  ctx.restore();
+  return drawDailyIntentWorldScenesWorld({
+    ctx,
+    targets,
+    reducedMotion: settings.reducedMotion,
+    motion: performance.now() / 1000,
+    paletteForIntent: dailyIntentWorldPalette,
+    drawCanvasCard,
+  });
 }
 
 function drawFieldActionFeedback(ctx, pulse, originX, originY, tile, gap, now = performance.now()) {
