@@ -909,6 +909,88 @@ export function shopCustomerReasonCardsMarkupWorld(spec = null) {
   `;
 }
 
+export function shopCustomerDayLessonSpecWorld({
+  safeOpening = null,
+  day = 0,
+  session = null,
+  firstSale = null,
+  ledger = null,
+  sessionDay = 0,
+  journey = null,
+  failureRecovery = null,
+  reasonSpec = null,
+  reflection = null,
+  stateDay = 1,
+  customerDisplayName = (archetype) => archetype || "",
+} = {}) {
+  if (day && sessionDay && sessionDay !== day) return null;
+  if (day && !sessionDay && !(safeOpening?.opened || safeOpening?.summaryUnlocked)) return null;
+  if (!reasonSpec?.active) return null;
+  const visitors = Number(ledger?.visitors ?? journey?.visitors ?? session?.visitors ?? 0);
+  const buyers = Number(ledger?.buyers ?? journey?.buyers ?? session?.buyers ?? 0);
+  const leavers = Number(ledger?.leavers ?? journey?.leavers ?? 0);
+  const conversion = Number(ledger?.conversion ?? journey?.conversion ?? reasonSpec.conversion ?? 0);
+  const hotTagLabel = reasonSpec.hotTagLabel || ledger?.hotTagLabel || journey?.hotTagLabel || safeOpening?.hotTagLabel || "今日客需";
+  const cards = reasonSpec.cards.map((card) => ({
+    key: card.key,
+    label: card.label,
+    title: card.title,
+    body: card.body,
+    detail: card.detail,
+    tone: card.tone,
+    buttonLabel: card.key === "buy_reason" ? "回看购买理由" : card.key === "hesitate_reason" ? "回看犹豫原因" : "回看明日改法",
+  }));
+  return {
+    active: true,
+    title: "旧铺顾客三因复盘",
+    headline: buyers > 0
+      ? `${customerDisplayName(ledger?.mainCustomerArchetype || "") || ledger?.mainCustomer || journey?.mainCustomer || "今日主客"}为什么买，已经能说清。`
+      : leavers > 0
+        ? "今天没白亏，离店原因已经写成明日改法。"
+        : "旧铺开始留下顾客脚印，下一次开张会更容易读懂。",
+    day: day || sessionDay || stateDay,
+    hotTagLabel,
+    visitors,
+    buyers,
+    leavers,
+    conversion,
+    evidence: ledger?.evidence || reflection?.scoreLine || `${hotTagLabel} · 来客 ${visitors} · 成交 ${buyers}`,
+    reviewQuote: reflection?.reviewQuote || firstSale?.reviewQuote || session?.reviewQuote || "",
+    nextAction: ledger?.nextAction || journey?.nextAction || reasonSpec.cards.find((card) => card.key === "tomorrow_fix")?.body || "明天先修正一处最明显的货架、价签或库存短板。",
+    cards,
+    safety: "只回看旧铺账页和顾客旅线，不会自动开铺、调价、补货、交单或消耗资源。",
+  };
+}
+
+export function shopCustomerDayLessonMarkupWorld(spec = null) {
+  if (!spec?.active) return "";
+  return `
+    <div class="day-summary-shop-customer-lesson">
+      <div class="day-summary-shop-customer-head">
+        <span>
+          <strong>${spec.title} · ${spec.hotTagLabel}</strong>
+          <small>${spec.headline}</small>
+        </span>
+        <em>成交 ${spec.buyers}/${spec.visitors} · ${spec.conversion}%</em>
+      </div>
+      <div class="day-summary-shop-customer-grid">
+        ${spec.cards.map((card) => `
+          <button type="button" class="day-summary-shop-customer-card ${card.tone}" data-day-summary-shop-customer-lesson="${card.key}">
+            <b>${card.label}</b>
+            <em>${card.title}</em>
+            <span>${card.body}</span>
+            <small>${card.detail}</small>
+            <i>${card.buttonLabel}</i>
+          </button>
+        `).join("")}
+      </div>
+      ${spec.reviewQuote ? `<small class="day-summary-shop-customer-quote">顾客短评：${spec.reviewQuote}</small>` : ""}
+      <small>证据：${spec.evidence} · 明日建议：${spec.nextAction}</small>
+      <small>${spec.safety}</small>
+    </div>
+  `;
+}
+
 export function shopFirstCustomerThresholdSafetyTextWorld() {
   return "只回看旧铺报告和顾客旅线，不会自动开铺、上架、接客、成交、改价、补货、交单、扣库存或消耗资源";
 }
