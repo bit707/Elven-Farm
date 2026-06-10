@@ -22,6 +22,7 @@ import {
 } from "./game/world/daily-action-cards.js";
 import {
   drawDailyIntentFeedbackWorld,
+  drawDailyIntentWorldEchoWorld,
   drawDailyIntentWorldGuideWorld,
 } from "./game/world/daily-intent-world.js";
 import { renderAssetPanelUi } from "./game/ui/asset-panel.js";
@@ -74845,97 +74846,15 @@ function drawDailyIntentWorldEcho(ctx, feedback = activeDailyIntentFeedback(), o
   if (!feedback) return;
   const palette = feedback.palette || dailyIntentWorldPalette(feedback.intent);
   const point = dailyIntentFeedbackTargetPoint(feedback, originX, originY, tile, gap);
-  const duration = Math.max(1, Number(feedback.duration || 3400));
-  const progress = Math.max(0, Math.min(1, Number(feedback.age || 0) / duration));
-  const fade = Number(feedback.fade ?? 1);
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const pulse = settings.reducedMotion ? 0 : Math.sin(progress * Math.PI) * 10;
-
-  ctx.save();
-  ctx.globalAlpha = fade;
-  ctx.fillStyle = palette.soft || "rgba(224, 182, 109, 0.18)";
-  ctx.beginPath();
-  ctx.arc(point.x, point.y, 30 + pulse, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = palette.accent;
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.arc(point.x, point.y, 16 + pulse * 0.36, 0, Math.PI * 2);
-  ctx.stroke();
-
-  if (feedback.intent === "money") {
-    for (let index = 0; index < 7; index += 1) {
-      const coinX = point.x - 34 + index * 11;
-      const coinY = point.y - 10 - Math.sin(motion * 3 + index) * 9 - progress * 16;
-      ctx.fillStyle = index % 2 ? "rgba(246, 240, 182, 0.9)" : "#b47d2f";
-      ctx.beginPath();
-      ctx.ellipse(coinX, coinY, 5, 7, 0.2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  } else if (feedback.intent === "build") {
-    ctx.strokeStyle = "#8f5f3f";
-    ctx.lineWidth = 3;
-    for (let index = 0; index < 4; index += 1) {
-      const sparkX = point.x - 24 + index * 16;
-      const sparkY = point.y - 18 + (index % 2) * 10;
-      ctx.beginPath();
-      ctx.moveTo(sparkX - 6, sparkY);
-      ctx.lineTo(sparkX + 7 + progress * 6, sparkY - 7);
-      ctx.stroke();
-      ctx.fillStyle = "rgba(240, 165, 78, 0.82)";
-      ctx.beginPath();
-      ctx.arc(sparkX + 10, sparkY - 8, 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  } else if (feedback.intent === "explore") {
-    ctx.strokeStyle = "#4d91a6";
-    ctx.lineWidth = 2;
-    for (let index = 0; index < 3; index += 1) {
-      ctx.beginPath();
-      ctx.arc(point.x, point.y, 24 + index * 12 + progress * 18, -0.8, 1.1 + index * 0.2);
-      ctx.stroke();
-    }
-    ctx.fillStyle = "rgba(255, 253, 245, 0.72)";
-    ctx.beginPath();
-    ctx.moveTo(point.x + 34, point.y - 18);
-    ctx.lineTo(point.x + 50, point.y - 4);
-    ctx.lineTo(point.x + 30, point.y + 2);
-    ctx.closePath();
-    ctx.fill();
-  } else if (feedback.intent === "relationship") {
-    for (let index = 0; index < 5; index += 1) {
-      const heartX = point.x - 22 + index * 11;
-      const heartY = point.y - 22 - Math.sin(motion * 2.4 + index) * 5 - progress * 10;
-      ctx.fillStyle = index % 2 ? "rgba(216, 127, 141, 0.88)" : "rgba(255, 248, 232, 0.88)";
-      ctx.beginPath();
-      ctx.arc(heartX - 3, heartY, 4, 0, Math.PI * 2);
-      ctx.arc(heartX + 3, heartY, 4, 0, Math.PI * 2);
-      ctx.lineTo(heartX, heartY + 9);
-      ctx.closePath();
-      ctx.fill();
-    }
-  } else {
-    ctx.strokeStyle = "#8da462";
-    ctx.lineWidth = 2.2;
-    for (let index = 0; index < 4; index += 1) {
-      const waveY = point.y + 14 + index * 5;
-      ctx.beginPath();
-      ctx.moveTo(point.x - 34, waveY);
-      ctx.bezierCurveTo(point.x - 16, waveY - 10, point.x + 12, waveY + 10, point.x + 34, waveY - 2);
-      ctx.stroke();
-    }
-    ctx.fillStyle = "#48a868";
-    ctx.beginPath();
-    ctx.ellipse(point.x, point.y - 20, 6, 14, -0.5, 0, Math.PI * 2);
-    ctx.ellipse(point.x + 12, point.y - 19, 6, 13, 0.55, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  drawCanvasCard(ctx, point.x + 18, point.y - 48, 126, 34, "rgba(255, 253, 245, 0.86)");
-  ctx.fillStyle = palette.accent;
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(`${point.label} · ${feedback.title}`.slice(0, 12), point.x + 30, point.y - 27);
-  ctx.restore();
+  return drawDailyIntentWorldEchoWorld({
+    ctx,
+    feedback,
+    point,
+    palette,
+    reducedMotion: settings.reducedMotion,
+    motion: performance.now() / 1000,
+    drawCanvasCard,
+  });
 }
 
 function drawDailyIntentWorldScenes(ctx, originX = 300, originY = 142, tile = 72, gap = 8) {
