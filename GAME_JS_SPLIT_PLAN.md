@@ -273,6 +273,7 @@ npm run verify
 - 已完成：`drawSleepPrepChecklistCard` 的“入夜前准备卡”Canvas 绘制实现拆到新模块 `src/game/world/daily-action-cards.js`，`sleepPrepChecklistSpec`、当天日终摘要抑制判断、动效开关与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`drawMorningActionBoardCard` 的“清晨行动牌”Canvas 绘制实现拆到 `src/game/world/daily-action-cards.js`，`morningActionBoardSpec`、动效开关与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`drawSolarMorningSignBadge` 的“节气晨签徽章”Canvas 绘制实现拆到 `src/game/world/daily-action-cards.js`，`solarMorningSignSpec`、动效开关与 `drawCanvasCard` 注入仍留在 `src/game.js`。
+- 已完成：`drawDailyIntentWorldGuide` 的“今日主轴世界引导牌”Canvas 绘制实现拆到新模块 `src/game/world/daily-intent-world.js`，`dailyIntentWorldSpec`、动效开关与 `drawCanvasCard` 注入仍留在 `src/game.js`，`tools/verify.mjs` 已把新模块纳入静态审计。
 - 已完成：`tools/build-runtime-data.mjs` 已适配新数据清单模块，并保留旧 `src/game.js` 内联清单 fallback。
 - 已完成：`tools/package-standalone.mjs` 已内联 `src/game/**` 本地模块，避免离线单文件包被 ESM import 破坏。
 - 已完成：`tools/verify.mjs` 已把拆分模块纳入静态审计，避免门禁继续假设所有内容必须留在 `src/game.js`。
