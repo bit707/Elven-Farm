@@ -209,6 +209,10 @@ import {
   shopFirstSaleLessonWorldAtCanvasPointWorld,
   shopFirstSaleLessonWorldSpecWorld,
   shopFirstSaleReceiptWorldSpecWorld,
+  shopCustomerLessonMorningFollowupSpecWorld,
+  shopCustomerLessonMorningFollowupWorldAtCanvasPointWorld,
+  shopCustomerLessonVerificationEchoWorldAtCanvasPointWorld,
+  shopCustomerLessonVerificationEchoWorldSpecWorld,
   shopTrialTheaterWorldAtCanvasPointWorld,
   shopTrialTheaterWorldSpecWorld,
   drawShopTrialTheaterWorldWorld,
@@ -32846,100 +32850,12 @@ function shopThoughtRouteMissedWorldAtCanvasPoint(px, py) {
   });
 }
 
-function shopCustomerLessonMorningFollowupSafetyText() {
-  return "只定位旧铺复盘、顾客旅线和明日改法，不会自动开铺、调价、补货、接客、成交、交单、扣库存或消耗资源";
-}
-
 function shopCustomerLessonMorningFollowupSpec(summary = state.lastDaySummary?.shopCustomerLesson || null) {
-  const lastSummary = state.lastDaySummary || null;
-  if (!summary?.active || !lastSummary || Number(lastSummary.nextDay || 0) !== Number(state.day || 0)) return null;
-  const cards = Array.isArray(summary.cards) ? summary.cards : [];
-  const buyCard = cards.find((card) => card.key === "buy_reason") || cards[0] || null;
-  const hesitateCard = cards.find((card) => card.key === "hesitate_reason") || cards[1] || null;
-  const fixCard = cards.find((card) => card.key === "tomorrow_fix") || cards[2] || null;
-  const nextAction = summary.nextAction || fixCard?.body || "明天先修正一处最明显的货架、价签或库存短板。";
-  const actionText = String(nextAction);
-  const actionType = /价|贵|便宜|倍率|价格/.test(actionText)
-    ? "price"
-    : /缺|补|库存|备|货/.test(actionText)
-      ? "stock"
-      : /签|标签|热卖|客需|需求/.test(actionText)
-        ? "tag"
-        : /陈列|货架|主题|头排/.test(actionText)
-          ? "display"
-          : "review";
-  const actionLabel = {
-    price: "先看价签",
-    stock: "先补库存",
-    tag: "先亮标签",
-    display: "先调陈列",
-    review: "先看账页",
-  }[actionType];
-  const actionAccent = {
-    price: "#be4f37",
-    stock: "#286f58",
-    tag: "#b47d2f",
-    display: "#4d91a6",
-    review: "#8f5f3f",
-  }[actionType];
-  const visitors = Number(summary.visitors || 0);
-  const buyers = Number(summary.buyers || 0);
-  const leavers = Number(summary.leavers || 0);
-  const conversion = Number(summary.conversion || 0);
-  const hotTagLabel = summary.hotTagLabel || "今日客需";
-  const headline = buyers > 0
-    ? `昨夜复盘：成交 ${buyers}/${Math.max(visitors, buyers + leavers, 1)}，今天把原因放大`
-    : leavers > 0
-      ? "昨夜复盘：离店原因已圈出，今天先改一处"
-      : "昨夜复盘：顾客脚印已留下，今天先开铺验证";
-  return {
-    key: `${lastSummary.day || Math.max(1, state.day - 1)}:${state.day}:${hotTagLabel}:${buyers}:${leavers}:${conversion}:${actionType}:${nextAction}`,
+  return shopCustomerLessonMorningFollowupSpecWorld({
+    summary,
+    lastSummary: state.lastDaySummary || null,
     day: state.day,
-    title: "旧铺明日改法灯 · 可点",
-    headline,
-    hotTagLabel,
-    nextAction,
-    actionType,
-    actionLabel,
-    actionAccent,
-    evidence: summary.evidence || `${hotTagLabel} · 来客 ${visitors} · 成交 ${buyers}`,
-    detail: fixCard?.detail || "先看明日改法，再手动开铺验证。",
-    reviewLine: buyCard?.body || summary.headline || "顾客理由已经写入昨夜复盘。",
-    blockerLine: hesitateCard?.body || "旧铺账页会指出最明显短板。",
-    buyers,
-    leavers,
-    visitors,
-    conversion,
-    selector: '[data-shop-board="reason-cards"]',
-    fallbackSelector: '[data-shop-board="customer-journey"]',
-    rect: { x: 394, y: 252, width: 300, height: 124 },
-    anchor: { x: 154, y: 232 },
-    routeText: "昨夜复盘 -> 今日先改 -> 手动开铺验证",
-    safety: shopCustomerLessonMorningFollowupSafetyText(),
-    steps: [
-      {
-        key: "review",
-        badge: "昨",
-        title: "昨夜复盘",
-        text: `${buyers}/${Math.max(visitors, buyers + leavers, 1)} 成交`,
-        accent: buyers > 0 ? "#286f58" : "#8f5f3f",
-      },
-      {
-        key: "fix",
-        badge: "改",
-        title: "今日先改",
-        text: actionLabel,
-        accent: actionAccent,
-      },
-      {
-        key: "verify",
-        badge: "验",
-        title: "开铺验证",
-        text: `${conversion}% 转化`,
-        accent: "#b47d2f",
-      },
-    ],
-  };
+  });
 }
 
 function shopCustomerLessonMorningFollowupWorldSpec(summary = state.lastDaySummary?.shopCustomerLesson || null) {
@@ -32947,19 +32863,11 @@ function shopCustomerLessonMorningFollowupWorldSpec(summary = state.lastDaySumma
 }
 
 function shopCustomerLessonMorningFollowupWorldAtCanvasPoint(px, py) {
-  const spec = shopCustomerLessonMorningFollowupWorldSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? {
-      type: "shop_customer_lesson_morning_followup",
-      label: spec.title,
-      selector: spec.selector,
-      fallbackSelector: spec.fallbackSelector,
-      shopCustomerLessonMorningFollowup: spec,
-      rect,
-    }
-    : null;
+  return shopCustomerLessonMorningFollowupWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: shopCustomerLessonMorningFollowupWorldSpec(),
+  });
 }
 
 function focusShopCustomerLessonMorningFollowupWorldFromCanvas(target = shopCustomerLessonMorningFollowupWorldSpec()) {
@@ -32977,10 +32885,6 @@ function focusShopCustomerLessonMorningFollowupWorldFromCanvas(target = shopCust
   });
 }
 
-function shopCustomerLessonVerificationEchoSafetyText() {
-  return "只回看旧铺改法验证、顾客旅线和经营报告，不会自动开铺、调价、补货、接客、成交、交单、扣库存或消耗资源";
-}
-
 function shopCustomerLessonVerificationEchoWorldSpec(
   summary = state.lastDaySummary?.shopCustomerLesson || null,
   opening = normalizeShopOpeningState(state.shopOpeningState),
@@ -32988,94 +32892,25 @@ function shopCustomerLessonVerificationEchoWorldSpec(
   height = refs.world?.height || 640,
 ) {
   const morning = shopCustomerLessonMorningFollowupSpec(summary);
-  if (!morning) return null;
   const safeOpening = normalizeShopOpeningState(opening);
-  const session = safeOpening.lastSession?.day === state.day ? safeOpening.lastSession : null;
-  const ledger = safeOpening.customerDecisionLedger || session?.customerDecisionLedger || null;
   const journey = shopCustomerJourneySpec(safeOpening, state.shopReport);
-  if (!session && !safeOpening.opened || !journey.active) return null;
-  const todayBuyers = Number(ledger?.buyers ?? journey.buyers ?? session?.buyers ?? 0);
-  const todayVisitors = Math.max(Number(ledger?.visitors ?? journey.visitors ?? session?.visitors ?? 0), todayBuyers + Number(ledger?.leavers ?? journey.leavers ?? 0), 1);
-  const todayLeavers = Number(ledger?.leavers ?? journey.leavers ?? 0);
-  const todayConversion = Number(ledger?.conversion ?? journey.conversion ?? Math.round((todayBuyers / todayVisitors) * 100));
-  const yesterdayConversion = Number(summary?.conversion || 0);
-  const delta = todayConversion - yesterdayConversion;
-  const improved = delta > 0 || todayBuyers > Number(summary?.buyers || 0);
-  const held = !improved && todayBuyers > 0 && todayLeavers <= Number(summary?.leavers || todayLeavers);
-  const tone = improved ? "good" : held ? "steady" : "warn";
-  const headline = improved
-    ? "今日改法接住了更多顾客"
-    : held
-      ? "今日改法稳住了旧铺脚步"
-      : "今日验证还没完全接住";
-  const mainRow = journey.rows?.find((row) => row.bought) || journey.rows?.[0] || null;
-  const resultLine = mainRow?.result || ledger?.summaryLines?.[1] || (todayBuyers > 0 ? "至少一位顾客完成买单。" : "顾客仍在犹豫，短板需要继续调整。");
-  const nextAction = ledger?.nextAction || journey.nextAction || summary?.nextAction || "继续沿着旧铺三因复盘修正一处最明显短板。";
-  const rectWidth = 304;
-  const rectHeight = 122;
-  const x = Math.max(250, Math.min(width - rectWidth - 34, 582));
-  const y = Math.max(354, Math.min(height - rectHeight - 30, 386));
-  return {
-    key: `${state.day}:${morning.actionType}:${todayBuyers}:${todayLeavers}:${todayConversion}:${delta}:${nextAction}`,
+  return shopCustomerLessonVerificationEchoWorldSpecWorld({
+    summary,
+    morning,
+    opening: safeOpening,
+    journey,
     day: state.day,
-    title: "旧铺改法验证回响 · 可点",
-    headline,
-    tone,
-    hotTagLabel: morning.hotTagLabel,
-    yesterdayAction: morning.nextAction,
-    todayResult: resultLine,
-    nextAction,
-    buyers: todayBuyers,
-    visitors: todayVisitors,
-    leavers: todayLeavers,
-    conversion: todayConversion,
-    delta,
-    selector: '[data-shop-board="customer-journey"]',
-    fallbackSelector: '[data-shop-board="reason-cards"]',
-    rect: { x, y, width: rectWidth, height: rectHeight },
-    anchor: { x: 154, y: 232 },
-    routeText: "昨夜改法 -> 今日开铺 -> 结果回响",
-    safety: shopCustomerLessonVerificationEchoSafetyText(),
-    steps: [
-      {
-        key: "fix",
-        badge: "改",
-        title: "昨夜改法",
-        text: morning.actionLabel,
-        accent: morning.actionAccent,
-      },
-      {
-        key: "open",
-        badge: "铺",
-        title: "今日开铺",
-        text: `来客 ${todayVisitors}`,
-        accent: "#b47d2f",
-      },
-      {
-        key: "result",
-        badge: improved || held ? "稳" : "再",
-        title: improved ? "接住了" : held ? "稳住了" : "再调整",
-        text: `${todayConversion}%${delta ? ` ${delta > 0 ? "+" : ""}${delta}` : ""}`,
-        accent: improved || held ? "#286f58" : "#be4f37",
-      },
-    ],
-  };
+    width,
+    height,
+  });
 }
 
 function shopCustomerLessonVerificationEchoWorldAtCanvasPoint(px, py) {
-  const spec = shopCustomerLessonVerificationEchoWorldSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? {
-      type: "shop_customer_lesson_verification_echo",
-      label: spec.title,
-      selector: spec.selector,
-      fallbackSelector: spec.fallbackSelector,
-      shopCustomerLessonVerificationEcho: spec,
-      rect,
-    }
-    : null;
+  return shopCustomerLessonVerificationEchoWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: shopCustomerLessonVerificationEchoWorldSpec(),
+  });
 }
 
 function focusShopCustomerLessonVerificationEchoWorldFromCanvas(target = shopCustomerLessonVerificationEchoWorldSpec()) {
