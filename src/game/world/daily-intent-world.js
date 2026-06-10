@@ -96,3 +96,65 @@ export function drawDailyIntentWorldGuideWorld({
   ctx.restore();
   return true;
 }
+
+export function drawDailyIntentFeedbackWorld({
+  ctx,
+  width = 960,
+  height = 640,
+  feedback = null,
+  palette = null,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !feedback) return false;
+  const safePalette = palette || feedback.palette || { accent: "#8da462", soft: "rgba(141, 164, 98, 0.2)", label: "灵田根脉" };
+  const progress = Math.max(0, Math.min(1, Number(feedback.age || 0) / Math.max(1, Number(feedback.duration || 3400))));
+  const fade = Number(feedback.fade ?? 1);
+  const lift = reducedMotion ? 0 : Math.sin(progress * Math.PI) * 10;
+  const x = Math.max(44, width - 384);
+  const y = Math.max(318, height - 226) - lift;
+
+  ctx.save();
+  ctx.globalAlpha = fade;
+  for (let index = 0; index < 8; index += 1) {
+    const angle = progress * Math.PI * 2 + index * 0.78;
+    const radius = 42 + index * 8;
+    const mx = x + 48 + Math.cos(angle) * radius;
+    const my = y + 48 + Math.sin(angle) * radius * 0.44;
+    ctx.fillStyle = index % 2 ? "rgba(255, 253, 245, 0.74)" : safePalette.accent;
+    ctx.globalAlpha = fade * (0.16 + (index % 3) * 0.08);
+    ctx.beginPath();
+    ctx.arc(mx, my, 5 + (index % 2), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = fade;
+
+  drawCanvasCard(ctx, x, y, 332, 132, feedback.fresh ? "rgba(255, 248, 232, 0.96)" : "rgba(255, 253, 245, 0.9)");
+  ctx.fillStyle = safePalette.soft || "rgba(224, 182, 109, 0.18)";
+  ctx.beginPath();
+  ctx.roundRect(x + 18, y + 18, 58, 54, 18);
+  ctx.fill();
+  ctx.strokeStyle = safePalette.accent;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(x + 47, y + 45, 17 + (reducedMotion ? 0 : Math.sin(progress * Math.PI) * 4), 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = safePalette.accent;
+  ctx.font = "800 18px Microsoft YaHei";
+  ctx.fillText("回", x + 33, y + 52);
+
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 16px Microsoft YaHei";
+  ctx.fillText(`主轴回响 · ${feedback.title}`, x + 92, y + 34);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "12px Microsoft YaHei";
+  ctx.fillText(`${feedback.label || "今日推进"} · +${Number(feedback.amount || 1)} 足迹`, x + 92, y + 55);
+  ctx.fillStyle = safePalette.accent;
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(String(feedback.detail || "今日行动已经写入日终回顾。").slice(0, 30), x + 22, y + 90);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "12px Microsoft YaHei";
+  ctx.fillText((feedback.rewardText || "入夜后会汇总到今日目标回顾").slice(0, 34), x + 22, y + 113);
+  ctx.restore();
+  return true;
+}
