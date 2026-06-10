@@ -46,6 +46,7 @@ const requiredFiles = [
   "src/game/world/new-player-tutor-world.js",
   "src/game/world/ready-order-world.js",
   "src/game/world/solar-term-mood-plaque.js",
+  "src/game/world/spirit-world.js",
   "src/game/world/town-life-world.js",
   "src/styles.css",
   "src/core/combat/dungeon-runtime.ts",
@@ -2899,6 +2900,7 @@ const game = [
   readFileSync("src/game/world/new-player-tutor-world.js", "utf8"),
   readFileSync("src/game/world/ready-order-world.js", "utf8"),
   readFileSync("src/game/world/solar-term-mood-plaque.js", "utf8"),
+  readFileSync("src/game/world/spirit-world.js", "utf8"),
   readFileSync("src/game/world/town-life-world.js", "utf8"),
 ].join("\n");
 const styles = readFileSync("src/styles.css", "utf8");
