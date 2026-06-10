@@ -37,6 +37,7 @@ import {
   drawSpiritJobShiftFeedbackWorld,
   drawSpiritJobShiftTheaterWorldWorld,
   drawSpiritMoodRepairWorldSceneWorld,
+  drawSpiritNightWorkFeedbackWorld,
   drawSpiritWorkRangeAuraWorld,
   drawSpiritWorldLifeStatusWorld,
 } from "./game/world/spirit-world.js";
@@ -76861,106 +76862,17 @@ function drawSpiritNightWorkFeedback(ctx, width, height, feedback = activeSpirit
   const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
   const progress = settings.reducedMotion ? 1 : Math.min(1, age / 1800);
   const wave = Math.sin(progress * Math.PI);
-  ctx.save();
-  ctx.globalAlpha = feedback.fade;
-  ctx.fillStyle = `rgba(16, 27, 32, ${0.1 * (feedback.fade || 1)})`;
-  ctx.fillRect(0, 0, width, height);
-
-  (feedback.synergies || []).forEach((synergy, index) => {
-    const stations = (synergy.entries || [])
-      .map((entry) => feedback.entries.find((candidate) => candidate.spiritName === entry.spirit)?.station)
-      .filter(Boolean);
-    if (stations.length < 2) return;
-    const from = stations[0];
-    const to = stations[1];
-    const fromX = from.x + from.size * 0.5;
-    const fromY = from.y + from.size * 0.52;
-    const toX = to.x + to.size * 0.5;
-    const toY = to.y + to.size * 0.52;
-    const dash = settings.reducedMotion ? 0 : -motion * (18 + index * 5);
-    ctx.save();
-    ctx.globalAlpha = 0.44 + wave * 0.32;
-    ctx.strokeStyle = synergy.accent || "#e0b66d";
-    ctx.lineWidth = 4;
-    ctx.setLineDash([10, 12]);
-    ctx.lineDashOffset = dash;
-    ctx.beginPath();
-    ctx.moveTo(fromX, fromY);
-    ctx.bezierCurveTo((fromX + toX) / 2, Math.min(fromY, toY) - 48 - index * 12, (fromX + toX) / 2, Math.max(fromY, toY) + 28, toX, toY);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
-    ctx.beginPath();
-    ctx.arc((fromX + toX) / 2, (fromY + toY) / 2 - 18, 14 + wave * 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = synergy.accent || "#b47d2f";
-    ctx.font = "700 13px Microsoft YaHei";
-    ctx.fillText((synergy.glyph || "协").slice(0, 1), (fromX + toX) / 2 - 6, (fromY + toY) / 2 - 13);
-    ctx.restore();
+  return drawSpiritNightWorkFeedbackWorld({
+    ctx,
+    width,
+    height,
+    feedback,
+    motion,
+    progress,
+    wave,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
   });
-
-  feedback.entries.forEach((entry, index) => {
-    const station = entry.station || { x: 320, y: 320, size: 82 };
-    const cx = station.x + station.size * 0.5;
-    const cy = station.y + station.size * 0.52;
-    const local = Math.max(0, Math.min(1, progress * 1.2 - index * 0.08));
-    const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 4 + index) * 3;
-    const ring = station.size * (0.28 + local * 0.36);
-    ctx.fillStyle = entry.glow || "rgba(246, 240, 182, 0.24)";
-    ctx.beginPath();
-    ctx.ellipse(cx, cy + station.size * 0.24, station.size * 0.46 + pulse, station.size * 0.16, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = `${entry.accent || "#286f58"}aa`;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(cx, cy, ring, 0, Math.PI * 2);
-    ctx.stroke();
-
-    for (let mote = 0; mote < 5; mote += 1) {
-      const angle = motion * 1.4 + mote * 1.26 + index;
-      const radius = ring * (0.62 + mote * 0.06);
-      ctx.fillStyle = mote % 2 ? "rgba(255, 248, 232, 0.78)" : "rgba(246, 240, 182, 0.72)";
-      ctx.beginPath();
-      ctx.arc(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius * 0.58, 2.4, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    const tagWidth = Math.min(176, Math.max(118, String(entry.text || "").length * 8));
-    const tagX = Math.max(18, Math.min(width - tagWidth - 18, cx + 24));
-    const tagY = Math.max(48, Math.min(height - 74, cy - 54 - index * 3));
-    drawCanvasCard(ctx, tagX, tagY, tagWidth, 48, "rgba(255, 248, 232, 0.88)");
-    ctx.fillStyle = entry.accent || "#286f58";
-    ctx.font = "700 12px Microsoft YaHei";
-    ctx.fillText(`${entry.glyph || "灵"} ${entry.spiritName}`.slice(0, 12), tagX + 12, tagY + 18);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "11px Microsoft YaHei";
-    ctx.fillText(String(entry.text || entry.focus || "夜勤完成").slice(0, 18), tagX + 12, tagY + 36);
-  });
-
-  const cardX = Math.max(36, width - 356);
-  const cardY = Math.max(132, height - 210);
-  drawCanvasCard(ctx, cardX, cardY, 318, 118, "rgba(255, 248, 232, 0.95)");
-  ctx.fillStyle = "rgba(246, 240, 182, 0.22)";
-  ctx.beginPath();
-  ctx.roundRect(cardX + 18, cardY + 18, 54, 68, 16);
-  ctx.fill();
-  ctx.fillStyle = "#b47d2f";
-  ctx.font = "700 28px Microsoft YaHei";
-  ctx.fillText("勤", cardX + 32, cardY + 60);
-  ctx.fillStyle = "#b47d2f";
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText("精怪夜勤回声", cardX + 88, cardY + 28);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 18px Microsoft YaHei";
-  ctx.fillText(feedback.headline.slice(0, 18), cardX + 88, cardY + 54);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(`总影响 ${feedback.totalImpact} · 协作链 ${(feedback.synergies || []).length} · 次日已结算`, cardX + 88, cardY + 76);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(String(feedback.detail || "").slice(0, 38), cardX + 20, cardY + 100);
-  ctx.restore();
-  return true;
 }
 
 function drawSpiritSprite(ctx, spirit, x, y, size = 112) {

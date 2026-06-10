@@ -294,6 +294,7 @@ npm run verify
 - 已完成：`drawSpiritMoodRepairWorldScene` 的“精怪心情安抚小事世界提示卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritMoodRepairWorldSpec`、Canvas 命中、聚焦状态、动效开关与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`drawSpiritCareNeedWorldBoard` 的“精怪照料需求提示板/下一步照料卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritCareNeedWorldBoardSpec`、Canvas 命中、聚焦状态、动效开关与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`drawSpiritJobShiftFeedback` 的“精怪岗位调度反馈飞行动画/回声卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`activeSpiritJobShiftFeedback`、过场对白抑制、起终点/ease 计算、动效开关与 `drawCanvasCard` 注入仍留在 `src/game.js`。
+- 已完成：`drawSpiritNightWorkFeedback` 的“精怪夜勤回声/协作链结算反馈”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`activeSpiritNightWorkFeedback`、过场对白抑制、age/progress/wave 计算、动效开关与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`tools/build-runtime-data.mjs` 已适配新数据清单模块，并保留旧 `src/game.js` 内联清单 fallback。
 - 已完成：`tools/package-standalone.mjs` 已内联 `src/game/**` 本地模块，避免离线单文件包被 ESM import 破坏。
 - 已完成：`tools/verify.mjs` 已把拆分模块纳入静态审计，避免门禁继续假设所有内容必须留在 `src/game.js`。
