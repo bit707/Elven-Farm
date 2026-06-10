@@ -196,6 +196,9 @@ import {
   drawShopRestockRunnerWorldWorld,
   drawShopShelfPrepWorldBoardWorld,
   drawShopSpiritGreeterWorldWorld,
+  shopRestockRunnerWorldAtCanvasPointWorld,
+  shopRestockRunnerWorldFocusLogSpecWorld,
+  shopRestockRunnerWorldSpecWorld,
 } from "./game/world/shop-prep-world.js";
 import {
   drawShopWordOfMouthFollowupRestockWorldWorld,
@@ -32558,91 +32561,31 @@ function drawShopSpiritGreeterWorld(ctx, spec = shopSpiritGreeterWorldSpec(ctx.c
 
 function shopRestockRunnerWorldSpec(width = 960, height = 640) {
   const target = syncShopOpeningState().restockTarget;
-  if (!target || target.status !== "active") return null;
   const summary = shopRestockSummarySpec(target);
-  if (!summary) return null;
-  const restock = {
+  return shopRestockRunnerWorldSpecWorld({
+    target,
+    summary,
     day: state.day,
-    itemId: target.itemId,
-    itemName: target.itemName || summary.itemName,
-    desiredCount: target.desiredCount || summary.desiredCount,
-    source: target.source || "",
-    note: target.note || target.reason || "",
-  };
-  const routes = shopRestockRouteCandidates(restock);
-  const route = routes[0] || null;
-  const cardWidth = 314;
-  const cardHeight = 126;
-  const x = Math.max(392, Math.min(width - cardWidth - 34, 430));
-  const y = Math.max(182, Math.min(height - cardHeight - 52, 236));
-  const waterFresh = shopRestockTargetIsWaterFresh(target);
-  const waterwayReorder = target.source === "lianze_waterway_reorder";
-  const daysLeft = Number(target.dueDay || state.day) - Number(state.day || 0);
-  const routeText = route ? `${route.label}：${route.title}` : summary.routeText || "先准备任意可卖货";
-  const runnerAction = summary.ready
-    ? "回旧铺交签"
-    : route?.action === "recipe"
-      ? "去工坊补锅"
-      : route?.action === "seed"
-        ? "去灵田下种"
-        : route?.action === "shop"
-          ? "看货签上架"
-          : "找可卖货";
-  const path = [
-    { x: x + 28, y: y + cardHeight - 8 },
-    { x: 344, y: 336 },
-    { x: 252, y: 300 },
-    { x: 178, y: 244 },
-    { x: 116, y: 214 },
-  ];
-  return {
-    active: true,
-    key: `${state.day}:${summary.id || target.id || "restock"}:${summary.have}:${summary.ready ? "ready" : "running"}:${route?.action || "shop"}`,
-    day: state.day,
-    title: "主世界旧铺补货跑腿",
-    cta: summary.ready ? "补货可完成 · 可点" : "补货跑腿 · 可点",
-    itemId: summary.itemId || target.itemId || "",
-    itemName: summary.itemName || target.itemName || itemName(target.itemId),
-    have: summary.have,
-    desiredCount: summary.desiredCount,
-    ready: summary.ready,
-    overdue: summary.overdue,
-    waterFresh,
-    waterwayReorder,
-    sourceLabel: summary.sourceLabel || (waterwayReorder ? "莲泽水航回订" : waterFresh ? "水鲜补货" : "旧铺补货"),
-    statusText: summary.statusText,
-    dueDay: summary.dueDay,
-    dueText: summary.overdue ? `逾期 ${Math.abs(daysLeft)} 天` : daysLeft <= 0 ? "今天到期" : `还剩 ${daysLeft} 天`,
-    route,
-    routeText,
-    runnerAction,
-    nextAction: summary.nextAction || route?.action || "shop",
-    recipeId: summary.recipeId || route?.recipeId || "",
-    seedId: summary.seedId || route?.seedId || "",
-    shopTag: summary.shopTag || route?.shopTag || "",
-    note: summary.note || target.note || target.reason || "",
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: 154, y: 218 },
-    path,
-    selector: summary.ready ? "[data-shop-restock-complete]" : '[data-shop-board="restock-tracker"]',
-    fallbackSelector: '[data-shop-board="restock-tracker"]',
-  };
+    width,
+    height,
+    itemName,
+    shopRestockRouteCandidates,
+    shopRestockTargetIsWaterFresh,
+  });
 }
 
 function shopRestockRunnerWorldAtCanvasPoint(px, py) {
   const spec = shopRestockRunnerWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return shopRestockRunnerWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec,
+  });
 }
 
 function focusShopRestockRunnerWorldFromCanvas(spec = shopRestockRunnerWorldSpec()) {
   if (!spec?.itemId) return false;
+  const logSpec = shopRestockRunnerWorldFocusLogSpecWorld({ spec });
   shopRestockRunnerWorldFocus = { key: spec.key, day: state.day, itemId: spec.itemId };
   if (settings.panelGroup !== "core") {
     settings.panelGroup = "core";
@@ -32651,15 +32594,13 @@ function focusShopRestockRunnerWorldFromCanvas(spec = shopRestockRunnerWorldSpec
   shopFocusTarget = {
     selector: spec.selector,
     fallbackSelector: spec.fallbackSelector || "#shopReport",
-    missingTitle: "点选旧铺补货跑腿",
-    missingLog: "旧铺补货跑腿牌已经点到，但补货追踪卡暂时没有找到；先确认核心试玩分组是否可见。",
+    missingTitle: logSpec?.missingTitle || "点选旧铺补货跑腿",
+    missingLog: logSpec?.missingLog || "旧铺补货跑腿牌已经点到，但补货追踪卡暂时没有找到；先确认核心试玩分组是否可见。",
   };
   playCue("对话翻页");
   addLog(
-    "点选旧铺补货跑腿",
-    spec.ready
-      ? `${spec.itemName} 已备到 ${spec.have}/${spec.desiredCount}，已定位旧铺补货完成按钮。点击这里只做定位，不会自动交付或开铺。`
-      : `${spec.itemName} 补货进度 ${spec.have}/${spec.desiredCount}，${spec.dueText}；下一步：${spec.routeText}。已定位补货追踪和推荐路线，不会自动制作、播种或消耗库存。`,
+    logSpec?.title || "点选旧铺补货跑腿",
+    logSpec?.detail || "",
   );
   if (!spec.ready && spec.nextAction) {
     focusShopRestockRoute(spec.nextAction, {
