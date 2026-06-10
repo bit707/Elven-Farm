@@ -222,6 +222,8 @@ import {
   shopCustomerJourneyMarkupWorld,
   shopCustomerJourneyRowsWorld,
   shopCustomerJourneySpecWorld,
+  shopCustomerReasonCardsMarkupWorld,
+  shopCustomerReasonCardsSpecWorld,
   shopReturningTrailWorldAtCanvasPointWorld,
   shopReturningTrailWorldSpecWorld,
   shopTrialTheaterWorldAtCanvasPointWorld,
@@ -27462,103 +27464,16 @@ function shopCustomerReasonCardsSpec(
   journey = shopCustomerJourneySpec(opening, report),
   failureRecovery = opening.failureRecovery || opening.lastSession?.failureRecovery || null,
 ) {
-  const safeLedger = normalizeShopCustomerDecisionLedger(ledger);
-  const rows = Array.isArray(journey?.rows) ? journey.rows : [];
-  const buyChain = (safeLedger?.chains || []).find((chain) => (
-    chain.tone === "good"
-    || String(chain.result || "").includes("成交")
-  )) || rows.find((row) => row.bought) || null;
-  const hesitateChain = (safeLedger?.chains || []).find((chain) => (
-    chain.tone === "warn"
-    || String(chain.result || "").includes("离店")
-    || String(chain.result || "").includes("嫌贵")
-  )) || rows.find((row) => row.warned) || null;
-  const blocker = safeLedger?.blockers?.[0] || null;
-  const hotTagLabel = safeLedger?.hotTagLabel || journey?.hotTagLabel || opening.hotTagLabel || "今日客需";
-  const buyTitle = buyChain
-    ? `${buyChain.name || "顾客"}为什么买`
-    : "成交理由待验证";
-  const buyBody = buyChain
-    ? buyChain.reason || buyChain.evidence || buyChain.result || "商品、价签和顾客需求对上了。"
-    : `先围绕“${hotTagLabel}”摆一件标签明确的货，等第一位顾客把理由说出口。`;
-  const buyDetail = buyChain?.need
-    ? `进店需求：${buyChain.need}`
-    : safeLedger?.buyers > 0
-      ? `${safeLedger.buyers} 单成交已经写入账页。`
-      : "开铺后这里会记录第一条购买理由。";
-  const hesitateTitle = blocker?.label
-    || (hesitateChain ? `${hesitateChain.name || "顾客"}为什么犹豫` : "暂无集中离店短板");
-  const hesitateBody = blocker?.detail
-    || hesitateChain?.reason
-    || failureRecovery?.learningLine
-    || (safeLedger?.leavers > 0 ? "顾客有犹豫，但原因还需要下一轮开铺继续确认。" : "当前没有明显劝退点，可以继续沿着成交标签补厚。");
-  const hesitateDetail = blocker
-    ? `影响 ${blocker.count || 1} 位顾客 · ${failureRecovery?.learningLine || safeLedger?.mood || "账页已圈出短板"}`
-    : hesitateChain?.result || (safeLedger?.leavers > 0 ? `离店 ${safeLedger.leavers} 位` : "离店理由未集中。");
-  const fixAction = failureRecovery?.tomorrowAction
-    || failureRecovery?.action
-    || safeLedger?.nextAction
-    || journey?.nextAction
-    || "明天先修正一处最明显的货架、价签或库存短板。";
-  const fixDetail = failureRecovery?.gentleFix
-    || failureRecovery?.support
-    || "只把下一步讲清楚，不会自动开铺、调价、补货或消耗资源。";
-  const active = Boolean(safeLedger || journey?.active || failureRecovery || rows.length);
-  return {
-    active,
-    title: "顾客买/不买三因牌",
-    headline: "把成交理由、犹豫理由和明日改法压成一眼能读懂的三张牌。",
-    hotTagLabel,
-    conversion: Number(safeLedger?.conversion ?? journey?.conversion ?? 0),
-    cards: [
-      {
-        key: "buy_reason",
-        label: "为什么买",
-        title: buyTitle,
-        body: buyBody,
-        detail: buyDetail,
-        tone: buyChain ? "good" : "idle",
-      },
-      {
-        key: "hesitate_reason",
-        label: "为什么犹豫/离店",
-        title: hesitateTitle,
-        body: hesitateBody,
-        detail: hesitateDetail,
-        tone: blocker || hesitateChain ? "warn" : "mid",
-      },
-      {
-        key: "tomorrow_fix",
-        label: "明日怎么改",
-        title: "先改一处最有效",
-        body: fixAction,
-        detail: fixDetail,
-        tone: failureRecovery || blocker ? "good" : "mid",
-      },
-    ],
-    safety: "只解释经营原因和建议路线，不会自动开铺、调价、补货或消耗资源。",
-  };
+  return shopCustomerReasonCardsSpecWorld({
+    opening,
+    safeLedger: normalizeShopCustomerDecisionLedger(ledger),
+    journey,
+    failureRecovery,
+  });
 }
 
 function shopCustomerReasonCardsMarkup(spec = shopCustomerReasonCardsSpec()) {
-  if (!spec?.active) return "";
-  return `
-    <div class="shop-reason-cards" data-shop-board="reason-cards">
-      <strong>${spec.title} · ${spec.hotTagLabel}</strong>
-      <span>${spec.headline}</span>
-      <div class="shop-reason-card-grid">
-        ${spec.cards.map((card) => `
-          <div class="shop-reason-card ${card.tone}" data-shop-reason-card="${card.key}">
-            <b>${card.label}</b>
-            <em>${card.title}</em>
-            <span>${card.body}</span>
-            <small>${card.detail}</small>
-          </div>
-        `).join("")}
-      </div>
-      <small>成交率 ${spec.conversion}% · ${spec.safety}</small>
-    </div>
-  `;
+  return shopCustomerReasonCardsMarkupWorld(spec);
 }
 
 function shopCustomerDayLessonSpec(opening = syncShopOpeningState(), report = state.shopReport, options = {}) {
