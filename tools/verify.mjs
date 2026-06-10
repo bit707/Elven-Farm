@@ -42,6 +42,7 @@ const requiredFiles = [
   "src/game/world/daily-intent-world.js",
   "src/game/world/field-action-feedback.js",
   "src/game/world/failure-codex.js",
+  "src/game/world/new-player-tutor-world.js",
   "src/game/world/ready-order-world.js",
   "src/game/world/solar-term-mood-plaque.js",
   "src/styles.css",
@@ -2892,6 +2893,7 @@ const game = [
   readFileSync("src/game/world/daily-intent-world.js", "utf8"),
   readFileSync("src/game/world/field-action-feedback.js", "utf8"),
   readFileSync("src/game/world/failure-codex.js", "utf8"),
+  readFileSync("src/game/world/new-player-tutor-world.js", "utf8"),
   readFileSync("src/game/world/ready-order-world.js", "utf8"),
   readFileSync("src/game/world/solar-term-mood-plaque.js", "utf8"),
 ].join("\n");
