@@ -1,3 +1,22 @@
+export function fieldActionFeedbackSpecWorld(kind = "work") {
+  const specs = {
+    clear: { label: "清开灵田", core: [190, 79, 55], soft: [224, 182, 109], mote: [111, 80, 57], duration: 760 },
+    plant: { label: "种子入土", core: [40, 111, 88], soft: [202, 235, 210], mote: [224, 182, 109], duration: 820 },
+    water: { label: "水纹润开", core: [77, 145, 166], soft: [202, 235, 210], mote: [122, 195, 213], duration: 760 },
+    harvest: { label: "灵光入篓", core: [180, 125, 47], soft: [246, 240, 182], mote: [255, 253, 245], duration: 900 },
+    spirit: { label: "精怪代浇", core: [72, 168, 104], soft: [246, 240, 182], mote: [202, 235, 210], duration: 1280 },
+    risk: { label: "风险化解", core: [190, 79, 55], soft: [255, 220, 202], mote: [246, 240, 182], duration: 820 },
+    craft: { label: "灶火起香", core: [190, 79, 55], soft: [224, 182, 109], mote: [246, 240, 182], duration: 820 },
+    shop: { label: "旧铺成交", core: [180, 125, 47], soft: [255, 248, 232], mote: [202, 235, 210], duration: 820 },
+    work: { label: "灵息回应", core: [40, 111, 88], soft: [246, 240, 182], mote: [255, 253, 245], duration: 720 },
+  };
+  return specs[kind] || specs.work;
+}
+
+export function colorWithAlphaWorld(rgb = [0, 0, 0], alpha = 1) {
+  return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${Math.max(0, Math.min(1, alpha))})`;
+}
+
 export function seedRestockBagSafetyTextWorld() {
   return "只定位种子栏、空田和播种按钮，不会自动播种、买种、浇水、入夜、扣除种子、扣除体力或消耗资源";
 }
