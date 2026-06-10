@@ -196,6 +196,10 @@ import {
   drawShopRestockRunnerWorldWorld,
   drawShopShelfPrepWorldBoardWorld,
   drawShopSpiritGreeterWorldWorld,
+  shopCustomerPickShadowRowsWorld,
+  shopCustomerPickShadowWorldAtCanvasPointWorld,
+  shopCustomerPickShadowWorldFocusLogSpecWorld,
+  shopCustomerPickShadowWorldSpecWorld,
   shopDailyGoodsEyeWorldAtCanvasPointWorld,
   shopDailyGoodsEyeWorldFocusLogSpecWorld,
   shopDailyGoodsEyeWorldSpecWorld,
@@ -32163,105 +32167,44 @@ function shopCustomerPickShadowSafetyText() {
 }
 
 function shopCustomerPickShadowRows(goodsEye = shopDailyGoodsEyeWorldSpec(), forecast = shopCustomerForecastWorldSpec(), trial = shopTrialPreviewSpec()) {
-  if (!goodsEye?.itemId) return [];
-  const rows = [];
-  const primaryCustomer = goodsEye.customerName || forecast?.customerName || trial?.customerLabel || "第一批路过客";
-  rows.push({
-    key: "notice",
-    badge: "看",
-    customerName: primaryCustomer,
-    itemName: goodsEye.itemName,
-    thought: `${goodsEye.hotTagLabel || "应季货"}味道对口`,
-    reason: goodsEye.mode === "word"
-      ? "听见铺前来帖，先看头排有没有对口货。"
-      : goodsEye.mode === "weather"
-        ? "天气让这类货更好解释，脚步会先停一下。"
-        : "陈列标签顺眼，顾客能先读懂这件货。",
-    tone: goodsEye.tone === "warn" ? "warn" : "ready",
-    accent: goodsEye.tone === "weather" ? "#4d91a6" : goodsEye.tone === "warn" ? "#be4f37" : "#286f58",
+  return shopCustomerPickShadowRowsWorld({
+    goodsEye,
+    forecast,
+    trial,
   });
-  const goodsCount = Number(goodsEye.count || 0);
-  const trialText = trial?.thoughtText || forecast?.advice || "先看价格和头排厚度";
-  rows.push({
-    key: goodsCount >= 2 ? "compare" : "hesitate",
-    badge: goodsCount >= 2 ? "挑" : "缺",
-    customerName: forecast?.customerName && forecast.customerName !== primaryCustomer ? forecast.customerName : "旁边路过客",
-    itemName: goodsEye.itemName,
-    thought: goodsCount >= 2 ? "头排够厚，可以挑一挑" : "货少，怕一问就断档",
-    reason: goodsCount >= 2
-      ? `会比较${goodsEye.itemName}和同标签货，再决定要不要等开铺。`
-      : `只剩 ${goodsCount} 件，先补货或确认价格，再手动开铺更稳。`,
-    tone: goodsCount >= 2 ? "focus" : "warn",
-    accent: goodsCount >= 2 ? "#b47d2f" : "#be4f37",
-    hint: trialText,
-  });
-  return rows.slice(0, 2);
 }
 
 function shopCustomerPickShadowWorldSpec(width = 960, height = 640) {
   const opening = normalizeShopOpeningState(state.shopOpeningState);
-  if (opening.opened) return null;
   const goodsEye = shopDailyGoodsEyeWorldSpec(width, height);
-  if (!goodsEye?.itemId) return null;
   const forecast = shopCustomerForecastWorldSpec(opening);
   const trial = shopTrialPreviewSpec();
   const rows = shopCustomerPickShadowRows(goodsEye, forecast, trial);
-  if (!rows.length) return null;
-  const warningRow = rows.find((row) => row.tone === "warn") || null;
-  const readyRow = rows.find((row) => row.tone === "ready") || rows[0];
-  const headline = warningRow
-    ? `${readyRow.customerName}会停步，但${warningRow.thought}`
-    : `${readyRow.customerName}会先被${goodsEye.itemName}吸引`;
-  const routeText = warningRow
-    ? "影子停步 -> 看清犹豫 -> 手动调整"
-    : "影子进门 -> 头排挑货 -> 手动开铺";
-  const selector = trial?.active
-    ? "#shopTrialPreview"
-    : forecast?.shelf?.active
-      ? '[data-shop-board="weather-shelf"]'
-      : goodsEye.selector || '[data-shop-board="display-diagnosis"]';
-  const fallbackSelector = forecast?.active ? '[data-shop-board="opening"]' : "#shopReport";
-  const cardWidth = 318;
-  const cardHeight = 122;
-  const x = Math.max(322, Math.min(width - cardWidth - 34, 452));
-  const y = Math.max(218, Math.min(height - cardHeight - 46, 258));
-  return {
-    active: true,
-    key: `${state.day}:${goodsEye.itemId}:${goodsEye.count}:${goodsEye.mode}:${rows.map((row) => `${row.key}:${row.customerName}:${row.tone}`).join("|")}`,
-    day: state.day,
-    title: "旧铺挑货影子 · 可点",
-    headline,
-    itemId: goodsEye.itemId,
-    itemName: goodsEye.itemName,
-    count: goodsEye.count,
-    hotTagLabel: goodsEye.hotTagLabel,
-    mode: goodsEye.mode,
-    tone: warningRow ? "warn" : goodsEye.tone === "weather" ? "weather" : "ready",
-    routeLabel: "下一步看哪",
-    routeText,
-    selector,
-    fallbackSelector,
+  return shopCustomerPickShadowWorldSpecWorld({
+    opening,
+    goodsEye,
+    forecast,
+    trial,
     rows,
-    safeNote: shopCustomerPickShadowSafetyText(),
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: 154, y: 232 },
-  };
+    day: state.day,
+    width,
+    height,
+    safetyText: shopCustomerPickShadowSafetyText(),
+  });
 }
 
 function shopCustomerPickShadowWorldAtCanvasPoint(px, py) {
   const spec = shopCustomerPickShadowWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return shopCustomerPickShadowWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec,
+  });
 }
 
 function focusShopCustomerPickShadowWorldFromCanvas(spec = shopCustomerPickShadowWorldSpec()) {
   if (!spec?.itemId) return false;
+  const logSpec = shopCustomerPickShadowWorldFocusLogSpecWorld({ spec });
   shopCustomerPickShadowWorldFocus = { key: spec.key, day: state.day, itemId: spec.itemId };
   if (settings.panelGroup !== "core") {
     settings.panelGroup = "core";
@@ -32270,13 +32213,13 @@ function focusShopCustomerPickShadowWorldFromCanvas(spec = shopCustomerPickShado
   shopFocusTarget = {
     selector: spec.selector || "#shopTrialPreview",
     fallbackSelector: spec.fallbackSelector || "#shopReport",
-    missingTitle: "点选旧铺挑货影子",
-    missingLog: "旧铺挑货影子已经点到，但旧铺试营业/顾客风向面板暂时没有找到；先确认核心试玩分组是否可见。",
+    missingTitle: logSpec?.missingTitle || "点选旧铺挑货影子",
+    missingLog: logSpec?.missingLog || "旧铺挑货影子已经点到，但旧铺试营业/顾客风向面板暂时没有找到；先确认核心试玩分组是否可见。",
   };
   playCue("对话翻页");
   addLog(
-    "点选旧铺挑货影子",
-    `${spec.itemName} 的开铺前挑货影子已展开：${spec.rows.map((row) => `${row.customerName}${row.badge}${row.thought}`).join("；")}。${spec.safeNote}。`,
+    logSpec?.title || "点选旧铺挑货影子",
+    logSpec?.detail || "",
   );
   render();
   return true;
