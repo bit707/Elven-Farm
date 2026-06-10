@@ -206,6 +206,10 @@ import {
   shopRestockRunnerWorldAtCanvasPointWorld,
   shopRestockRunnerWorldFocusLogSpecWorld,
   shopRestockRunnerWorldSpecWorld,
+  shopSpiritGreeterActionCopyWorld,
+  shopSpiritGreeterWorldAtCanvasPointWorld,
+  shopSpiritGreeterWorldFocusLogSpecWorld,
+  shopSpiritGreeterWorldSpecWorld,
 } from "./game/world/shop-prep-world.js";
 import {
   drawShopWordOfMouthFollowupRestockWorldWorld,
@@ -32246,143 +32250,50 @@ function shopSpiritGreeterSafetyText() {
 }
 
 function shopSpiritGreeterActionCopy({ opening = normalizeShopOpeningState(state.shopOpeningState), goodsEye = null, pickShadow = null, greeterName = "精怪" } = {}) {
-  if (opening.opened) {
-    return {
-      key: "guide_guest",
-      badge: "迎",
-      title: "引路过客",
-      action: `${greeterName}在门口把犹豫客往货签前带一步`,
-      detail: "旧铺已开张，动作只解释客流正在被照应。",
-      route: "迎客 -> 看想法 -> 手动复盘",
-      accent: "#286f58",
-    };
-  }
-  if (pickShadow?.tone === "warn") {
-    return {
-      key: "point_queue",
-      badge: "排",
-      title: "指头排",
-      action: `${greeterName}指着头排空位，提醒先看犹豫原因`,
-      detail: "顾客影子已经停步，先读懂缺口再手动调整。",
-      route: "影子停步 -> 看犹豫 -> 手动调整",
-      accent: "#be4f37",
-    };
-  }
-  if (goodsEye?.mode === "word" || goodsEye?.mode === "weather") {
-    return {
-      key: "hand_tag",
-      badge: "签",
-      title: "递货签",
-      action: `${greeterName}捧着${goodsEye.itemName || "今日主推"}货签，往客眼前递`,
-      detail: goodsEye.mode === "word" ? "铺前来帖已有话头，先把对口货摆明。" : "天气正在替这件货说话，货签要先亮。",
-      route: "来客起意 -> 递货签 -> 手动开铺",
-      accent: goodsEye.mode === "weather" ? "#4d91a6" : "#286f58",
-    };
-  }
-  return {
-    key: "wipe_sign",
-    badge: "擦",
-    title: "擦招牌",
-    action: `${greeterName}踮脚擦亮旧铺招牌，把今日主推让出来`,
-    detail: "开铺前先让陈列更可读，顾客才能知道看哪件。",
-    route: "擦招牌 -> 亮头排 -> 手动开铺",
-    accent: "#b47d2f",
-  };
+  return shopSpiritGreeterActionCopyWorld({
+    opening,
+    goodsEye,
+    pickShadow,
+    greeterName,
+  });
 }
 
 function shopSpiritGreeterWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, livingState = currentLivingWorldState()) {
   const greeters = state.spirits.filter((spirit) => spirit.job === "shop");
-  if (!greeters.length) return null;
   const opening = normalizeShopOpeningState(state.shopOpeningState);
   const goodsEye = shopDailyGoodsEyeWorldSpec(width, height);
   const pickShadow = !opening.opened ? shopCustomerPickShadowWorldSpec(width, height) : null;
   const forecast = shopCustomerForecastWorldSpec(opening);
   const displayDiagnosis = shopDisplayDiagnosisSpec(sellableInventoryGoods(), livingState.shopTheme || currentShelfTheme(), data.customers, livingState.ecologyGarden || ecologyCourtyardSummary());
-  const hasShopContext = Boolean(goodsEye?.itemId || pickShadow?.active || forecast?.active || displayDiagnosis?.active || state.shopReport.length > 0 || opening.liveFocus);
-  if (!hasShopContext) return null;
-  const greeter = greeters[0];
-  const greeterNames = greeters.slice(0, 2).map((spirit) => spirit.name || "精怪").join("、");
-  const greeterText = greeters.length > 2 ? `${greeterNames}等 ${greeters.length} 只` : greeterNames || greeter.name || "精怪";
-  const copy = shopSpiritGreeterActionCopy({ opening, goodsEye, pickShadow, greeterName: greeter.name || "精怪" });
-  const routeSelector = opening.opened
-    ? "#shopReport"
-    : pickShadow?.selector || goodsEye?.selector || (forecast?.active ? '[data-shop-board="opening"]' : '[data-shop-board="display-diagnosis"]');
-  const fallbackSelector = pickShadow?.fallbackSelector || goodsEye?.selector || "#shopReport";
-  const itemText = goodsEye?.itemName
-    ? `${goodsEye.itemName} x${goodsEye.count || 0}`
-    : opening.liveFocus?.topItemName
-      ? `${opening.liveFocus.topItemName} · 今日焦点`
-      : displayDiagnosis?.featuredGoods?.[0]?.itemName || "今日旧铺货签";
-  const customerText = pickShadow?.rows?.[0]?.customerName || goodsEye?.customerName || forecast?.customerName || opening.liveFocus?.topCustomerName || "路过客";
-  const cardWidth = 316;
-  const cardHeight = 116;
-  const x = Math.max(302, Math.min(width - cardWidth - 32, 344));
-  const y = Math.max(346, Math.min(height - cardHeight - 32, 394));
-  return {
-    active: true,
-    key: `${state.day}:${greeter.id}:${copy.key}:${goodsEye?.itemId || "shop"}:${opening.opened ? "open" : "prep"}:${greeters.length}:${state.shopReport.length}`,
+  return shopSpiritGreeterWorldSpecWorld({
+    greeters,
+    opening,
+    goodsEye,
+    pickShadow,
+    forecast,
+    displayDiagnosis,
+    liveFocus: opening.liveFocus,
     day: state.day,
-    title: "旧铺精怪迎客小动作 · 可点",
-    headline: `${greeter.name || "精怪"}在旧铺门口${copy.title}`,
-    greeter,
-    greeterId: greeter.id,
-    greeterName: greeter.name || "精怪",
-    greeterText,
-    greeterCount: greeters.length,
-    actionKey: copy.key,
-    actionTitle: copy.title,
-    actionText: copy.action,
-    detail: copy.detail,
-    routeText: copy.route,
-    itemText,
-    customerText,
-    opened: opening.opened,
-    selector: routeSelector,
-    fallbackSelector,
-    safety: shopSpiritGreeterSafetyText(),
-    accent: copy.accent,
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: 168, y: 216 },
-    nodes: [
-      {
-        key: "who",
-        badge: "精",
-        title: "谁迎客",
-        detail: greeterText,
-        accent: "#8f5f3f",
-      },
-      {
-        key: "action",
-        badge: copy.badge,
-        title: copy.title,
-        detail: copy.action.replace(`${greeter.name || "精怪"}`, "").slice(0, 10) || copy.title,
-        accent: copy.accent,
-      },
-      {
-        key: "route",
-        badge: opening.opened ? "看" : "铺",
-        title: "看哪块牌",
-        detail: opening.opened ? "旧铺报告" : pickShadow?.active ? "顾客风向" : "陈列诊断",
-        accent: opening.opened ? "#286f58" : "#b47d2f",
-      },
-    ],
-  };
+    reportCount: state.shopReport.length,
+    width,
+    height,
+    safetyText: shopSpiritGreeterSafetyText(),
+    actionCopy: shopSpiritGreeterActionCopy,
+  });
 }
 
 function shopSpiritGreeterWorldAtCanvasPoint(px, py) {
   const spec = shopSpiritGreeterWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return shopSpiritGreeterWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec,
+  });
 }
 
 function focusShopSpiritGreeterWorldFromCanvas(spec = shopSpiritGreeterWorldSpec()) {
   if (!spec?.greeterId) return false;
+  const logSpec = shopSpiritGreeterWorldFocusLogSpecWorld({ spec });
   shopSpiritGreeterWorldFocus = {
     key: spec.key,
     day: state.day,
@@ -32392,9 +32303,9 @@ function focusShopSpiritGreeterWorldFromCanvas(spec = shopSpiritGreeterWorldSpec
     spiritId: spec.greeterId,
     day: state.day,
     seasonal: {
-      label: "旧铺精怪迎客小动作",
-      detail: spec.headline,
-      effect: `${spec.actionText}。${spec.detail}`,
+      label: logSpec?.seasonalLabel || "旧铺精怪迎客小动作",
+      detail: logSpec?.seasonalDetail || spec.headline,
+      effect: logSpec?.seasonalEffect || `${spec.actionText}。${spec.detail}`,
     },
   };
   spiritFocusTarget = {
@@ -32404,8 +32315,8 @@ function focusShopSpiritGreeterWorldFromCanvas(spec = shopSpiritGreeterWorldSpec
   shopFocusTarget = {
     selector: spec.selector || "#shopReport",
     fallbackSelector: spec.fallbackSelector || "#shopReport",
-    missingTitle: "点选旧铺精怪迎客小动作",
-    missingLog: "旧铺精怪迎客小动作已经点到，但旧铺反馈/顾客风向面板暂时没有找到；先确认核心试玩分组是否可见。",
+    missingTitle: logSpec?.missingTitle || "点选旧铺精怪迎客小动作",
+    missingLog: logSpec?.missingLog || "旧铺精怪迎客小动作已经点到，但旧铺反馈/顾客风向面板暂时没有找到；先确认核心试玩分组是否可见。",
   };
   if (settings.panelGroup !== "core") {
     settings.panelGroup = "core";
@@ -32413,8 +32324,8 @@ function focusShopSpiritGreeterWorldFromCanvas(spec = shopSpiritGreeterWorldSpec
   }
   playCue("对话翻页");
   addLog(
-    "点选旧铺精怪迎客小动作",
-    `${spec.headline}：${spec.actionText}。看向 ${spec.itemText} / ${spec.customerText}；${spec.safety}。`,
+    logSpec?.title || "点选旧铺精怪迎客小动作",
+    logSpec?.detail || "",
   );
   render();
   return true;

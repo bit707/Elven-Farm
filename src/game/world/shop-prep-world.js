@@ -590,6 +590,173 @@ export function drawShopCustomerPickShadowWorldWorld({
   return true;
 }
 
+export function shopSpiritGreeterActionCopyWorld({
+  opening = null,
+  goodsEye = null,
+  pickShadow = null,
+  greeterName = "精怪",
+} = {}) {
+  if (opening?.opened) {
+    return {
+      key: "guide_guest",
+      badge: "迎",
+      title: "引路过客",
+      action: `${greeterName}在门口把犹豫客往货签前带一步`,
+      detail: "旧铺已开张，动作只解释客流正在被照应。",
+      route: "迎客 -> 看想法 -> 手动复盘",
+      accent: "#286f58",
+    };
+  }
+  if (pickShadow?.tone === "warn") {
+    return {
+      key: "point_queue",
+      badge: "排",
+      title: "指头排",
+      action: `${greeterName}指着头排空位，提醒先看犹豫原因`,
+      detail: "顾客影子已经停步，先读懂缺口再手动调整。",
+      route: "影子停步 -> 看犹豫 -> 手动调整",
+      accent: "#be4f37",
+    };
+  }
+  if (goodsEye?.mode === "word" || goodsEye?.mode === "weather") {
+    return {
+      key: "hand_tag",
+      badge: "签",
+      title: "递货签",
+      action: `${greeterName}捧着${goodsEye.itemName || "今日主推"}货签，往客眼前递`,
+      detail: goodsEye.mode === "word" ? "铺前来帖已有话头，先把对口货摆明。" : "天气正在替这件货说话，货签要先亮。",
+      route: "来客起意 -> 递货签 -> 手动开铺",
+      accent: goodsEye.mode === "weather" ? "#4d91a6" : "#286f58",
+    };
+  }
+  return {
+    key: "wipe_sign",
+    badge: "擦",
+    title: "擦招牌",
+    action: `${greeterName}踮脚擦亮旧铺招牌，把今日主推让出来`,
+    detail: "开铺前先让陈列更可读，顾客才能知道看哪件。",
+    route: "擦招牌 -> 亮头排 -> 手动开铺",
+    accent: "#b47d2f",
+  };
+}
+
+export function shopSpiritGreeterWorldSpecWorld({
+  greeters = [],
+  opening = null,
+  goodsEye = null,
+  pickShadow = null,
+  forecast = null,
+  displayDiagnosis = null,
+  liveFocus = null,
+  day = 1,
+  reportCount = 0,
+  width = 960,
+  height = 640,
+  safetyText = "",
+  actionCopy = () => null,
+} = {}) {
+  if (!Array.isArray(greeters) || !greeters.length) return null;
+  const hasShopContext = Boolean(goodsEye?.itemId || pickShadow?.active || forecast?.active || displayDiagnosis?.active || reportCount > 0 || liveFocus);
+  if (!hasShopContext) return null;
+  const greeter = greeters[0];
+  const greeterNames = greeters.slice(0, 2).map((spirit) => spirit.name || "精怪").join("、");
+  const greeterText = greeters.length > 2 ? `${greeterNames}等 ${greeters.length} 只` : greeterNames || greeter.name || "精怪";
+  const copy = actionCopy({ opening, goodsEye, pickShadow, greeterName: greeter.name || "精怪" });
+  const routeSelector = opening?.opened
+    ? "#shopReport"
+    : pickShadow?.selector || goodsEye?.selector || (forecast?.active ? '[data-shop-board="opening"]' : '[data-shop-board="display-diagnosis"]');
+  const fallbackSelector = pickShadow?.fallbackSelector || goodsEye?.selector || "#shopReport";
+  const itemText = goodsEye?.itemName
+    ? `${goodsEye.itemName} x${goodsEye.count || 0}`
+    : liveFocus?.topItemName
+      ? `${liveFocus.topItemName} · 今日焦点`
+      : displayDiagnosis?.featuredGoods?.[0]?.itemName || "今日旧铺货签";
+  const customerText = pickShadow?.rows?.[0]?.customerName || goodsEye?.customerName || forecast?.customerName || liveFocus?.topCustomerName || "路过客";
+  const cardWidth = 316;
+  const cardHeight = 116;
+  const x = Math.max(302, Math.min(width - cardWidth - 32, 344));
+  const y = Math.max(346, Math.min(height - cardHeight - 32, 394));
+  return {
+    active: true,
+    key: `${day}:${greeter.id}:${copy?.key || "shop"}:${goodsEye?.itemId || "shop"}:${opening?.opened ? "open" : "prep"}:${greeters.length}:${reportCount}`,
+    day,
+    title: "旧铺精怪迎客小动作 · 可点",
+    headline: `${greeter.name || "精怪"}在旧铺门口${copy?.title || "迎客"}`,
+    greeter,
+    greeterId: greeter.id,
+    greeterName: greeter.name || "精怪",
+    greeterText,
+    greeterCount: greeters.length,
+    actionKey: copy?.key || "shop",
+    actionTitle: copy?.title || "迎客",
+    actionText: copy?.action || "",
+    detail: copy?.detail || "",
+    routeText: copy?.route || "",
+    itemText,
+    customerText,
+    opened: Boolean(opening?.opened),
+    selector: routeSelector,
+    fallbackSelector,
+    safety: safetyText,
+    accent: copy?.accent || "#b47d2f",
+    rect: { x, y, width: cardWidth, height: cardHeight },
+    anchor: { x: 168, y: 216 },
+    nodes: [
+      {
+        key: "who",
+        badge: "精",
+        title: "谁迎客",
+        detail: greeterText,
+        accent: "#8f5f3f",
+      },
+      {
+        key: "action",
+        badge: copy?.badge || "迎",
+        title: copy?.title || "迎客",
+        detail: (copy?.action || "").replace(`${greeter.name || "精怪"}`, "").slice(0, 10) || copy?.title || "迎客",
+        accent: copy?.accent || "#b47d2f",
+      },
+      {
+        key: "route",
+        badge: opening?.opened ? "看" : "铺",
+        title: "看哪块牌",
+        detail: opening?.opened ? "旧铺报告" : pickShadow?.active ? "顾客风向" : "陈列诊断",
+        accent: opening?.opened ? "#286f58" : "#b47d2f",
+      },
+    ],
+  };
+}
+
+export function shopSpiritGreeterWorldAtCanvasPointWorld({
+  px = 0,
+  py = 0,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return (
+    px >= rect.x
+    && px <= rect.x + rect.width
+    && py >= rect.y
+    && py <= rect.y + rect.height
+  ) ? spec : null;
+}
+
+export function shopSpiritGreeterWorldFocusLogSpecWorld({
+  spec = null,
+} = {}) {
+  if (!spec?.greeterId) return null;
+  return {
+    title: "点选旧铺精怪迎客小动作",
+    missingTitle: "点选旧铺精怪迎客小动作",
+    missingLog: "旧铺精怪迎客小动作已经点到，但旧铺反馈/顾客风向面板暂时没有找到；先确认核心试玩分组是否可见。",
+    detail: `${spec.headline}：${spec.actionText}。看向 ${spec.itemText} / ${spec.customerText}；${spec.safety}。`,
+    seasonalLabel: "旧铺精怪迎客小动作",
+    seasonalDetail: spec.headline,
+    seasonalEffect: `${spec.actionText}。${spec.detail}`,
+  };
+}
+
 export function drawShopSpiritGreeterWorldWorld({
   ctx,
   spec = null,
