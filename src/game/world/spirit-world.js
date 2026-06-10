@@ -913,3 +913,77 @@ export function drawSpiritCareNeedWorldBoardWorld({
   ctx.restore();
   return true;
 }
+
+export function drawSpiritJobShiftFeedbackWorld({
+  ctx,
+  width = 960,
+  height = 640,
+  feedback = null,
+  station = null,
+  motion = 0,
+  reducedMotion = false,
+  startX = 0,
+  startY = 0,
+  targetX = 0,
+  targetY = 0,
+  tokenX = 0,
+  tokenY = 0,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !feedback || !station) return false;
+  const accent = feedback.accent || "#286f58";
+
+  ctx.save();
+  ctx.globalAlpha = feedback.fade;
+  ctx.strokeStyle = `${accent}88`;
+  ctx.lineWidth = 3;
+  ctx.setLineDash([9, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 24;
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.quadraticCurveTo((startX + targetX) / 2, Math.min(startY, targetY) - 86, targetX, targetY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = feedback.glow || "rgba(246, 240, 182, 0.24)";
+  ctx.beginPath();
+  ctx.ellipse(targetX, targetY + station.size * 0.4, station.size * 0.54 + Math.sin(motion * 3) * 3, station.size * 0.18, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = `${accent}99`;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(targetX, targetY, 34 + Math.sin(motion * 3.4) * (reducedMotion ? 0 : 3), 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = accent;
+  ctx.beginPath();
+  ctx.roundRect(tokenX - 20, tokenY - 18, 40, 36, 13);
+  ctx.fill();
+  ctx.fillStyle = "#fffdf5";
+  ctx.font = "700 20px Microsoft YaHei";
+  ctx.fillText(feedback.glyph || "灵", tokenX - 10, tokenY + 8);
+
+  const cardX = Math.max(28, Math.min(width - 288, targetX + 34));
+  const cardY = Math.max(76, Math.min(height - 124, targetY - 72));
+  drawCanvasCard(ctx, cardX, cardY, 268, 102, "rgba(255, 248, 232, 0.94)");
+  ctx.fillStyle = `${accent}22`;
+  ctx.beginPath();
+  ctx.roundRect(cardX + 16, cardY + 16, 48, 54, 14);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "700 24px Microsoft YaHei";
+  ctx.fillText(feedback.glyph || "灵", cardX + 29, cardY + 52);
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText("岗位调度回声", cardX + 80, cardY + 26);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 17px Microsoft YaHei";
+  ctx.fillText(`${feedback.spiritName} · ${feedback.jobName}`.slice(0, 16), cardX + 80, cardY + 52);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText(`${feedback.action} · 效率 ${feedback.efficiency}`.slice(0, 25), cardX + 80, cardY + 74);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(`${feedback.focus} · ${feedback.specialty}`.slice(0, 32), cardX + 18, cardY + 94);
+  ctx.restore();
+  return true;
+}
