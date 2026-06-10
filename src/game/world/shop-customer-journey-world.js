@@ -509,6 +509,119 @@ export function drawShopCustomerLessonVerificationEchoWorldWorld({
   return true;
 }
 
+export function shopTrialTheaterWorldSpecWorld({
+  opening = null,
+  report = [],
+  goods = [],
+  thoughtEntries = [],
+  liveFocus = null,
+  forecast = null,
+  firstSale = null,
+  day = 1,
+  itemName = (itemId) => itemId,
+} = {}) {
+  const firstReport = (Array.isArray(report) ? report : [])
+    .map((entry, reportIndex) => ({ ...entry, reportIndex }))
+    .find((entry) => entry.reason && entry.reason !== "diagnosis") || null;
+  const active = Boolean((Array.isArray(goods) && goods.length) || opening?.opened || liveFocus || (Array.isArray(thoughtEntries) && thoughtEntries.length) || firstSale || firstReport);
+  if (!active) return null;
+  const leadThought = thoughtEntries?.[0] || null;
+  const leadReport = firstSale?.reportEntry || firstReport || null;
+  const hasSale = Boolean(firstSale || leadReport?.reason === "buy");
+  const hasLeaver = Boolean(leadReport && ["price", "stock", "tag"].includes(leadReport.reason));
+  const hotTagLabel = liveFocus?.hotTagLabel || opening?.hotTagLabel || forecast?.hotTagLabel || "热卖标签";
+  const leadCustomer = firstSale?.customerName
+    || leadReport?.name
+    || leadThought?.name
+    || forecast?.customerName
+    || "第一批顾客";
+  const leadItem = firstSale?.itemName
+    || (leadReport?.itemId ? itemName(leadReport.itemId) : "")
+    || forecast?.itemText
+    || goods?.[0]?.itemName
+    || "今日主推货";
+  const resultText = hasSale
+    ? `${leadCustomer}买走${leadItem}${firstSale?.price ? `，成交 ${firstSale.price} 灵石` : ""}`
+    : hasLeaver
+      ? `${leadCustomer}犹豫离店：${leadReport?.text || liveFocus?.topBlockerLabel || "还没被说服"}`
+      : opening?.opened
+        ? `${Number(liveFocus?.buyers || 0)} 单成交 · ${Number(liveFocus?.leavers || 0)} 位犹豫`
+        : "尚未开铺，先用热卖牌测试顾客";
+  const reasonText = firstSale?.reasonText
+    || leadReport?.detail
+    || leadThought?.detail
+    || leadThought?.text
+    || forecast?.advice
+    || "把顾客想法、货架标签和价格放在同一张小账里看。";
+  const nextAction = hasSale
+    ? firstSale?.returnCta || liveFocus?.shelfAdvice || `继续围绕${hotTagLabel}补货，复现第一笔成交原因。`
+    : hasLeaver
+      ? liveFocus?.shelfAdvice || "按离店原因微调价格、库存或货架主题。"
+      : forecast?.advice || "先准备一件匹配热卖标签的加工品，再开铺观察。";
+  const tone = hasSale ? "good" : hasLeaver ? "warn" : goods.length ? "ready" : "empty";
+  const steps = [
+    {
+      label: "想法泡泡",
+      title: leadThought?.name || leadCustomer,
+      text: leadThought?.text || `想找${hotTagLabel}货`,
+      state: thoughtEntries.length ? "done" : goods.length ? "todo" : "empty",
+    },
+    {
+      label: "热卖牌",
+      title: hotTagLabel || "热卖标签",
+      text: leadItem,
+      state: goods.length ? "done" : "todo",
+    },
+    {
+      label: hasSale ? "成交原因" : hasLeaver ? "离店原因" : "等开铺",
+      title: hasSale ? "买单" : hasLeaver ? "没买" : "试营业",
+      text: resultText,
+      state: hasSale ? "good" : hasLeaver ? "warn" : opening?.opened ? "mid" : "todo",
+    },
+  ];
+  return {
+    key: `${day}:${tone}:${leadCustomer}:${leadItem}:${hotTagLabel}:${Number(liveFocus?.buyers || 0)}:${Number(liveFocus?.leavers || 0)}`,
+    day,
+    tone,
+    title: hasSale ? "首单原因小剧场 · 可点" : opening?.opened ? "顾客想法小剧场 · 可点" : "旧铺试营业预告 · 可点",
+    headline: hasSale ? "第一笔成交原因已经写清" : hasLeaver ? "顾客没买也留下了原因" : "开铺前先看谁会被什么吸引",
+    leadCustomer,
+    leadItem,
+    hotTagLabel,
+    resultText,
+    reasonText,
+    nextAction,
+    steps,
+    selector: hasSale && firstSale?.reportIndex >= 0
+      ? `[data-shop-report-index="${Number(firstSale.reportIndex)}"]`
+      : hasLeaver && Number.isFinite(Number(leadReport?.reportIndex))
+        ? `[data-shop-report-index="${Number(leadReport.reportIndex)}"]`
+        : '[data-shop-board="opening"]',
+    fallbackSelector: hasSale ? '[data-shop-board="decision-ledger"]' : '[data-shop-board="opening"]',
+    rect: { x: 222, y: 238, width: 316, height: 126 },
+    anchor: { x: 146, y: 208 },
+  };
+}
+
+export function shopTrialTheaterWorldAtCanvasPointWorld({
+  px = 0,
+  py = 0,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? {
+      type: "shop_trial_theater",
+      label: spec.title,
+      selector: spec.selector,
+      fallbackSelector: spec.fallbackSelector,
+      trialTheater: spec,
+      rect,
+    }
+    : null;
+}
+
 export function drawShopTrialTheaterWorldWorld({
   ctx,
   spec = null,
