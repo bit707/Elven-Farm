@@ -216,6 +216,8 @@ import {
   shopCustomerLessonMorningFollowupWorldAtCanvasPointWorld,
   shopCustomerLessonVerificationEchoWorldAtCanvasPointWorld,
   shopCustomerLessonVerificationEchoWorldSpecWorld,
+  shopCustomerJourneyMarkupWorld,
+  shopCustomerJourneySpecWorld,
   shopReturningTrailWorldAtCanvasPointWorld,
   shopReturningTrailWorldSpecWorld,
   shopTrialTheaterWorldAtCanvasPointWorld,
@@ -27797,61 +27799,16 @@ function shopCustomerJourneyRows(opening = syncShopOpeningState(), report = stat
 function shopCustomerJourneySpec(opening = syncShopOpeningState(), report = state.shopReport) {
   const ledger = opening.customerDecisionLedger || opening.lastSession?.customerDecisionLedger || null;
   const liveFocus = opening.liveFocus || opening.lastSession?.liveFocus || null;
-  const rows = shopCustomerJourneyRows(opening, report);
-  const buyers = Number(ledger?.buyers ?? liveFocus?.buyers ?? 0);
-  const visitors = Number(ledger?.visitors || opening.lastSession?.visitors || Math.max(rows.length, buyers));
-  const leavers = Number(ledger?.leavers ?? liveFocus?.leavers ?? 0);
-  const conversion = visitors ? Math.round((buyers / visitors) * 100) : Number(ledger?.conversion || 0);
-  const mainRow = rows.find((row) => row.bought) || rows[0] || null;
-  const blocker = ledger?.blockers?.[0] || null;
-  return {
-    active: Boolean(ledger || liveFocus || rows.length),
-    title: buyers > 0 ? "顾客旅线复盘" : leavers > 0 ? "顾客离店旅线" : "顾客旅线待形成",
-    headline: ledger?.headline || liveFocus?.headline || (mainRow ? `${mainRow.name}留下了第一条线索` : "等下一次开铺生成旅线"),
-    hotTagLabel: ledger?.hotTagLabel || liveFocus?.hotTagLabel || opening.hotTagLabel || "旧铺需求",
-    mainCustomer: ledger?.mainCustomer || mainRow?.name || "客群未定",
-    conversion,
-    visitors,
-    buyers,
-    leavers,
-    rows,
-    mainRow,
-    nextAction: ledger?.nextAction || liveFocus?.shelfAdvice || mainRow?.advice || "先准备一件标签清楚的商品，再开铺观察。",
-    blockerText: blocker ? `${blocker.label} ${blocker.count}` : liveFocus?.topBlockerLabel || "无明显短板",
-    mood: ledger?.mood || (buyers > 0 ? "成交理由已经能被复盘，旧铺开始像真正的店。" : "门口有人回头，说明下一次调整有方向。"),
-    visualCue: "画面反馈：进店、看牌、试价、成交/离店、复购建议会沿旧铺动线亮起。",
-  };
+  return shopCustomerJourneySpecWorld({
+    opening,
+    ledger,
+    liveFocus,
+    rows: shopCustomerJourneyRows(opening, report),
+  });
 }
 
 function shopCustomerJourneyMarkup(spec = shopCustomerJourneySpec()) {
-  if (!spec.active) return "";
-  const rows = spec.rows.slice(0, 3);
-  return `
-    <div class="shop-customer-journey ${spec.buyers > 0 ? "good" : spec.leavers > 0 ? "warn" : "idle"}" data-shop-board="customer-journey">
-      <strong>${spec.title} · ${spec.hotTagLabel}</strong>
-      <span>${spec.headline}</span>
-      <div class="shop-journey-metrics">
-        <b>主客 ${spec.mainCustomer}</b>
-        <b>成交率 ${spec.conversion}%</b>
-        <b>成交 ${spec.buyers}/${spec.visitors}</b>
-        <b>离店 ${spec.leavers}</b>
-      </div>
-      <div class="shop-journey-rows">
-        ${rows.map((row) => `
-          <div class="shop-journey-row ${row.tone}">
-            <b>${row.name}</b>
-            <span>${row.need}</span>
-            <div class="shop-journey-path">
-              ${row.path.map((stage) => `<i class="${stage.state}"><em>${stage.label}</em><small>${stage.text}</small></i>`).join("")}
-            </div>
-            <small>原因：${row.reason} · 下一步：${row.advice}</small>
-          </div>
-        `).join("")}
-      </div>
-      <small>短板：${spec.blockerText} · 建议：${spec.nextAction}</small>
-      <small>${spec.mood} · ${spec.visualCue}</small>
-    </div>
-  `;
+  return shopCustomerJourneyMarkupWorld(spec);
 }
 
 function shopFocusPreferredTags(entry = null, spec = null) {
