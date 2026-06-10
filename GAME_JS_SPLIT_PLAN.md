@@ -315,6 +315,7 @@ npm run verify
 - 已完成：`drawSpiritSproutPreview` 的“萝卜苗成精预览/可点小卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritSproutPreviewWorldSpec`、Canvas 命中、聚焦状态、motion/bob/tremble/label 与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`drawSpiritSproutHeartbeatWorld` 的“成精心跳灵纹/三拍可点标签”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritSproutHeartbeatWorldSpec`、Canvas 命中、聚焦状态、motion/beat/pulse/active 与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`drawSpiritSproutStageVignette` 的“成精阶段小演出/萝卜精入队镜头”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritSproutStageVignetteSpec`、Canvas 命中、聚焦状态、motion/pulse、萝卜精读取、`drawCanvasCard` 与 `drawSpiritSprite` 注入仍留在 `src/game.js`。
+- 已完成：`drawSpiritSproutAnomalyWorld` 的“萝卜苗异动/问号气泡安全说明卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritSproutAnomalyWorldSpec`、Canvas 命中、聚焦状态、motion/pulse/bob/active 与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`tools/build-runtime-data.mjs` 已适配新数据清单模块，并保留旧 `src/game.js` 内联清单 fallback。
 - 已完成：`tools/package-standalone.mjs` 已内联 `src/game/**` 本地模块，避免离线单文件包被 ESM import 破坏。
 - 已完成：`tools/verify.mjs` 已把拆分模块纳入静态审计，避免门禁继续假设所有内容必须留在 `src/game.js`。

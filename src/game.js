@@ -50,6 +50,7 @@ import {
   drawSpiritSproutPreviewWorld,
   drawSpiritSproutHeartbeatWorldWorld,
   drawSpiritSproutStageVignetteWorld,
+  drawSpiritSproutAnomalyWorldWorld,
   drawSpiritInteractionWorldEchoWorld,
   drawSpiritInteractionMemoryTriptychWorldWorld,
   drawSpiritJobEffectWorld,
@@ -78090,107 +78091,16 @@ function drawSpiritSproutAnomalyWorld(ctx, originX, originY, tile, gap) {
   const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.8) * 4;
   const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.7) * 2;
   const active = spiritSproutAnomalyWorldFocus?.day === state.day && spiritSproutAnomalyWorldFocus?.key === spec.key;
-
-  ctx.save();
-
-  const halo = ctx.createRadialGradient(spec.centerX, spec.centerY, 4, spec.centerX, spec.centerY, preview.tile * 1.08 + pulse);
-  halo.addColorStop(0, spec.soft);
-  halo.addColorStop(0.62, "rgba(246, 240, 182, 0.15)");
-  halo.addColorStop(1, "rgba(246, 240, 182, 0)");
-  ctx.fillStyle = halo;
-  ctx.beginPath();
-  ctx.ellipse(spec.centerX, spec.centerY + 5, preview.tile * 0.92 + pulse, preview.tile * 0.46 + pulse / 2, -0.04, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = `${spec.accent}88`;
-  ctx.lineWidth = active ? 3 : 2;
-  ctx.setLineDash([5, 7]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 16;
-  for (let i = 0; i < 2; i += 1) {
-    ctx.beginPath();
-    ctx.ellipse(spec.centerX, spec.centerY + 4, preview.tile * (0.5 + i * 0.18) + pulse / 3, preview.tile * (0.22 + i * 0.08), 0.03, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  ctx.setLineDash([]);
-
-  ctx.strokeStyle = "rgba(143, 95, 63, 0.55)";
-  ctx.lineWidth = 2;
-  for (let i = 0; i < 4; i += 1) {
-    const startX = spec.centerX - 24 + i * 15;
-    const startY = spec.centerY + 18 + (i % 2) * 5;
-    ctx.beginPath();
-    ctx.moveTo(startX, startY);
-    ctx.lineTo(startX + 8, startY + 5);
-    ctx.lineTo(startX + 17, startY + 1);
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.8)";
-  for (let i = 0; i < 5; i += 1) {
-    const angle = motion * 0.9 + i * 1.2;
-    ctx.beginPath();
-    ctx.arc(spec.centerX + Math.cos(angle) * preview.tile * 0.48, spec.centerY + Math.sin(angle) * preview.tile * 0.25, 2.4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.strokeStyle = `${spec.accent}66`;
-  ctx.lineWidth = 2;
-  ctx.setLineDash([7, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 12;
-  ctx.beginPath();
-  ctx.moveTo(spec.centerX, spec.centerY - 14);
-  ctx.quadraticCurveTo(card.x + 16, card.y + card.height / 2, card.x + 26, card.y + card.height - 18);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, bubble.x, bubble.y + bob, bubble.width, bubble.height, "rgba(255, 253, 245, 0.94)");
-  ctx.fillStyle = spec.soft;
-  ctx.beginPath();
-  ctx.roundRect(bubble.x + 8, bubble.y + 8 + bob, bubble.width - 16, bubble.height - 16, 14);
-  ctx.fill();
-  ctx.fillStyle = spec.accent;
-  ctx.font = "900 24px Microsoft YaHei";
-  ctx.fillText(spec.glyph, bubble.x + 22, bubble.y + 34 + bob);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText("问号气泡", bubble.x + 11, bubble.y + 44 + bob);
-
-  drawCanvasCard(ctx, card.x, card.y + bob, card.width, card.height, "rgba(255, 248, 232, 0.95)");
-  ctx.strokeStyle = active ? spec.accent : `${spec.accent}88`;
-  ctx.lineWidth = active ? 3 : 2;
-  ctx.beginPath();
-  ctx.roundRect(card.x, card.y + bob, card.width, card.height, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = spec.soft;
-  ctx.beginPath();
-  ctx.roundRect(card.x + 12, card.y + 13 + bob, 44, 44, 14);
-  ctx.fill();
-  ctx.fillStyle = spec.accent;
-  ctx.font = "900 19px Microsoft YaHei";
-  ctx.fillText(spec.glyph, card.x + 29, card.y + 42 + bob);
-
-  ctx.fillStyle = spec.accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(`${spec.title} · 可点定位`, card.x + 66, card.y + 21 + bob);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 14px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 13), card.x + 66, card.y + 41 + bob);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText(spec.body.slice(0, 24), card.x + 66, card.y + 57 + bob);
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.82)";
-  ctx.beginPath();
-  ctx.roundRect(card.x + 14, card.y + 68 + bob, card.width - 28, 29, 10);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText("只定位说明：不会自动收获 · 不会自动入夜", card.x + 22, card.y + 81 + bob);
-  ctx.fillText("不会触发成精", card.x + 22, card.y + 93 + bob);
-
-  ctx.restore();
-  return true;
+  return drawSpiritSproutAnomalyWorldWorld({
+    ctx,
+    spec,
+    motion,
+    pulse,
+    bob,
+    active,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+  });
 }
 
 function drawSpiritSproutTimelineWorldCard(ctx, originX, originY, tile, gap) {
