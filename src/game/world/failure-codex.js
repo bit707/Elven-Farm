@@ -311,6 +311,152 @@ export function shopLeaveRecoveryRouteStepsWorld(reason = "tag", profile = {}, f
   ];
 }
 
+export function shopLeaveRecoveryFeedbackWorld({
+  reason = "tag",
+  leavers = [],
+  hotTag = "",
+  theme = null,
+  customerDisplayName = (archetype) => archetype || "",
+  shopFeedbackForSegment = () => null,
+  shopFeedbackBy = () => null,
+  shopTagLabel = (tag) => tag || "",
+  splitTags = (value) => String(value || "").split("|").map((tag) => tag.trim()).filter(Boolean),
+  shopFeedbackEntries = [],
+} = {}) {
+  const safeLeavers = Array.isArray(leavers) ? leavers : [];
+  const mainLeaver = safeLeavers.find((entry) => entry.reason === reason) || safeLeavers[0] || null;
+  const segmentName = mainLeaver?.customerArchetype ? customerDisplayName(mainLeaver.customerArchetype) : "";
+  const safeEntries = Array.isArray(shopFeedbackEntries) ? shopFeedbackEntries : [];
+  const direct = segmentName
+    ? shopFeedbackForSegment("leave_reason", segmentName, hotTag)
+      || safeEntries.find((entry) => entry.feedback_type === "leave_reason" && entry.customer_segment === segmentName)
+    : null;
+  const diagnosisIndex = reason === "price" ? 0 : reason === "stock" ? 1 : 2;
+  const diagnosis = shopFeedbackBy("diagnosis", diagnosisIndex);
+  const fallback = {
+    price: {
+      result_text: "今天多位顾客有兴趣但觉得偏贵",
+      recommended_action: "降价或转向富户货架",
+    },
+    stock: {
+      result_text: "热卖标签商品断货影响成交",
+      recommended_action: "明天优先补货",
+    },
+    tag: {
+      result_text: "顾客没有在货架上看到想要的口味",
+      recommended_action: `围绕“${shopTagLabel(hotTag || splitTags(theme?.required_item_tags || "")[0] || "fresh")}”补一件对口商品`,
+    },
+  }[reason] || null;
+  const source = direct || diagnosis || fallback || {};
+  const learningLine = source.result_text || fallback?.result_text || "顾客留下了可复盘的离店线索。";
+  const gentleFix = source.recommended_action || fallback?.recommended_action || "先改一个最明显的短板，不用一次重摆整间铺子。";
+  const tomorrowAction = reason === "price"
+    ? "明天先把价签降一小格，再观察顾客是否愿意留下。"
+    : reason === "stock"
+      ? "明早先补一件热卖标签商品，让货架看起来更稳。"
+      : `明天围绕“${shopTagLabel(hotTag || splitTags(theme?.required_item_tags || "")[0] || "fresh")}”补一件更对口的商品。`;
+  return {
+    segmentName,
+    sourceFeedbackId: source.feedback_id || "",
+    learningLine,
+    gentleFix,
+    tomorrowAction,
+  };
+}
+
+export function shopFailureRecoverySpecWorld({
+  report = [],
+  goods = [],
+  theme = null,
+  themeScore = 0,
+  hotTag = "",
+  lowStockGoods = [],
+  itemName = (itemId) => itemId || "",
+  shopTagLabel = (tag) => tag || "",
+  customerDisplayName = (archetype) => archetype || "",
+  shopFeedbackForSegment = () => null,
+  shopFeedbackBy = () => null,
+  splitTags = (value) => String(value || "").split("|").map((tag) => tag.trim()).filter(Boolean),
+  shopFeedbackEntries = [],
+} = {}) {
+  const safeReport = Array.isArray(report) ? report : [];
+  const leavers = safeReport.filter((entry) => ["price", "stock", "tag"].includes(entry.reason));
+  const buyers = safeReport.filter((entry) => entry.reason === "buy");
+  if (leavers.length === 0 || leavers.length < Math.max(2, buyers.length + 1)) return null;
+  const counts = leavers.reduce((acc, entry) => {
+    acc[entry.reason] = Number(acc[entry.reason] || 0) + 1;
+    return acc;
+  }, {});
+  const topReason = Object.entries(counts).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] || "tag";
+  const safeLowStockGoods = Array.isArray(lowStockGoods) ? lowStockGoods : [];
+  const themeTags = splitTags(theme?.required_item_tags || "");
+  const profiles = {
+    price: {
+      title: "压价留客小票",
+      problem: `${counts.price || 0} 位顾客被价格拦在门外。`,
+      action: "明天先把价格倍率降到 1.00 左右，再开一轮试营业。",
+      support: "口碑回温 +1",
+      detail: "这不是白亏，账页已经记住了哪类客人最怕贵。",
+    },
+    stock: {
+      title: "薄货架补救小票",
+      problem: `${counts.stock || 0} 位顾客嫌货架太薄。`,
+      action: safeLowStockGoods[0]
+        ? `明早先补 ${safeLowStockGoods[0].itemName || itemName(safeLowStockGoods[0].itemId)}，至少摆到 2 件以上。`
+        : "明早先补一件热卖加工品，再开铺。",
+      support: "补货标记已写入账页",
+      detail: "薄货架会让谨慎顾客退开，补厚后成交更稳。",
+    },
+    tag: {
+      title: "标签改陈小票",
+      problem: `${counts.tag || 0} 位顾客觉得货架不对味。`,
+      action: `围绕“${shopTagLabel(hotTag || themeTags[0] || "fresh")}”补一件匹配商品。`,
+      support: "主题提醒已置顶",
+      detail: `当前主题匹配 ${Math.round(themeScore * 100)}%，先把一个标签做扎实。`,
+    },
+  };
+  const profile = profiles[topReason] || profiles.tag;
+  const feedback = shopLeaveRecoveryFeedbackWorld({
+    reason: topReason,
+    leavers,
+    hotTag,
+    theme,
+    customerDisplayName,
+    shopFeedbackForSegment,
+    shopFeedbackBy,
+    shopTagLabel,
+    splitTags,
+    shopFeedbackEntries,
+  });
+  const routeSteps = shopLeaveRecoveryRouteStepsWorld(topReason, profile, feedback, {
+    hotTag,
+    theme,
+    themeScore,
+    lowStockGoods: safeLowStockGoods.map((good) => ({
+      ...good,
+      itemName: good.itemName || (good.itemId ? itemName(good.itemId) : ""),
+    })),
+    leavers,
+  });
+  return {
+    reason: topReason,
+    title: profile.title,
+    problem: profile.problem,
+    action: profile.action,
+    support: profile.support,
+    detail: profile.detail,
+    learningLine: feedback.learningLine,
+    gentleFix: feedback.gentleFix,
+    tomorrowAction: feedback.tomorrowAction || profile.action,
+    sourceFeedbackId: feedback.sourceFeedbackId,
+    routeTitle: "离店补救路线",
+    routeSteps,
+    leavers: leavers.length,
+    buyers: buyers.length,
+    counts,
+  };
+}
+
 export function shopLeaveRecoveryWorldSpecWorld({
   recovery = null,
   routeSteps = [],
