@@ -29,6 +29,7 @@ import {
   drawSpiritCropScoutWorldWorld,
   drawSpiritJobEffectWorld,
   drawSpiritJobShiftTheaterWorldWorld,
+  drawSpiritWorkRangeAuraWorld,
 } from "./game/world/spirit-world.js";
 import {
   drawDailyIntentFeedbackWorld,
@@ -76590,54 +76591,16 @@ function drawSpiritWorkRangeAura(ctx, spirit, station, index = 0) {
   const range = spiritWorkRangeSpec(spirit, spirit.job || "farm");
   const profile = spiritVisualProfile(spirit);
   const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 1.8 + index) * 3;
-  const centerX = station.x + station.size * 0.5;
-  const centerY = station.y + station.size * 0.66;
-  const radiusX = Math.max(station.size * 0.54, station.size * (0.18 + range.rangeX * 0.12));
-  const radiusY = Math.max(station.size * 0.18, station.size * (0.1 + range.rangeY * 0.035));
-  const alpha = range.evolved ? 0.28 : 0.14;
-
-  ctx.save();
-  ctx.fillStyle = range.evolved ? profile.glow : "rgba(255, 253, 245, 0.16)";
-  ctx.globalAlpha = alpha;
-  ctx.beginPath();
-  ctx.ellipse(centerX, centerY, radiusX + pulse, radiusY + pulse / 3, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = range.evolved ? 0.82 : 0.48;
-  ctx.strokeStyle = range.evolved ? `${profile.accent}88` : "rgba(93, 111, 101, 0.36)";
-  ctx.lineWidth = range.evolved ? 3 : 2;
-  if (!range.evolved) ctx.setLineDash([6, 9]);
-  ctx.beginPath();
-  ctx.ellipse(centerX, centerY, radiusX + pulse, radiusY + pulse / 3, 0, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  if (range.evolved) {
-    const spokeCount = Math.min(10, Math.max(4, Math.round(range.area / 4)));
-    ctx.strokeStyle = `${profile.accent}55`;
-    ctx.lineWidth = 1.5;
-    for (let spoke = 0; spoke < spokeCount; spoke += 1) {
-      const angle = (Math.PI * 2 * spoke) / spokeCount + motion * 0.12;
-      ctx.beginPath();
-      ctx.moveTo(centerX + Math.cos(angle) * radiusX * 0.32, centerY + Math.sin(angle) * radiusY * 0.32);
-      ctx.lineTo(centerX + Math.cos(angle) * radiusX * 0.88, centerY + Math.sin(angle) * radiusY * 0.88);
-      ctx.stroke();
-    }
-  }
-
-  const tagWidth = range.evolved ? 142 : 108;
-  const tagX = Math.max(16, Math.min(ctx.canvas.width - tagWidth - 16, station.x + station.size * 0.1));
-  const tagY = Math.max(30, station.y + station.size + 36 + (index % 2) * 6);
-  drawCanvasCard(ctx, tagX, tagY, tagWidth, range.evolved ? 44 : 34, range.evolved ? "rgba(255, 248, 232, 0.82)" : "rgba(255, 253, 245, 0.58)");
-  ctx.fillStyle = range.evolved ? profile.accent : "#5d6f65";
-  ctx.font = "700 11px Microsoft YaHei";
-  ctx.fillText(`${range.stageName} · ${range.rangeLabel}`.slice(0, 15), tagX + 10, tagY + 17);
-  if (range.evolved) {
-    ctx.fillStyle = "#8f5f3f";
-    ctx.font = "10px Microsoft YaHei";
-    ctx.fillText("工作范围已扩大", tagX + 10, tagY + 34);
-  }
-  ctx.restore();
+  return drawSpiritWorkRangeAuraWorld({
+    ctx,
+    range,
+    profile,
+    station,
+    index,
+    motion,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+  });
 }
 
 function drawSpiritJobPersonaBubble(ctx, spirit, station, index = 0) {
