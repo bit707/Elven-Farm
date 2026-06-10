@@ -27,6 +27,7 @@ import {
 import {
   drawSpiritAuraWorld,
   drawSpiritCropScoutWorldWorld,
+  drawSpiritJobShiftTheaterWorldWorld,
 } from "./game/world/spirit-world.js";
 import {
   drawDailyIntentFeedbackWorld,
@@ -76020,95 +76021,17 @@ function focusSpiritJobShiftTheaterWorldFromCanvas(spec = spiritJobShiftTheaterW
 
 function drawSpiritJobShiftTheaterWorld(ctx, spec = spiritJobShiftTheaterWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
   if (!spec?.rect || !spec.rows?.length) return false;
-  const { rect } = spec;
   const active = spiritJobShiftTheaterWorldFocus?.day === state.day
     && spiritJobShiftTheaterWorldFocus?.key === spec.key;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.4) * 2;
-  const cardY = rect.y + bob;
-
-  ctx.save();
-  spec.rows.forEach((row, rowIndex) => {
-    const rowRect = row.rowRect;
-    const rowCenter = { x: rowRect.x + 18, y: rowRect.y + rowRect.height * 0.5 + bob };
-    const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.4 + rowIndex) * 2;
-    ctx.strokeStyle = `${row.accent}66`;
-    ctx.lineWidth = spiritJobShiftTheaterWorldFocus?.spiritId === row.spiritId ? 2.8 : 1.8;
-    ctx.setLineDash([6, 8]);
-    ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 12;
-    ctx.beginPath();
-    ctx.moveTo(row.anchor.x, row.anchor.y);
-    ctx.quadraticCurveTo((row.anchor.x + rowCenter.x) / 2, Math.min(row.anchor.y, rowCenter.y) - 28 - rowIndex * 4, rowCenter.x, rowCenter.y);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = row.soft;
-    ctx.beginPath();
-    ctx.ellipse(row.anchor.x, row.anchor.y + 18, 36 + pulse, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
+  return drawSpiritJobShiftTheaterWorldWorld({
+    ctx,
+    spec,
+    motion,
+    reducedMotion: settings.reducedMotion,
+    active,
+    focusedSpiritId: spiritJobShiftTheaterWorldFocus?.spiritId || "",
+    drawCanvasCard,
   });
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 253, 245, 0.9)");
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.84)" : "rgba(40, 111, 88, 0.34)";
-  ctx.lineWidth = active ? 2.8 : 1.5;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = "rgba(202, 235, 210, 0.52)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 13, 44, 28, 12);
-  ctx.fill();
-  ctx.fillStyle = "#286f58";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText("班", rect.x + 27, cardY + 33);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(`${spec.title} · 可点`, rect.x + 70, cardY + 23);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 13px Microsoft YaHei";
-  ctx.fillText(spec.subtitle.slice(0, 24), rect.x + 70, cardY + 39);
-
-  spec.rows.forEach((row, rowIndex) => {
-    const rowRect = row.rowRect;
-    const y = rowRect.y + bob;
-    const highlighted = spiritJobShiftTheaterWorldFocus?.spiritId === row.spiritId;
-    const statusColor = row.status === "已见效" ? "#286f58" : row.status === "顺天时" ? "#4d91a6" : row.status === "要休整" ? "#be4f37" : "#b47d2f";
-    ctx.fillStyle = highlighted ? `${row.accent}22` : rowIndex % 2 ? "rgba(255, 248, 232, 0.72)" : "rgba(237, 243, 223, 0.58)";
-    ctx.beginPath();
-    ctx.roundRect(rowRect.x, y, rowRect.width, rowRect.height, 10);
-    ctx.fill();
-    ctx.strokeStyle = highlighted ? `${row.accent}bb` : "rgba(23, 35, 29, 0.08)";
-    ctx.lineWidth = highlighted ? 1.8 : 1;
-    ctx.stroke();
-
-    ctx.fillStyle = `${statusColor}22`;
-    ctx.beginPath();
-    ctx.roundRect(rowRect.x + 8, y + 4, 44, 15, 7);
-    ctx.fill();
-    ctx.fillStyle = statusColor;
-    ctx.font = "900 9px Microsoft YaHei";
-    ctx.fillText(row.status.slice(0, 3), rowRect.x + 15, y + 15);
-    ctx.fillStyle = row.accent;
-    ctx.font = "900 11px Microsoft YaHei";
-    ctx.fillText(`${row.glyph} ${row.spiritName}`.slice(0, 8), rowRect.x + 60, y + 15);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 10px Microsoft YaHei";
-    ctx.fillText(`${row.jobName} · ${row.actionText}`.slice(0, 19), rowRect.x + 132, y + 15);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "800 9px Microsoft YaHei";
-    ctx.fillText(`${row.levelText} ${row.efficiencyText}`, rowRect.x + rowRect.width - 64, y + 15);
-  });
-
-  if (spec.moreCount > 0) {
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "800 9px Microsoft YaHei";
-    ctx.fillText(`另有 ${spec.moreCount} 只精怪在洞天深处执行班次`, rect.x + 18, cardY + rect.height - 8);
-  } else {
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "800 9px Microsoft YaHei";
-    ctx.fillText("点击只定位伙伴栏，不会自动切岗或派工", rect.x + 18, cardY + rect.height - 8);
-  }
-  ctx.restore();
-  return true;
 }
 
 function drawSpiritJobEffect(ctx, spirit, x, y, size, profile) {
