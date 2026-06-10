@@ -306,6 +306,7 @@ npm run verify
 - 已完成：`drawRareSpiritClueRoadsignWorld` 的“稀有精怪线索风铃路牌”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`rareSpiritClueRoadsignWorldSpec`、线索筛选、Canvas 命中、目标册定位、聚焦状态、palette/motion/glyph 注入仍留在 `src/game.js`。
 - 已完成：`drawRareSpiritIdentityPortraitWorld` 的“稀有精怪身份画片/三节点信息卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`rareSpiritIdentityPortraitWorldSpec`、节点命中、目标册定位、聚焦状态和动效/glyph 注入仍留在 `src/game.js`。
 - 已完成：`drawRareSpiritMemoryCompassWorld` 的“稀有精怪伙伴记忆罗盘/肖像簿入口卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`rareSpiritMemoryCompassSpec`、Canvas 命中、生活图鉴/事件入口定位、聚焦状态和动效开关注入仍留在 `src/game.js`。
+- 已完成：`drawHualingWelcomeDance` 的“花铃初见欢迎舞/可交互提示卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`hualingWelcomeDanceSpec`、Canvas 命中、聚焦状态、palette/motion/glyph/card 注入仍留在 `src/game.js`。
 - 已完成：`tools/build-runtime-data.mjs` 已适配新数据清单模块，并保留旧 `src/game.js` 内联清单 fallback。
 - 已完成：`tools/package-standalone.mjs` 已内联 `src/game/**` 本地模块，避免离线单文件包被 ESM import 破坏。
 - 已完成：`tools/verify.mjs` 已把拆分模块纳入静态审计，避免门禁继续假设所有内容必须留在 `src/game.js`。
