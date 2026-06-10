@@ -321,6 +321,7 @@ npm run verify
 - 已完成：`drawFirstSpiritPromiseWorld` 的“前30分钟成精承诺牌/五步进度路线卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`firstSpiritPromiseWorldSpec`、Canvas 命中、聚焦状态、motion/bob/pulse/focused/focusNodeKey 与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`drawFirstSpiritJoinTriptychWorld` 的“第一伙伴入队三拍签/田块-伙伴栏-代劳三节点卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`firstSpiritJoinTriptychWorldSpec`、Canvas 命中、聚焦状态、motion/bob/active/activeNodeKey、`drawCanvasCard` 与 `drawSpiritSprite` 注入仍留在 `src/game.js`。
 - 已完成：新建 `src/game/world/spirit-assist-world.js`，先承接 `drawFirstSpiritAssistPrimerWorld` 的“伙伴栏亮起/3x3 接管范围预演卡”Canvas 绘制实现，`firstSpiritAssistPrimerWorldSpec`、Canvas 命中、聚焦状态、motion/bob/pulse/active、`drawCanvasCard`、`drawSpiritSprite` 与 `colorWithAlpha` 注入仍留在 `src/game.js`，`tools/verify.mjs` 也已纳入新模块审计。
+- 已完成：`drawSpiritAssistTrailWorld` 的“精怪代浇足迹/水痕路线提示卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-assist-world.js`，`spiritAssistTrailWorldSpec`、Canvas 命中、聚焦状态、motion/bob/pulse/active/activePlotKey 与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`tools/build-runtime-data.mjs` 已适配新数据清单模块，并保留旧 `src/game.js` 内联清单 fallback。
 - 已完成：`tools/package-standalone.mjs` 已内联 `src/game/**` 本地模块，避免离线单文件包被 ESM import 破坏。
 - 已完成：`tools/verify.mjs` 已把拆分模块纳入静态审计，避免门禁继续假设所有内容必须留在 `src/game.js`。

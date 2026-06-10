@@ -154,3 +154,135 @@ export function drawFirstSpiritAssistPrimerWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function drawSpiritAssistTrailWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  bob = 0,
+  pulse = 0,
+  active = false,
+  activePlotKey = "",
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec?.points?.length || !spec?.bounds || !spec?.profile || !spec?.anchor) return false;
+  const { rect, bounds, points, profile } = spec;
+
+  ctx.save();
+
+  ctx.fillStyle = active ? "rgba(202, 235, 210, 0.22)" : "rgba(202, 235, 210, 0.14)";
+  ctx.strokeStyle = active ? "rgba(77, 145, 166, 0.74)" : "rgba(77, 145, 166, 0.42)";
+  ctx.lineWidth = active ? 3 : 2;
+  ctx.setLineDash([10, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 16;
+  ctx.beginPath();
+  ctx.roundRect(bounds.minX - 9, bounds.minY - 9, bounds.maxX - bounds.minX + 18, bounds.maxY - bounds.minY + 18, 18);
+  ctx.fill();
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.strokeStyle = active ? "rgba(77, 145, 166, 0.86)" : "rgba(77, 145, 166, 0.58)";
+  ctx.lineWidth = active ? 3 : 2.2;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.setLineDash([7, 7]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 20;
+  ctx.beginPath();
+  points.forEach((point, index) => {
+    if (index === 0) ctx.moveTo(point.screenX, point.screenY);
+    else {
+      const prev = points[index - 1];
+      ctx.quadraticCurveTo((prev.screenX + point.screenX) / 2, Math.min(prev.screenY, point.screenY) - 18, point.screenX, point.screenY);
+    }
+  });
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  points.forEach((point, index) => {
+    const localActive = active && activePlotKey === `${point.x},${point.y}`;
+    const step = reducedMotion ? 0.5 : (motion * 0.75 + index * 0.13) % 1;
+    const shimmer = Math.sin(step * Math.PI) * 0.28;
+    ctx.fillStyle = localActive ? "rgba(255, 253, 245, 0.46)" : `rgba(159, 209, 223, ${0.2 + shimmer})`;
+    ctx.beginPath();
+    ctx.roundRect(point.rect.x + 6, point.rect.y + 6, point.rect.width - 12, point.rect.height - 12, 13);
+    ctx.fill();
+    ctx.strokeStyle = localActive ? "rgba(224, 182, 109, 0.86)" : "rgba(77, 145, 166, 0.48)";
+    ctx.lineWidth = localActive ? 3 : 1.6;
+    ctx.beginPath();
+    ctx.roundRect(point.rect.x + 9, point.rect.y + 9, point.rect.width - 18, point.rect.height - 18, 13);
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(255, 253, 245, 0.78)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(point.screenX, point.screenY + 12 + pulse * 0.2, point.rect.width * (0.22 + shimmer * 0.18), point.rect.height * 0.07, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = localActive ? "#b47d2f" : "#4d91a6";
+    ctx.beginPath();
+    ctx.arc(point.screenX + point.rect.width * 0.22, point.screenY - point.rect.height * 0.22, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255, 253, 245, 0.96)";
+    ctx.font = "900 9px Microsoft YaHei";
+    ctx.fillText(String(index + 1), point.screenX + point.rect.width * 0.22 - 3, point.screenY - point.rect.height * 0.22 + 3);
+  });
+
+  const bead = points[Math.floor((reducedMotion ? 0.6 : (motion * 0.62) % 1) * Math.max(0, points.length - 1))] || points[0];
+  ctx.fillStyle = profile.glow || "rgba(202, 235, 210, 0.7)";
+  ctx.beginPath();
+  ctx.ellipse(bead.screenX, bead.screenY + 20 + bob, 28 + pulse, 9, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255, 253, 245, 0.96)";
+  ctx.strokeStyle = profile.accent || "#286f58";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(bead.screenX, bead.screenY - 8 + bob, 15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = profile.accent || "#286f58";
+  ctx.font = "900 12px Microsoft YaHei";
+  ctx.fillText((profile.glyph || "灵").slice(0, 1), bead.screenX - 6, bead.screenY - 4 + bob);
+
+  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.82)" : "rgba(77, 145, 166, 0.46)";
+  ctx.lineWidth = active ? 2.5 : 1.8;
+  ctx.setLineDash([6, 7]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 10;
+  ctx.beginPath();
+  ctx.moveTo(spec.anchor.x, spec.anchor.y - 8);
+  ctx.quadraticCurveTo((spec.anchor.x + rect.x) / 2, rect.y + rect.height + 24 + bob, rect.x + 34, rect.y + rect.height - 12 + bob);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, rect.y + bob, rect.width, rect.height, "rgba(236, 248, 243, 0.94)");
+  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.84)" : "rgba(77, 145, 166, 0.52)";
+  ctx.lineWidth = active ? 2.6 : 1.6;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, rect.y + 1 + bob, rect.width - 2, rect.height - 2, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(77, 145, 166, 0.2)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, rect.y + 14 + bob, 48, 44, 15);
+  ctx.fill();
+  ctx.fillStyle = profile.accent || "#286f58";
+  ctx.font = "900 18px Microsoft YaHei";
+  ctx.fillText("浇", rect.x + 28, rect.y + 42 + bob);
+  ctx.fillStyle = "#4d91a6";
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title.slice(0, 18), rect.x + 74, rect.y + 24 + bob);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 18), rect.x + 74, rect.y + 47 + bob);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(spec.detail, rect.x + 74, rect.y + 65 + bob);
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.82)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, rect.y + rect.height - 28 + bob, rect.width - 32, 18, 9);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "800 10px Microsoft YaHei";
+  ctx.fillText(spec.cta.slice(0, 36), rect.x + 26, rect.y + rect.height - 16 + bob);
+  ctx.restore();
+  return true;
+}
