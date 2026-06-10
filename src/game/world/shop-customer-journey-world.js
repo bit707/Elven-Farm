@@ -622,6 +622,102 @@ export function shopTrialTheaterWorldAtCanvasPointWorld({
     : null;
 }
 
+export function shopFirstCustomerThresholdSafetyTextWorld() {
+  return "只回看旧铺报告和顾客旅线，不会自动开铺、上架、接客、成交、改价、补货、交单、扣库存或消耗资源";
+}
+
+export function shopFirstCustomerThresholdWorldSpecWorld({
+  opening = null,
+  journey = null,
+  report = [],
+  day = 1,
+  width = 960,
+  height = 640,
+  itemName = (itemId) => itemId || "今日主推货",
+  safety = shopFirstCustomerThresholdSafetyTextWorld(),
+} = {}) {
+  const session = opening?.lastSession?.day === day ? opening.lastSession : null;
+  const ledger = opening?.customerDecisionLedger || session?.customerDecisionLedger || null;
+  const activeJourney = journey || ledger || null;
+  if (!opening?.opened || !activeJourney?.active || !activeJourney.rows?.length) return null;
+  const firstRow = activeJourney.rows.find((row) => row.bought) || activeJourney.rows[0];
+  if (!firstRow) return null;
+  const firstReport = (Array.isArray(report) ? report : [])
+    .map((entry, reportIndex) => ({ ...entry, reportIndex }))
+    .find((entry) => entry.reason !== "diagnosis" && (!firstRow.name || entry.name === firstRow.name)) || null;
+  const bought = Boolean(firstRow.bought || firstReport?.reason === "buy");
+  const warned = Boolean(firstRow.warned || ["price", "stock", "tag"].includes(firstReport?.reason || ""));
+  const resultLabel = bought ? "买单成立" : warned ? "犹豫离店" : "留下线索";
+  const resultText = bought
+    ? firstRow.result || firstReport?.text || "递货收钱"
+    : warned
+      ? firstRow.reason || firstReport?.detail || firstReport?.text || "还没被说服"
+      : firstRow.result || firstRow.reason || "先记住这条顾客线索";
+  const priceText = bought && firstReport?.text
+    ? (firstReport.text.match(/成交\s*\d+/)?.[0] || "成交")
+    : bought
+      ? "预算对上"
+      : warned
+        ? activeJourney.blockerText || "价格/库存/标签卡住"
+        : "等待复盘";
+  const reportIndex = Number.isFinite(Number(firstReport?.reportIndex)) ? Number(firstReport.reportIndex) : -1;
+  const selector = reportIndex >= 0
+    ? `[data-shop-report-index="${Number(reportIndex)}"]`
+    : '[data-shop-board="customer-journey"]';
+  const cardWidth = 308;
+  const cardHeight = 122;
+  const x = Math.max(240, Math.min(width - cardWidth - 34, 316));
+  const y = Math.max(370, Math.min(height - cardHeight - 30, 454));
+  return {
+    key: `${day}:${firstRow.name}:${bought ? "buy" : warned ? "warn" : "note"}:${activeJourney.buyers}:${activeJourney.leavers}:${activeJourney.conversion}`,
+    day,
+    title: "首客过门三步桥 · 可点",
+    headline: `${firstRow.name || "第一位顾客"}已经走完整条门口判断`,
+    customerName: firstRow.name || activeJourney.mainCustomer || "第一位顾客",
+    hotTagLabel: activeJourney.hotTagLabel || opening.hotTagLabel || "旧铺需求",
+    itemName: firstReport?.itemId ? itemName(firstReport.itemId) : activeJourney.hotTagLabel || "今日主推货",
+    resultLabel,
+    resultText,
+    priceText,
+    reasonText: firstRow.reason || firstReport?.detail || "顾客把门口、货签和价签连起来判断。",
+    nextAction: firstRow.advice || activeJourney.nextAction || "明天先修正最明显的一处货架、价签或库存短板。",
+    bought,
+    warned,
+    reportIndex,
+    selector,
+    fallbackSelector: '[data-shop-board="customer-journey"]',
+    safety,
+    rect: { x, y, width: cardWidth, height: cardHeight },
+    anchor: { x: 154, y: 232 },
+    steps: [
+      { key: "threshold", badge: "门", title: "跨过门槛", text: firstRow.need || "进门看看", accent: "#4d91a6", state: "done" },
+      { key: "sign", badge: "牌", title: "先看货签", text: activeJourney.hotTagLabel || "热卖牌", accent: "#b47d2f", state: "done" },
+      { key: "decision", badge: bought ? "买" : warned ? "犹" : "记", title: resultLabel, text: priceText, accent: bought ? "#286f58" : warned ? "#be4f37" : "#8f5f3f", state: bought ? "good" : warned ? "warn" : "mid" },
+    ],
+  };
+}
+
+export function shopFirstCustomerThresholdWorldAtCanvasPointWorld({
+  px = 0,
+  py = 0,
+  spec = null,
+  entry = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? {
+      type: "first_customer_threshold",
+      label: spec.title,
+      selector: spec.selector,
+      fallbackSelector: spec.fallbackSelector,
+      firstCustomerThreshold: spec,
+      entry,
+      rect,
+    }
+    : null;
+}
+
 export function drawShopTrialTheaterWorldWorld({
   ctx,
   spec = null,
