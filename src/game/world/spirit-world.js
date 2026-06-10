@@ -3319,3 +3319,81 @@ export function drawSpiritSproutPreviewWorld({
   ctx.restore();
   return true;
 }
+
+export function drawSpiritSproutHeartbeatWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  beat = 0,
+  pulse = 0,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.preview || !spec?.labelRect) return false;
+  const { centerX, centerY, preview } = spec;
+
+  ctx.save();
+
+  const glow = ctx.createRadialGradient(centerX, centerY, 4, centerX, centerY, preview.tile * (1.08 + beat * 0.16));
+  glow.addColorStop(0, spec.soft);
+  glow.addColorStop(0.48, "rgba(246, 240, 182, 0.18)");
+  glow.addColorStop(1, "rgba(246, 240, 182, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.ellipse(centerX, centerY + 5, preview.tile * (0.92 + beat * 0.12), preview.tile * (0.38 + beat * 0.06), -0.05, 0, Math.PI * 2);
+  ctx.fill();
+
+  for (let ring = 0; ring < 3; ring += 1) {
+    const ringDone = ring <= spec.stageRank;
+    const ringPulse = ringDone ? beat * 8 + pulse * 0.45 : 0;
+    ctx.strokeStyle = ringDone ? `${spec.accent}${active ? "dd" : "99"}` : "rgba(143, 95, 63, 0.18)";
+    ctx.lineWidth = active && ringDone ? 3 : ringDone ? 2 : 1.4;
+    ctx.setLineDash(ringDone ? [7, 8] : [3, 7]);
+    ctx.lineDashOffset = reducedMotion ? 0 : -motion * (12 + ring * 3);
+    ctx.beginPath();
+    ctx.ellipse(
+      centerX,
+      centerY + 5,
+      preview.tile * (0.36 + ring * 0.2) + ringPulse,
+      preview.tile * (0.15 + ring * 0.075) + ringPulse * 0.25,
+      -0.04,
+      0,
+      Math.PI * 2,
+    );
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  for (let i = 0; i < 3; i += 1) {
+    const angle = motion * 1.1 + i * ((Math.PI * 2) / 3);
+    const radiusX = preview.tile * (0.48 + spec.stageRank * 0.08);
+    const radiusY = preview.tile * 0.24;
+    const moteX = centerX + Math.cos(angle) * radiusX;
+    const moteY = centerY + Math.sin(angle) * radiusY;
+    ctx.fillStyle = i <= spec.stageRank ? spec.accent : "rgba(255, 253, 245, 0.72)";
+    ctx.beginPath();
+    ctx.arc(moteX, moteY, i <= spec.stageRank ? 3.2 : 2.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const label = spec.labelRect;
+  const labelY = label.y + pulse * 0.18;
+  drawCanvasCard(ctx, label.x, labelY, label.width, label.height, active ? "rgba(255, 248, 232, 0.96)" : "rgba(255, 253, 245, 0.88)");
+  ctx.strokeStyle = active ? spec.accent : `${spec.accent}77`;
+  ctx.lineWidth = active ? 2.4 : 1.5;
+  ctx.beginPath();
+  ctx.roundRect(label.x + 1, labelY + 1, label.width - 2, label.height - 2, 13);
+  ctx.stroke();
+  ctx.fillStyle = spec.accent;
+  ctx.font = "900 10px Microsoft YaHei";
+  ctx.fillText(`${spec.title} · 可点`, label.x + 12, labelY + 14);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.beatText, label.x + 12, labelY + 29);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 13px Microsoft YaHei";
+  ctx.fillText(spec.glyph, label.x + label.width - 28, labelY + 25);
+  ctx.restore();
+  return true;
+}
