@@ -47,6 +47,7 @@ import {
   drawDengyingLanternPathWorld,
   drawShuqiLedgerDeskWorld,
   drawFengmiHoneyYardWorld,
+  drawSpiritSproutPreviewWorld,
   drawSpiritInteractionWorldEchoWorld,
   drawSpiritInteractionMemoryTriptychWorldWorld,
   drawSpiritJobEffectWorld,
@@ -77960,59 +77961,19 @@ function drawFengmiHoneyYard(ctx, spec = fengmiHoneyYardSpec(), motion = setting
 function drawSpiritSproutPreview(ctx, originX, originY, tile, gap) {
   const spec = spiritSproutPreviewWorldSpec(originX, originY, tile, gap);
   if (!spec) return;
-  const { sprout, x, y, cardWidth } = spec;
+  const { sprout } = spec;
   const motion = settings.reducedMotion ? 0 : performance.now() / 360;
   const bob = settings.reducedMotion ? 0 : Math.sin(motion) * 4;
   const tremble = sprout.stage === "tremble" && !settings.reducedMotion ? Math.sin(motion * 3) * 3 : 0;
   const label = sprout.stage === "born" ? "成精了" : sprout.stage === "peek" ? "探头" : "?";
-
-  ctx.save();
-  ctx.fillStyle = "rgba(245, 240, 182, 0.34)";
-  ctx.beginPath();
-  ctx.ellipse(x + tile / 2, y + tile * 0.55, tile * 0.42, tile * 0.22, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(246, 240, 182, 0.72)";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(x + tile / 2, y + tile * 0.48, tile * 0.38, 0.1, Math.PI * 1.9);
-  ctx.stroke();
-
-  if (sprout.stage === "peek" || sprout.stage === "born") {
-    ctx.fillStyle = sprout.stage === "born" ? "#fffdf5" : "#f5f0b6";
-    ctx.beginPath();
-    ctx.arc(x + tile / 2 + tremble, y + tile * 0.42 + bob, tile * 0.18, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#286f58";
-    ctx.beginPath();
-    ctx.arc(x + tile * 0.43 + tremble, y + tile * 0.39 + bob, 3.5, 0, Math.PI * 2);
-    ctx.arc(x + tile * 0.57 + tremble, y + tile * 0.39 + bob, 3.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "#286f58";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(x + tile / 2 + tremble, y + tile * 0.45 + bob, 7, 0.2, Math.PI - 0.2);
-    ctx.stroke();
-    ctx.fillStyle = "#48a868";
-    ctx.beginPath();
-    ctx.ellipse(x + tile * 0.38, y + tile * 0.25 + bob, 10, 5, -0.6, 0, Math.PI * 2);
-    ctx.ellipse(x + tile * 0.62, y + tile * 0.25 + bob, 10, 5, 0.6, 0, Math.PI * 2);
-    ctx.fill();
-  } else {
-    ctx.fillStyle = "#48a868";
-    ctx.beginPath();
-    ctx.ellipse(x + tile * 0.43 + tremble, y + tile * 0.45 + bob, 13, 6, -0.4, 0, Math.PI * 2);
-    ctx.ellipse(x + tile * 0.58 + tremble, y + tile * 0.42 + bob, 13, 6, 0.4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  drawCanvasCard(ctx, x + tile * 0.42, y - 32 + bob, cardWidth, 32, "rgba(255, 253, 245, 0.9)");
-  ctx.fillStyle = sprout.stage === "born" ? "#be4f37" : "#286f58";
-  ctx.font = "700 14px Microsoft YaHei";
-  ctx.fillText(label, x + tile * 0.42 + 11, y - 13 + bob);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText("可点", x + tile * 0.42 + cardWidth - 27, y - 13 + bob);
-  ctx.restore();
+  return drawSpiritSproutPreviewWorld({
+    ctx,
+    spec,
+    bob,
+    tremble,
+    label,
+    drawCanvasCard,
+  });
 }
 
 function drawSpiritSproutHeartbeatWorld(ctx, originX, originY, tile, gap) {

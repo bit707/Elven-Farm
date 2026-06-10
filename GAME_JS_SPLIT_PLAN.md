@@ -312,6 +312,7 @@ npm run verify
 - 已完成：`drawDengyingLanternPath` 的“灯影灯路/隐路可交互提示卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`dengyingLanternPathSpec`、Canvas 命中、聚焦状态、palette/motion/glyph/card 注入仍留在 `src/game.js`。
 - 已完成：`drawShuqiLedgerDesk` 的“书契账册桌案/低库存账签提示卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`shuqiLedgerDeskSpec`、Canvas 命中、聚焦状态、palette/motion/glyph/card 与 `itemName` 注入仍留在 `src/game.js`。
 - 已完成：`drawFengmiHoneyYard` 的“蜂蜜庭院/甜点宴席可交互提示卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`fengmiHoneyYardSpec`、Canvas 命中、聚焦状态、palette/motion/glyph/card 注入仍留在 `src/game.js`。
+- 已完成：`drawSpiritSproutPreview` 的“萝卜苗成精预览/可点小卡”Canvas 绘制实现继续拆到 `src/game/world/spirit-world.js`，`spiritSproutPreviewWorldSpec`、Canvas 命中、聚焦状态、motion/bob/tremble/label 与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`tools/build-runtime-data.mjs` 已适配新数据清单模块，并保留旧 `src/game.js` 内联清单 fallback。
 - 已完成：`tools/package-standalone.mjs` 已内联 `src/game/**` 本地模块，避免离线单文件包被 ESM import 破坏。
 - 已完成：`tools/verify.mjs` 已把拆分模块纳入静态审计，避免门禁继续假设所有内容必须留在 `src/game.js`。
