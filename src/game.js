@@ -213,6 +213,8 @@ import {
   shopCustomerLessonMorningFollowupWorldAtCanvasPointWorld,
   shopCustomerLessonVerificationEchoWorldAtCanvasPointWorld,
   shopCustomerLessonVerificationEchoWorldSpecWorld,
+  shopReturningTrailWorldAtCanvasPointWorld,
+  shopReturningTrailWorldSpecWorld,
   shopTrialTheaterWorldAtCanvasPointWorld,
   shopTrialTheaterWorldSpecWorld,
   drawShopTrialTheaterWorldWorld,
@@ -33139,68 +33141,20 @@ function shopReturningTrailWorldSpec(opening = normalizeShopOpeningState(state.s
   const safeOpening = normalizeShopOpeningState(opening);
   const digest = shopReturningVisitDigestSpec(safeOpening);
   const regularBoard = shopRegularBoardSpec(safeOpening);
-  const digestRow = digest?.rows?.[0] || null;
-  const regularRow = regularBoard?.rows?.[0] || null;
-  if (!digestRow && !regularRow) return null;
-  const realized = Boolean(digestRow);
-  const customerLabel = digestRow?.customerLabel || regularRow?.customerLabel || "熟脸顾客";
-  const chance = Math.max(0, Number(digestRow?.chance || digestRow?.returnVisitChance || regularRow?.chance || 0));
-  const itemText = digestRow?.itemName
-    || safeOpening.firstSale?.itemName
-    || safeOpening.lastSession?.liveFocus?.topItemName
-    || regularBoard?.hotTagLabel
-    || "应季货";
-  const resultText = digestRow
-    ? digestRow.bought
-      ? `${customerLabel} 又买走 ${digestRow.itemName || itemText}`
-      : `${customerLabel} 回门看货`
-    : `${customerLabel} 回头苗头 ${chance}%`;
-  const detailText = digestRow?.resultText
-    || digestRow?.arrivalText
-    || regularRow?.quote
-    || regularBoard?.headline
-    || `${customerLabel}已经把旧铺和${itemText}连在一起。`;
-  const nextAction = digest?.nextAction
-    || regularRow?.detail
-    || regularBoard?.nextAction
-    || `明天继续把 ${itemText} 留在显眼处。`;
-  return {
-    key: `${state.day}:${customerLabel}:${itemText}:${chance}:${realized ? "returned" : "preview"}:returning_trail`,
-    day: state.day,
-    title: realized ? "熟脸回门路牌 · 可点" : "明日熟脸路牌 · 可点",
-    headline: realized ? "昨天的脚步真的回来了" : "这条回头路可以接住",
-    customerLabel,
-    itemText,
-    chance,
-    realized,
-    resultText,
-    detailText,
-    nextAction,
+  return shopReturningTrailWorldSpecWorld({
+    opening: safeOpening,
     digest,
     regularBoard,
-    row: digestRow || regularRow,
-    selector: '[data-shop-board="opening"]',
-    fallbackSelector: '[data-shop-board="customer-focus"]',
-    rect: { x: 596, y: 350, width: 292, height: 108 },
-    anchor: { x: 214, y: 226 },
-    accent: realized ? "#286f58" : chance >= 60 ? "#286f58" : chance >= 45 ? "#b47d2f" : "#8f5f3f",
-  };
+    day: state.day,
+  });
 }
 
 function shopReturningTrailWorldAtCanvasPoint(px, py) {
-  const spec = shopReturningTrailWorldSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? {
-      type: "returning_trail",
-      label: spec.title,
-      selector: spec.selector,
-      fallbackSelector: spec.fallbackSelector,
-      returningTrail: spec,
-      rect,
-    }
-    : null;
+  return shopReturningTrailWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: shopReturningTrailWorldSpec(),
+  });
 }
 
 function drawShopReturningTrailWorld(ctx, spec = shopReturningTrailWorldSpec(), motion = 0) {
