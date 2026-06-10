@@ -131,10 +131,13 @@ import { drawNewPlayerTutorWorldWorld } from "./game/world/new-player-tutor-worl
 import {
   drawShopCustomerLessonMorningFollowupWorldWorld,
   drawShopCustomerLessonVerificationEchoWorldWorld,
+  drawShopFirstCustomerThresholdWorldWorld,
   drawShopFirstSaleActionTrailWorldWorld,
   drawShopFirstSaleKeepsakeWorldWorld,
+  drawShopFirstSaleLessonWorldWorld,
   drawShopReturningTrailWorldWorld,
   drawShopThoughtRouteWorldCardWorld,
+  drawShopTrialTheaterWorldWorld,
 } from "./game/world/shop-customer-journey-world.js";
 import {
   drawShopWordOfMouthFollowupRestockWorldWorld,
@@ -33947,102 +33950,15 @@ function shopTrialTheaterWorldAtCanvasPoint(px, py) {
 
 function drawShopTrialTheaterWorld(ctx, spec = shopTrialTheaterWorldSpec(), motion = 0) {
   if (!spec?.rect) return false;
-  const { rect } = spec;
-  const accent = {
-    good: "#286f58",
-    warn: "#be4f37",
-    ready: "#b47d2f",
-    empty: "#8f5f3f",
-  }[spec.tone] || "#b47d2f";
-  const fill = spec.tone === "good"
-    ? "rgba(237, 243, 223, 0.94)"
-    : spec.tone === "warn"
-      ? "rgba(255, 240, 232, 0.95)"
-      : "rgba(255, 248, 232, 0.95)";
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.05) * 2;
-  const cardY = rect.y + pulse;
-  const focused = shopTrialTheaterWorldFocus?.day === state.day && shopTrialTheaterWorldFocus?.key === spec.key;
-
-  ctx.save();
-  ctx.strokeStyle = focused ? `${accent}cc` : `${accent}66`;
-  ctx.lineWidth = focused ? 3 : 2;
-  ctx.setLineDash([8, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 12;
-  ctx.beginPath();
-  ctx.moveTo(spec.anchor.x, spec.anchor.y);
-  ctx.quadraticCurveTo(rect.x + 24, cardY - 22, rect.x + 34, cardY + 18);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, fill);
-  ctx.strokeStyle = focused ? accent : `${accent}88`;
-  ctx.lineWidth = focused ? 3 : 1.8;
-  ctx.beginPath();
-  ctx.roundRect(rect.x, cardY, rect.width, rect.height, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = `${accent}22`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 52, 48, 14);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 20px Microsoft YaHei";
-  ctx.fillText(spec.tone === "good" ? "买" : spec.tone === "warn" ? "问" : "客", rect.x + 29, cardY + 45);
-  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 20, cardY + 53, 40, 15, 8);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + 30, cardY + 64);
-
-  ctx.fillStyle = accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(spec.title.slice(0, 19), rect.x + 78, cardY + 22);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 20), rect.x + 78, cardY + 45);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText(`热卖标签 ${spec.hotTagLabel || "待观察"} · ${spec.leadCustomer}`.slice(0, 34), rect.x + 78, cardY + 62);
-
-  const lineY = cardY + 82;
-  ctx.strokeStyle = `${accent}44`;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(rect.x + 26, lineY);
-  ctx.lineTo(rect.x + rect.width - 28, lineY);
-  ctx.stroke();
-  spec.steps.forEach((step, index) => {
-    const dotX = rect.x + 42 + index * 104;
-    const stateColor = step.state === "good" ? "#286f58" : step.state === "warn" ? "#be4f37" : step.state === "done" ? accent : "#8f5f3f";
-    ctx.fillStyle = ["good", "warn", "done"].includes(step.state) ? stateColor : "rgba(255, 253, 245, 0.96)";
-    ctx.strokeStyle = `${stateColor}88`;
-    ctx.lineWidth = index === 2 && ["good", "warn"].includes(step.state) ? 2.5 : 1.4;
-    ctx.beginPath();
-    ctx.arc(dotX, lineY, index === 2 ? 8 : 6.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = ["good", "warn", "done"].includes(step.state) ? "#fffdf5" : stateColor;
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(String(index + 1), dotX - 3, lineY + 3);
-    ctx.fillStyle = stateColor;
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(step.label.slice(0, 5), dotX - 20, lineY - 12);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(String(step.text || step.title).slice(0, 10), dotX - 28, lineY + 18);
+  const active = shopTrialTheaterWorldFocus?.day === state.day && shopTrialTheaterWorldFocus?.key === spec.key;
+  return drawShopTrialTheaterWorldWorld({
+    ctx,
+    spec,
+    motion,
+    active,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 16, cardY + rect.height - 19, rect.width - 32, 15, 8);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText(`只定位旧铺报告，不会自动开铺、改价或补货 · ${spec.nextAction}`.slice(0, 42), rect.x + 24, cardY + rect.height - 8);
-  ctx.restore();
-  return true;
 }
 
 function shopFirstCustomerThresholdSafetyText() {
@@ -34131,107 +34047,16 @@ function shopFirstCustomerThresholdWorldAtCanvasPoint(px, py) {
 
 function drawShopFirstCustomerThresholdWorld(ctx, spec = shopFirstCustomerThresholdWorldSpec(), motion = 0) {
   if (!spec?.rect) return false;
-  const { rect, anchor } = spec;
-  const focused = shopFirstCustomerThresholdWorldFocus?.day === state.day
+  const active = shopFirstCustomerThresholdWorldFocus?.day === state.day
     && shopFirstCustomerThresholdWorldFocus?.key === spec.key;
-  const accent = spec.bought ? "#286f58" : spec.warned ? "#be4f37" : "#b47d2f";
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.7) * 2.1;
-  const cardY = rect.y + bob;
-
-  ctx.save();
-  ctx.strokeStyle = focused ? `${accent}dd` : `${accent}66`;
-  ctx.lineWidth = focused ? 3.1 : 1.9;
-  ctx.setLineDash([7, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 13;
-  ctx.beginPath();
-  ctx.moveTo(anchor.x, anchor.y + 14);
-  ctx.bezierCurveTo(anchor.x + 90, anchor.y + 18, rect.x - 34, cardY + 52, rect.x + 26, cardY + 72);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  const footprintPath = [
-    { x: anchor.x + 20, y: anchor.y + 34 },
-    { x: rect.x - 10, y: cardY + 80 },
-    { x: rect.x + 42, y: cardY + 86 },
-  ];
-  footprintPath.forEach((point, index) => {
-    const lift = settings.reducedMotion ? 0 : Math.sin(motion * 2 + index) * 1.4;
-    ctx.fillStyle = index % 2 ? "rgba(77, 145, 166, 0.32)" : "rgba(180, 125, 47, 0.34)";
-    ctx.beginPath();
-    ctx.ellipse(point.x, point.y + lift, 9, 4.5, index % 2 ? -0.35 : 0.28, 0, Math.PI * 2);
-    ctx.fill();
+  return drawShopFirstCustomerThresholdWorldWorld({
+    ctx,
+    spec,
+    motion,
+    active,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
   });
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, spec.warned ? "rgba(255, 240, 232, 0.95)" : "rgba(255, 253, 245, 0.96)");
-  ctx.strokeStyle = focused ? `${accent}ee` : `${accent}88`;
-  ctx.lineWidth = focused ? 2.8 : 1.7;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = `${accent}20`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 16, 54, 54, 16);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 21px Microsoft YaHei";
-  ctx.fillText(spec.bought ? "客" : spec.warned ? "问" : "记", rect.x + 31, cardY + 50);
-  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 21, cardY + 58, 40, 16, 8);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + 31, cardY + 70);
-
-  ctx.fillStyle = accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(spec.title.slice(0, 18), rect.x + 82, cardY + 24);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 14px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 20), rect.x + 82, cardY + 45);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText(`${spec.hotTagLabel} · ${spec.itemName} · ${spec.resultLabel}`.slice(0, 35), rect.x + 82, cardY + 62);
-
-  const lineY = cardY + 84;
-  ctx.strokeStyle = `${accent}42`;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(rect.x + 31, lineY);
-  ctx.lineTo(rect.x + rect.width - 32, lineY);
-  ctx.stroke();
-
-  spec.steps.forEach((step, index) => {
-    const dotX = rect.x + 42 + index * 102;
-    const stateColor = step.accent;
-    ctx.fillStyle = ["good", "warn", "done"].includes(step.state) ? stateColor : "rgba(255, 253, 245, 0.96)";
-    ctx.strokeStyle = `${stateColor}88`;
-    ctx.lineWidth = index === 2 ? 2.5 : 1.4;
-    ctx.beginPath();
-    ctx.arc(dotX, lineY, index === 2 ? 8 : 6.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = ["good", "warn", "done"].includes(step.state) ? "#fffdf5" : stateColor;
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(step.badge, dotX - 4, lineY + 3);
-    ctx.fillStyle = stateColor;
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(step.title.slice(0, 5), dotX - 22, lineY - 12);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(String(step.text || "").slice(0, 10), dotX - 28, lineY + 18);
-  });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 16, cardY + rect.height - 18, rect.width - 32, 13, 7);
-  ctx.fill();
-  ctx.fillStyle = spec.warned ? "#be4f37" : "#286f58";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText(`${spec.resultText} · ${spec.safety}`.slice(0, 48), rect.x + 24, cardY + rect.height - 9);
-  ctx.restore();
-  return true;
 }
 
 function shopFirstSaleReceiptWorldSpec(opening = normalizeShopOpeningState(state.shopOpeningState)) {
@@ -34351,101 +34176,15 @@ function shopFirstSaleLessonWorldAtCanvasPoint(px, py) {
 
 function drawShopFirstSaleLessonWorld(ctx, spec = shopFirstSaleLessonWorldSpec(), motion = 0) {
   if (!spec?.rect) return false;
-  const { rect } = spec;
-  const focused = shopFirstSaleLessonWorldFocus?.day === state.day && shopFirstSaleLessonWorldFocus?.key === spec.key;
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.3) * 2;
-  const cardY = rect.y + pulse;
-  const accent = spec.accent || "#b47d2f";
-
-  ctx.save();
-  ctx.strokeStyle = focused ? `${accent}cc` : `${accent}66`;
-  ctx.lineWidth = focused ? 3 : 2;
-  ctx.setLineDash([8, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 12;
-  ctx.beginPath();
-  ctx.moveTo(spec.anchor.x, spec.anchor.y);
-  ctx.quadraticCurveTo(rect.x - 24, cardY + 42, rect.x + 26, cardY + 78);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
-  ctx.strokeStyle = focused ? accent : `${accent}88`;
-  ctx.lineWidth = focused ? 2.8 : 1.8;
-  ctx.beginPath();
-  ctx.roundRect(rect.x, cardY, rect.width, rect.height, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = `${accent}22`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 54, 50, 15);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 21px Microsoft YaHei";
-  ctx.fillText("因", rect.x + 31, cardY + 46);
-  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 20, cardY + 53, 42, 15, 8);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + 31, cardY + 64);
-
-  ctx.fillStyle = accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(spec.title.slice(0, 18), rect.x + 82, cardY + 22);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 18), rect.x + 82, cardY + 45);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText(`${spec.itemName} · 成交 ${spec.price || 0} 灵石`.slice(0, 30), rect.x + 82, cardY + 62);
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 82, cardY + 68, rect.width - 98, 18, 9);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText("成交原因四格 · 玩家能说出首单原因", rect.x + 94, cardY + 81);
-
-  const proofY = cardY + 94;
-  const proofColors = {
-    need: "#4d91a6",
-    goods: "#286f58",
-    price: "#b47d2f",
-    next: "#8f5f3f",
-  };
-  (spec.reasonProofs || []).slice(0, 4).forEach((proof, index) => {
-    const col = index % 2;
-    const row = Math.floor(index / 2);
-    const proofX = rect.x + 16 + col * 154;
-    const boxY = proofY + row * 28;
-    const proofW = col === 0 ? 142 : 150;
-    const toneColor = proofColors[proof.tone] || accent;
-    ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
-    ctx.strokeStyle = `${toneColor}44`;
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.roundRect(proofX, boxY, proofW, 22, 10);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = toneColor;
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(proof.label, proofX + 8, boxY + 9);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(String(proof.text || "").slice(0, col === 0 ? 12 : 13), proofX + 8, boxY + 19);
+  const active = shopFirstSaleLessonWorldFocus?.day === state.day && shopFirstSaleLessonWorldFocus?.key === spec.key;
+  return drawShopFirstSaleLessonWorldWorld({
+    ctx,
+    spec,
+    motion,
+    active,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 16, cardY + rect.height - 20, rect.width - 32, 15, 8);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText(`回头苗头 ${spec.returnChance || 0}% · ${spec.safety}`.slice(0, 52), rect.x + 24, cardY + rect.height - 9);
-  ctx.restore();
-  return true;
 }
 
 function shopFirstSaleKeepsakeWorldSpec(opening = normalizeShopOpeningState(state.shopOpeningState)) {
