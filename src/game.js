@@ -206,6 +206,9 @@ import {
   shopRestockRunnerWorldAtCanvasPointWorld,
   shopRestockRunnerWorldFocusLogSpecWorld,
   shopRestockRunnerWorldSpecWorld,
+  shopShelfPrepWorldBoardAtCanvasPointWorld,
+  shopShelfPrepWorldBoardFocusLogSpecWorld,
+  shopShelfPrepWorldBoardSpecWorld,
   shopSpiritGreeterActionCopyWorld,
   shopSpiritGreeterWorldAtCanvasPointWorld,
   shopSpiritGreeterWorldFocusLogSpecWorld,
@@ -31901,7 +31904,6 @@ function shopWordOfMouthReadyShelfEchoSpec(goods = sellableInventoryGoods(), wor
 
 function shopShelfPrepWorldBoardSpec(width = 960, height = 640) {
   const goods = sellableInventoryGoods();
-  if (!goods.length) return null;
   const opening = normalizeShopOpeningState(state.shopOpeningState);
   const ecologyGarden = ecologyCourtyardSummary();
   const theme = currentShelfTheme();
@@ -31909,105 +31911,41 @@ function shopShelfPrepWorldBoardSpec(width = 960, height = 640) {
   const weatherReaction = shopWeatherCustomerReactionSpec({ opening });
   const weatherShelf = shopWeatherShelfRecommendationSpec(weatherReaction, goods, ecologyGarden);
   const wordShelf = shopWordOfMouthShelfPrepSpec(goods, shopWordOfMouthDisplaySpec(state.day), ecologyGarden);
-  const fallbackGood = goods[0]
-    ? {
-      itemId: goods[0].itemId,
-      itemName: itemName(goods[0].itemId),
-      count: Number(goods[0].count || 0),
-      tagText: shopTagsForItem(goods[0].item || goods[0].itemId, ecologyGarden).slice(0, 3).map(shopTagLabel).join(" / ") || "应季货",
-      customerText: "第一批路过客",
-    }
-    : null;
-  const topGood = wordShelf?.topGood
-    || diagnosis?.featuredGoods?.[0]
-    || weatherShelf?.topGoods?.[0]
-    || fallbackGood;
-  if (!topGood?.itemId) return null;
-  const itemTags = shopTagsForItem(data.itemsById.get(topGood.itemId) || topGood.itemId, ecologyGarden);
-  const themeScore = Math.max(0, Number(diagnosis?.themeScore || 0));
-  const minThemeScore = Math.max(0, Number(diagnosis?.minThemeScore || 0));
-  const customerTarget = diagnosis?.customerTargets?.[0] || null;
-  const activeSegment = activeCustomerSegments()[0] || null;
-  const customerName = wordShelf?.customerName
-    || customerTarget?.name
-    || topGood.customerText
-    || (activeSegment?.customer_archetype ? customerDisplayName(activeSegment.customer_archetype) : "第一批路过客");
-  const customerText = wordShelf ? `${wordShelf.sourceLabel}传来的${wordShelf.hotTagLabel}客` : customerTarget?.tagText || topGood.customerText || "先用应季货测试脚步";
-  const hotTag = wordShelf?.hotTag
-    || diagnosis?.hotTag
-    || weatherShelf?.desiredTags?.[0]
-    || splitTags(theme?.required_item_tags || "")[0]
-    || itemTags[0]
-    || "";
-  const hotTagLabel = wordShelf?.hotTagLabel || diagnosis?.hotTagLabel || (hotTag ? shopTagLabel(hotTag) : topGood.tagText || "应季货");
-  const weatherFocus = !wordShelf && Boolean(weatherShelf?.active && weatherShelf.topGoods?.some((good) => good.itemId === topGood.itemId));
-  const selector = wordShelf?.selector || (weatherFocus ? '[data-shop-board="weather-shelf"]' : '[data-shop-board="display-diagnosis"]');
-  const themeReady = themeScore >= Math.max(1, minThemeScore);
-  const tone = wordShelf
-    ? wordShelf.ready ? "ready" : "focus"
-    : diagnosis?.tone === "warn" || (weatherShelf?.tone === "warn" && !weatherFocus)
-    ? "warn"
-    : themeReady && Number(topGood.count || 0) >= 2
-      ? "ready"
-      : "focus";
-  const openingExpectation = wordShelf?.openingExpectation || (weatherFocus
-    ? `${weatherShelf.weatherName}客会先看${weatherShelf.title}`
-    : themeReady
-      ? `${customerName}更容易被${hotTagLabel}留住`
-      : `先看陈列诊断，补齐${diagnosis?.missingTagText || hotTagLabel}`);
-  const advice = wordShelf?.advice
-    || diagnosis?.advice
-    || weatherShelf?.actionText
-    || "先把主推货放到头排，再决定是否开铺。";
-  const cardWidth = 292;
-  const cardHeight = 124;
-  const x = Math.max(42, Math.min(width - cardWidth - 36, 70));
-  const y = Math.max(96, Math.min(height - cardHeight - 48, 118));
-  return {
-    active: true,
-    key: `${state.day}:${topGood.itemId}:${topGood.count}:${theme?.theme_tag || "shop"}:${themeScore}:${weatherShelf?.kind || "daily"}:${wordShelf?.sourceId || "normal"}`,
+  return shopShelfPrepWorldBoardSpecWorld({
+    goods,
     day: state.day,
-    title: wordShelf ? "主世界来帖头排推荐" : "主世界旧铺上架推荐",
-    cta: wordShelf ? "来帖头排 · 可点" : "旧铺主推 · 可点",
-    itemId: topGood.itemId,
-    itemName: topGood.itemName || itemName(topGood.itemId),
-    count: Number(topGood.count || 0),
-    tagText: wordShelf?.tagText || topGood.tagText || itemTags.slice(0, 3).map(shopTagLabel).join(" / ") || hotTagLabel,
-    themeName: diagnosis?.themeName || theme?.note || state.shopShelfTheme || "旧铺主题",
-    themeScore,
-    minThemeScore,
-    hotTag,
-    hotTagLabel,
-    customerName,
-    customerText,
-    weatherText: weatherShelf?.active ? `${weatherShelf.weatherName} · ${weatherShelf.title}` : "日常客流 · 看陈列",
-    openingExpectation,
-    advice,
-    selector,
-    weatherFocus,
-    wordOfMouthFocus: Boolean(wordShelf),
-    wordOfMouthLabel: wordShelf?.label || "",
-    safeNote: wordShelf ? "只定位旧铺市闻和来帖，不会自动开铺、接客、成交、改价、补货或消耗库存" : "不会自动开铺或消耗库存",
-    tone,
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: 154, y: 232 },
-  };
+    width,
+    height,
+    opening,
+    ecologyGarden,
+    theme,
+    diagnosis,
+    weatherReaction,
+    weatherShelf,
+    wordShelf,
+    shelfThemeName: state.shopShelfTheme,
+    itemName,
+    resolveItemForTags: (itemId) => data.itemsById.get(itemId) || itemId,
+    shopTagsForItem,
+    shopTagLabel,
+    splitTags,
+    activeCustomerSegments,
+    customerDisplayName,
+  });
 }
 
 function shopShelfPrepWorldBoardAtCanvasPoint(px, py) {
   const spec = shopShelfPrepWorldBoardSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return shopShelfPrepWorldBoardAtCanvasPointWorld({
+    px,
+    py,
+    spec,
+  });
 }
 
 function focusShopShelfPrepWorldBoardFromCanvas(spec = shopShelfPrepWorldBoardSpec()) {
   if (!spec?.itemId) return false;
+  const logSpec = shopShelfPrepWorldBoardFocusLogSpecWorld({ spec });
   shopShelfPrepWorldBoardFocus = { key: spec.key, day: state.day, itemId: spec.itemId };
   if (settings.panelGroup !== "core") {
     settings.panelGroup = "core";
@@ -32016,17 +31954,15 @@ function focusShopShelfPrepWorldBoardFromCanvas(spec = shopShelfPrepWorldBoardSp
   shopFocusTarget = {
     selector: spec.selector || '[data-shop-board="display-diagnosis"]',
     fallbackSelector: "#shopReport",
-    missingTitle: spec.wordOfMouthFocus ? "点选来帖头排推荐" : "点选旧铺上架推荐",
-    missingLog: spec.wordOfMouthFocus
+    missingTitle: logSpec?.missingTitle || (spec.wordOfMouthFocus ? "点选来帖头排推荐" : "点选旧铺上架推荐"),
+    missingLog: logSpec?.missingLog || (spec.wordOfMouthFocus
       ? "来帖头排牌已经点到，但右侧市闻/来帖卡暂时没有找到；先确认核心试玩分组是否可见。"
-      : "旧铺主推牌已经点到，但右侧陈列诊断暂时没有找到；先确认核心试玩分组是否可见。",
+      : "旧铺主推牌已经点到，但右侧陈列诊断暂时没有找到；先确认核心试玩分组是否可见。"),
   };
   playCue("对话翻页");
   addLog(
-    spec.wordOfMouthFocus ? "点选来帖头排推荐" : "点选旧铺上架推荐",
-    spec.wordOfMouthFocus
-      ? `${spec.itemName} x${spec.count} 适合接住${spec.wordOfMouthLabel || "铺前来帖"}，目标客群：${spec.customerName}。已定位旧铺市闻/来帖卡，${spec.safeNote}。`
-      : `${spec.itemName} x${spec.count} 适合做今日主推，主题 ${spec.themeName} ${spec.themeScore}%；目标客群：${spec.customerName}。已定位旧铺${spec.weatherFocus ? "天气货签" : "陈列诊断"}，${spec.safeNote}。`,
+    logSpec?.title || (spec.wordOfMouthFocus ? "点选来帖头排推荐" : "点选旧铺上架推荐"),
+    logSpec?.detail || "",
   );
   render();
   return true;
