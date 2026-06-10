@@ -1950,3 +1950,71 @@ export function drawRareSpiritDailyStageWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function drawRareSpiritWorldInvitationWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  pulse = 0,
+  palette = {},
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+  drawRareSpiritTheaterGlyph = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.slot) return false;
+  const { rect, slot } = spec;
+
+  ctx.save();
+  ctx.strokeStyle = `${palette.accent}88`;
+  ctx.lineWidth = 2.3;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 12;
+  ctx.beginPath();
+  ctx.moveTo(slot.anchorX, slot.anchorY);
+  ctx.quadraticCurveTo(rect.x + 32, rect.y + rect.height + 24 + pulse, rect.x + 44, rect.y + rect.height - 6 + pulse);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = palette.soft;
+  ctx.beginPath();
+  ctx.ellipse(slot.anchorX, slot.anchorY + 12, 58 + pulse, 16, -0.08, 0, Math.PI * 2);
+  ctx.fill();
+  drawRareSpiritTheaterGlyph(ctx, spec.lineId, slot.anchorX, slot.anchorY - 12 + pulse * 0.35, motion);
+
+  drawCanvasCard(ctx, rect.x, rect.y + pulse, rect.width, rect.height, palette.fill);
+  ctx.strokeStyle = `${palette.accent}bb`;
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.roundRect(rect.x, rect.y + pulse, rect.width, rect.height, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = palette.soft;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, rect.y + 14 + pulse, 62, 62, 17);
+  ctx.fill();
+  drawRareSpiritTheaterGlyph(ctx, spec.lineId, rect.x + 45, rect.y + 45 + pulse, motion);
+  ctx.fillStyle = palette.accent;
+  ctx.font = "800 10px Microsoft YaHei";
+  ctx.fillText("可点", rect.x + 30, rect.y + 76 + pulse);
+
+  ctx.fillStyle = palette.accent;
+  ctx.font = "800 13px Microsoft YaHei";
+  ctx.fillText(spec.title.slice(0, 15), rect.x + 88, rect.y + 23 + pulse);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 17), rect.x + 88, rect.y + 46 + pulse);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(spec.detail.slice(0, 31), rect.x + 88, rect.y + 65 + pulse);
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.84)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, rect.y + 78 + pulse, rect.width - 32, 17, 8);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "700 10px Microsoft YaHei";
+  const queueText = spec.count > 1 ? `另有 ${spec.count - 1} 条可推进：${spec.nextEvents.join(" / ")}` : `奖励 ${spec.rewardText}`;
+  ctx.fillText(`${spec.actionText} · ${queueText}`.slice(0, 36), rect.x + 26, rect.y + 90 + pulse);
+  ctx.restore();
+  return true;
+}
