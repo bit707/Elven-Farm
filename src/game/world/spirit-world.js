@@ -3944,3 +3944,77 @@ export function drawFirstSpiritPromiseWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function drawFirstSpiritJoinTriptychWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  bob = 0,
+  active = false,
+  activeNodeKey = "",
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+  drawSpiritSprite = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec?.nodes?.length || !spec?.profile || !spec?.anchor) return false;
+  const { rect, profile } = spec;
+  const cardY = rect.y + bob;
+
+  ctx.save();
+  ctx.strokeStyle = active ? `${profile.accent}cc` : `${profile.accent}88`;
+  ctx.lineWidth = active ? 2.8 : 1.6;
+  ctx.setLineDash(active ? [8, 5] : [5, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 8;
+  ctx.beginPath();
+  ctx.moveTo(spec.anchor.x, spec.anchor.y);
+  ctx.quadraticCurveTo(rect.x + 36, cardY + 22, rect.x + 18, cardY + 44);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = profile.accent;
+  ctx.beginPath();
+  ctx.arc(spec.anchor.x, spec.anchor.y, active ? 6 : 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 253, 245, 0.9)");
+  ctx.fillStyle = profile.glow || "rgba(246, 240, 182, 0.22)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 46, 46, 16);
+  ctx.fill();
+  drawSpiritSprite(ctx, spec.spirit, rect.x + 17, cardY + 12, 42);
+  ctx.fillStyle = profile.accent;
+  ctx.font = "900 13px Microsoft YaHei";
+  ctx.fillText("入队三拍", rect.x + 72, cardY + 28);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 13px Microsoft YaHei";
+  ctx.fillText(spec.title.replace(" · 可点", "").slice(0, 14), rect.x + 72, cardY + 48);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 28), rect.x + 72, cardY + 64);
+
+  spec.nodes.forEach((node, index) => {
+    const nodeActive = activeNodeKey === node.key;
+    const nodeBob = reducedMotion ? 0 : Math.sin(motion * 1.4 + index) * 0.8;
+    ctx.fillStyle = nodeActive ? "rgba(255, 248, 232, 0.98)" : "rgba(255, 248, 232, 0.74)";
+    ctx.strokeStyle = nodeActive ? profile.accent : "rgba(143, 95, 63, 0.32)";
+    ctx.lineWidth = nodeActive ? 2 : 1;
+    ctx.beginPath();
+    ctx.roundRect(node.rect.x, node.rect.y + bob + nodeBob, node.rect.width, node.rect.height, 13);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = profile.accent;
+    ctx.font = "900 15px Microsoft YaHei";
+    ctx.fillText(node.glyph, node.rect.x + 8, node.rect.y + 21 + bob + nodeBob);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "800 10px Microsoft YaHei";
+    ctx.fillText(node.label.slice(0, 5), node.rect.x + 30, node.rect.y + 17 + bob + nodeBob);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "9px Microsoft YaHei";
+    ctx.fillText(node.text.slice(0, 8), node.rect.x + 8, node.rect.y + 38 + bob + nodeBob);
+  });
+
+  ctx.fillStyle = "rgba(93, 111, 101, 0.82)";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText("只定位 · 不代劳", rect.x + rect.width - 90, cardY + rect.height - 10);
+  ctx.restore();
+  return true;
+}
