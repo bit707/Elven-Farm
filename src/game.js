@@ -133,6 +133,8 @@ import {
   drawShopCustomerReasonCompassWorldWorld,
   drawShopDiagnosisWorldBoardWorld,
   drawShopThoughtBubbleChainWorldWorld,
+  shopDiagnosisWorldBoardAtCanvasPointWorld,
+  shopDiagnosisWorldBoardSpecWorld,
 } from "./game/world/shop-analysis-world.js";
 import {
   shopThoughtRouteCaughtWorldAtCanvasPointWorld,
@@ -32355,87 +32357,26 @@ function drawShopRestockRunnerWorld(ctx, spec = shopRestockRunnerWorldSpec(ctx.c
 
 function shopDiagnosisWorldBoardSpec(opening = normalizeShopOpeningState(state.shopOpeningState)) {
   const report = Array.isArray(state.shopReport) ? state.shopReport : [];
-  const ledger = opening.customerDecisionLedger || opening.lastSession?.customerDecisionLedger || null;
   const journey = shopCustomerJourneySpec(opening, report);
   const liveFocus = opening.liveFocus || opening.lastSession?.liveFocus || null;
   const failure = opening.failureRecovery || opening.lastSession?.failureRecovery || null;
-  const diagnostics = report
-    .map((entry, reportIndex) => ({ ...entry, reportIndex }))
-    .filter((entry) => entry.reason === "diagnosis");
-  const blockers = ledger?.blockers?.length
-    ? ledger.blockers
-    : liveFocus?.topBlocker
-      ? [{
-        reason: liveFocus.topBlocker,
-        label: liveFocus.topBlockerLabel,
-        count: Number(liveFocus.leavers || 0),
-        nextAction: liveFocus.shelfAdvice,
-      }]
-      : [];
-  const topDiagnosis = diagnostics[0] || null;
-  const topBlocker = blockers[0] || null;
-  const hasActivity = opening.opened || opening.lastSession || liveFocus || ledger || report.length > 0;
-  if (!hasActivity) return null;
-  const buyers = Number(ledger?.buyers ?? journey.buyers ?? liveFocus?.buyers ?? report.filter((entry) => entry.reason === "buy").length);
-  const leavers = Number(ledger?.leavers ?? journey.leavers ?? liveFocus?.leavers ?? report.filter((entry) => ["price", "stock", "tag"].includes(entry.reason)).length);
-  const visitors = Math.max(ledger?.visitors || journey.visitors || buyers + leavers || 0, buyers + leavers);
-  const conversion = visitors ? Math.round((buyers / visitors) * 100) : Number(ledger?.conversion || journey.conversion || 0);
-  const mainReason = topBlocker?.label
-    || topDiagnosis?.text
-    || (buyers > 0 ? "成交理由清楚" : "客群还在试探");
-  const evidence = ledger?.summaryLines?.[1]
-    || topDiagnosis?.detail
-    || journey.headline
-    || liveFocus?.headline
-    || "顾客反馈已经写进旧铺账页。";
-  const nextAction = failure?.tomorrowAction
-    || topBlocker?.nextAction
-    || ledger?.nextAction
-    || journey.nextAction
-    || liveFocus?.shelfAdvice
-    || "先改一个最明显的货架短板，再开铺验证。";
-  const tone = topBlocker || leavers > buyers
-    ? "warn"
-    : buyers > 0
-      ? "good"
-      : "note";
-  const selector = topDiagnosis?.reportIndex >= 0
-    ? `[data-shop-report-index="${Number(topDiagnosis.reportIndex)}"]`
-    : ledger
-      ? '[data-shop-board="decision-ledger"]'
-      : '[data-shop-board="customer-journey"]';
-  return {
-    key: `${state.day}:${buyers}:${leavers}:${conversion}:${mainReason}:${report.length}`,
+  return shopDiagnosisWorldBoardSpecWorld({
+    opening,
+    report,
+    journey,
+    liveFocus,
+    failure,
     day: state.day,
-    title: "主世界旧铺诊断挂签",
-    cta: "诊断挂签 · 可点",
-    headline: mainReason,
-    evidence,
-    nextAction,
-    tone,
-    buyers,
-    leavers,
-    visitors,
-    conversion,
-    hotTagLabel: ledger?.hotTagLabel || liveFocus?.hotTagLabel || opening.hotTagLabel || "今日客需",
-    mainCustomer: ledger?.mainCustomer || journey.mainCustomer || "路过客",
-    selector,
-    fallbackSelector: '[data-shop-board="decision-ledger"]',
-    rect: { x: 224, y: 236, width: 282, height: 104 },
-    anchor: { x: 146, y: 216 },
-  };
+  });
 }
 
 function shopDiagnosisWorldBoardAtCanvasPoint(px, py) {
   const spec = shopDiagnosisWorldBoardSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return shopDiagnosisWorldBoardAtCanvasPointWorld({
+    px,
+    py,
+    spec,
+  });
 }
 
 function shopCustomerReasonCompassWorldSpec(
