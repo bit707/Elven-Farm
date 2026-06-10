@@ -136,6 +136,146 @@ export function shopCustomerReasonCompassWorldAtCanvasPointWorld({
     : null;
 }
 
+export function shopThoughtBubbleEntriesWorld({
+  opening = null,
+  report = [],
+  waterwayBrowse = null,
+  waterwayReorderFollowup = null,
+  solarMoodEcho = null,
+} = {}) {
+  const needs = (opening?.needBubbles || []).map((entry) => ({
+    ...entry,
+    reason: "need",
+    text: entry.text,
+  }));
+  const reports = (Array.isArray(report) ? report : [])
+    .map((entry, reportIndex) => ({ ...entry, reportIndex }))
+    .filter((entry) => entry.reason !== "diagnosis");
+  const waterwayEntry = waterwayBrowse?.active
+    ? [{
+      name: waterwayBrowse.customerLabel,
+      customerArchetype: "waterway_broker",
+      reason: "waterway_browse",
+      text: waterwayBrowse.bubble,
+      detail: waterwayBrowse.detail,
+      reportIndex: waterwayBrowse.reportIndex,
+    }]
+    : [];
+  const waterwayReorderEntry = waterwayReorderFollowup?.active
+    ? [{
+      name: "莲泽熟路",
+      customerArchetype: "waterway_broker",
+      reason: "waterway_reorder_followup",
+      text: waterwayReorderFollowup.bubble,
+      detail: waterwayReorderFollowup.detail,
+      reportIndex: waterwayReorderFollowup.reportIndex,
+    }]
+    : [];
+  const solarMoodEntry = solarMoodEcho
+    ? [{
+      name: solarMoodEcho.customerName,
+      customerArchetype: solarMoodEcho.customerArchetype,
+      reason: "solar_mood_shop_display",
+      text: solarMoodEcho.bubble,
+      detail: solarMoodEcho.detail,
+      stampId: solarMoodEcho.stampId,
+      displayEcho: solarMoodEcho,
+    }]
+    : [];
+  return [...waterwayReorderEntry, ...waterwayEntry, ...solarMoodEntry, ...needs, ...reports].slice(0, 3);
+}
+
+export function shopThoughtBubbleChainStatusWorld(entry = {}) {
+  if (entry.reason === "buy") return { label: "买了", tone: "good", advice: "复现这件货的标签、价格和陈列位置。" };
+  if (["price", "stock", "tag"].includes(entry.reason)) {
+    const advice = entry.reason === "price"
+      ? "明天先轻压价签，再观察同客群是否留下。"
+      : entry.reason === "stock"
+        ? "明天先补厚头排库存，别让热卖需求断档。"
+        : "明天换一件更贴近需求标签的货。";
+    return { label: "犹豫", tone: "warn", advice };
+  }
+  if (entry.reason === "need") return { label: "想要", tone: "need", advice: "围绕这条需求准备一件对口货。" };
+  if (entry.reason === "waterway_browse" || entry.reason === "waterway_reorder_followup") return { label: "水航", tone: "water", advice: "保持水鲜和饮品不断档，接住回访客。" };
+  if (entry.reason === "solar_mood_shop_display") return { label: "画境", tone: "gold", advice: "继续保留节气印记陈设，让顾客先读懂店铺气质。" };
+  return { label: "看货", tone: "note", advice: entry.detail || "把顾客想法、货架标签和价格连起来复盘。" };
+}
+
+export function shopThoughtBubbleChainSpecWorld({
+  opening = null,
+  entries = [],
+  positions = [],
+  day = 1,
+  thoughtBubbleChainStatus = () => ({ label: "", tone: "note", advice: "" }),
+} = {}) {
+  const rows = (Array.isArray(entries) ? entries : [])
+    .map((entry, index) => {
+      const status = thoughtBubbleChainStatus(entry);
+      const position = positions[index] || positions[0] || { x: 0, y: 0 };
+      return {
+        ...entry,
+        index,
+        statusLabel: status.label,
+        tone: status.tone,
+        advice: entry.nextAction || status.advice,
+        text: entry.text || entry.detail || "进门看看",
+        detail: entry.detail || entry.text || "等待旧铺试营业验证。",
+        point: {
+          x: position.x + 92,
+          y: position.y + 26,
+        },
+      };
+    })
+    .filter((entry) => entry.text)
+    .slice(0, 3);
+  if (rows.length < 2) return null;
+  const liveFocus = opening?.liveFocus || opening?.lastSession?.liveFocus || null;
+  const buyers = Number(liveFocus?.buyers || rows.filter((entry) => entry.reason === "buy").length || 0);
+  const leavers = Number(liveFocus?.leavers || rows.filter((entry) => ["price", "stock", "tag"].includes(entry.reason)).length || 0);
+  const warnCount = rows.filter((entry) => entry.tone === "warn").length;
+  const lead = rows[0];
+  const cta = warnCount > 0
+    ? rows.find((entry) => entry.tone === "warn")?.advice || "先修正最明显的离店原因。"
+    : buyers > 0
+      ? liveFocus?.shelfAdvice || "把成交原因变成明日补货路线。"
+      : lead.advice || "先准备对口货，再开铺观察。";
+  return {
+    key: `${day}:${rows.map((row) => `${row.name}:${row.reason}:${row.text}`).join("|")}:${buyers}:${leavers}`,
+    day,
+    title: "门口想法串 · 可点",
+    lineLabel: "顾客想法线",
+    headline: warnCount > 0 ? "有人说明了为什么犹豫" : buyers > 0 ? "顾客需求已经接成成交线" : "开铺前先看几位顾客想什么",
+    summary: rows.map((row) => `${row.name || "顾客"}：${row.text}`).join(" / "),
+    cta,
+    buyers,
+    leavers,
+    warnCount,
+    rows,
+    rect: { x: 540, y: 252, width: 260, height: 112 },
+    selector: '[data-shop-board="customer-journey"]',
+    fallbackSelector: '[data-shop-board="opening"]',
+  };
+}
+
+export function shopThoughtBubbleChainAtCanvasPointWorld({
+  px = 0,
+  py = 0,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? {
+      type: "thought_chain",
+      label: spec.title,
+      selector: spec.selector,
+      fallbackSelector: spec.fallbackSelector,
+      thoughtChain: spec,
+      rect,
+    }
+    : null;
+}
+
 export function drawShopDiagnosisWorldBoardWorld({
   ctx,
   spec = null,
