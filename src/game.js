@@ -76,6 +76,7 @@ import {
 import {
   drawFirstSpiritAssistPrimerWorldWorld,
   drawSpiritAssistNineGridActionWorldWorld,
+  drawSpiritAssistRhythmWorldWorld,
   drawSpiritAssistSavingsLedgerWorldWorld,
   drawSpiritAssistToWorkshopBridgeWorldWorld,
   drawSpiritAssistTrailWorldWorld,
@@ -10551,94 +10552,21 @@ function focusSpiritAssistRhythmWorldFromCanvas(spec = spiritAssistRhythmWorldSp
 
 function drawSpiritAssistRhythmWorld(ctx, spec = spiritAssistRhythmWorldSpec(), motion = performance.now() / 1000) {
   if (!spec?.rect) return false;
-  const { rect, profile } = spec;
   const active = spiritAssistRhythmWorldFocus?.day === state.day && spiritAssistRhythmWorldFocus?.key === spec.key;
-  const accent = spec.accent || profile.accent || "#4d91a6";
   const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.65) * 2;
   const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.4) * 3;
-  ctx.save();
-
-  ctx.strokeStyle = active ? `${accent}bb` : `${accent}55`;
-  ctx.lineWidth = active ? 3 : 2;
-  ctx.setLineDash([8, 9]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 12;
-  ctx.beginPath();
-  ctx.moveTo(spec.anchor.x, spec.anchor.y);
-  ctx.quadraticCurveTo(rect.x - 24, rect.y + 44 + bob, rect.x + 20, rect.y + rect.height - 24 + bob);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  spec.activePlots.forEach((plot, index) => {
-    const localActive = active && spiritAssistRhythmWorldFocus?.plotKey === `${plot.x},${plot.y}`;
-    const waterAlpha = plot.needsWater ? 0.15 + Math.max(0, Math.sin(motion * 2 + index)) * 0.22 : 0.2;
-    ctx.fillStyle = plot.needsWater ? `rgba(77, 145, 166, ${waterAlpha})` : "rgba(202, 235, 210, 0.22)";
-    ctx.beginPath();
-    ctx.roundRect(plot.rect.x + 6, plot.rect.y + 6, plot.rect.width - 12, plot.rect.height - 12, 12);
-    ctx.fill();
-    ctx.strokeStyle = localActive ? `${accent}cc` : `${accent}55`;
-    ctx.lineWidth = localActive ? 2.6 : 1.4;
-    ctx.beginPath();
-    ctx.roundRect(plot.rect.x + 9, plot.rect.y + 9, plot.rect.width - 18, plot.rect.height - 18, 10);
-    ctx.stroke();
-    ctx.fillStyle = plot.needsWater ? "#4d91a6" : "#286f58";
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(plot.needsWater ? "待" : "润", plot.rect.x + plot.rect.width - 20, plot.rect.y + 19);
+  return drawSpiritAssistRhythmWorldWorld({
+    ctx,
+    spec,
+    motion,
+    bob,
+    pulse,
+    active,
+    activePlotKey: spiritAssistRhythmWorldFocus?.plotKey || "",
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+    drawSpiritSprite,
   });
-
-  drawCanvasCard(ctx, rect.x, rect.y + bob, rect.width, rect.height, spec.tired ? "rgba(255, 240, 232, 0.96)" : "rgba(255, 248, 232, 0.96)");
-  ctx.strokeStyle = active ? accent : `${accent}88`;
-  ctx.lineWidth = active ? 3 : 2;
-  ctx.beginPath();
-  ctx.roundRect(rect.x, rect.y + bob, rect.width, rect.height, 20);
-  ctx.stroke();
-
-  ctx.fillStyle = `${accent}22`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, rect.y + 15 + bob, 74, 74, 20);
-  ctx.fill();
-  drawSpiritSprite(ctx, spec.spirit, rect.x + 18, rect.y + 18 + bob + pulse * 0.4, 70);
-
-  ctx.fillStyle = accent;
-  ctx.font = "900 12px Microsoft YaHei";
-  ctx.fillText(spec.title, rect.x + 104, rect.y + 25 + bob);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 16px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 18), rect.x + 104, rect.y + 49 + bob);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "800 10px Microsoft YaHei";
-  ctx.fillText(spec.detail.slice(0, 34), rect.x + 104, rect.y + 68 + bob);
-
-  const chips = [
-    { label: "待浇", value: spec.needsWaterCount, color: "#4d91a6" },
-    { label: "已润", value: spec.wateredCount, color: "#286f58" },
-    { label: "体力", value: spec.stamina, color: spec.stamina < 35 ? "#be4f37" : "#b47d2f" },
-  ];
-  chips.forEach((chip, index) => {
-    const chipX = rect.x + 104 + index * 66;
-    ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
-    ctx.strokeStyle = `${chip.color}44`;
-    ctx.lineWidth = 1.3;
-    ctx.beginPath();
-    ctx.roundRect(chipX, rect.y + 80 + bob, 56, 21, 10);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = chip.color;
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(chip.label, chipX + 7, rect.y + 93 + bob);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "900 9px Microsoft YaHei";
-    ctx.fillText(String(chip.value), chipX + 37, rect.y + 93 + bob);
-  });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 16, rect.y + rect.height - 20 + bob, rect.width - 32, 15, 8);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText(`下一步：${spec.nextAction} · 不会自动协助浇水`.slice(0, 46), rect.x + 24, rect.y + rect.height - 9 + bob);
-  ctx.restore();
-  return true;
 }
 
 function firstSpiritAssistPrimerTargetPlot() {
