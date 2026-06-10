@@ -594,3 +594,84 @@ export function drawSpiritCompanionCareHintWorld({
   ctx.restore();
   return true;
 }
+
+export function drawSpiritIdentityMemoryNameplateWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  reducedMotion = false,
+  active = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect) return false;
+  const { rect } = spec;
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.8) * 1.8;
+
+  ctx.save();
+  ctx.globalAlpha = spec.tone === "quiet" ? 0.86 : 0.96;
+  ctx.strokeStyle = active ? `${spec.accent}dd` : `${spec.accent}66`;
+  ctx.lineWidth = active ? 2.4 : 1.4;
+  ctx.setLineDash(active ? [5, 5] : []);
+  ctx.beginPath();
+  ctx.moveTo(spec.anchor.x, spec.anchor.y);
+  ctx.quadraticCurveTo(rect.x + 18, rect.y + rect.height + 10 + bob, rect.x + 22, rect.y + rect.height - 3 + bob);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, rect.y + bob, rect.width, rect.height, spec.fill);
+  ctx.strokeStyle = active ? `${spec.accent}ee` : `${spec.accent}77`;
+  ctx.lineWidth = active ? 2.3 : 1.3;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, rect.y + 1 + bob, rect.width - 2, rect.height - 2, 14);
+  ctx.stroke();
+
+  ctx.fillStyle = `${spec.accent}22`;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 8, rect.y + 8 + bob, 28, 28, 10);
+  ctx.fill();
+  ctx.fillStyle = spec.accent;
+  ctx.font = "900 13px Microsoft YaHei";
+  ctx.fillText(spec.glyph.slice(0, 1), rect.x + 16, rect.y + 27 + bob);
+
+  ctx.fillStyle = spec.accent;
+  ctx.font = "900 10px Microsoft YaHei";
+  ctx.fillText(spec.title, rect.x + 42, rect.y + 15 + bob);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 12px Microsoft YaHei";
+  ctx.fillText(spec.spiritName.slice(0, 7), rect.x + 42, rect.y + 31 + bob);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText(spec.behaviorText.slice(0, spec.rect.width > 140 ? 9 : 7), rect.x + 84, rect.y + 31 + bob);
+
+  const hookRows = [
+    { label: "名", text: spec.spiritName },
+    { label: "动", text: spec.behaviorText },
+    { label: "言", text: spec.quoteShort || spec.quote || "嗯嗯" },
+  ];
+  hookRows.forEach((hook, hookIndex) => {
+    const hookX = rect.x + 42 + hookIndex * 50;
+    const hookY = rect.y + 38 + bob;
+    ctx.fillStyle = hookIndex === 0 ? "rgba(202, 235, 210, 0.36)" : hookIndex === 1 ? "rgba(246, 240, 182, 0.32)" : "rgba(255, 253, 245, 0.82)";
+    ctx.beginPath();
+    ctx.roundRect(hookX, hookY, 44, 15, 7);
+    ctx.fill();
+    ctx.fillStyle = hookIndex === 0 ? "#286f58" : hookIndex === 1 ? "#b47d2f" : "#8f5f3f";
+    ctx.font = "900 7px Microsoft YaHei";
+    ctx.fillText(hook.label, hookX + 5, hookY + 10);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "800 7px Microsoft YaHei";
+    ctx.fillText(String(hook.text || "").slice(0, 4), hookX + 14, hookY + 10);
+  });
+
+  if (spec.tone !== "quiet") {
+    ctx.fillStyle = spec.tone === "rare" ? "rgba(216, 127, 141, 0.18)" : "rgba(40, 111, 88, 0.14)";
+    ctx.beginPath();
+    ctx.roundRect(rect.x + 42, rect.y + 55 + bob, rect.width - 52, 12, 6);
+    ctx.fill();
+    ctx.fillStyle = spec.tone === "rare" ? "#8f5f3f" : "#286f58";
+    ctx.font = "800 8px Microsoft YaHei";
+    ctx.fillText(`${spec.bondText} · 可点`.slice(0, 16), rect.x + 48, rect.y + 64 + bob);
+  }
+  ctx.restore();
+  return true;
+}
