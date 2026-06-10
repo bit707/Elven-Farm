@@ -1102,3 +1102,169 @@ export function drawSpiritNightWorkFeedbackWorld({
   ctx.restore();
   return true;
 }
+
+export function drawSpiritSpriteWorld({
+  ctx,
+  spirit = null,
+  x = 0,
+  y = 0,
+  size = 112,
+  profile = {},
+  bob = 0,
+  isFire = false,
+  spiritImage = null,
+} = {}) {
+  if (!ctx || !spirit) return false;
+  ctx.save();
+  if (profile.shape === "root" && spiritImage) {
+    ctx.fillStyle = profile.glow;
+    ctx.beginPath();
+    ctx.ellipse(x + size * 0.48, y + size * 0.78, size * 0.42, size * 0.14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.drawImage(spiritImage, x, y, size, size);
+  } else {
+    ctx.fillStyle = profile.glow;
+    ctx.beginPath();
+    ctx.ellipse(x + size * 0.48, y + size * 0.78, size * 0.42, size * 0.14, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (profile.shape === "bamboo") {
+      ctx.fillStyle = profile.base;
+      ctx.beginPath();
+      ctx.roundRect(x + size * 0.34, y + bob + size * 0.08, size * 0.28, size * 0.8, size * 0.12);
+      ctx.fill();
+      ctx.strokeStyle = profile.accent;
+      ctx.lineWidth = 3;
+      for (let i = 0; i < 3; i += 1) {
+        ctx.beginPath();
+        ctx.moveTo(x + size * 0.34, y + bob + size * (0.28 + i * 0.18));
+        ctx.lineTo(x + size * 0.62, y + bob + size * (0.28 + i * 0.18));
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#7ba66c";
+      ctx.beginPath();
+      ctx.ellipse(x + size * 0.68, y + bob + size * 0.28, size * 0.24, size * 0.08, -0.55, 0, Math.PI * 2);
+      ctx.ellipse(x + size * 0.28, y + bob + size * 0.44, size * 0.22, size * 0.07, 0.48, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = profile.accent;
+      ctx.beginPath();
+      ctx.moveTo(x + size * 0.62, y + bob + size * 0.02);
+      ctx.lineTo(x + size * 0.5, y + bob + size * 0.22);
+      ctx.lineTo(x + size * 0.62, y + bob + size * 0.2);
+      ctx.lineTo(x + size * 0.48, y + bob + size * 0.42);
+      ctx.stroke();
+    } else if (profile.shape === "lotus") {
+      ctx.fillStyle = "rgba(77, 145, 166, 0.32)";
+      ctx.beginPath();
+      ctx.ellipse(x + size * 0.5, y + bob + size * 0.74, size * 0.42, size * 0.16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      for (let i = 0; i < 6; i += 1) {
+        ctx.fillStyle = i % 2 ? profile.base : "#fffdf5";
+        ctx.beginPath();
+        ctx.ellipse(x + size * 0.5 + Math.cos(i) * size * 0.18, y + bob + size * 0.42 + Math.sin(i) * size * 0.1, size * 0.16, size * 0.28, i, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (profile.shape === "lantern") {
+      ctx.strokeStyle = profile.accent;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + size * 0.5, y + bob);
+      ctx.lineTo(x + size * 0.5, y + bob + size * 0.16);
+      ctx.stroke();
+      ctx.fillStyle = profile.base;
+      ctx.beginPath();
+      ctx.roundRect(x + size * 0.25, y + bob + size * 0.18, size * 0.5, size * 0.56, size * 0.18);
+      ctx.fill();
+      ctx.fillStyle = "rgba(255, 253, 245, 0.55)";
+      ctx.fillRect(x + size * 0.36, y + bob + size * 0.26, size * 0.28, size * 0.38);
+    } else if (profile.shape === "flower") {
+      for (let i = 0; i < 7; i += 1) {
+        ctx.fillStyle = i % 2 ? profile.base : "#f5a4aa";
+        ctx.beginPath();
+        ctx.ellipse(x + size * 0.5 + Math.cos(i) * size * 0.2, y + bob + size * 0.32 + Math.sin(i) * size * 0.16, size * 0.14, size * 0.22, i, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = profile.accent;
+      ctx.beginPath();
+      ctx.arc(x + size * 0.5, y + bob + size * 0.34, size * 0.14, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#5d8b52";
+      ctx.beginPath();
+      ctx.roundRect(x + size * 0.42, y + bob + size * 0.48, size * 0.16, size * 0.38, size * 0.08);
+      ctx.fill();
+    } else if (profile.shape === "scroll") {
+      ctx.fillStyle = profile.base;
+      ctx.beginPath();
+      ctx.roundRect(x + size * 0.26, y + bob + size * 0.22, size * 0.5, size * 0.54, size * 0.08);
+      ctx.fill();
+      ctx.strokeStyle = profile.accent;
+      ctx.lineWidth = 3;
+      for (let i = 0; i < 3; i += 1) {
+        ctx.beginPath();
+        ctx.moveTo(x + size * 0.36, y + bob + size * (0.36 + i * 0.12));
+        ctx.lineTo(x + size * 0.66, y + bob + size * (0.36 + i * 0.12));
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#e0b66d";
+      ctx.beginPath();
+      ctx.arc(x + size * 0.26, y + bob + size * 0.28, size * 0.08, 0, Math.PI * 2);
+      ctx.arc(x + size * 0.76, y + bob + size * 0.72, size * 0.08, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (profile.shape === "bee") {
+      ctx.fillStyle = "rgba(255, 253, 245, 0.58)";
+      ctx.beginPath();
+      ctx.ellipse(x + size * 0.34, y + bob + size * 0.28, size * 0.16, size * 0.26, -0.7, 0, Math.PI * 2);
+      ctx.ellipse(x + size * 0.64, y + bob + size * 0.28, size * 0.16, size * 0.26, 0.7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = profile.base;
+      ctx.beginPath();
+      ctx.ellipse(x + size * 0.5, y + bob + size * 0.54, size * 0.34, size * 0.26, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = profile.accent;
+      ctx.lineWidth = 4;
+      for (let i = 0; i < 3; i += 1) {
+        ctx.beginPath();
+        ctx.moveTo(x + size * (0.34 + i * 0.11), y + bob + size * 0.32);
+        ctx.lineTo(x + size * (0.34 + i * 0.11), y + bob + size * 0.74);
+        ctx.stroke();
+      }
+    } else {
+      ctx.fillStyle = isFire ? "#be4f37" : profile.base;
+      ctx.beginPath();
+      ctx.moveTo(x + size * 0.48, y + bob + size * 0.08);
+      ctx.bezierCurveTo(x + size * 0.88, y + bob + size * 0.34, x + size * 0.78, y + bob + size * 0.84, x + size * 0.48, y + bob + size * 0.92);
+      ctx.bezierCurveTo(x + size * 0.18, y + bob + size * 0.84, x + size * 0.08, y + bob + size * 0.34, x + size * 0.48, y + bob + size * 0.08);
+      ctx.fill();
+      if (isFire) {
+        ctx.fillStyle = "rgba(247, 211, 109, 0.92)";
+        ctx.beginPath();
+        ctx.moveTo(x + size * 0.42, y + bob + size * 0.02);
+        ctx.lineTo(x + size * 0.52, y + bob - size * 0.14);
+        ctx.lineTo(x + size * 0.62, y + bob + size * 0.06);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    ctx.fillStyle = profile.shape === "scroll" ? profile.accent : profile.accent;
+    ctx.beginPath();
+    ctx.arc(x + size * 0.38, y + bob + size * 0.5, Math.max(3.2, size * 0.04), 0, Math.PI * 2);
+    ctx.arc(x + size * 0.58, y + bob + size * 0.5, Math.max(3.2, size * 0.04), 0, Math.PI * 2);
+    ctx.fill();
+    if (profile.shape === "lantern") {
+      ctx.fillStyle = "rgba(190, 79, 55, 0.82)";
+      ctx.beginPath();
+      ctx.arc(x + size * 0.5, y + bob + size * 0.64, size * 0.04, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.fillStyle = "rgba(255, 253, 245, 0.82)";
+  ctx.beginPath();
+  ctx.roundRect(x - 6, y + size + 4, size + 24, 30, 12);
+  ctx.fill();
+  ctx.fillStyle = isFire ? "#be4f37" : "#286f58";
+  ctx.font = "700 14px Microsoft YaHei";
+  ctx.fillText(spirit.name.slice(0, 8), x + 6, y + size + 24);
+  ctx.restore();
+  return true;
+}
