@@ -167,6 +167,9 @@ import {
   shopCustomerFocusRestockMarkupWorld,
   shopRestockActiveFocusWorld,
   shopRestockFocusSnapshotWorld,
+  shopRestockFulfillmentEffectWorld,
+  shopRestockFulfillmentFeedbackSpecWorld,
+  shopRestockFulfillmentReportEntryWorld,
   shopRestockRouteCandidatesWorld,
   shopRestockRouteMarkupWorld,
   shopRestockSummarySpecWorld,
@@ -1568,6 +1571,19 @@ function recordShopRestockItemProgress(itemId = "", gained = 0) {
 }
 
 function shopRestockFulfillmentEffect(goods = sellableInventoryGoods(), theme = currentShelfTheme()) {
+  return shopRestockFulfillmentEffectWorld({
+    opening: syncShopOpeningState(),
+    goods,
+    theme,
+    inventory: state.inventory,
+    ecologySummary: ecologyCourtyardSummary(),
+    itemName,
+    shopTagLabel,
+    shopTagsForItem,
+    splitTags,
+    shopTagsOverlap,
+    shopRestockTargetIsWaterFresh,
+  });
   const opening = syncShopOpeningState();
   const recent = (opening.restockHistory || [])
     .filter((entry) => entry.status === "done" && entry.itemId && Number(state.inventory[entry.itemId] || 0) > 0)
@@ -27396,6 +27412,13 @@ function shopSaleReflectionMarkup(spec = shopSaleReflectionSpec()) {
 }
 
 function shopRestockFulfillmentFeedbackSpec(restockFulfillment = {}) {
+  return shopRestockFulfillmentFeedbackSpecWorld({
+    restockFulfillment,
+    shopRestockTargetIsWaterFresh,
+    itemName,
+    createdAt: performance.now(),
+    day: state.day,
+  });
   if (!restockFulfillment?.active) return null;
   const itemId = restockFulfillment.itemId || restockFulfillment.target?.itemId || "";
   const waterwayReorder = restockFulfillment.target?.source === "lianze_waterway_reorder";
@@ -57169,18 +57192,11 @@ function openShop() {
   }
   state.shopReport.push(...diagnosis);
   if (restockFulfillment.active) {
-    const waterwayReorderRestockDone = restockFulfillment.target?.source === "lianze_waterway_reorder";
-    const waterFreshRestock = Boolean(restockFulfillment.waterFresh) || shopRestockTargetIsWaterFresh(restockFulfillment.target || restockFulfillment.itemId);
-    state.shopReport.push({
-      name: waterwayReorderRestockDone ? "莲泽回订补货兑现" : waterFreshRestock ? "水鲜补货兑现" : "补货兑现",
-      text: waterwayReorderRestockDone
-        ? `${restockFulfillment.itemName} 回订补货上架，水航客会把“这家旧铺不断档”的话带回莲泽。`
-        : waterFreshRestock
-        ? `${restockFulfillment.itemName} 补货上架，灵池水鲜不断档，旧铺门口更容易聚起认鲜味的人。`
-        : `${restockFulfillment.itemName} 补货上架，货架稳定感更强。`,
-      reason: "restock",
-      detail: `${restockFulfillment.summary} · ${restockFulfillment.detail} · 主题映照 +${Math.round(restockFulfillment.themeBonus * 100)}%，顾客预算 +${Math.round(restockFulfillment.budgetBonus * 100)}%${restockFulfillment.visitorBonus > 0 ? ` · 来客 +${restockFulfillment.visitorBonus}` : ""}`,
+    const restockReportEntry = shopRestockFulfillmentReportEntryWorld({
+      restockFulfillment,
+      shopRestockTargetIsWaterFresh,
     });
+    if (restockReportEntry) state.shopReport.push(restockReportEntry);
   }
   if (weatherShelf?.active) {
     const weatherHitText = Object.entries(weatherShelfHits)

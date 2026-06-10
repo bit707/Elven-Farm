@@ -178,6 +178,80 @@ export function shopRestockSummarySpecWorld({
   };
 }
 
+function inactiveShopRestockFulfillmentWorld() {
+  return {
+    active: false,
+    themeBonus: 0,
+    budgetBonus: 0,
+    visitorBonus: 0,
+  };
+}
+
+export function shopRestockFulfillmentEffectWorld({
+  opening = null,
+  goods = [],
+  theme = null,
+  inventory = {},
+  ecologySummary = null,
+  itemName = (itemId) => itemId,
+  shopTagLabel = (tag) => tag,
+  shopTagsForItem = () => [],
+  splitTags = () => [],
+  shopTagsOverlap = () => false,
+  shopRestockTargetIsWaterFresh = () => false,
+} = {}) {
+  const safeHistory = Array.isArray(opening?.restockHistory) ? opening.restockHistory : [];
+  const safeInventory = inventory || {};
+  const recent = safeHistory
+    .filter((entry) => entry?.status === "done" && entry.itemId && Number(safeInventory[entry.itemId] || 0) > 0)
+    .sort((a, b) => Number(b.completedDay || 0) - Number(a.completedDay || 0))[0];
+  if (!recent) return inactiveShopRestockFulfillmentWorld();
+  const safeGoods = Array.isArray(goods) ? goods : [];
+  if (!safeGoods.some((entry) => entry.itemId === recent.itemId)) return inactiveShopRestockFulfillmentWorld();
+  const tags = shopTagsForItem(recent.itemId, ecologySummary);
+  const themeTags = splitTags(theme?.required_item_tags || "");
+  const themeMatched = (Array.isArray(tags) ? tags : []).some((tag) => shopTagsOverlap([tag], themeTags));
+  const count = Number(safeInventory[recent.itemId] || 0);
+  const desiredCount = Math.max(1, Number(recent.desiredCount || 1));
+  const fulfilledCount = count >= desiredCount;
+  const waterFresh = shopRestockTargetIsWaterFresh(recent);
+  const waterwayReorder = recent.source === "lianze_waterway_reorder";
+  const themeBonus = waterFresh ? (themeMatched ? 0.08 : 0.05) : (themeMatched ? 0.04 : 0.02);
+  const budgetBonus = waterFresh ? (fulfilledCount ? 0.10 : 0.06) : (fulfilledCount ? 0.05 : 0.025);
+  const visitorBonus = waterFresh ? (fulfilledCount ? (themeMatched ? 2 : 1) : 1) : (themeMatched && fulfilledCount ? 1 : 0);
+  const itemLabel = recent.itemName || itemName(recent.itemId);
+  return {
+    active: true,
+    target: recent,
+    itemId: recent.itemId,
+    itemName: itemLabel,
+    count,
+    desiredCount,
+    tagLabel: waterwayReorder
+      ? "莲泽水航 / 熟路货"
+      : waterFresh
+        ? "灵池水鲜 / 清口"
+        : (Array.isArray(tags) ? tags.slice(0, 2).map(shopTagLabel).filter(Boolean).join(" / ") : "") || "旧铺货",
+    themeMatched,
+    waterFresh,
+    themeBonus,
+    budgetBonus,
+    visitorBonus,
+    summary: waterwayReorder
+      ? `${itemLabel} 已按莲泽水航回订目标备到 ${count}/${desiredCount}`
+      : waterFresh
+        ? `${itemLabel} 已按水鲜补货目标备到 ${count}/${desiredCount}`
+        : `${itemLabel} 已按补货目标备到 ${count}/${desiredCount}`,
+    detail: waterwayReorder
+      ? "莲泽回订货不断档，水航客会更愿意把旧铺招牌带回熟路。"
+      : waterFresh
+        ? "灵池水鲜不断档，认清口、认鲜味的顾客会更愿意在旧铺停下。"
+        : themeMatched
+          ? `正好贴合 ${theme?.note || "当前陈列"}，顾客会觉得货架更稳。`
+          : "虽然不是当前主题核心货，也能说明旧铺有认真备货。",
+  };
+}
+
 export function shopRestockTrackerSpecWorld({
   target = null,
   day = 1,
@@ -229,6 +303,71 @@ export function shopRestockTrackerMarkupWorld({
       </div>
     </div>
   `;
+}
+
+export function shopRestockFulfillmentFeedbackSpecWorld({
+  restockFulfillment = {},
+  shopRestockTargetIsWaterFresh = () => false,
+  itemName = (itemId) => itemId,
+  createdAt = 0,
+  day = 1,
+} = {}) {
+  if (!restockFulfillment?.active) return null;
+  const itemId = restockFulfillment.itemId || restockFulfillment.target?.itemId || "";
+  const waterwayReorder = restockFulfillment.target?.source === "lianze_waterway_reorder";
+  const waterFresh = Boolean(restockFulfillment.waterFresh) || shopRestockTargetIsWaterFresh(restockFulfillment.target || itemId);
+  const themeBonus = Math.round(Number(restockFulfillment.themeBonus || 0) * 100);
+  const budgetBonus = Math.round(Number(restockFulfillment.budgetBonus || 0) * 100);
+  const visitorBonus = Number(restockFulfillment.visitorBonus || 0);
+  return {
+    itemId,
+    waterFresh,
+    itemName: restockFulfillment.itemName || itemName(itemId) || "旧铺货",
+    count: Number(restockFulfillment.count || 0),
+    desiredCount: Math.max(1, Number(restockFulfillment.desiredCount || 1)),
+    tagLabel: restockFulfillment.tagLabel || "旧铺货",
+    themeMatched: Boolean(restockFulfillment.themeMatched),
+    themeBonus,
+    budgetBonus,
+    visitorBonus,
+    headline: waterwayReorder
+      ? "莲泽回订补货兑现"
+      : waterFresh
+        ? "灵池水鲜补货兑现"
+        : restockFulfillment.themeMatched
+          ? "补货正好压住主题"
+          : "补货兑现，货架稳了",
+    summary: restockFulfillment.summary || "旧铺补货目标已经兑现。",
+    detail: restockFulfillment.detail || "顾客能看出掌柜有认真备货。",
+    chips: [
+      ...(waterwayReorder ? [{ label: "水航回订", value: "稳住", tone: "good" }] : waterFresh ? [{ label: "水鲜招牌", value: "成线", tone: "good" }] : []),
+      { label: "主题映照", value: `+${themeBonus}%`, tone: restockFulfillment.themeMatched || waterFresh ? "good" : "mid" },
+      { label: "顾客预算", value: `+${budgetBonus}%`, tone: "good" },
+      ...(visitorBonus > 0 ? [{ label: "来客", value: `+${visitorBonus}`, tone: "good" }] : []),
+    ],
+    createdAt,
+    day,
+  };
+}
+
+export function shopRestockFulfillmentReportEntryWorld({
+  restockFulfillment = {},
+  shopRestockTargetIsWaterFresh = () => false,
+} = {}) {
+  if (!restockFulfillment?.active) return null;
+  const waterwayReorderRestockDone = restockFulfillment.target?.source === "lianze_waterway_reorder";
+  const waterFreshRestock = Boolean(restockFulfillment.waterFresh)
+    || shopRestockTargetIsWaterFresh(restockFulfillment.target || restockFulfillment.itemId || "");
+  return {
+    name: waterwayReorderRestockDone ? "莲泽回订补货兑现" : waterFreshRestock ? "水鲜补货兑现" : "补货兑现",
+    text: waterwayReorderRestockDone
+      ? `${restockFulfillment.itemName} 回订补货上架，水航客会把“这家旧铺不断档”的话带回莲泽。`
+      : waterFreshRestock
+        ? `${restockFulfillment.itemName} 补货上架，灵池水鲜不断档，旧铺门口更容易聚起认鲜味的人。`
+        : `${restockFulfillment.itemName} 补货上架，货架稳定感更强。`,
+    reason: "restock",
+    detail: `${restockFulfillment.summary} · ${restockFulfillment.detail} · 主题映照 +${Math.round(Number(restockFulfillment.themeBonus || 0) * 100)}%，顾客预算 +${Math.round(Number(restockFulfillment.budgetBonus || 0) * 100)}%${Number(restockFulfillment.visitorBonus || 0) > 0 ? ` · 来客 +${Number(restockFulfillment.visitorBonus || 0)}` : ""}`,
+  };
 }
 
 export function shopCustomerFocusRestockMarkupWorld({
