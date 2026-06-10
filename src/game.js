@@ -217,6 +217,8 @@ import {
   shopCustomerLessonVerificationEchoWorldAtCanvasPointWorld,
   shopCustomerLessonVerificationEchoWorldSpecWorld,
   SHOP_CUSTOMER_JOURNEY_STAGES_WORLD,
+  shopCustomerDecisionChainsMarkupWorld,
+  shopCustomerDecisionChainsWorld,
   shopCustomerJourneyMarkupWorld,
   shopCustomerJourneyRowsWorld,
   shopCustomerJourneySpecWorld,
@@ -27323,37 +27325,10 @@ function triggerShopActionFeedback(actionId = "", options = {}) {
 }
 
 function shopCustomerDecisionChains(opening = syncShopOpeningState(), report = state.shopReport) {
-  const bubbles = Array.isArray(opening.needBubbles) ? opening.needBubbles : [];
-  const rows = report.filter((entry) => ["buy", "price", "stock", "tag"].includes(entry.reason)).slice(0, 3);
-  const fallbackAdvice = opening.liveFocus?.shelfAdvice || opening.lastSession?.liveFocus?.shelfAdvice || "先看顾客话里的需求，再调整货架和价格。";
-  return rows.map((entry, index) => {
-    const bubble = bubbles.find((item) => item.customerArchetype && item.customerArchetype === entry.customerArchetype)
-      || bubbles.find((item) => item.name === entry.name)
-      || bubbles[index]
-      || null;
-    const resultLabels = {
-      buy: "成交",
-      price: "嫌贵离店",
-      stock: "货架太薄",
-      tag: "标签不合",
-    };
-    const advice = entry.reason === "buy"
-      ? `延续 ${bubble?.tag ? shopTagLabel(bubble.tag) : opening.hotTagLabel || "这类需求"}，明天补一件同标签货。`
-      : entry.reason === "price"
-        ? "下次先降一点倍率，等熟客留下再抬价。"
-        : entry.reason === "stock"
-          ? "补足热卖货库存，薄货架会让谨慎顾客退开。"
-          : entry.reason === "tag"
-            ? `围绕 ${opening.hotTagLabel || "热卖标签"} 换一件更对口的商品。`
-            : fallbackAdvice;
-    return {
-      name: entry.name || bubble?.name || "顾客",
-      need: bubble?.text || bubble?.detail || "进店随手看了看",
-      result: `${resultLabels[entry.reason] || "反馈"}：${entry.text || "留下反馈"}`,
-      reason: String(entry.detail || "").split("→").map((part) => part.trim()).filter(Boolean).slice(-1)[0] || entry.detail || "原因待观察",
-      advice,
-      tone: entry.reason === "buy" ? "good" : entry.reason === "price" ? "warn" : "mid",
-    };
+  return shopCustomerDecisionChainsWorld({
+    opening,
+    report,
+    shopTagLabel,
   });
 }
 
@@ -27721,21 +27696,7 @@ function shopCustomerDecisionLedgerMarkup(ledger = normalizeShopOpeningState(sta
 }
 
 function shopCustomerDecisionChainsMarkup(opening = syncShopOpeningState()) {
-  const chains = shopCustomerDecisionChains(opening);
-  if (!chains.length) return "";
-  return `
-    <div class="shop-decision-chain">
-      <strong>顾客决策链</strong>
-      ${chains.map((chain) => `
-        <div class="shop-decision-step ${chain.tone}">
-          <b>${chain.name}</b>
-          <span>进店：${chain.need}</span>
-          <span>结果：${chain.result}</span>
-          <small>原因：${chain.reason} · 建议：${chain.advice}</small>
-        </div>
-      `).join("")}
-    </div>
-  `;
+  return shopCustomerDecisionChainsMarkupWorld(shopCustomerDecisionChains(opening));
 }
 
 const SHOP_CUSTOMER_JOURNEY_STAGES = SHOP_CUSTOMER_JOURNEY_STAGES_WORLD;
