@@ -155,7 +155,14 @@ import {
   shopAtCanvasPointWorld,
   shopCanvasTargetsWorld,
 } from "./game/world/shop-targets-world.js";
-import { shopCustomerFocusReviewSpecWorld, shopFocusWorldData } from "./game/world/shop-focus-world.js";
+import {
+  shopCustomerFocusActionsMarkupWorld,
+  shopCustomerFocusActionsWorld,
+  shopCustomerFocusReviewSpecWorld,
+  shopFocusPreferredTagsWorld,
+  shopFocusWorldData,
+  shopThemeForFocusWorld,
+} from "./game/world/shop-focus-world.js";
 import {
   drawShopCustomerLessonMorningFollowupWorldWorld,
   drawShopCustomerLessonVerificationEchoWorldWorld,
@@ -28054,91 +28061,46 @@ function shopCustomerJourneyMarkup(spec = shopCustomerJourneySpec()) {
 }
 
 function shopFocusPreferredTags(entry = null, spec = null) {
-  const tags = [];
-  if (entry?.tag) tags.push(entry.tag);
-  const bubble = normalizeShopOpeningState(state.shopOpeningState).needBubbles.find((item) => (
-    (entry?.customerArchetype && item.customerArchetype === entry.customerArchetype)
-    || (entry?.name && item.name === entry.name)
-  ));
-  if (bubble?.tag) tags.push(bubble.tag);
-  const text = `${entry?.detail || ""} ${entry?.text || ""} ${spec?.need || ""} ${spec?.advice || ""}`;
-  for (const [tag, label] of [
-    ["refreshing", "清口"],
-    ["water_food", "水系"],
-    ["clean_food", "清润"],
-    ["cooling", "凉口"],
-    ["dessert", "甜"],
-    ["gift", "礼"],
-    ["premium", "上品"],
-    ["portable_food", "路粮"],
-    ["medicine", "药"],
-    ["fresh_food", "鲜"],
-  ]) {
-    if (text.includes(label)) tags.push(tag);
-  }
-  return [...new Set(tags.filter(Boolean))];
+  return shopFocusPreferredTagsWorld({
+    entry,
+    spec,
+    opening: normalizeShopOpeningState(state.shopOpeningState),
+  });
 }
 
 function shopThemeForFocus(entry = null, spec = null) {
-  const preferredTags = shopFocusPreferredTags(entry, spec);
-  if (!preferredTags.length) return null;
-  return data.shopShelfThemes.find((theme) => (
-    theme.theme_tag !== state.shopShelfTheme
-    && preferredTags.some((tag) => shopTagsOverlap([tag], splitTags(theme.required_item_tags)))
-  )) || null;
+  return shopThemeForFocusWorld({
+    entry,
+    spec,
+    opening: normalizeShopOpeningState(state.shopOpeningState),
+    shopShelfThemes: data.shopShelfThemes,
+    currentThemeTag: state.shopShelfTheme,
+    shopTagsOverlap,
+    splitTags,
+  });
 }
 
 function shopCustomerFocusActions(spec = null, entry = null) {
-  if (!spec) return [];
-  const actions = [];
-  const reason = entry?.reason || "";
-  if (reason === "price" || spec.tone === "warn") {
-    const nextPrice = Math.max(0.75, Number((state.shopPriceMultiplier - 0.05).toFixed(2)));
-    if (nextPrice < state.shopPriceMultiplier) {
-      actions.push({
-        id: "price_down",
-        label: `降价到 ${Math.round(nextPrice * 100)}%`,
-        detail: "先把犹豫客留下，等口碑和主题稳定后再抬价。",
-      });
-    }
-  }
-  const theme = shopThemeForFocus(entry, spec);
-  if (theme) {
-    actions.push({
-      id: "theme_fit",
-      label: `换成${theme.note || theme.theme_tag}`,
-      detail: `围绕 ${shopFocusPreferredTags(entry, spec).slice(0, 2).map(shopTagLabel).join(" / ")} 重摆货架。`,
-      themeTag: theme.theme_tag,
-    });
-  }
-  if (reason === "stock" || spec.tone === "note") {
-    const lowStock = shuqiLowStockGoods(sellableInventoryGoods(), 2)[0] || sellableInventoryGoods().sort((a, b) => a.count - b.count)[0] || null;
-    actions.push({
-      id: "stock_mark",
-      label: lowStock ? `标记补 ${itemName(lowStock.itemId)}` : "标记明日补货",
-      detail: lowStock ? `当前库存 ${lowStock.count}，先把薄货架补厚。` : "先从田地或工坊准备一件可卖货。",
-      itemId: lowStock?.itemId || entry?.itemId || "",
-    });
-  }
-  if (entry?.reason === "buy") {
-    actions.push({
-      id: "theme_fit",
-      label: "沿用成交标签",
-      detail: "把这次成交理由沉淀成下一轮陈列主题。",
-      themeTag: shopThemeForFocus(entry, spec)?.theme_tag || state.shopShelfTheme,
-    });
-  }
-  return actions.slice(0, 2);
+  return shopCustomerFocusActionsWorld({
+    spec,
+    entry,
+    opening: normalizeShopOpeningState(state.shopOpeningState),
+    shopPriceMultiplier: state.shopPriceMultiplier,
+    shopShelfThemes: data.shopShelfThemes,
+    currentThemeTag: state.shopShelfTheme,
+    shopTagsOverlap,
+    splitTags,
+    shopTagLabel,
+    inventoryGoods: sellableInventoryGoods(),
+    shuqiLowStockGoods,
+    itemName,
+  });
 }
 
 function shopCustomerFocusActionsMarkup(spec = null, entry = null) {
-  const actions = shopCustomerFocusActions(spec, entry);
-  if (!actions.length) return "";
-  return `
-    <div class="shop-customer-focus-actions">
-      ${actions.map((action) => `<button type="button" data-shop-focus-action="${action.id}" data-shop-focus-theme="${action.themeTag || ""}" data-shop-focus-item="${action.itemId || ""}" title="${action.detail}">${action.label}</button>`).join("")}
-    </div>
-  `;
+  return shopCustomerFocusActionsMarkupWorld({
+    actions: shopCustomerFocusActions(spec, entry),
+  });
 }
 
 function shopRestockRouteCandidates(restock = shopRestockFocus) {
