@@ -735,3 +735,97 @@ export function drawSpiritFinaleCompanionAnchorWorld({
   ctx.restore();
   return true;
 }
+
+export function drawSpiritMoodRepairWorldSceneWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  reducedMotion = false,
+  active = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect) return false;
+  const { rect, anchor, event, spirit, profile } = spec;
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.9) * 2.4;
+  const cardY = rect.y + bob;
+  const accent = profile.accent || "#be4f37";
+
+  ctx.save();
+  ctx.strokeStyle = active ? "rgba(190, 79, 55, 0.76)" : "rgba(190, 79, 55, 0.42)";
+  ctx.lineWidth = active ? 2.6 : 1.8;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 12;
+  ctx.beginPath();
+  ctx.moveTo(rect.x + 36, cardY + rect.height - 16);
+  ctx.quadraticCurveTo(anchor.x - 38, cardY + rect.height + 34, anchor.x, anchor.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = "rgba(255, 248, 232, 0.68)";
+  ctx.beginPath();
+  ctx.ellipse(anchor.x, anchor.y + 18, 50 + Math.max(0, bob), 16, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(190, 79, 55, 0.18)";
+  ctx.beginPath();
+  ctx.roundRect(anchor.x - 38, anchor.y - 2, 76, 28, 12);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(143, 95, 63, 0.32)";
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.roundRect(anchor.x - 38, anchor.y - 2, 76, 28, 12);
+  ctx.stroke();
+  ctx.fillStyle = "rgba(246, 240, 182, 0.82)";
+  ctx.beginPath();
+  ctx.arc(anchor.x + 38, anchor.y - 16 + bob, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(143, 95, 63, 0.38)";
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.arc(anchor.x + 38, anchor.y - 16 + bob, 8, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = "rgba(77, 145, 166, 0.36)";
+  for (let i = 0; i < 3; i += 1) {
+    ctx.beginPath();
+    ctx.ellipse(anchor.x + 35 + i * 4, anchor.y - 30 - i * 3 + bob, 2, 5, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 240, 232, 0.96)");
+  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.84)" : "rgba(190, 79, 55, 0.58)";
+  ctx.lineWidth = active ? 2.8 : 1.8;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(190, 79, 55, 0.16)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 52, 48, 15);
+  ctx.fill();
+  ctx.fillStyle = "#be4f37";
+  ctx.font = "900 20px Microsoft YaHei";
+  ctx.fillText(event.glyph || "安", rect.x + 31, cardY + 43);
+
+  ctx.fillStyle = "#be4f37";
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title, rect.x + 82, cardY + 24);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 15px Microsoft YaHei";
+  ctx.fillText(`${spirit.name} · ${spec.headline}`.slice(0, 18), rect.x + 82, cardY + 46);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(spec.detail.slice(0, 32), rect.x + 82, cardY + 64);
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, cardY + 76, rect.width - 32, 28, 12);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "800 10px Microsoft YaHei";
+  ctx.fillText(`安抚：${spec.action}`.slice(0, 30), rect.x + 28, cardY + 93);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText("可点", rect.x + rect.width - 43, cardY + 24);
+
+  ctx.restore();
+  return true;
+}
