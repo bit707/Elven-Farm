@@ -1,0 +1,299 @@
+export function drawShopDiagnosisWorldBoardWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec?.anchor) return false;
+  const { rect, anchor } = spec;
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.7) * 2;
+  const accent = spec.tone === "warn" ? "#be4f37" : spec.tone === "good" ? "#286f58" : "#b47d2f";
+  const fill = spec.tone === "warn" ? "rgba(255, 240, 232, 0.94)" : spec.tone === "good" ? "rgba(237, 243, 223, 0.92)" : "rgba(255, 248, 232, 0.92)";
+  const cardY = rect.y + bob;
+
+  ctx.save();
+  ctx.strokeStyle = active ? `${accent}dd` : `${accent}66`;
+  ctx.lineWidth = active ? 2.8 : 1.8;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 10;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y);
+  ctx.quadraticCurveTo(rect.x + 36, cardY + rect.height + 20, rect.x + 36, cardY + rect.height - 8);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = `${accent}22`;
+  ctx.beginPath();
+  ctx.ellipse(anchor.x, anchor.y + 18, 54 + Math.abs(bob), 15, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, fill);
+  ctx.strokeStyle = active ? `${accent}ee` : `${accent}88`;
+  ctx.lineWidth = active ? 2.6 : 1.4;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}24`;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 50, 48, 14);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 20px Microsoft YaHei";
+  ctx.fillText(spec.tone === "warn" ? "诊" : spec.tone === "good" ? "旺" : "账", rect.x + 30, cardY + 45);
+  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 20, cardY + 53, 38, 15, 8);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText("可点", rect.x + 29, cardY + 64);
+
+  ctx.fillStyle = accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(`${spec.cta} · ${spec.hotTagLabel}`.slice(0, 23), rect.x + 78, cardY + 24);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 17), rect.x + 78, cardY + 47);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(spec.evidence.slice(0, 32), rect.x + 78, cardY + 65);
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.82)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, cardY + 76, rect.width - 32, 18, 9);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "800 10px Microsoft YaHei";
+  ctx.fillText(`改法：${spec.nextAction}`.slice(0, 36), rect.x + 26, cardY + 89);
+
+  ctx.fillStyle = active ? accent : "#5d6f65";
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(`主客 ${spec.mainCustomer} · 成交 ${spec.buyers}/${spec.visitors} · 离店 ${spec.leavers} · ${spec.conversion}%`, rect.x + 18, cardY + rect.height - 8);
+  ctx.restore();
+  return true;
+}
+
+export function drawShopCustomerReasonCompassWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec?.anchor) return false;
+  const { rect, anchor } = spec;
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.55) * 2;
+  const cardY = rect.y + bob;
+
+  ctx.save();
+  ctx.strokeStyle = active ? "rgba(180, 125, 47, 0.9)" : "rgba(180, 125, 47, 0.56)";
+  ctx.lineWidth = active ? 2.8 : 1.8;
+  ctx.setLineDash([6, 8]);
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y);
+  ctx.quadraticCurveTo(rect.x + 24, cardY + rect.height + 26, rect.x + 24, cardY + rect.height - 10);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 249, 238, 0.94)");
+  ctx.strokeStyle = active ? "rgba(180, 125, 47, 0.92)" : "rgba(180, 125, 47, 0.6)";
+  ctx.lineWidth = active ? 2.5 : 1.5;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, cardY + 1, rect.width - 2, rect.height - 2, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 13px Microsoft YaHei";
+  ctx.fillText(spec.title, rect.x + 18, cardY + 24);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "12px Microsoft YaHei";
+  spec.rows.slice(0, 3).forEach((row, index) => {
+    const rowY = cardY + 48 + index * 22;
+    ctx.fillStyle = row.accent || "#8f5f3f";
+    ctx.font = "bold 12px Microsoft YaHei";
+    ctx.fillText(row.title, rect.x + 18, rowY);
+    ctx.fillStyle = "#465448";
+    ctx.font = "12px Microsoft YaHei";
+    ctx.fillText((row.text || "").slice(0, 18), rect.x + 102, rowY);
+  });
+  ctx.restore();
+  return true;
+}
+
+export function drawCustomerThoughtBubblesWorld({
+  ctx,
+  entries = [],
+  positions = [],
+} = {}) {
+  if (!ctx || !Array.isArray(entries) || entries.length === 0 || !Array.isArray(positions) || positions.length === 0) return false;
+  ctx.save();
+  entries.forEach((entry, index) => {
+    const { x, y } = positions[index] || positions[0] || { x: 0, y: 0 };
+    const isCompendium = Boolean(entry.compendiumRemark || entry.reason === "compendium");
+    const isEcologyAura = entry.reason === "ecology_shop_aura";
+    const isWaterway = entry.reason === "waterway_browse" || entry.customerArchetype === "waterway_broker";
+    const isSolarMoodDisplay = entry.reason === "solar_mood_shop_display";
+    const text = entry.reason === "buy" ? `成交：${entry.text.replace(/，.*/, "")}` : entry.reason === "need" ? entry.text : entry.text;
+    const textLimit = isCompendium || isEcologyAura || isSolarMoodDisplay ? 20 : 18;
+    const shortText = text.length > textLimit ? `${text.slice(0, textLimit)}...` : text;
+    ctx.fillStyle = isEcologyAura
+      ? "rgba(236, 248, 243, 0.94)"
+      : isCompendium
+        ? "rgba(255, 248, 232, 0.96)"
+        : isSolarMoodDisplay
+          ? "rgba(255, 253, 245, 0.96)"
+          : isWaterway
+            ? "rgba(241, 249, 251, 0.95)"
+            : entry.reason === "buy" ? "rgba(237, 243, 223, 0.92)" : entry.reason === "need" ? "rgba(255, 253, 245, 0.94)" : "rgba(255, 248, 232, 0.92)";
+    ctx.strokeStyle = isEcologyAura
+      ? "rgba(40, 111, 88, 0.44)"
+      : isCompendium
+        ? "rgba(143, 95, 63, 0.46)"
+        : isSolarMoodDisplay
+          ? "rgba(180, 125, 47, 0.46)"
+          : isWaterway
+            ? "rgba(77, 145, 166, 0.48)"
+            : entry.reason === "buy" ? "rgba(40, 111, 88, 0.34)" : entry.reason === "need" ? "rgba(224, 182, 109, 0.42)" : "rgba(190, 79, 55, 0.28)";
+    ctx.lineWidth = isCompendium || isEcologyAura || isWaterway || isSolarMoodDisplay ? 2 : 1;
+    ctx.beginPath();
+    ctx.roundRect(x, y, 184, 52, 18);
+    ctx.fill();
+    ctx.stroke();
+    if (isCompendium || isEcologyAura || isWaterway || isSolarMoodDisplay) {
+      ctx.fillStyle = isSolarMoodDisplay ? "rgba(224, 182, 109, 0.28)" : isWaterway ? "rgba(122, 195, 213, 0.32)" : isEcologyAura ? "rgba(202, 235, 210, 0.4)" : "rgba(224, 182, 109, 0.26)";
+      ctx.beginPath();
+      ctx.arc(x + 160, y + 17, 13, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = isSolarMoodDisplay ? "#b47d2f" : isWaterway ? "#4d91a6" : isEcologyAura ? "#286f58" : "#8f5f3f";
+      ctx.font = "700 10px Microsoft YaHei";
+      ctx.fillText(isSolarMoodDisplay ? "画" : isWaterway ? "水" : isEcologyAura ? "院" : "印", x + 155, y + 21);
+    }
+    ctx.fillStyle = isSolarMoodDisplay ? "#b47d2f" : isWaterway ? "#4d91a6" : isEcologyAura ? "#286f58" : isCompendium ? "#8f5f3f" : entry.reason === "buy" ? "#286f58" : entry.reason === "need" ? "#8f5f3f" : "#be4f37";
+    ctx.font = "700 13px Microsoft YaHei";
+    ctx.fillText(entry.name, x + 16, y + 22);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "13px Microsoft YaHei";
+    ctx.fillText(shortText, x + 16, y + 40);
+    ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+    ctx.beginPath();
+    ctx.arc(x + 28, y + 60, 5, 0, Math.PI * 2);
+    ctx.arc(x + 16, y + 70, 3, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.restore();
+  return true;
+}
+
+export function drawShopThoughtBubbleChainWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.rows?.length) return false;
+  const { rect } = spec;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.1) * 2;
+  const accent = spec.warnCount > 0 ? "#be4f37" : spec.buyers > 0 ? "#286f58" : "#b47d2f";
+  const cardY = rect.y + pulse;
+  const toneColor = {
+    good: "#286f58",
+    warn: "#be4f37",
+    need: "#8f5f3f",
+    water: "#4d91a6",
+    gold: "#b47d2f",
+    note: "#5b6f9a",
+  };
+
+  ctx.save();
+  ctx.strokeStyle = active ? `${accent}cc` : `${accent}66`;
+  ctx.lineWidth = active ? 3 : 2;
+  ctx.setLineDash([8, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 11;
+  ctx.beginPath();
+  spec.rows.forEach((row, index) => {
+    const point = row.point || { x: rect.x, y: rect.y };
+    if (index === 0) ctx.moveTo(point.x, point.y);
+    else {
+      const prev = spec.rows[index - 1]?.point || point;
+      ctx.bezierCurveTo(prev.x + 38, prev.y - 18, point.x - 38, point.y - 18, point.x, point.y);
+    }
+  });
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  for (const row of spec.rows) {
+    const point = row.point || { x: rect.x, y: rect.y };
+    const color = toneColor[row.tone] || toneColor.note;
+    ctx.fillStyle = `${color}33`;
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 10 + Math.abs(pulse) * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, spec.warnCount > 0 ? "rgba(255, 240, 232, 0.94)" : "rgba(255, 248, 232, 0.95)");
+  ctx.strokeStyle = active ? `${accent}dd` : `${accent}88`;
+  ctx.lineWidth = active ? 2.6 : 1.5;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}22`;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 13, 48, 46, 15);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 20px Microsoft YaHei";
+  ctx.fillText("想", rect.x + 28, cardY + 43);
+  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 20, cardY + 50, 38, 15, 8);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText("可点", rect.x + 30, cardY + 61);
+
+  ctx.fillStyle = accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(`${spec.lineLabel || "顾客想法线"} · 可点`.slice(0, 15), rect.x + 76, cardY + 22);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 14px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 18), rect.x + 76, cardY + 43);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(`成交 ${spec.buyers} · 犹豫 ${spec.leavers} · ${spec.rows.length} 个泡泡`.slice(0, 28), rect.x + 76, cardY + 59);
+
+  spec.rows.slice(0, 3).forEach((row, index) => {
+    const color = toneColor[row.tone] || toneColor.note;
+    const rowX = rect.x + 16 + index * 80;
+    const rowY = cardY + 72;
+    ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
+    ctx.strokeStyle = `${color}44`;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(rowX, rowY, 72, 21, 10);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = color;
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(row.statusLabel.slice(0, 4), rowX + 7, rowY + 9);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "800 8px Microsoft YaHei";
+    ctx.fillText(String(row.text || "").slice(0, 8), rowX + 7, rowY + 18);
+  });
+
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText(`明日改法：${spec.cta} · 不会自动开铺、调价、补货或消耗资源`.slice(0, 48), rect.x + 16, cardY + rect.height - 8);
+  ctx.restore();
+  return true;
+}
