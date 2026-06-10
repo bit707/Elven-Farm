@@ -1582,3 +1582,110 @@ export function drawSpiritInteractionMemoryTriptychWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function drawFirstTwoSpiritDuoWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  bob = 0,
+  pulse = 0.5,
+  accent = "#b47d2f",
+  focused = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect) return false;
+  const { rect, luoboAnchor, lajiaoAnchor } = spec;
+  const cardY = rect.y + bob;
+  const cardCenter = { x: rect.x + 38, y: rect.y + rect.height * 0.55 + bob };
+
+  ctx.save();
+  ctx.strokeStyle = focused ? "rgba(190, 79, 55, 0.82)" : `${accent}66`;
+  ctx.lineWidth = focused ? 3 : 2;
+  ctx.setLineDash([7, 9]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 15;
+  ctx.beginPath();
+  ctx.moveTo(luoboAnchor.x, luoboAnchor.y);
+  ctx.quadraticCurveTo((luoboAnchor.x + cardCenter.x) / 2, Math.min(luoboAnchor.y, cardCenter.y) - 42, cardCenter.x, cardCenter.y);
+  ctx.quadraticCurveTo((cardCenter.x + lajiaoAnchor.x) / 2, Math.min(cardCenter.y, lajiaoAnchor.y) - 48, lajiaoAnchor.x, lajiaoAnchor.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  for (let i = 0; i < 6; i += 1) {
+    const t = reducedMotion ? i / 5 : (motion * 0.1 + i * 0.17) % 1;
+    const source = t < 0.5 ? luoboAnchor : cardCenter;
+    const target = t < 0.5 ? cardCenter : lajiaoAnchor;
+    const localT = t < 0.5 ? t * 2 : (t - 0.5) * 2;
+    const x = source.x + (target.x - source.x) * localT;
+    const y = source.y + (target.y - source.y) * localT - Math.sin(localT * Math.PI) * 30;
+    ctx.fillStyle = i % 2 ? "rgba(246, 240, 182, 0.82)" : "rgba(202, 235, 210, 0.82)";
+    ctx.beginPath();
+    ctx.arc(x, y, 4 + (i % 2), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, spec.active ? "rgba(255, 240, 232, 0.95)" : "rgba(248, 252, 247, 0.95)");
+  ctx.strokeStyle = focused ? "rgba(190, 79, 55, 0.84)" : `${accent}66`;
+  ctx.lineWidth = focused ? 2.8 : 1.8;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 2, cardY + 2, rect.width - 4, rect.height - 4, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(202, 235, 210, 0.36)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 16, 46, 46, 14);
+  ctx.fill();
+  ctx.fillStyle = "#286f58";
+  ctx.font = "900 18px Microsoft YaHei";
+  ctx.fillText("萝", rect.x + 27, cardY + 46);
+  ctx.fillStyle = "rgba(190, 79, 55, 0.16)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 62, cardY + 16, 46, 46, 14);
+  ctx.fill();
+  ctx.fillStyle = "#be4f37";
+  ctx.font = "900 18px Microsoft YaHei";
+  ctx.fillText("椒", rect.x + 75, cardY + 46);
+  ctx.fillStyle = "#f7d36d";
+  ctx.beginPath();
+  ctx.arc(rect.x + 98, cardY + 24 - pulse * 3, 5 + pulse * 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = accent;
+  ctx.font = "800 12px Microsoft YaHei";
+  ctx.fillText(spec.cta.slice(0, 14), rect.x + 124, cardY + 24);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 16px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 15), rect.x + 124, cardY + 48);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(spec.detail.slice(0, 34), rect.x + 18, cardY + 76);
+
+  const barX = rect.x + 18;
+  const barY = cardY + 86;
+  ctx.fillStyle = "rgba(255, 253, 245, 0.78)";
+  ctx.beginPath();
+  ctx.roundRect(barX, barY, rect.width - 36, 13, 7);
+  ctx.fill();
+  ctx.fillStyle = `${accent}aa`;
+  ctx.beginPath();
+  ctx.roundRect(barX + 2, barY + 2, Math.max(14, (rect.width - 40) * (spec.progress / 100)), 9, 5);
+  ctx.fill();
+
+  const chipY = cardY + rect.height - 18;
+  [
+    { text: spec.farmText, color: "#286f58" },
+    { text: spec.recipeText, color: "#be4f37" },
+    { text: spec.lajiaoIntroDone ? "已互认" : "待记忆", color: spec.lajiaoIntroDone ? "#286f58" : "#b47d2f" },
+  ].forEach((chip, index) => {
+    const chipX = rect.x + 16 + index * 88;
+    ctx.fillStyle = "rgba(255, 253, 245, 0.66)";
+    ctx.beginPath();
+    ctx.roundRect(chipX, chipY, 78, 17, 8);
+    ctx.fill();
+    ctx.fillStyle = chip.color;
+    ctx.font = "800 9px Microsoft YaHei";
+    ctx.fillText(chip.text.slice(0, 7), chipX + 8, chipY + 12);
+  });
+  ctx.restore();
+  return true;
+}
