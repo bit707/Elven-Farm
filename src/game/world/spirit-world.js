@@ -2101,3 +2101,114 @@ export function drawRareSpiritClueRoadsignWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function drawRareSpiritIdentityPortraitWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  pulse = 0,
+  activeNodeKey = "",
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+  drawRareSpiritTheaterGlyph = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.nodes?.length) return false;
+  const { rect, anchor, palette } = spec;
+  const cardY = rect.y + pulse;
+
+  ctx.save();
+  ctx.strokeStyle = activeNodeKey ? `${palette.state}dd` : `${palette.base}66`;
+  ctx.lineWidth = activeNodeKey ? 3 : 1.8;
+  ctx.setLineDash([6, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 9;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y);
+  ctx.quadraticCurveTo(rect.x + 48, cardY + rect.height + 22, rect.x + 44, cardY + rect.height - 8);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = palette.glow;
+  ctx.beginPath();
+  ctx.ellipse(anchor.x, anchor.y + 10, 62 + Math.abs(pulse), 17, -0.08, 0, Math.PI * 2);
+  ctx.fill();
+  drawRareSpiritTheaterGlyph(ctx, spec.lineId, anchor.x, anchor.y - 12 + pulse * 0.25, motion);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, palette.soft);
+  ctx.strokeStyle = activeNodeKey ? `${palette.state}ee` : `${palette.base}88`;
+  ctx.lineWidth = activeNodeKey ? 2.8 : 1.7;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, cardY + 1, rect.width - 2, rect.height - 2, 20);
+  ctx.stroke();
+
+  ctx.fillStyle = palette.glow;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, cardY + 15, 58, 50, 16);
+  ctx.fill();
+  drawRareSpiritTheaterGlyph(ctx, spec.lineId, rect.x + 45, cardY + 41, motion);
+  ctx.fillStyle = palette.state;
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText(spec.sourceLabel, rect.x + 24, cardY + 64);
+
+  ctx.fillStyle = palette.base;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title, rect.x + 86, cardY + 23);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(spec.subtitle.slice(0, 22), rect.x + 86, cardY + 46);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(`${spec.sceneText} · ${spec.actionText}`.slice(0, 40), rect.x + 86, cardY + 63);
+
+  spec.nodes.forEach((node, index) => {
+    const nodeRect = node.rect;
+    const active = activeNodeKey === node.key;
+    const bob = (active ? pulse / 1.5 : Math.sin(motion * 1.4 + index) * 0.8) + pulse;
+    ctx.fillStyle = active ? "rgba(255, 253, 245, 0.96)" : "rgba(255, 253, 245, 0.72)";
+    ctx.beginPath();
+    ctx.roundRect(nodeRect.x, nodeRect.y + bob, nodeRect.width, nodeRect.height, 14);
+    ctx.fill();
+    ctx.strokeStyle = active ? `${node.accent}ee` : `${node.accent}77`;
+    ctx.lineWidth = active ? 2.4 : 1.3;
+    ctx.stroke();
+
+    ctx.fillStyle = active ? node.accent : `${node.accent}cc`;
+    ctx.beginPath();
+    ctx.arc(nodeRect.x + 18, nodeRect.y + 20 + bob, active ? 13 : 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fffdf5";
+    ctx.font = "900 13px Microsoft YaHei";
+    ctx.fillText(node.glyph, nodeRect.x + 12, nodeRect.y + 25 + bob);
+
+    ctx.fillStyle = "#17231d";
+    ctx.font = "900 9px Microsoft YaHei";
+    ctx.fillText(node.label, nodeRect.x + 34, nodeRect.y + 17 + bob);
+    ctx.fillStyle = active ? node.accent : "#5d6f65";
+    ctx.font = "800 8px Microsoft YaHei";
+    ctx.fillText(node.text.slice(0, 7), nodeRect.x + 34, nodeRect.y + 31 + bob);
+  });
+
+  const focusNode = spec.nodes.find((node) => node.key === activeNodeKey) || spec.nodes[0];
+  if (focusNode) {
+    ctx.fillStyle = spec.ready ? "rgba(255, 240, 238, 0.72)" : spec.clueKnown ? "rgba(232, 247, 250, 0.72)" : "rgba(236, 248, 243, 0.72)";
+    ctx.beginPath();
+    ctx.roundRect(rect.x + 18, cardY + rect.height - 18, rect.width - 36, 13, 7);
+    ctx.fill();
+    ctx.fillStyle = spec.ready ? "#be4f37" : spec.clueKnown ? "#4d91a6" : "#286f58";
+    ctx.font = "800 8px Microsoft YaHei";
+    ctx.fillText(`${focusNode.label}：${focusNode.detail}`.slice(0, 48), rect.x + 30, cardY + rect.height - 8);
+  }
+
+  if (!reducedMotion) {
+    for (let i = 0; i < 6; i += 1) {
+      const moteX = rect.x + 30 + i * 48 + Math.sin(motion * 1.8 + i) * 3;
+      const moteY = cardY - 4 + Math.cos(motion * 1.4 + i) * 4;
+      ctx.fillStyle = i % 2 ? "rgba(255, 253, 245, 0.86)" : `${palette.base}88`;
+      ctx.beginPath();
+      ctx.arc(moteX, moteY, i % 2 ? 2 : 2.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.restore();
+  return true;
+}
