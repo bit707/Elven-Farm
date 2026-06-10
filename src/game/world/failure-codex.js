@@ -269,6 +269,181 @@ export function failureRecoveryRouteWorldAtCanvasPointWorld({ px, py, spec = nul
   ) ? spec : null;
 }
 
+export function shopLeaveRecoveryRouteStepsWorld(reason = "tag", profile = {}, feedback = {}, context = {}) {
+  const reasonLabels = {
+    price: "价签卡住",
+    stock: "货架太薄",
+    tag: "口味不合",
+  };
+  const reasonText = feedback.learningLine || profile.problem || "顾客留下了离店原因。";
+  const gentleText = reason === "price"
+    ? "不是货不好，是顾客还没被说服这个价值得今天掏钱。"
+    : reason === "stock"
+      ? "不是没人想买，是货架太薄会让谨慎客人先退一步。"
+      : "不是客人没需求，是货架还没把“为谁准备”讲清楚。";
+  const tomorrowText = feedback.tomorrowAction
+    || profile.action
+    || (context.lowStockGoods?.[0]?.itemName
+      ? `明早先补 ${context.lowStockGoods[0].itemName}，再开一轮试营业。`
+      : "明天先修正一处短板，再开一轮试营业。");
+  return [
+    {
+      key: "reason",
+      label: "离店原因",
+      title: reasonLabels[reason] || "原因待观察",
+      text: reasonText,
+      tone: "warn",
+    },
+    {
+      key: "gentle_fix",
+      label: "温和改法",
+      title: feedback.gentleFix || "先改一处",
+      text: gentleText,
+      tone: "mid",
+    },
+    {
+      key: "tomorrow",
+      label: "明日改法",
+      title: "明天可执行",
+      text: tomorrowText,
+      tone: "good",
+    },
+  ];
+}
+
+export function shopLeaveRecoveryWorldSpecWorld({
+  recovery = null,
+  routeSteps = [],
+  day = 1,
+} = {}) {
+  if (!recovery) return null;
+  const safeRouteSteps = Array.isArray(routeSteps) && routeSteps.length
+    ? routeSteps
+    : shopLeaveRecoveryRouteStepsWorld(recovery.reason, recovery, {
+      learningLine: recovery.learningLine || recovery.detail,
+      gentleFix: recovery.gentleFix,
+      tomorrowAction: recovery.tomorrowAction || recovery.action,
+    });
+  return {
+    key: `${day}:${recovery.reason || "shop"}:${recovery.leavers || 0}`,
+    day,
+    title: recovery.routeTitle || "离店补救路线",
+    headline: recovery.problem || "旧铺把流失原因圈出来了",
+    recovery,
+    routeSteps: safeRouteSteps,
+    nextAction: recovery.tomorrowAction || recovery.action || safeRouteSteps[2]?.text || "明天先按补救路线调整一处短板。",
+    support: recovery.support || "补救路线已写入账页",
+    rect: { x: 220, y: 416, width: 238, height: 126 },
+  };
+}
+
+export function shopLeaveRecoveryMarkupWorld(recovery = null, routeSteps = []) {
+  if (!recovery) return "";
+  const safeRouteSteps = Array.isArray(routeSteps) && routeSteps.length
+    ? routeSteps
+    : shopLeaveRecoveryRouteStepsWorld(recovery.reason, recovery, {
+      learningLine: recovery.learningLine || recovery.detail,
+      gentleFix: recovery.gentleFix,
+      tomorrowAction: recovery.tomorrowAction || recovery.action,
+    });
+  return `
+    <div class="shop-recovery-ticket" data-shop-board="leave-recovery">
+      <strong>${recovery.title}</strong>
+      <span>${recovery.problem}</span>
+      <div class="shop-leave-recovery-route">
+        ${safeRouteSteps.map((step, index) => `
+          <i class="${step.tone || "mid"}">
+            <b>${index + 1}. ${step.label}</b>
+            <em>${step.title}</em>
+            <small>${step.text}</small>
+          </i>
+        `).join("")}
+      </div>
+      <small>温和改法：${recovery.gentleFix || recovery.detail}</small>
+      <small>明日改法：${recovery.tomorrowAction || recovery.action}</small>
+      <small>托底：${recovery.support} · ${recovery.detail}</small>
+    </div>
+  `;
+}
+
+export function drawShopLeaveRecoveryWorldNoteWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.routeSteps?.length) return false;
+  const { rect } = spec;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.4) * 2;
+  const cardY = rect.y + pulse;
+  const accent = spec.recovery?.reason === "price"
+    ? "#be4f37"
+    : spec.recovery?.reason === "stock"
+      ? "#b47d2f"
+      : "#8f5f3f";
+  ctx.save();
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.94)");
+  ctx.strokeStyle = `${accent}88`;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, cardY + 1, rect.width - 2, rect.height - 2, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}22`;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 46, 42, 14);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 17px Microsoft YaHei";
+  ctx.fillText("救", rect.x + 28, cardY + 42);
+
+  ctx.fillStyle = accent;
+  ctx.font = "800 11px Microsoft YaHei";
+  ctx.fillText("离店补救路线 · 可点", rect.x + 72, cardY + 24);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 13px Microsoft YaHei";
+  ctx.fillText((spec.headline || spec.title).slice(0, 16), rect.x + 72, cardY + 45);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText((spec.support || "补救路线已写入账页").slice(0, 25), rect.x + 72, cardY + 62);
+
+  const startX = rect.x + 26;
+  const stepY = cardY + 78;
+  const gap = 72;
+  ctx.strokeStyle = `${accent}44`;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(startX + 14, stepY);
+  ctx.lineTo(startX + gap * 2 + 14, stepY);
+  ctx.stroke();
+  spec.routeSteps.slice(0, 3).forEach((step, index) => {
+    const dotX = startX + index * gap;
+    const toneColor = step.tone === "good" ? "#286f58" : step.tone === "warn" ? "#be4f37" : "#b47d2f";
+    ctx.fillStyle = `${toneColor}dd`;
+    ctx.beginPath();
+    ctx.arc(dotX + 14, stepY, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fffdf5";
+    ctx.font = "900 9px Microsoft YaHei";
+    ctx.fillText(String(index + 1), dotX + 11, stepY + 3);
+    ctx.fillStyle = toneColor;
+    ctx.font = "800 9px Microsoft YaHei";
+    ctx.fillText(step.label.slice(0, 4), dotX - 2, stepY + 24);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 18, cardY + rect.height - 18, rect.width - 36, 14, 7);
+  ctx.fill();
+  ctx.fillStyle = "#286f58";
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(`明日改法：${spec.nextAction}`.slice(0, 31), rect.x + 28, cardY + rect.height - 8);
+
+  ctx.restore();
+  return true;
+}
+
 export function failureMercyLanternWorldSpecWorld({
   boardSpec = null,
   routeSpec = null,
