@@ -718,6 +718,126 @@ export function shopFirstCustomerThresholdWorldAtCanvasPointWorld({
     : null;
 }
 
+export function shopFirstSaleReceiptWorldSpecWorld({
+  opening = null,
+  report = [],
+  itemName = (itemId) => itemId || "",
+} = {}) {
+  const firstSale = opening?.firstSale || null;
+  if (!firstSale) return null;
+  const safeReport = Array.isArray(report) ? report : [];
+  const reportIndex = safeReport.findIndex((entry) =>
+    entry.reason === "buy"
+    && (!firstSale.itemId || entry.itemId === firstSale.itemId)
+    && (!firstSale.customerArchetype || entry.customerArchetype === firstSale.customerArchetype)
+  );
+  const reportEntry = reportIndex >= 0 ? { ...safeReport[reportIndex], reportIndex } : null;
+  return {
+    firstSale,
+    reportIndex,
+    reportEntry,
+    title: "首单成交小票",
+    customerName: firstSale.name || reportEntry?.name || "第一位买客",
+    itemName: firstSale.itemName || itemName(firstSale.itemId || reportEntry?.itemId || ""),
+    price: Number(firstSale.price || 0),
+    reasonText: firstSale.reasonText || reportEntry?.detail || "顾客觉得商品和价格都合适。",
+    reviewQuote: firstSale.reviewQuote || "这家旧铺，像是会记得客人要什么。",
+    returnPreview: firstSale.returnPreview || null,
+    returnChance: Number(firstSale.returnPreview?.chance || 0),
+    returnSummary: firstSale.returnPreview?.summary || "",
+    returnCta: firstSale.returnPreview?.cta || "",
+    returnTone: firstSale.returnPreview?.tone || "note",
+    rect: { x: 206, y: 332, width: 244, height: firstSale.returnPreview ? 122 : 88 },
+  };
+}
+
+export function shopFirstSaleLessonWorldSpecWorld({
+  opening = null,
+  receipt = null,
+  reflection = null,
+  regularBoard = null,
+  restockRoutes = [],
+  day = 1,
+} = {}) {
+  if (!receipt?.firstSale) return null;
+  const route = restockRoutes[0] || null;
+  const returnChance = Number(receipt.returnChance || receipt.returnPreview?.chance || 0);
+  const returnText = receipt.returnSummary
+    || receipt.returnPreview?.summary
+    || regularBoard?.rows?.[0]?.summary
+    || "下轮继续摆同类货，顾客更容易记住这扇门。";
+  const nextAction = route
+    ? `${route.label}：${route.title}`
+    : receipt.returnCta || regularBoard?.rows?.[0]?.detail || `继续补 ${receipt.itemName} 或同标签货。`;
+  const reasonShort = receipt.reasonText || reflection?.digest || "商品、价格和热卖标签刚好对上。";
+  const needBubble = (opening?.needBubbles || []).find((entry) => (
+    entry.name === receipt.customerName
+    || entry.customerArchetype === receipt.firstSale?.customerArchetype
+  )) || (opening?.needBubbles || [])[0] || null;
+  const needText = needBubble?.text || needBubble?.detail || receipt.reviewQuote || "顾客先看懂了货架想卖什么。";
+  const reasonProofs = [
+    { label: "想法泡泡", text: needText, tone: "need" },
+    { label: "买了什么", text: receipt.itemName, tone: "goods" },
+    { label: "价签成立", text: `${receipt.price || 0} 灵石`, tone: "price" },
+    { label: "明日补货", text: nextAction, tone: "next" },
+  ];
+  return {
+    key: `${day}:${receipt.customerName}:${receipt.itemName}:${receipt.price}:${returnChance}:first_sale_lesson`,
+    day,
+    receipt,
+    reflection,
+    regularBoard,
+    route,
+    restockRoutes,
+    title: "首单原因续航牌 · 可点",
+    headline: `${receipt.customerName}为什么买单？`,
+    customerName: receipt.customerName,
+    itemName: receipt.itemName,
+    price: receipt.price,
+    reasonText: reasonShort,
+    reviewQuote: receipt.reviewQuote,
+    returnChance,
+    returnText,
+    nextAction,
+    needText,
+    reasonProofs,
+    memoryLine: `${receipt.customerName}因为${reasonShort}买走${receipt.itemName}`,
+    safety: "只定位旧铺报告和顾客旅线，不会自动开铺、接客、成交、改价、补货或消耗库存",
+    reportIndex: receipt.reportIndex,
+    selector: receipt.reportIndex >= 0
+      ? `[data-shop-report-index="${Number(receipt.reportIndex)}"]`
+      : '[data-shop-board="customer-focus"]',
+    fallbackSelector: '[data-shop-board="opening"]',
+    rect: { x: 528, y: 186, width: 336, height: 164 },
+    anchor: {
+      x: receipt.rect.x + receipt.rect.width,
+      y: receipt.rect.y + 28,
+    },
+    accent: returnChance >= 65 ? "#286f58" : returnChance >= 45 ? "#b47d2f" : "#8f5f3f",
+  };
+}
+
+export function shopFirstSaleLessonWorldAtCanvasPointWorld({
+  px = 0,
+  py = 0,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? {
+      type: "first_sale_lesson",
+      label: spec.title,
+      selector: spec.selector,
+      fallbackSelector: spec.fallbackSelector,
+      firstSaleLesson: spec,
+      firstSaleReceipt: spec.receipt,
+      entry: spec.receipt.reportEntry,
+      rect,
+    }
+    : null;
+}
+
 export function drawShopTrialTheaterWorldWorld({
   ctx,
   spec = null,
