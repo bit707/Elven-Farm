@@ -83,6 +83,438 @@ export function drawWorkshopOutputRouteTriptychWorldWorld({
   return true;
 }
 
+export function drawWorkshopIngredientReadyWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec?.anchor || !spec?.potPoint || !spec?.inputItems?.length) return false;
+  const { rect, anchor, potPoint } = spec;
+  const accent = spec.firstAroma ? "#be4f37" : spec.orderReady ? "#286f58" : "#b47d2f";
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.85) * 2.2;
+  const flicker = reducedMotion ? 0.5 : (Math.sin(motion * 5.4) + 1) / 2;
+  const cardY = rect.y + bob;
+
+  ctx.save();
+  ctx.strokeStyle = active ? `${accent}dd` : `${accent}66`;
+  ctx.lineWidth = active ? 3 : 1.8;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 12;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y - 16);
+  ctx.quadraticCurveTo(rect.x + rect.width - 54, cardY - 28, rect.x + rect.width - 34, cardY + 26);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = `rgba(190, 79, 55, ${0.12 + flicker * 0.08})`;
+  ctx.beginPath();
+  ctx.ellipse(potPoint.x, potPoint.y + 26, 58 + flicker * 6, 18, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(91, 51, 40, 0.86)";
+  ctx.beginPath();
+  ctx.roundRect(potPoint.x - 32, potPoint.y + 6, 64, 34, 12);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255, 248, 232, 0.9)";
+  ctx.beginPath();
+  ctx.ellipse(potPoint.x, potPoint.y + 8, 34, 9, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = `${accent}99`;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  for (let i = 0; i < 3; i += 1) {
+    const steamX = potPoint.x - 18 + i * 18;
+    ctx.strokeStyle = `rgba(255, 253, 245, ${0.38 + flicker * 0.22})`;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(steamX, potPoint.y + 2);
+    ctx.quadraticCurveTo(steamX - 8, potPoint.y - 14 - i * 2, steamX + 4, potPoint.y - 26 - flicker * 5);
+    ctx.stroke();
+  }
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
+  ctx.strokeStyle = active ? `${accent}ee` : `${accent}88`;
+  ctx.lineWidth = active ? 2.7 : 1.5;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}20`;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 58, 52, 16);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 22px Microsoft YaHei";
+  ctx.fillText("火", rect.x + 33, cardY + 50);
+  ctx.fillStyle = "#fffdf5";
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText("可做", rect.x + 30, cardY + 64);
+
+  ctx.fillStyle = accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title, rect.x + 86, cardY + 24);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 21), rect.x + 86, cardY + 46);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText(`${spec.outputName} x${spec.outputCount} · ${spec.machineText}`.slice(0, 38), rect.x + 86, cardY + 63);
+
+  spec.inputItems.forEach((item, index) => {
+    const chipX = rect.x + 18 + index * 100;
+    const chipY = cardY + 80;
+    ctx.fillStyle = "rgba(255, 253, 245, 0.78)";
+    ctx.strokeStyle = `${accent}40`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(chipX, chipY - 10, 90, 22, 10);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = accent;
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(item.name.slice(0, 5), chipX + 8, chipY - 1);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "800 8px Microsoft YaHei";
+    ctx.fillText(`${item.have}/${item.count}`, chipX + 58, chipY - 1);
+    ctx.fillStyle = "#286f58";
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText("齐", chipX + 8, chipY + 10);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + rect.width - 50, cardY + 13, 36, 18, 9);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText("可点", rect.x + rect.width - 42, cardY + 26);
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 18, cardY + rect.height - 15, rect.width - 36, 11, 6);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText(`${spec.routeText} · ${spec.safety}`.slice(0, 54), rect.x + 26, cardY + rect.height - 7);
+  ctx.restore();
+  return true;
+}
+
+export function drawWorkshopOpeningValueWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec?.anchor) return false;
+  const { rect, anchor } = spec;
+  const accent = spec.mode === "running"
+    ? "#be4f37"
+    : spec.mode === "ready"
+      ? "#286f58"
+      : "#b47d2f";
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.7) * 2.2;
+  const cardY = rect.y + bob;
+
+  ctx.save();
+  ctx.strokeStyle = active ? `${accent}dd` : `${accent}66`;
+  ctx.lineWidth = active ? 3 : 1.8;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 12;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y - 28);
+  ctx.quadraticCurveTo(rect.x + 64, cardY - 24, rect.x + 42, cardY + 24);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, spec.mode === "blocked" ? "rgba(255, 248, 232, 0.94)" : "rgba(255, 253, 245, 0.96)");
+  ctx.strokeStyle = active ? `${accent}ee` : `${accent}88`;
+  ctx.lineWidth = active ? 2.8 : 1.7;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}22`;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 58, 58, 16);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 22px Microsoft YaHei";
+  ctx.fillText(spec.mode === "running" ? "火" : spec.mode === "ready" ? "值" : "候", rect.x + 33, cardY + 50);
+  ctx.fillStyle = "#fffdf5";
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText(spec.mode === "running" ? "锅中" : spec.mode === "ready" ? "可做" : "补料", rect.x + 29, cardY + 66);
+
+  ctx.fillStyle = accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(`${spec.cta} · ${spec.mode === "running" ? "排产中" : spec.craftable ? "可下锅" : "待补齐"}`.slice(0, 30), rect.x + 86, cardY + 23);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 21), rect.x + 86, cardY + 46);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText(`${spec.outputName} x${spec.outputCount} · ${spec.machineText}`.slice(0, 36), rect.x + 86, cardY + 63);
+
+  const barX = rect.x + 86;
+  const barY = cardY + 72;
+  const barW = rect.width - 114;
+  const barH = 12;
+  ctx.fillStyle = "rgba(23, 35, 29, 0.09)";
+  ctx.beginPath();
+  ctx.roundRect(barX, barY, barW, barH, 6);
+  ctx.fill();
+  ctx.fillStyle = "rgba(143, 95, 63, 0.44)";
+  ctx.beginPath();
+  ctx.roundRect(barX, barY, Math.max(8, barW * spec.rawRatio), barH, 6);
+  ctx.fill();
+  ctx.fillStyle = "rgba(224, 182, 109, 0.62)";
+  ctx.beginPath();
+  ctx.roundRect(barX, barY, Math.max(8, barW * spec.outputRatio), barH, 6);
+  ctx.fill();
+  if (spec.orderReward > 0) {
+    ctx.fillStyle = `${accent}cc`;
+    ctx.beginPath();
+    ctx.roundRect(barX, barY, Math.max(8, barW * spec.orderRatio), barH, 6);
+    ctx.fill();
+  }
+  if (!reducedMotion && spec.mode !== "blocked") {
+    const shineX = barX + ((motion * 0.28) % 1) * Math.max(1, barW - 18);
+    ctx.fillStyle = "rgba(255, 253, 245, 0.52)";
+    ctx.beginPath();
+    ctx.roundRect(shineX, barY + 2, 18, barH - 4, 5);
+    ctx.fill();
+  }
+
+  const chips = [
+    { label: "原料", value: `${spec.rawValue}` },
+    { label: "出锅", value: `${spec.outputValue}` },
+    { label: spec.orderReward ? "订单" : "旧铺", value: spec.orderReward ? `${spec.orderReward}` : spec.shopTagText.slice(0, 3) },
+  ];
+  chips.forEach((chip, index) => {
+    const chipX = rect.x + 18 + index * 76;
+    const chipY = cardY + 88;
+    ctx.fillStyle = index === 2 ? `${accent}18` : "rgba(255, 248, 232, 0.82)";
+    ctx.strokeStyle = `${accent}36`;
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.roundRect(chipX, chipY, 66, 22, 10);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = accent;
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(chip.label, chipX + 8, chipY + 9);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "900 9px Microsoft YaHei";
+    ctx.fillText(chip.value, chipX + 32, chipY + 16);
+  });
+
+  ctx.fillStyle = spec.mode === "blocked" ? "rgba(224, 182, 109, 0.14)" : "rgba(202, 235, 210, 0.42)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 246, cardY + 89, rect.width - 264, 21, 10);
+  ctx.fill();
+  ctx.fillStyle = spec.mode === "blocked" ? "#8f5f3f" : "#286f58";
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText((spec.valueGain > 0 ? `多 ${spec.valueGain}` : spec.mode === "blocked" ? spec.missingText : "接去向").slice(0, 9), rect.x + 258, cardY + 103);
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 18, cardY + rect.height - 18, rect.width - 36, 14, 7);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText(`${spec.routeText} · ${spec.safety}`.slice(0, 46), rect.x + 26, cardY + rect.height - 8);
+
+  ctx.restore();
+  return true;
+}
+
+export function drawWorkshopSpiritAssistActionWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec?.anchor || !spec?.nodes?.length) return false;
+  const { rect, anchor } = spec;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.2) * 2.4;
+  const cardY = rect.y + pulse * 0.45;
+  const accent = spec.accent || "#b47d2f";
+
+  ctx.save();
+  ctx.strokeStyle = active ? `${accent}dd` : `${accent}66`;
+  ctx.lineWidth = active ? 3 : 1.8;
+  ctx.setLineDash([6, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 14;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y - 34);
+  ctx.quadraticCurveTo((anchor.x + rect.x + 58) / 2, cardY - 46, rect.x + 58, cardY + 22);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  for (let i = 0; i < 5; i += 1) {
+    const t = reducedMotion ? i / 4 : (motion * 0.13 + i * 0.19) % 1;
+    const beadX = anchor.x + (rect.x + 58 - anchor.x) * t;
+    const beadY = anchor.y - 34 + (cardY + 22 - anchor.y + 34) * t - Math.sin(t * Math.PI) * 34;
+    ctx.fillStyle = i % 2 ? "rgba(246, 240, 182, 0.72)" : "rgba(202, 235, 210, 0.66)";
+    ctx.beginPath();
+    ctx.arc(beadX, beadY, 4 + (i % 2), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, spec.active ? "rgba(255, 240, 232, 0.95)" : "rgba(255, 248, 232, 0.95)");
+  ctx.strokeStyle = active ? `${accent}ee` : `${accent}88`;
+  ctx.lineWidth = active ? 2.8 : 1.7;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}22`;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 58, 58, 16);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 22px Microsoft YaHei";
+  ctx.fillText("帮", rect.x + 32, cardY + 50);
+  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+  ctx.beginPath();
+  ctx.arc(rect.x + 60, cardY + 26 - pulse * 0.35, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 33, cardY + 62, 28, 8, 4);
+  ctx.fill();
+
+  ctx.fillStyle = accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title.slice(0, 18), rect.x + 86, cardY + 23);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 20), rect.x + 86, cardY + 45);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText(`${spec.actionText} · ${spec.stageLabel} · ${spec.speedText}`.slice(0, 38), rect.x + 86, cardY + 62);
+
+  const nodeY = cardY + 80;
+  spec.nodes.forEach((node, index) => {
+    const nodeX = rect.x + 16 + index * 100;
+    ctx.fillStyle = index === 1 ? `${node.accent}18` : "rgba(255, 253, 245, 0.76)";
+    ctx.strokeStyle = `${node.accent}55`;
+    ctx.lineWidth = active && index === 1 ? 1.8 : 1.1;
+    ctx.beginPath();
+    ctx.roundRect(nodeX, nodeY - 10, 88, 27, 11);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = node.accent;
+    ctx.beginPath();
+    ctx.arc(nodeX + 15, nodeY + 3, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fffdf5";
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(node.badge.slice(0, 1), nodeX + 11, nodeY + 6);
+    ctx.fillStyle = node.accent;
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(node.title.slice(0, 4), nodeX + 30, nodeY - 1);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "800 8px Microsoft YaHei";
+    ctx.fillText(String(node.detail || "").slice(0, 8), nodeX + 30, nodeY + 12);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 18, cardY + rect.height - 18, rect.width - 36, 14, 7);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText(`${spec.cta} · ${spec.safety}`.slice(0, 44), rect.x + 26, cardY + rect.height - 8);
+  ctx.restore();
+  return true;
+}
+
+export function drawWorkshopOrderQueueWorldBoardWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec?.activeJob || !spec?.orderMatch || !spec?.anchor || !spec?.boardAnchor) return false;
+  const { rect, activeJob, orderMatch, anchor, boardAnchor } = spec;
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.9) * 2;
+  const cardY = rect.y + bob;
+  const accent = orderMatch.ready ? "#286f58" : "#be4f37";
+  const progress = Math.max(0, Math.min(1, Number(activeJob.progress || 0) / 100));
+
+  ctx.save();
+  ctx.strokeStyle = orderMatch.ready ? "rgba(40, 111, 88, 0.55)" : "rgba(190, 79, 55, 0.48)";
+  ctx.lineWidth = active ? 3 : 2;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 14;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y - 34);
+  ctx.quadraticCurveTo(rect.x + 24, cardY - 28, rect.x + 34, cardY + 18);
+  ctx.moveTo(rect.x + rect.width - 18, cardY + 24);
+  ctx.quadraticCurveTo(boardAnchor.x - 20, boardAnchor.y + 56, boardAnchor.x, boardAnchor.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, orderMatch.ready ? "rgba(237, 243, 223, 0.94)" : "rgba(255, 244, 232, 0.94)");
+  ctx.strokeStyle = active ? `${accent}dd` : `${accent}88`;
+  ctx.lineWidth = active ? 2.8 : 1.6;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}24`;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 52, 50, 15);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 20px Microsoft YaHei";
+  ctx.fillText(orderMatch.ready ? "交" : "锅", rect.x + 31, cardY + 45);
+  for (let i = 0; i < 3; i += 1) {
+    const lift = reducedMotion ? i * 4 : (motion * 16 + i * 13) % 32;
+    ctx.fillStyle = i % 2 ? "rgba(255, 253, 245, 0.58)" : "rgba(246, 240, 182, 0.52)";
+    ctx.beginPath();
+    ctx.arc(rect.x + 28 + i * 11, cardY + 18 - lift * 0.45, 6 - i * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(`${spec.cta} · ${spec.headline}`, rect.x + 82, cardY + 23);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 14px Microsoft YaHei";
+  ctx.fillText(orderMatch.orderTitle.slice(0, 18), rect.x + 82, cardY + 44);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(`${activeJob.recipeName} · ${spec.detail}`.slice(0, 34), rect.x + 82, cardY + 62);
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.84)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 82, cardY + 66, rect.width - 126, 8, 4);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 82, cardY + 66, Math.max(10, (rect.width - 126) * progress), 8, 4);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + rect.width - 58, cardY + 14, 42, 20, 10);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText("可点", rect.x + rect.width - 48, cardY + 28);
+  ctx.restore();
+  return true;
+}
+
 export function drawWorkshopValueLedgerWorldWorld({
   ctx,
   spec = null,

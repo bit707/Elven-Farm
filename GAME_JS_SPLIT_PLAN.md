@@ -327,6 +327,7 @@ npm run verify
 - 已完成：`drawSpiritAssistToWorkshopBridgeWorld` 的“精怪省力去向桥”Canvas 绘制实现继续拆到 `src/game/world/spirit-assist-world.js`，`spiritAssistToWorkshopBridgeWorldSpec`、Canvas 命中、聚焦状态、motion/bob/pulse/active/activeStepKey 与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`drawSpiritAssistRhythmWorld` 的“伙伴上工节奏牌”Canvas 绘制实现继续拆到 `src/game/world/spirit-assist-world.js`，`spiritAssistRhythmWorldSpec`、Canvas 命中、聚焦状态、motion/bob/pulse/active/activePlotKey 与 `drawCanvasCard`、`drawSpiritSprite` 注入仍留在 `src/game.js`。
 - 已完成：新建 `src/game/world/workshop-world.js`，承接 `drawWorkshopOutputRouteTriptychWorld`、`drawWorkshopValueLedgerWorld`、`drawWorkshopOutputStorageRouteWorld`、`drawWorkshopToShopStockBridgeWorld` 与 `drawWorkshopReadyOrderDispatchWorld` 的工坊产出路线/入仓/备货/交单世界卡 Canvas 绘制实现；对应 `spec`、Canvas 命中、聚焦状态、state 写入、`pointOnPolyline`、`drawShopWeatherShelfGoodIcon` 与 `drawCanvasCard` 注入仍留在 `src/game.js`，`tools/verify.mjs` 也已纳入新模块审计。
+- 已完成：`drawWorkshopIngredientReadyWorld`、`drawWorkshopOpeningValueWorld`、`drawWorkshopSpiritAssistActionWorld` 与 `drawWorkshopOrderQueueWorldBoard` 的工坊“原料就绪/开锅增值/精怪帮火/订单锅排产”Canvas 绘制实现继续拆到 `src/game/world/workshop-world.js`，对应 `spec`、Canvas 命中、聚焦状态、state 写入、动效时间读取与 `drawCanvasCard` 注入仍留在 `src/game.js`。
 - 已完成：`tools/build-runtime-data.mjs` 已适配新数据清单模块，并保留旧 `src/game.js` 内联清单 fallback。
 - 已完成：`tools/package-standalone.mjs` 已内联 `src/game/**` 本地模块，避免离线单文件包被 ESM import 破坏。
 - 已完成：`tools/verify.mjs` 已把拆分模块纳入静态审计，避免门禁继续假设所有内容必须留在 `src/game.js`。
