@@ -15,7 +15,10 @@ import { DATA_FILES } from "./game/data-files.js";
 import { drawCanvasCard } from "./game/shared/canvas.js";
 import { applyVisiblePanelColumns, pulseFocusElement } from "./game/shared/focus.js";
 import { selectorDataValue } from "./game/shared/selectors.js";
-import { drawSleepPrepChecklistCardWorld } from "./game/world/daily-action-cards.js";
+import {
+  drawMorningActionBoardCardWorld,
+  drawSleepPrepChecklistCardWorld,
+} from "./game/world/daily-action-cards.js";
 import { renderAssetPanelUi } from "./game/ui/asset-panel.js";
 import { renderBuildPanelUi } from "./game/ui/build-panel.js";
 import { renderLogPanel, renderQuestListPanel, renderStoryPanel } from "./game/ui/basic-panels.js";
@@ -74612,36 +74615,13 @@ function drawSleepPrepChecklistCard(ctx, spec = sleepPrepChecklistSpec()) {
 }
 
 function drawMorningActionBoardCard(ctx, spec = morningActionBoardSpec()) {
-  if (!spec?.rows?.length) return;
-  const rows = spec.rows.slice(0, 2);
-  const width = 286;
-  const height = 74 + rows.length * 21;
-  const x = 44;
-  const y = 146;
-  const accent = spec.stateClass === "urgent" ? "#be4f37" : spec.stateClass === "active" ? "#b47d2f" : "#286f58";
-  const bob = settings.reducedMotion ? 0 : Math.sin(performance.now() / 620) * 1.5;
-  ctx.save();
-  drawCanvasCard(ctx, x, y + bob, width, height, spec.stateClass === "urgent" ? "rgba(255, 248, 232, 0.9)" : "rgba(248, 252, 247, 0.88)");
-  ctx.fillStyle = `${accent}22`;
-  ctx.beginPath();
-  ctx.roundRect(x + 16, y + 16 + bob, 54, 48, 16);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "800 18px Microsoft YaHei";
-  ctx.fillText("晨", x + 32, y + 45 + bob);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 15px Microsoft YaHei";
-  ctx.fillText(`清晨行动牌 · 第 ${spec.day} 天`, x + 84, y + 31 + bob);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "12px Microsoft YaHei";
-  ctx.fillText(`${spec.termName} · ${spec.weatherName}`.slice(0, 20), x + 84, y + 51 + bob);
-  rows.forEach((row, index) => {
-    const rowY = y + 82 + index * 21 + bob;
-    ctx.fillStyle = row.tone === "ember" ? "#be4f37" : row.tone === "water" ? "#4d91a6" : row.tone === "flower" ? "#a55666" : "#8f5f3f";
-    ctx.font = "700 12px Microsoft YaHei";
-    ctx.fillText(`${index + 1}. ${row.title}`.slice(0, 22), x + 22, rowY);
+  return drawMorningActionBoardCardWorld({
+    ctx,
+    spec,
+    reducedMotion: settings.reducedMotion,
+    motionMs: performance.now(),
+    drawCanvasCard,
   });
-  ctx.restore();
 }
 
 function drawSolarMorningSignBadge(ctx, sign = solarMorningSignSpec()) {
