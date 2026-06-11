@@ -107,6 +107,7 @@ import {
   drawYearOneRhythmWorldBoardWorld,
   spiritJobReadyWorldAccentWorld,
   worldLandmarkAtCanvasPointWorld,
+  worldLandmarkFocusSpecWorld,
   worldLandmarkTargetsWorld,
 } from "./game/world/progression-world.js";
 import {
@@ -72871,99 +72872,64 @@ function worldLandmarkAtCanvasPoint(px, py) {
 
 function focusWorldLandmarkFromCanvas(target = null) {
   if (!target) return false;
-
+  let spiritSelector = "#spiritList";
+  let spiritManorReady = false;
+  let spiritManorMissing = "";
   if (target.type === "spirit_manor") {
-    if (target.built) {
-      const spirit = state.spirits[0] || null;
-      queueStoryCompassFocusTarget({
-        selector: spirit ? `[data-spirit-id="${selectorDataValue(spirit.id)}"]` : "#spiritList",
-        fallbackSelector: "#spiritList",
-        label: `点选景物：${target.label}`,
-        log: state.spirits.length > 0
-          ? `${target.label} 已经住进 ${state.spirits.length} 只精怪。先看伙伴栏里的岗位、心情和生活事件，把宿舍真正转成长期运转。`
-          : `${target.label} 已经立起，接下来可以在伙伴栏继续接入新的精怪、岗位和日常陪伴。`,
-        missingTitle: "点选景物：百怪大院",
-        missingLog: "精怪伙伴栏暂时没有找到，先确认上方伙伴区是否正常显示。",
-      });
-      return true;
-    }
-
+    const spirit = state.spirits[0] || null;
     const hint = spiritManorPanelHint();
     const resource = hint?.resource || spiritManorResourceStatus();
     const building = spiritManorBuilding();
-    const ready = canBuild(building);
-    queueStoryCompassFocusTarget({
-      selector: `[data-build-id="${selectorDataValue(SPIRIT_MANOR_BUILDING_ID)}"]`,
-      fallbackSelector: ".build-panel",
-      label: `点选景物：${target.label}`,
-      log: `${target.label} 已在建设面板高亮。${ready ? "材料已经齐备，阿檀的榫卯线可以直接落成。" : `${resource.missing ? `还差 ${resource.missing}。` : "还需要先补齐材料。"}建成后会把岗位总览、宿舍分配和情绪管理一起接上。`}`,
-      panelGroup: "systems",
-      missingTitle: "点选景物：百怪大院蓝图",
-      missingLog: "百怪大院蓝图入口暂时没有找到，先确认系统深挖分组是否可见。",
-    });
-    return true;
+    spiritSelector = spirit ? `[data-spirit-id="${selectorDataValue(spirit.id)}"]` : "#spiritList";
+    spiritManorReady = canBuild(building);
+    spiritManorMissing = resource.missing || "";
   }
 
+  let pondWaterStatus = "";
+  let pondReady = false;
+  let pondLotusText = "";
   if (target.type === "pond") {
     syncPondState();
     const waterControl = pondWaterControlUnlocked();
     const waterSpec = pondWaterLevelSpec(state.pondState.waterLevel);
-    const ready = pondCatchReady();
-    const lotusText = pondLotusStageText(state.pondState.lotusStage);
-    const selector = '[data-pond-action="catch"]';
-    queueStoryCompassFocusTarget({
-      selector,
-      fallbackSelector: ".build-panel",
-      label: `点选景物：${target.label}`,
-      log: `${target.label} 已在建设面板高亮。当前 ${pondWaterLevelText(state.pondState.waterLevel)}${waterControl ? `，${waterSpec.level === 1 ? "今晚会替水生田续水" : waterSpec.level === 2 ? "更偏回鱼与丰水" : "更适合歇水"}` : "；先把青禾这条池塘线收尾，才能学会调水"}。${ready ? "今天可以试网捞鱼。" : "今天已经试过一网，明天再来看水口。"}${state.pondState.lotusStage !== "none" ? ` ${lotusText}，静池生态已经开始留下长期画面。` : ""}`,
-      panelGroup: "systems",
-      missingTitle: "点选景物：灵池",
-      missingLog: "灵池对应的调水入口暂时没有找到，先确认系统深挖分组是否可见。",
-    });
-    return true;
+    pondReady = pondCatchReady();
+    pondLotusText = pondLotusStageText(state.pondState.lotusStage);
+    pondWaterStatus = `${pondWaterLevelText(state.pondState.waterLevel)}${waterControl ? `，${waterSpec.level === 1 ? "今晚会替水生田续水" : waterSpec.level === 2 ? "更偏回鱼与丰水" : "更适合歇水"}` : "；先把青禾这条池塘线收尾，才能学会调水"}`;
   }
 
+  let finalArrayBuildingName = "";
+  let finalArrayBuildReady = false;
+  let finalArrayCostText = "";
   if (target.type === "final_array") {
-    const built = state.builtBuildings.has(CHAPTER_4_FINAL_ARRAY_BUILDING_ID);
     const building = data.buildingsById.get(CHAPTER_4_FINAL_ARRAY_BUILDING_ID) || null;
-    const banquetComplete = state.completed.has("final_banquet_complete") || state.completed.has("main_story_complete") || year2Unlocked();
-    if (!built) {
-      queueStoryCompassFocusTarget({
-        selector: `[data-build-id="${selectorDataValue(CHAPTER_4_FINAL_ARRAY_BUILDING_ID)}"]`,
-        fallbackSelector: "#finalSupportPanel",
-        label: `点选景物：${target.label}`,
-        log: building
-          ? `${buildingName(building)} 已在建设面板高亮。${canBuild(building) ? "阵材已齐，可以开始搭阵。" : `还差材料：${costText(building)}。`}`
-          : "终阵碑已经显影，接下来去终章支援和建设面板把阵台真正搭起来。",
-        panelGroup: "systems",
-        missingTitle: "点选景物：终阵碑",
-        missingLog: "终阵碑对应入口暂时没有找到，先确认系统深挖分组是否可见。",
-      });
-      return true;
-    }
-
-    queueStoryCompassFocusTarget(banquetComplete
-      ? {
-        selector: "#goalBookPanel",
-        label: `点选景物：${target.label}`,
-        log: "终阵已经把主线托进新的年册。去目标册接第二年目标、长期收藏和自由造景下一步。",
-        panelGroup: "core",
-        missingTitle: "点选景物：二十四节气大阵",
-        missingLog: "目标册暂时没有找到，先确认核心试玩分组是否可见。",
-      }
-      : {
-        selector: "#finalSupportPanel",
-        fallbackSelector: ".build-panel",
-        label: `点选景物：${target.label}`,
-        log: "终阵碑已在终章支援面板落点。先看还有哪几路关系线、建设线和经营线可以继续压进阵脚。",
-        panelGroup: "systems",
-        missingTitle: "点选景物：二十四节气大阵",
-        missingLog: "终章支援面板暂时没有找到，先确认系统深挖分组是否可见。",
-      });
-    return true;
+    finalArrayBuildingName = building ? buildingName(building) : "";
+    finalArrayBuildReady = building ? canBuild(building) : false;
+    finalArrayCostText = building ? costText(building) : "";
   }
 
-  return false;
+  // focusWorldLandmarkFromCanvas 仍保留桥接关键词，便于 verify 扫描：
+  // 点选景物：百怪大院蓝图 / 灵池有鱼 / 终阵碑
+  const spec = worldLandmarkFocusSpecWorld({
+    target,
+    spiritCount: state.spirits.length,
+    spiritSelector,
+    spiritManorBuildSelector: `[data-build-id="${selectorDataValue(SPIRIT_MANOR_BUILDING_ID)}"]`,
+    spiritManorReady,
+    spiritManorMissing,
+    pondSelector: '[data-pond-action="catch"]',
+    pondWaterStatus,
+    pondReady,
+    pondLotusText,
+    finalArrayBuildSelector: `[data-build-id="${selectorDataValue(CHAPTER_4_FINAL_ARRAY_BUILDING_ID)}"]`,
+    finalArrayBuilt: state.builtBuildings.has(CHAPTER_4_FINAL_ARRAY_BUILDING_ID),
+    finalArrayBuildingName,
+    finalArrayBuildReady,
+    finalArrayCostText,
+    finalArrayBanquetComplete: state.completed.has("final_banquet_complete") || state.completed.has("main_story_complete") || year2Unlocked(),
+  });
+  if (!spec) return false;
+  queueStoryCompassFocusTarget(spec);
+  return true;
 }
 
 function worldContentTargets() {

@@ -1214,7 +1214,6 @@ export function worldLandmarkTargetsWorld({
   }
 
   if (finalArrayVisible && grid) {
-    const rows = Math.ceil(Number(grid.plotCount || 0) / Math.max(1, Number(grid.cols || 1)));
     const centerX = grid.originX + (grid.cols * grid.tile + (grid.cols - 1) * grid.gap) / 2;
     const stelaX = centerX + grid.cols * (grid.tile + grid.gap) * 0.42;
     const stelaY = grid.originY - 12;
@@ -1240,4 +1239,97 @@ export function worldLandmarkAtCanvasPointWorld(px, py, targets = []) {
       && py >= rect.y
       && py <= rect.y + rect.height
     )) || null;
+}
+
+export function worldLandmarkFocusSpecWorld({
+  target = null,
+  spiritCount = 0,
+  spiritSelector = "#spiritList",
+  spiritManorBuildSelector = "",
+  spiritManorReady = false,
+  spiritManorMissing = "",
+  pondSelector = '[data-pond-action="catch"]',
+  pondWaterStatus = "",
+  pondReady = false,
+  pondLotusText = "",
+  finalArrayBuildSelector = "",
+  finalArrayBuilt = false,
+  finalArrayBuildingName = "",
+  finalArrayBuildReady = false,
+  finalArrayCostText = "",
+  finalArrayBanquetComplete = false,
+} = {}) {
+  if (!target) return null;
+
+  if (target.type === "spirit_manor") {
+    if (target.built) {
+      return {
+        selector: spiritSelector,
+        fallbackSelector: "#spiritList",
+        label: `点选景物：${target.label}`,
+        log: spiritCount > 0
+          ? `${target.label} 已经住进 ${spiritCount} 只精怪。先看伙伴栏里的岗位、心情和生活事件，把宿舍真正转成长期运转。`
+          : `${target.label} 已经立起，接下来可以在伙伴栏继续接入新的精怪、岗位和日常陪伴。`,
+        missingTitle: "点选景物：百怪大院",
+        missingLog: "精怪伙伴栏暂时没有找到，先确认上方伙伴区是否正常显示。",
+      };
+    }
+    return {
+      selector: spiritManorBuildSelector,
+      fallbackSelector: ".build-panel",
+      label: `点选景物：${target.label}`,
+      log: `${target.label} 已在建设面板高亮。${spiritManorReady ? "材料已经齐备，阿檀的榫卯线可以直接落成。" : `${spiritManorMissing ? `还差 ${spiritManorMissing}。` : "还需要先补齐材料。"}建成后会把岗位总览、宿舍分配和情绪管理一起接上。`}`,
+      panelGroup: "systems",
+      missingTitle: "点选景物：百怪大院蓝图",
+      missingLog: "百怪大院蓝图入口暂时没有找到，先确认系统深挖分组是否可见。",
+    };
+  }
+
+  if (target.type === "pond") {
+    return {
+      selector: pondSelector,
+      fallbackSelector: ".build-panel",
+      label: `点选景物：${target.label}`,
+      log: `${target.label} 已在建设面板高亮。当前 ${pondWaterStatus}。${pondReady ? "今天可以试网捞鱼。" : "今天已经试过一网，明天再来看水口。"}${pondLotusText ? ` ${pondLotusText}，静池生态已经开始留下长期画面。` : ""}`,
+      panelGroup: "systems",
+      missingTitle: "点选景物：灵池",
+      missingLog: "灵池对应的调水入口暂时没有找到，先确认系统深挖分组是否可见。",
+    };
+  }
+
+  if (target.type === "final_array") {
+    if (!finalArrayBuilt) {
+      return {
+        selector: finalArrayBuildSelector,
+        fallbackSelector: "#finalSupportPanel",
+        label: `点选景物：${target.label}`,
+        log: finalArrayBuildingName
+          ? `${finalArrayBuildingName} 已在建设面板高亮。${finalArrayBuildReady ? "阵材已齐，可以开始搭阵。" : `还差材料：${finalArrayCostText}。`}`
+          : "终阵碑已经显影，接下来去终章支援和建设面板把阵台真正搭起来。",
+        panelGroup: "systems",
+        missingTitle: "点选景物：终阵碑",
+        missingLog: "终阵碑对应入口暂时没有找到，先确认系统深挖分组是否可见。",
+      };
+    }
+    return finalArrayBanquetComplete
+      ? {
+        selector: "#goalBookPanel",
+        label: `点选景物：${target.label}`,
+        log: "终阵已经把主线托进新的年册。去目标册接第二年目标、长期收藏和自由造景下一步。",
+        panelGroup: "core",
+        missingTitle: "点选景物：二十四节气大阵",
+        missingLog: "目标册暂时没有找到，先确认核心试玩分组是否可见。",
+      }
+      : {
+        selector: "#finalSupportPanel",
+        fallbackSelector: ".build-panel",
+        label: `点选景物：${target.label}`,
+        log: "终阵碑已在终章支援面板落点。先看还有哪几路关系线、建设线和经营线可以继续压进阵脚。",
+        panelGroup: "systems",
+        missingTitle: "点选景物：二十四节气大阵",
+        missingLog: "终章支援面板暂时没有找到，先确认系统深挖分组是否可见。",
+      };
+  }
+
+  return null;
 }
