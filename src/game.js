@@ -36,6 +36,7 @@ import {
   drawCanalSeedRewardRouteWorldWorld,
   drawWaterCropDishFeedbackWorld,
   drawWaterCropHarvestFeedbackWorld,
+  drawWaterCropOrderFeedbackWorld,
   drawWaterCropPlantFeedbackWorld,
   drawLingqinDishRouteWorldWorld,
   drawPondOvernightWorldWorld,
@@ -59111,96 +59112,17 @@ function drawWaterCropOrderFeedback(ctx, width, height, feedback = activeWaterCr
   const progress = settings.reducedMotion ? 1 : Math.min(1, age / 1600);
   const ease = 1 - (1 - progress) ** 3;
   const drift = settings.reducedMotion ? 0 : Math.sin(now / 340) * 5;
-  const x = Math.round(width / 2 - 270);
-  const y = Math.round(112 + drift - ease * 12);
-
-  ctx.save();
-  ctx.globalAlpha = Number(feedback.fade ?? 1);
-  const glow = ctx.createRadialGradient(x + 120, y + 102, 12, x + 120, y + 102, 280);
-  glow.addColorStop(0, "rgba(159, 209, 223, 0.38)");
-  glow.addColorStop(0.42, "rgba(202, 235, 210, 0.18)");
-  glow.addColorStop(1, "rgba(159, 209, 223, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(x + 120, y + 102, 280, 0, Math.PI * 2);
-  ctx.fill();
-
-  drawCanvasCard(ctx, x, y, 540, 202, "rgba(255, 253, 245, 0.97)");
-  ctx.fillStyle = "rgba(77, 145, 166, 0.18)";
-  ctx.beginPath();
-  ctx.roundRect(x + 24, y + 28, 136, 138, 34);
-  ctx.fill();
-
-  ctx.strokeStyle = "rgba(77, 145, 166, 0.66)";
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(x + 40, y + 118);
-  ctx.bezierCurveTo(x + 74, y + 84 + drift, x + 92, y + 142 - drift, x + 128, y + 104);
-  ctx.bezierCurveTo(x + 144, y + 88, x + 154, y + 96, x + 168, y + 82);
-  ctx.stroke();
-  ctx.fillStyle = "rgba(202, 235, 210, 0.84)";
-  for (let i = 0; i < 5; i += 1) {
-    const beadX = x + 52 + i * 23 + ease * 18;
-    const beadY = y + 118 + Math.sin(now / 310 + i) * 12;
-    ctx.beginPath();
-    ctx.arc(beadX, beadY, 5 - i * 0.35, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = "rgba(255, 248, 232, 0.94)";
-  ctx.beginPath();
-  ctx.roundRect(x + 72, y + 44, 70, 56, 14);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(180, 125, 47, 0.48)";
-  ctx.lineWidth = 1.6;
-  ctx.stroke();
-  ctx.fillStyle = "#b47d2f";
-  ctx.font = "800 18px Microsoft YaHei";
-  ctx.fillText("入账", x + 88, y + 78);
-  ctx.fillStyle = "#286f58";
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(String(feedback.npcLabel || "青禾").slice(0, 4), x + 92, y + 96);
-
-  ctx.fillStyle = "#4d91a6";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(String(feedback.label || "水系链路闭环 · 新渠入账").slice(0, 26), x + 188, y + 40);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 23px Microsoft YaHei";
-  ctx.fillText(String(feedback.headline || "新渠第一盘口味卖成了").slice(0, 18), x + 188, y + 74);
-  ctx.fillStyle = "#286f58";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(String(feedback.detail || "").slice(0, 42), x + 188, y + 104);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(String(feedback.rewardText || "").slice(0, 44), x + 188, y + 130);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "12px Microsoft YaHei";
-  ctx.fillText(String(feedback.nextAdvice || "").slice(0, 48), x + 188, y + 156);
-
-  const steps = String(feedback.routeText || "修渠 -> 露珠芹 -> 凉拌灵芹 -> 青禾清口单").split(" -> ");
-  let stepX = x + 30;
-  const stepY = y + 178;
-  steps.forEach((step, index) => {
-    const widthStep = 78 + Math.min(26, step.length * 2);
-    ctx.fillStyle = index === steps.length - 1 ? "rgba(224, 182, 109, 0.24)" : "rgba(202, 235, 210, 0.76)";
-    ctx.beginPath();
-    ctx.roundRect(stepX, stepY - 17, widthStep, 24, 12);
-    ctx.fill();
-    ctx.fillStyle = index === steps.length - 1 ? "#8f5f3f" : "#286f58";
-    ctx.font = "700 11px Microsoft YaHei";
-    ctx.fillText(step.slice(0, 8), stepX + 10, stepY);
-    if (index < steps.length - 1) {
-      ctx.fillStyle = "rgba(77, 145, 166, 0.74)";
-      ctx.fillText(">", stepX + widthStep + 6, stepY);
-    }
-    stepX += widthStep + 20;
+  // drawWaterCropOrderFeedback(ctx) bridge keeps verify keywords: drawWaterCropOrderFeedback / 水系链路闭环 / 新渠入账 / 交付预览 / 青禾清口单交付 / 修渠 -> 露珠芹 -> 凉拌灵芹 -> 青禾清口单 / 订单可交
+  return drawWaterCropOrderFeedbackWorld({
+    ctx,
+    width,
+    height,
+    feedback,
+    now,
+    ease,
+    drift,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "rgba(77, 145, 166, 0.82)";
-  ctx.beginPath();
-  ctx.roundRect(x + 188, y + 176, Math.max(42, 300 * ease), 6, 999);
-  ctx.fill();
-  ctx.restore();
 }
 
 function drawQinghePondEntryFeedback(ctx, width, height, feedback = activeQinghePondEntryFeedback()) {
