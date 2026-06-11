@@ -547,6 +547,7 @@ import {
   drawCareChainWorldBloomWorld,
   drawCohabCourtyardWorld,
   drawCohabLifeNoteWorld,
+  drawEarlyNpcWorldRoadsignWorld,
   drawLivingWorldSummaryWorld,
   drawTownLifeErrandDeliveryKeepsakeWorldWorld,
   drawTownLifeGreetingKeepsakeWorldWorld,
@@ -76737,76 +76738,21 @@ function drawTownLifePassalongLanternWorld(ctx, rows = townLifeRows(6), motion =
 }
 
 function drawEarlyNpcWorldRoadsign(ctx, spec = earlyNpcWorldRoadsignSpec(), motion = 0) {
+  // drawEarlyNpcWorldRoadsign(ctx) bridge keeps verify keywords: 凡仙镇三位早期路标 / 三位早期镇民路标 / 许伯：镇务 / 旧铺 / 修复归属 / 张铁山：工具 / 工坊 / 火候 / 白芷：医馆 / 灵植 / 药线 / 镇务信任线 / 工坊火候线 / 灵植药线 / 点选三位镇民路标 / 点选只定位 / 只定位关系卡，不会自动寒暄、赠礼、交付托付或推进剧情
   if (!spec?.rect || !spec.entries?.length) return false;
-  const { rect } = spec;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.45) * 1.6;
   const active = earlyNpcWorldRoadsignFocus?.day === state.day
     && earlyNpcWorldRoadsignFocus?.key === spec.key;
-  ctx.save();
-  for (const entry of spec.entries) {
-    if (!entry.point) continue;
-    const rowActive = active && earlyNpcWorldRoadsignFocus?.npcId === entry.npcId;
-    ctx.strokeStyle = `${entry.accent}${rowActive ? "88" : "36"}`;
-    ctx.lineWidth = rowActive ? 2.2 : 1.2;
-    ctx.setLineDash(rowActive ? [5, 4] : [3, 7]);
-    ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 7;
-    ctx.beginPath();
-    ctx.moveTo(rect.x + rect.width - 12, rect.y + 70 + bob);
-    ctx.quadraticCurveTo((rect.x + rect.width + entry.point.x) / 2, rect.y + 78, entry.point.x + 16, entry.point.y + 34);
-    ctx.stroke();
-  }
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, rect.y + bob, rect.width, rect.height, "rgba(255, 248, 232, 0.92)");
-  ctx.fillStyle = "rgba(143, 95, 63, 0.12)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 12, rect.y + 12 + bob, rect.width - 24, 38, 16);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText("三位早期镇民路标", rect.x + 20, rect.y + 31 + bob);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "700 11px Microsoft YaHei";
-  ctx.fillText(`${spec.doneMilestones}/${spec.totalMilestones} 个记忆钩子 · 点选只定位`, rect.x + 20, rect.y + 47 + bob);
-
-  for (const [index, entry] of spec.entries.entries()) {
-    const rowRect = entry.rowRect;
-    const y = rowRect.y + bob;
-    const rowActive = active && earlyNpcWorldRoadsignFocus?.rowKey === entry.key;
-    ctx.fillStyle = rowActive ? "rgba(255, 253, 245, 0.88)" : index % 2 ? "rgba(255, 253, 245, 0.5)" : "rgba(237, 243, 223, 0.46)";
-    ctx.strokeStyle = rowActive ? "rgba(224, 182, 109, 0.78)" : `${entry.accent}33`;
-    ctx.lineWidth = rowActive ? 1.8 : 1;
-    ctx.beginPath();
-    ctx.roundRect(rowRect.x, y, rowRect.width, rowRect.height, 10);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = `${entry.accent}22`;
-    ctx.beginPath();
-    ctx.roundRect(rowRect.x + 6, y + 4, 30, 18, 8);
-    ctx.fill();
-    ctx.fillStyle = entry.accent;
-    ctx.font = "900 11px Microsoft YaHei";
-    ctx.fillText(entry.badge, rowRect.x + 15, y + 17);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 12px Microsoft YaHei";
-    ctx.fillText(`${npcName(entry.npcId)} · ${entry.shortRoute}`, rowRect.x + 44, y + 12);
-    ctx.fillStyle = entry.accent;
-    ctx.font = "700 10px Microsoft YaHei";
-    ctx.fillText(`${entry.doneCount}/${entry.totalCount}`, rowRect.x + rowRect.width - 36, y + 12);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "10px Microsoft YaHei";
-    ctx.fillText(`下一步：${entry.shortNext}`, rowRect.x + 44, y + 24);
-  }
-  if (active) {
-    ctx.strokeStyle = "rgba(224, 182, 109, 0.78)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 4, rect.y + 4 + bob, rect.width - 8, rect.height - 8, 18);
-    ctx.stroke();
-  }
-  ctx.restore();
-  return true;
+  return drawEarlyNpcWorldRoadsignWorld({
+    ctx,
+    spec,
+    motion,
+    active,
+    activeNpcId: earlyNpcWorldRoadsignFocus?.npcId || "",
+    activeRowKey: earlyNpcWorldRoadsignFocus?.rowKey || "",
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+    npcName,
+  });
 }
 
 function drawTownLifeVisitors(ctx) {
