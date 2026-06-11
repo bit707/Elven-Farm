@@ -106,6 +106,8 @@ import {
   drawYearOneRhythmStampWorldWorld,
   drawYearOneRhythmWorldBoardWorld,
   spiritJobReadyWorldAccentWorld,
+  worldLandmarkAtCanvasPointWorld,
+  worldLandmarkTargetsWorld,
 } from "./game/world/progression-world.js";
 import {
   drawLingchiWaterFreshMenuWorldNoteWorld,
@@ -72838,64 +72840,33 @@ function drawPondLife(ctx, livingState) {
 }
 
 function worldLandmarkTargets(livingState = currentLivingWorldState()) {
-  const targets = [];
-
-  if (livingState.spiritManorReady) {
-    const x = 316;
-    const y = 154;
-    targets.push({
-      id: livingState.spiritManorBuilt ? "spirit_manor_built" : "spirit_manor_plan",
-      type: "spirit_manor",
-      built: livingState.spiritManorBuilt,
-      label: livingState.spiritManorBuilt ? "百怪大院" : "百怪大院蓝图",
-      rect: livingState.spiritManorBuilt
-        ? { x: x + 56, y: y - 6, width: 214, height: 136 }
-        : { x: x + 4, y: y - 18, width: 258, height: 176 },
-    });
-  }
-
-  if (livingState.pondBuilt) {
-    const centerX = 902;
-    const centerY = 408;
-    targets.push({
-      id: "pond_life",
-      type: "pond",
-      label: livingState.pondFirstCatchDone ? "灵池有鱼" : "灵池浅塘",
-      rect: { x: centerX - 92, y: centerY - 76, width: 190, height: 164 },
-    });
-  }
-
+  // worldLandmarkTargets：百怪大院蓝图 / 灵池有鱼 / 终阵碑 等主世界地标入口。
   const finalArrayVisible = state.builtBuildings.has(CHAPTER_4_FINAL_ARRAY_BUILDING_ID)
     || state.completed.has("final_array_built")
     || (state.dungeonWorldChanges || []).some((change) => change.visualType === "solar_array_stela");
-  if (finalArrayVisible) {
-    const { tile, gap, originX, originY, cols } = gridMetrics();
-    const rows = Math.ceil(state.plots.length / cols);
-    const centerX = originX + (cols * tile + (cols - 1) * gap) / 2;
-    const stelaX = centerX + cols * (tile + gap) * 0.42;
-    const stelaY = originY - 12;
-    targets.push({
-      id: "final_array_monument",
-      type: "final_array",
-      built: state.builtBuildings.has(CHAPTER_4_FINAL_ARRAY_BUILDING_ID),
-      label: state.builtBuildings.has(CHAPTER_4_FINAL_ARRAY_BUILDING_ID) ? "二十四节气大阵" : "终阵碑",
-      rect: { x: stelaX - 8, y: stelaY - 10, width: 84, height: 132 },
-    });
-  }
-
-  return targets;
+  const grid = finalArrayVisible
+    ? (() => {
+      const { tile, gap, originX, originY, cols } = gridMetrics();
+      return {
+        tile,
+        gap,
+        originX,
+        originY,
+        cols,
+        plotCount: state.plots.length,
+      };
+    })()
+    : null;
+  return worldLandmarkTargetsWorld({
+    livingState,
+    finalArrayVisible,
+    finalArrayBuilt: state.builtBuildings.has(CHAPTER_4_FINAL_ARRAY_BUILDING_ID),
+    grid,
+  });
 }
 
 function worldLandmarkAtCanvasPoint(px, py) {
-  return worldLandmarkTargets()
-    .slice()
-    .reverse()
-    .find(({ rect }) => (
-      px >= rect.x
-      && px <= rect.x + rect.width
-      && py >= rect.y
-      && py <= rect.y + rect.height
-    )) || null;
+  return worldLandmarkAtCanvasPointWorld(px, py, worldLandmarkTargets());
 }
 
 function focusWorldLandmarkFromCanvas(target = null) {

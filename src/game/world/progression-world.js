@@ -1178,3 +1178,66 @@ export function drawPondLifeWorld({
   ctx.restore();
   return true;
 }
+
+export function worldLandmarkTargetsWorld({
+  livingState = null,
+  finalArrayVisible = false,
+  finalArrayBuilt = false,
+  grid = null,
+} = {}) {
+  if (!livingState) return [];
+  const targets = [];
+
+  if (livingState.spiritManorReady) {
+    const x = 316;
+    const y = 154;
+    targets.push({
+      id: livingState.spiritManorBuilt ? "spirit_manor_built" : "spirit_manor_plan",
+      type: "spirit_manor",
+      built: livingState.spiritManorBuilt,
+      label: livingState.spiritManorBuilt ? "百怪大院" : "百怪大院蓝图",
+      rect: livingState.spiritManorBuilt
+        ? { x: x + 56, y: y - 6, width: 214, height: 136 }
+        : { x: x + 4, y: y - 18, width: 258, height: 176 },
+    });
+  }
+
+  if (livingState.pondBuilt) {
+    const centerX = 902;
+    const centerY = 408;
+    targets.push({
+      id: "pond_life",
+      type: "pond",
+      label: livingState.pondFirstCatchDone ? "灵池有鱼" : "灵池浅塘",
+      rect: { x: centerX - 92, y: centerY - 76, width: 190, height: 164 },
+    });
+  }
+
+  if (finalArrayVisible && grid) {
+    const rows = Math.ceil(Number(grid.plotCount || 0) / Math.max(1, Number(grid.cols || 1)));
+    const centerX = grid.originX + (grid.cols * grid.tile + (grid.cols - 1) * grid.gap) / 2;
+    const stelaX = centerX + grid.cols * (grid.tile + grid.gap) * 0.42;
+    const stelaY = grid.originY - 12;
+    targets.push({
+      id: "final_array_monument",
+      type: "final_array",
+      built: finalArrayBuilt,
+      label: finalArrayBuilt ? "二十四节气大阵" : "终阵碑",
+      rect: { x: stelaX - 8, y: stelaY - 10, width: 84, height: 132 },
+    });
+  }
+
+  return targets;
+}
+
+export function worldLandmarkAtCanvasPointWorld(px, py, targets = []) {
+  return (targets || [])
+    .slice()
+    .reverse()
+    .find(({ rect }) => (
+      px >= rect.x
+      && px <= rect.x + rect.width
+      && py >= rect.y
+      && py <= rect.y + rect.height
+    )) || null;
+}
