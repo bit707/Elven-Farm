@@ -530,7 +530,7 @@ import {
   matureHarvestBasketRouteNodesWorld,
   matureHarvestBasketSafetyTextWorld,
   matureHarvestBasketWorldAtCanvasPointWorld,
-  matureHarvestBasketWorldSpecWorld,
+  matureHarvestBasketWorldSpecFromRuntimeWorld,
   plantingAftercareFeedbackSpecWorld,
   plantingAftercareSafetyTextWorld,
   plantingAftercareWorldAtCanvasPointWorld,
@@ -66146,26 +66146,19 @@ function matureHarvestBasketRouteNodes(route = null) {
 
 function matureHarvestBasketWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, originXInput = null, originYInput = null, tileInput = null, gapInput = null) {
   const rows = harvestRouteWorldRows(4);
-  if (!rows.length) return null;
-  const { tile, gap, originX, originY } = gridMetrics();
-  const top = rows[0];
-  const route = harvestUseRouteSafe(top.route || harvestUseRouteSpec(top.itemId, 1));
-  const badge = nightGrowthRouteBadgeSpec(route);
-  return matureHarvestBasketWorldSpecWorld({
+  return matureHarvestBasketWorldSpecFromRuntimeWorld({
     width,
     height,
+    originXInput,
+    originYInput,
+    tileInput,
+    gapInput,
     rows,
-    top,
-    route,
-    badge,
     day: state.day,
-    metrics: {
-      originX: Number(originXInput ?? originX),
-      originY: Number(originYInput ?? originY),
-      tile: Number(tileInput ?? tile),
-      gap: Number(gapInput ?? gap),
-    },
-    nodes: matureHarvestBasketRouteNodes(route),
+    metrics: gridMetrics(),
+    routeForItem: harvestUseRouteSpec,
+    routeSafe: harvestUseRouteSafe,
+    badgeForRoute: nightGrowthRouteBadgeSpec,
   });
 }
 

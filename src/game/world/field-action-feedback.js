@@ -1106,6 +1106,44 @@ export function matureHarvestBasketRouteNodesWorld({ route = null, badge = null 
   ];
 }
 
+export function matureHarvestBasketWorldSpecFromRuntimeWorld({
+  width = 960,
+  height = 640,
+  originXInput = null,
+  originYInput = null,
+  tileInput = null,
+  gapInput = null,
+  rows = [],
+  day = 1,
+  metrics = null,
+  routeForItem = () => null,
+  routeSafe = (route) => route,
+  badgeForRoute = () => null,
+} = {}) {
+  const safeRows = Array.isArray(rows) ? rows : [];
+  const top = safeRows[0] || null;
+  if (!top || !metrics) return null;
+  const route = routeSafe(top.route || routeForItem(top.itemId, 1));
+  const badge = badgeForRoute(route);
+  const { tile, gap, originX, originY } = metrics;
+  return matureHarvestBasketWorldSpecWorld({
+    width,
+    height,
+    rows: safeRows,
+    top,
+    route,
+    badge,
+    day,
+    metrics: {
+      originX: Number(originXInput ?? originX),
+      originY: Number(originYInput ?? originY),
+      tile: Number(tileInput ?? tile),
+      gap: Number(gapInput ?? gap),
+    },
+    nodes: matureHarvestBasketRouteNodesWorld({ route, badge }),
+  });
+}
+
 export function matureHarvestBasketWorldSpecWorld({
   width = 960,
   height = 640,
