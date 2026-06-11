@@ -567,6 +567,173 @@ export function drawQingheWaterTasteNoteWorld({
   return true;
 }
 
+export function drawPondFirstCatchNoteWorld({
+  ctx,
+  spec = null,
+  reducedMotion = false,
+  motion = 0,
+  pulse = 0,
+  pondX = 902,
+  pondY = 408,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect) return false;
+  const { rect } = spec;
+
+  ctx.save();
+  ctx.strokeStyle = "rgba(255, 253, 245, 0.56)";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([7, 7]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 12;
+  ctx.beginPath();
+  ctx.moveTo(rect.x + rect.width - 36, rect.y + rect.height + pulse - 2);
+  ctx.quadraticCurveTo(rect.x + rect.width + 16, rect.y + rect.height + 36, pondX - 16, pondY - 8);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = "rgba(77, 145, 166, 0.18)";
+  ctx.beginPath();
+  ctx.ellipse(pondX - 16, pondY - 8, 42 + pulse, 13, -0.08, 0, Math.PI * 2);
+  ctx.fill();
+  if (spec.ready) {
+    for (let i = 0; i < 2; i += 1) {
+      const fishX = pondX - 36 + i * 28 + Math.sin(motion * 2 + i) * 4;
+      const fishY = pondY - 12 + Math.cos(motion * 1.7 + i) * 4;
+      ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
+      ctx.beginPath();
+      ctx.ellipse(fishX, fishY, 8, 4, -0.18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(fishX - 8, fishY);
+      ctx.lineTo(fishX - 14, fishY - 4);
+      ctx.lineTo(fishX - 14, fishY + 4);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  drawCanvasCard(ctx, rect.x, rect.y + pulse, rect.width, rect.height, "rgba(255, 248, 232, 0.94)");
+  ctx.strokeStyle = spec.ready ? "rgba(40, 111, 88, 0.68)" : "rgba(77, 145, 166, 0.62)";
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.roundRect(rect.x, rect.y + pulse, rect.width, rect.height, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = spec.ready ? "rgba(40, 111, 88, 0.16)" : "rgba(77, 145, 166, 0.16)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 12, rect.y + 13 + pulse, 44, 44, 15);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(77, 145, 166, 0.72)";
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.ellipse(rect.x + 34, rect.y + 42 + pulse, 18, 6, -0.08, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = spec.ready ? "#286f58" : "#4d91a6";
+  ctx.font = "900 17px Microsoft YaHei";
+  ctx.fillText("鱼", rect.x + 24, rect.y + 39 + pulse);
+
+  ctx.fillStyle = spec.ready ? "#286f58" : "#4d91a6";
+  ctx.font = "800 13px Microsoft YaHei";
+  ctx.fillText(String(spec.title || "").slice(0, 13), rect.x + 68, rect.y + 21 + pulse);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 15px Microsoft YaHei";
+  ctx.fillText(String(spec.headline || "").slice(0, 12), rect.x + 68, rect.y + 42 + pulse);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(String(spec.detail || "").slice(0, 22), rect.x + 68, rect.y + 61 + pulse);
+  ctx.fillStyle = "rgba(248, 252, 247, 0.8)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, rect.y + 66 + pulse, rect.width - 28, 16, 8);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "700 10px Microsoft YaHei";
+  ctx.fillText(`${spec.waterText} · ${spec.routeText}`.slice(0, 28), rect.x + 24, rect.y + 78 + pulse);
+  ctx.restore();
+  return true;
+}
+
+export function drawQingboDishRouteNoteWorld({
+  ctx,
+  spec = null,
+  reducedMotion = false,
+  motion = 0,
+  pulse = 0,
+  shopX = 144,
+  shopY = 194,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect) return false;
+  const { rect } = spec;
+  const plateX = rect.x + 42;
+  const plateY = rect.y + 50 + pulse;
+  const readyTone = spec.type === "shop" || spec.readyToCraft;
+  const accent = spec.type === "shop" ? "#b47d2f" : readyTone ? "#286f58" : "#4d91a6";
+
+  ctx.save();
+  ctx.strokeStyle = spec.type === "shop" ? "rgba(180, 125, 47, 0.56)" : "rgba(77, 145, 166, 0.52)";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 12;
+  ctx.beginPath();
+  ctx.moveTo(rect.x + 26, rect.y + rect.height + pulse - 4);
+  ctx.quadraticCurveTo(rect.x - 72, rect.y + rect.height + 42, shopX + 78, shopY + 92);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.34)";
+  ctx.beginPath();
+  ctx.ellipse(shopX + 78, shopY + 92, 62 + pulse, 16, -0.08, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawCanvasCard(ctx, rect.x, rect.y + pulse, rect.width, rect.height, "rgba(255, 248, 232, 0.95)");
+  ctx.strokeStyle = spec.type === "shop" ? "rgba(180, 125, 47, 0.72)" : "rgba(77, 145, 166, 0.68)";
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.roundRect(rect.x, rect.y + pulse, rect.width, rect.height, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = spec.type === "shop" ? "rgba(224, 182, 109, 0.22)" : "rgba(77, 145, 166, 0.17)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 13, rect.y + 13 + pulse, 58, 58, 17);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
+  ctx.beginPath();
+  ctx.ellipse(plateX, plateY, 24, 11, -0.08, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(77, 145, 166, 0.58)";
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
+  ctx.fillStyle = "#4d91a6";
+  ctx.beginPath();
+  ctx.ellipse(plateX - 2, plateY - 2, 14, 5, -0.18, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(202, 235, 210, 0.88)";
+  ctx.fillRect(plateX - 16, plateY - 8, 31, 3);
+  ctx.fillStyle = accent;
+  ctx.font = "900 16px Microsoft YaHei";
+  ctx.fillText(spec.type === "shop" ? "铺" : "脍", rect.x + 32, rect.y + 39 + pulse);
+
+  ctx.fillStyle = accent;
+  ctx.font = "800 13px Microsoft YaHei";
+  ctx.fillText(String(spec.title || "").slice(0, 14), rect.x + 84, rect.y + 22 + pulse);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 15px Microsoft YaHei";
+  ctx.fillText(String(spec.headline || "").slice(0, 13), rect.x + 84, rect.y + 43 + pulse);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(String(spec.detail || "").slice(0, 27), rect.x + 84, rect.y + 62 + pulse);
+
+  ctx.fillStyle = "rgba(248, 252, 247, 0.82)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, rect.y + 72 + pulse, rect.width - 28, 16, 8);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "700 10px Microsoft YaHei";
+  ctx.fillText(`${spec.routeText} · ${spec.price}灵石基准`.slice(0, 32), rect.x + 24, rect.y + 84 + pulse);
+  ctx.restore();
+  return true;
+}
+
 export function drawPondOvernightWorldWorld({
   ctx,
   spec = null,
