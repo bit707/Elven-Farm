@@ -1978,6 +1978,221 @@ export function drawShopCrowdHeatWorld({
   return true;
 }
 
+export function drawYear2OrderPrepTableWorld({
+  ctx,
+  orderTitle = "",
+  needStatus = null,
+  needs = [],
+  ready = false,
+  motion = 0,
+  reducedMotion = false,
+  hasShopSpirit = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !needStatus) return false;
+  const x = 382;
+  const y = 262;
+  const width = 244;
+  const height = 126;
+  const progress = Math.max(0.06, Math.min(1, Number(needStatus.completion || 0)));
+
+  ctx.save();
+  ctx.fillStyle = "rgba(23, 35, 29, 0.14)";
+  ctx.beginPath();
+  ctx.ellipse(x + width / 2, y + height + 14, width * 0.48, 16, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawCanvasCard(ctx, x, y, width, height, ready ? "rgba(255, 248, 232, 0.94)" : "rgba(255, 253, 245, 0.88)");
+
+  ctx.fillStyle = ready ? "rgba(224, 182, 109, 0.22)" : "rgba(77, 145, 166, 0.16)";
+  ctx.beginPath();
+  ctx.roundRect(x + 14, y + 12, width - 28, 30, 12);
+  ctx.fill();
+  ctx.fillStyle = ready ? "#b47d2f" : "#286f58";
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(ready ? "名铺订单已备齐" : "名铺订单备货台", x + 26, y + 32);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText(String(orderTitle).slice(0, 11), x + 128, y + 32);
+
+  ctx.fillStyle = "rgba(23, 35, 29, 0.12)";
+  ctx.beginPath();
+  ctx.roundRect(x + 22, y + 54, width - 44, 10, 999);
+  ctx.fill();
+  ctx.fillStyle = ready ? "#b47d2f" : "#4d91a6";
+  ctx.beginPath();
+  ctx.roundRect(x + 22, y + 54, Math.max(18, (width - 44) * progress), 10, 999);
+  ctx.fill();
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(`备货 ${needStatus.readyCount}/${needStatus.totalCount}`, x + 22, y + 80);
+  ctx.fillStyle = ready ? "#b47d2f" : "#be4f37";
+  ctx.fillText(ready ? "可交付" : `缺 ${Math.max(0, needStatus.totalCount - needStatus.readyCount)}`, x + width - 68, y + 80);
+
+  needs.forEach((need, index) => {
+    const count = Number(need?.count || 0);
+    const have = Number(need?.have || 0);
+    const itemReady = Boolean(need?.itemReady);
+    const boxX = x + 22 + index * 66;
+    const boxY = y + 90 + Math.sin(motion * 2 + index) * (reducedMotion ? 0 : 2);
+    ctx.fillStyle = itemReady ? "rgba(224, 182, 109, 0.22)" : "rgba(239, 217, 208, 0.86)";
+    ctx.beginPath();
+    ctx.roundRect(boxX, boxY, 54, 28, 9);
+    ctx.fill();
+    ctx.strokeStyle = itemReady ? "rgba(180, 125, 47, 0.45)" : "rgba(190, 79, 55, 0.32)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = itemReady ? "#b47d2f" : "#be4f37";
+    ctx.font = "700 10px Microsoft YaHei";
+    ctx.fillText(itemReady ? "已备" : "缺货", boxX + 8, boxY + 12);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "10px Microsoft YaHei";
+    ctx.fillText(`${String(need?.itemName || "").slice(0, 4)} ${Math.min(have, count)}/${count}`, boxX + 7, boxY + 24);
+  });
+
+  if (hasShopSpirit) {
+    const spiritX = x + width - 34 + Math.sin(motion * 2.4) * (reducedMotion ? 0 : 3);
+    const spiritY = y + height - 12 + Math.cos(motion * 2.1) * (reducedMotion ? 0 : 2);
+    ctx.fillStyle = "rgba(23, 35, 29, 0.14)";
+    ctx.beginPath();
+    ctx.ellipse(spiritX, spiritY + 11, 15, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = ready ? "#e0b66d" : "#caebd2";
+    ctx.beginPath();
+    ctx.arc(spiritX, spiritY - 4, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#286f58";
+    ctx.beginPath();
+    ctx.roundRect(spiritX - 9, spiritY + 7, 18, 16, 7);
+    ctx.fill();
+    ctx.fillStyle = "#fffdf5";
+    ctx.font = "700 10px Microsoft YaHei";
+    ctx.fillText("查", spiritX - 5, spiritY + 18);
+  }
+
+  ctx.strokeStyle = ready ? "rgba(224, 182, 109, 0.58)" : "rgba(77, 145, 166, 0.42)";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.moveTo(x + 34, y + 10);
+  ctx.bezierCurveTo(x + 10, y - 16, x - 40, y - 22, 206, 230);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+  return true;
+}
+
+export function drawYear2ShopSeasonBillboardWorld({
+  ctx,
+  settlement = null,
+  pending = false,
+  nextScore = 920,
+  motion = 0,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !settlement) return false;
+  const rankTier = String(settlement.rank?.rank_tier || "c").toLowerCase();
+  const rankPalette = {
+    s: { accent: "#b47d2f", glow: "rgba(224, 182, 109, 0.32)", ink: "#8f5f3f" },
+    a: { accent: "#286f58", glow: "rgba(202, 235, 210, 0.28)", ink: "#286f58" },
+    b: { accent: "#4d91a6", glow: "rgba(159, 209, 223, 0.25)", ink: "#4d7474" },
+    c: { accent: "#be4f37", glow: "rgba(190, 79, 55, 0.18)", ink: "#8f5f3f" },
+  }[rankTier] || { accent: "#8f5f3f", glow: "rgba(143, 95, 63, 0.18)", ink: "#8f5f3f" };
+  const x = 672;
+  const y = 56;
+  const width = 236;
+  const height = 178;
+  const progress = Math.max(0.08, Math.min(1, Number(settlement.score || 0) / Math.max(1, Number(nextScore || 1))));
+
+  ctx.save();
+  ctx.fillStyle = rankPalette.glow;
+  ctx.beginPath();
+  ctx.ellipse(x + width / 2, y + height / 2, width * 0.56, height * 0.58, 0, 0, Math.PI * 2);
+  ctx.fill();
+  drawCanvasCard(ctx, x, y, width, height, pending ? "rgba(255, 248, 232, 0.96)" : "rgba(255, 253, 245, 0.86)");
+
+  ctx.strokeStyle = rankPalette.accent;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.roundRect(x + 10, y + 10, width - 20, height - 20, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = rankPalette.accent;
+  ctx.beginPath();
+  ctx.roundRect(x + width - 58, y + 18, 38, 38, 14);
+  ctx.fill();
+  ctx.fillStyle = "#fffdf5";
+  ctx.font = "700 24px Microsoft YaHei";
+  ctx.fillText(String(settlement.rank?.rank_tier || "c").toUpperCase(), x + width - 46, y + 45);
+
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 15px Microsoft YaHei";
+  ctx.fillText(String(settlement.title || "").slice(0, 10), x + 22, y + 32);
+  ctx.fillStyle = rankPalette.ink;
+  ctx.font = "700 11px Microsoft YaHei";
+  ctx.fillText(String(settlement.subtitle || "").slice(0, 22), x + 22, y + 52);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(String(settlement.dayText || "").slice(0, 24), x + 22, y + 69);
+
+  ctx.fillStyle = "rgba(23, 35, 29, 0.1)";
+  ctx.beginPath();
+  ctx.roundRect(x + 22, y + 80, width - 44, 10, 999);
+  ctx.fill();
+  ctx.fillStyle = rankPalette.accent;
+  ctx.beginPath();
+  ctx.roundRect(x + 22, y + 80, Math.max(18, (width - 44) * progress), 10, 999);
+  ctx.fill();
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText(`总分 ${settlement.score}`, x + 22, y + 108);
+  ctx.fillStyle = pending ? "#b47d2f" : "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText((pending ? `奖励 ${settlement.reward}` : `预计 ${settlement.reward}`).slice(0, 24), x + 88, y + 108);
+
+  settlement.parts.slice(0, 4).forEach((part, index) => {
+    const rowY = y + 122 + index * 12;
+    const raw = Math.max(0, Math.min(100, Number(part.raw || 0)));
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "10px Microsoft YaHei";
+    ctx.fillText(String(part.label).slice(0, 5), x + 22, rowY);
+    ctx.fillStyle = "rgba(23, 35, 29, 0.1)";
+    ctx.beginPath();
+    ctx.roundRect(x + 72, rowY - 8, 86, 6, 999);
+    ctx.fill();
+    ctx.fillStyle = raw < 45 ? "#be4f37" : raw < 72 ? "#b47d2f" : "#286f58";
+    ctx.beginPath();
+    ctx.roundRect(x + 72, rowY - 8, Math.max(8, 86 * raw / 100), 6, 999);
+    ctx.fill();
+    ctx.fillStyle = "#8f5f3f";
+    ctx.fillText(`${Math.round(raw)}%`, x + 166, rowY);
+  });
+
+  ctx.fillStyle = pending ? "rgba(224, 182, 109, 0.16)" : "rgba(255, 248, 232, 0.82)";
+  ctx.beginPath();
+  ctx.roundRect(x + 18, y + height - 28, width - 36, 18, 9);
+  ctx.fill();
+  ctx.fillStyle = pending ? "#b47d2f" : "#be4f37";
+  ctx.font = "700 10px Microsoft YaHei";
+  ctx.fillText((pending ? "月评待领" : `短板 ${settlement.weakPart}`).slice(0, 14), x + 28, y + height - 16);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText(String(settlement.advice || "").slice(0, 20), x + 104, y + height - 16);
+
+  if (pending || rankTier === "s") {
+    for (let i = 0; i < 6; i += 1) {
+      const sparkX = x + 30 + i * 32;
+      const sparkY = y - 4 + Math.sin(motion * 2.2 + i) * 4;
+      ctx.fillStyle = i % 2 ? "rgba(224, 182, 109, 0.88)" : "rgba(255, 253, 245, 0.86)";
+      ctx.beginPath();
+      ctx.arc(sparkX, sparkY, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+  return true;
+}
+
 export function drawShopReputationStageSignWorld({
   ctx,
   spec = null,
