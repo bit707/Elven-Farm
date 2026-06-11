@@ -523,9 +523,10 @@ import {
   manualWaterAfterglowWorldAtCanvasPointWorld,
   manualWaterAfterglowWorldSpecWorld,
   drawMatureHarvestBasketWorldWorld,
+  morningGrowthDewGrowingPlotWorld,
   morningGrowthDewSafetyTextWorld,
   morningGrowthDewWorldAtCanvasPointWorld,
-  morningGrowthDewWorldSpecWorld,
+  morningGrowthDewWorldSpecFromRuntimeWorld,
   matureHarvestBasketRouteNodesWorld,
   matureHarvestBasketSafetyTextWorld,
   matureHarvestBasketWorldAtCanvasPointWorld,
@@ -66347,62 +66348,34 @@ function morningGrowthDewSafetyText() {
 }
 
 function morningGrowthDewGrowingPlot() {
-  return state.plots
-    .filter((plot) => plot.cropId && !plot.mature)
-    .map((plot) => {
-      const crop = data.cropsById.get(plot.cropId) || data.crops.find((entry) => entry.crop_id === plot.cropId) || null;
-      const growDays = Math.max(1, Number(crop?.grow_days || 1));
-      const age = Math.max(0, Number(state.day || 1) - Number(plot.plantedDay || state.day || 1));
-      const remaining = Math.max(1, growDays - age);
-      return {
-        plot,
-        crop,
-        age,
-        growDays,
-        remaining,
-        priority: (plot.watered ? 20 : 60) + (plot.waterSoil ? 8 : 0) + Math.max(0, 12 - remaining),
-      };
-    })
-    .sort((a, b) => b.priority - a.priority || a.remaining - b.remaining || a.plot.y - b.plot.y || a.plot.x - b.plot.x)[0] || null;
+  return morningGrowthDewGrowingPlotWorld({
+    plots: state.plots,
+    cropsById: data.cropsById,
+    crops: data.crops,
+    day: state.day,
+  });
 }
 
 function morningGrowthDewWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, originXInput = null, originYInput = null, tileInput = null, gapInput = null) {
   const summary = state.lastDaySummary;
-  if (!summary || Number(summary.nextDay || 0) !== Number(state.day || 0)) return null;
-  const growth = summary.nightGrowth || {};
-  const harvestPlans = activeMorningHarvestPlans();
-  const maturePlan = harvestPlans[0] || null;
-  const growing = maturePlan ? null : morningGrowthDewGrowingPlot();
-  const { tile, gap, originX, originY } = gridMetrics();
-  const mode = maturePlan ? "mature" : "growing";
-  const plot = maturePlan?.plot || growing?.plot || null;
-  if (!plot) return null;
-  const route = mode === "mature"
-    ? harvestUseRouteSafe(maturePlan.route || growingCropUseRouteSpec(plot))
-    : harvestUseRouteSafe(growingCropUseRouteSpec(plot));
-  const badge = nightGrowthRouteBadgeSpec(route);
-  const cropName = mode === "mature" ? (maturePlan.cropName || itemName(plot.cropId)) : itemName(plot.cropId);
-  const weatherName = growth.weatherName || localize(currentWeatherConfig().weather_name_key, currentWeatherConfig().weather_id);
-  const termName = growth.termName || localize(currentTermConfig()?.term_name_key, currentTermId());
-  return morningGrowthDewWorldSpecWorld({
+  return morningGrowthDewWorldSpecFromRuntimeWorld({
     width,
     height,
+    originXInput,
+    originYInput,
+    tileInput,
+    gapInput,
     summary,
     day: state.day,
-    growth,
-    maturePlan,
-    growing,
-    metrics: {
-      originX: Number(originXInput ?? originX),
-      originY: Number(originYInput ?? originY),
-      tile: Number(tileInput ?? tile),
-      gap: Number(gapInput ?? gap),
-    },
-    route,
-    badge,
-    cropName,
-    weatherName,
-    termName,
+    harvestPlans: activeMorningHarvestPlans(),
+    growing: morningGrowthDewGrowingPlot(),
+    metrics: gridMetrics(),
+    routeForPlot: growingCropUseRouteSpec,
+    routeSafe: harvestUseRouteSafe,
+    badgeForRoute: nightGrowthRouteBadgeSpec,
+    itemName,
+    weatherName: localize(currentWeatherConfig().weather_name_key, currentWeatherConfig().weather_id),
+    termName: localize(currentTermConfig()?.term_name_key, currentTermId()),
   });
 }
 

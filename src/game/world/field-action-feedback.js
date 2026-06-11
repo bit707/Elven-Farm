@@ -539,6 +539,86 @@ export function morningGrowthDewSafetyTextWorld() {
   return "只定位田块、收获按钮或补水按钮，不会自动收获、浇水、入夜、播种、扣除体力、推进天数或消耗资源";
 }
 
+export function morningGrowthDewGrowingPlotWorld({
+  plots = [],
+  cropsById = new Map(),
+  crops = [],
+  day = 1,
+} = {}) {
+  const safePlots = Array.isArray(plots) ? plots : [];
+  const safeCrops = Array.isArray(crops) ? crops : [];
+  const safeDay = Number(day || 1);
+  return safePlots
+    .filter((plot) => plot?.cropId && !plot.mature)
+    .map((plot) => {
+      const crop = cropsById?.get?.(plot.cropId) || safeCrops.find((entry) => entry.crop_id === plot.cropId) || null;
+      const growDays = Math.max(1, Number(crop?.grow_days || 1));
+      const age = Math.max(0, safeDay - Number(plot.plantedDay || safeDay));
+      const remaining = Math.max(1, growDays - age);
+      return {
+        plot,
+        crop,
+        age,
+        growDays,
+        remaining,
+        priority: (plot.watered ? 20 : 60) + (plot.waterSoil ? 8 : 0) + Math.max(0, 12 - remaining),
+      };
+    })
+    .sort((a, b) => b.priority - a.priority || a.remaining - b.remaining || a.plot.y - b.plot.y || a.plot.x - b.plot.x)[0] || null;
+}
+
+export function morningGrowthDewWorldSpecFromRuntimeWorld({
+  width = 960,
+  height = 640,
+  originXInput = null,
+  originYInput = null,
+  tileInput = null,
+  gapInput = null,
+  summary = null,
+  day = 1,
+  harvestPlans = [],
+  growing = null,
+  metrics = null,
+  routeForPlot = () => null,
+  routeSafe = (route) => route,
+  badgeForRoute = () => null,
+  itemName = (itemId) => itemId,
+  weatherName = "澶╂皵",
+  termName = "鑺傛皵",
+} = {}) {
+  if (!summary || Number(summary.nextDay || 0) !== Number(day || 0) || !metrics) return null;
+  const growth = summary.nightGrowth || {};
+  const safeHarvestPlans = Array.isArray(harvestPlans) ? harvestPlans : [];
+  const maturePlan = safeHarvestPlans[0] || null;
+  const safeGrowing = maturePlan ? null : growing;
+  const plot = maturePlan?.plot || safeGrowing?.plot || null;
+  if (!plot) return null;
+  const route = routeSafe(maturePlan ? maturePlan.route || routeForPlot(plot) : routeForPlot(plot));
+  const badge = badgeForRoute(route);
+  const cropName = maturePlan ? (maturePlan.cropName || itemName(plot.cropId)) : itemName(plot.cropId);
+  const { tile, gap, originX, originY } = metrics;
+  return morningGrowthDewWorldSpecWorld({
+    width,
+    height,
+    summary,
+    day,
+    growth,
+    maturePlan,
+    growing: safeGrowing,
+    metrics: {
+      originX: Number(originXInput ?? originX),
+      originY: Number(originYInput ?? originY),
+      tile: Number(tileInput ?? tile),
+      gap: Number(gapInput ?? gap),
+    },
+    route,
+    badge,
+    cropName,
+    weatherName: growth.weatherName || weatherName,
+    termName: growth.termName || termName,
+  });
+}
+
 export function morningGrowthDewWorldSpecWorld({
   width = 960,
   height = 640,
