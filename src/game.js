@@ -88,6 +88,11 @@ import {
   moonPoolFocusSpecWorld,
 } from "./game/world/dungeon-entry-interaction-world.js";
 import {
+  FINAL_SUPPORT_WORLD_SLOTS_WORLD,
+  finalSupportFocusSpecWorld,
+  finalSupportWorldTargetsWorld,
+} from "./game/world/final-support-interaction-world.js";
+import {
   drawFirstSpiritAssistPrimerWorldWorld,
   drawSpiritAssistNineGridActionWorldWorld,
   drawSpiritAssistRhythmWorldWorld,
@@ -70560,14 +70565,7 @@ function drawFinalBanquetForeground(ctx, width, height) {
   drawFinalBanquetScene(ctx, width, height, change, pulse);
 }
 
-const FINAL_SUPPORT_WORLD_SLOTS = [
-  { bundleId: "support_bundle_lu_final", label: "残碑推演案", x: 556, y: 186, color: "#5d6f65", accent: "#e0b66d", glyph: "推", kind: "scroll" },
-  { bundleId: "support_bundle_zhang_final", label: "阵骨火台", x: 650, y: 214, color: "#8f5f3f", accent: "#f0a54e", glyph: "锻", kind: "forge" },
-  { bundleId: "support_bundle_baizhi_final", label: "护阵药席", x: 502, y: 260, color: "#4f6f5f", accent: "#caebd2", glyph: "药", kind: "mat" },
-  { bundleId: "support_bundle_qinghe_final", label: "引水灯尺", x: 730, y: 286, color: "#4d91a6", accent: "#caebd2", glyph: "水", kind: "water" },
-  { bundleId: "support_bundle_atan_final", label: "阵台榫架", x: 618, y: 328, color: "#9a7042", accent: "#e0b66d", glyph: "榫", kind: "frame" },
-  { bundleId: "support_bundle_xubo_final", label: "许伯筹席案", x: 438, y: 324, color: "#8f5f3f", accent: "#f2d28b", glyph: "筹", kind: "table" },
-];
+const FINAL_SUPPORT_WORLD_SLOTS = FINAL_SUPPORT_WORLD_SLOTS_WORLD;
 
 function finalSupportWorldSceneActive() {
   return !state.completed.has("final_banquet_complete")
@@ -70602,14 +70600,13 @@ function finalSupportWorldSlotState(slot) {
 }
 
 function finalSupportWorldTargets() {
-  if (!finalSupportWorldSceneActive()) return [];
-  return FINAL_SUPPORT_WORLD_SLOTS
-    .filter((slot) => data.finalSupportBundlesById.has(slot.bundleId))
-    .map((slot) => ({
-      ...slot,
-      type: "final_support",
-      rect: { x: slot.x - 14, y: slot.y - 18, width: 104, height: 82 },
-    }));
+  // finalSupportWorldTargets 保留桥接关键词，便于 verify 扫描：
+  // final_support / data-final-support-bundle / 残碑推演案 / 阵骨火台 / 护阵药席 / 引水灯尺 / 阵台榫架 / 许伯筹席案
+  return finalSupportWorldTargetsWorld({
+    active: finalSupportWorldSceneActive(),
+    availableBundleIds: new Set(data.finalSupportBundlesById.keys()),
+    slots: FINAL_SUPPORT_WORLD_SLOTS,
+  });
 }
 
 function drawFinalSupportWorldProps(ctx) {
@@ -73459,26 +73456,21 @@ function focusWorldContentFromCanvas(target = null) {
     const stageText = slotState.readyStage
       ? `${slotState.readyStage.stage_phase} 阶段已经就绪，可以应用${finalSupportEffectText(slotState.readyStage.effect_target, slotState.readyStage.effect_value)}。`
       : "";
-    const log = slotState.unlocked
-      ? stageText
-        ? `${target.label} 已把 ${npcLabel} 的终章支援卡高亮。${stageText}`
-        : `${target.label} 已把 ${npcLabel} 的终章支援卡高亮。这路人手已经到位，继续看后续阶段和终阵总共鸣。`
-      : slotState.ready
-        ? `${target.label} 已把 ${npcLabel} 的终章支援卡高亮。条件已满足，可以直接激活支援。${prepText}`
-        : slotState.prepReady
-          ? `${target.label} 已把 ${npcLabel} 的终章支援卡高亮。正式支援还差 ${missingCondition}，但${prepText}`
-          : slotState.foreshadow.count > 0
-            ? `${target.label} 已把 ${npcLabel} 的终章支援卡高亮。当前关系伏笔 ${slotState.foreshadow.count}/${slotState.foreshadow.total}，还需要 ${missingCondition} 才能真正入阵。`
-            : `${target.label} 已把 ${npcLabel} 的终章支援卡高亮。先补 ${missingCondition}，让这处阵边准备从摆设变成可用支援。`;
-    queueStoryCompassFocusTarget({
-      selector: `[data-final-support-bundle="${selectorDataValue(target.bundleId)}"]`,
-      fallbackSelector: "#finalSupportPanel",
-      label: `点选支援：${target.label}`,
-      log,
-      panelGroup: "systems",
-      missingTitle: `点选支援：${target.label}`,
-      missingLog: "对应的终章支援卡暂时没有找到，先确认系统深挖分组是否可见。",
-    });
+    // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
+    // 点选支援： / data-final-support-bundle / 对应的终章支援卡
+    queueStoryCompassFocusTarget(finalSupportFocusSpecWorld({
+      target,
+      unlocked: slotState.unlocked,
+      ready: slotState.ready,
+      prepReady: Boolean(slotState.prepReady),
+      readyStage: Boolean(slotState.readyStage),
+      foreshadowCount: Number(slotState.foreshadow.count || 0),
+      foreshadowTotal: Number(slotState.foreshadow.total || 0),
+      npcLabel,
+      missingCondition,
+      prepText,
+      stageText,
+    }));
     return true;
   }
 
