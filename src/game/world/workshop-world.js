@@ -302,6 +302,7 @@ export function workshopIngredientReadyWorldSpecFromRuntimeWorld({
   recipeInputs = () => [],
   orderMatchSafe = (match) => match,
   safetyText = "Focus only. No automatic craft, schedule, sell, deliver, shop open, night change, or resource spend.",
+  copy = null,
 } = {}) {
   if (activeCutscene || Number(activeDialogueLength || 0) > 0) return null;
   if (Number(workshopQueueLength || 0) > 0 && !craftCompleted) return null;
@@ -315,6 +316,7 @@ export function workshopIngredientReadyWorldSpecFromRuntimeWorld({
   const shopTags = shopTagsForItem(preview.outputItemId, ecologySummary);
   const shopTag = prioritizeShopTag(shopTags, new Map(), "food") || "food";
   const shopTagText = shopTagLabel(shopTag) || "Shop shelf";
+  const safeCopy = copy || {};
   const routeText = orderMatch
     ? orderMatch.ready
       ? "Materials ready -> Manual craft -> Deliver order"
@@ -336,12 +338,14 @@ export function workshopIngredientReadyWorldSpecFromRuntimeWorld({
   const cardHeight = 120;
   const x = Math.max(366, Math.min(width - cardWidth - 28, 492));
   const y = Math.max(326, Math.min(height - cardHeight - 28, 344));
-  const inputItems = recipeInputs(recipe).slice(0, 3).map(({ itemId, count }) => ({
+  const inputItems = Array.isArray(safeCopy.inputItems) && safeCopy.inputItems.length > 0
+    ? safeCopy.inputItems
+    : recipeInputs(recipe).slice(0, 3).map(({ itemId, count }) => ({
     itemId,
     name: itemName(itemId),
     count: Number(count || 1),
     have: Number(inventory[itemId] || 0),
-  }));
+    }));
 
   return {
     key: `${day}:${recipe.recipe_id}:${preview.outputItemId}:${orderMatch?.orderId || shopTag}:${preview.valueGain}:${inputItems.map((entry) => `${entry.itemId}:${entry.have}`).join("|")}`,
@@ -363,16 +367,31 @@ export function workshopIngredientReadyWorldSpecFromRuntimeWorld({
     valueGain: Number(preview.valueGain || 0),
     inputText: preview.inputText,
     machineText: preview.machineText,
-    headline,
-    detail,
-    routeText,
-    title: "Ingredient-ready tag - click",
+    headline: safeCopy.headline || headline,
+    detail: safeCopy.detail || detail,
+    routeText: safeCopy.routeText || routeText,
+    title: safeCopy.title || "Ingredient-ready tag - click",
     safety: safetyText,
     rect: { x, y, width: cardWidth, height: cardHeight },
     anchor: { x: 620, y: 484 },
     potPoint: { x: 640, y: 424 },
     inputItems,
   };
+}
+
+export function workshopIngredientReadyWorldAtCanvasPointWorld({
+  px,
+  py,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return (
+    px >= rect.x
+    && px <= rect.x + rect.width
+    && py >= rect.y
+    && py <= rect.y + rect.height
+  ) ? spec : null;
 }
 
 export function drawWorkshopOpeningValueWorldWorld({

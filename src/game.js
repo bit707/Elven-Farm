@@ -168,6 +168,7 @@ import {
 } from "./game/world/waterway-world.js";
 import {
   drawWorkshopIngredientReadyWorldWorld,
+  workshopIngredientReadyWorldAtCanvasPointWorld,
   workshopOutputStorageRouteWorldAtCanvasPointWorld,
   workshopIngredientReadyWorldSpecFromRuntimeWorld,
   workshopOpeningValueWorldSpecFromRuntimeWorld,
@@ -52042,11 +52043,12 @@ function workshopIngredientReadyCandidate() {
   return recipes[0] || null;
 }
 
-function workshopIngredientReadyWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
-  if (state.activeCutscene || state.activeDialogue.length > 0) return null;
-  if (state.workshopQueue?.length > 0 && !state.completed.has("craft")) return null;
-  const candidate = workshopIngredientReadyCandidate();
-  if (!candidate?.preview?.craftable) return null;
+function workshopIngredientReadyRouteGuideText() {
+  return "原料已齐 -> 手动加工 -> 出锅去向";
+}
+
+function workshopIngredientReadyWorldCopy(candidate = null) {
+  if (!candidate?.preview?.craftable || !candidate?.recipe) return null;
   const { recipe, preview } = candidate;
   const orderMatch = workshopOrderMatchSafe(preview.orderMatch);
   const shopTags = shopTagsForItem(preview.outputItemId, ecologyCourtyardSummary());
@@ -52056,7 +52058,7 @@ function workshopIngredientReadyWorldSpec(width = refs.world?.width || 960, heig
     ? orderMatch.ready
       ? "原料已齐 -> 手动加工 -> 订单可交"
       : "原料已齐 -> 手动加工 -> 订单接线"
-    : `原料已齐 -> 手动加工 -> ${shopTagText}货签`;
+    : workshopIngredientReadyRouteGuideText();
   const headline = preview.firstAroma
     ? "第一锅原料已齐"
     : orderMatch?.ready
@@ -52069,10 +52071,6 @@ function workshopIngredientReadyWorldSpec(width = refs.world?.width || 960, heig
     : preview.firstAroma
       ? "第一锅香气会把订单贴到旧铺订单板。"
       : `${preview.outputName} 可走旧铺 ${shopTagText} 货签。`;
-  const cardWidth = 326;
-  const cardHeight = 120;
-  const x = Math.max(366, Math.min(width - cardWidth - 28, 492));
-  const y = Math.max(326, Math.min(height - cardHeight - 28, 344));
   const inputItems = recipeInputs(recipe).slice(0, 3).map(({ itemId, count }) => ({
     itemId,
     name: itemName(itemId),
@@ -52080,38 +52078,20 @@ function workshopIngredientReadyWorldSpec(width = refs.world?.width || 960, heig
     have: Number(state.inventory[itemId] || 0),
   }));
   return {
-    key: `${state.day}:${recipe.recipe_id}:${preview.outputItemId}:${orderMatch?.orderId || shopTag}:${preview.valueGain}:${inputItems.map((entry) => `${entry.itemId}:${entry.have}`).join("|")}`,
-    day: state.day,
-    recipeId: recipe.recipe_id,
-    recipeName: preview.recipeName,
-    outputItemId: preview.outputItemId,
-    outputName: preview.outputName,
-    outputCount: preview.outputCount,
-    firstAroma: Boolean(preview.firstAroma),
-    orderId: orderMatch?.orderId || "",
-    orderTitle: orderMatch?.orderTitle || "",
-    orderReady: Boolean(orderMatch?.ready),
-    shopTag,
-    shopTagText,
-    rawValue: Number(preview.rawValue || 0),
-    outputValue: Number(preview.outputValue || 0),
-    orderReward: Number(preview.orderReward || 0),
-    valueGain: Number(preview.valueGain || 0),
-    inputText: preview.inputText,
-    machineText: preview.machineText,
     headline,
     detail,
     routeText,
     title: "原料齐火候签 · 可点",
-    safety: workshopIngredientReadySafetyText(),
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: 620, y: 484 },
-    potPoint: { x: 640, y: 424 },
     inputItems,
   };
 }
 
+function workshopIngredientReadyWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
+  return workshopIngredientReadyWorldSpecBridge(width, height);
+}
+
 function workshopIngredientReadyWorldSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640) {
+  const candidate = workshopIngredientReadyCandidate();
   return workshopIngredientReadyWorldSpecFromRuntimeWorld({
     width,
     height,
@@ -52120,7 +52100,7 @@ function workshopIngredientReadyWorldSpecBridge(width = refs.world?.width || 960
     activeDialogueLength: state.activeDialogue.length,
     workshopQueueLength: state.workshopQueue?.length || 0,
     craftCompleted: state.completed.has("craft"),
-    candidate: workshopIngredientReadyCandidate(),
+    candidate,
     stateInventory: state.inventory,
     itemName,
     shopTagsForItem,
@@ -52130,19 +52110,16 @@ function workshopIngredientReadyWorldSpecBridge(width = refs.world?.width || 960
     recipeInputs,
     orderMatchSafe: workshopOrderMatchSafe,
     safetyText: workshopIngredientReadySafetyText(),
+    copy: workshopIngredientReadyWorldCopy(candidate),
   });
 }
 
 function workshopIngredientReadyWorldAtCanvasPoint(px, py) {
-  const spec = workshopIngredientReadyWorldSpecBridge(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return workshopIngredientReadyWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: workshopIngredientReadyWorldSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
+  });
 }
 
 function focusWorkshopIngredientReadyWorldFromCanvas(spec = workshopIngredientReadyWorldSpecBridge()) {
