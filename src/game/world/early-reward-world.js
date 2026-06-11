@@ -1,3 +1,36 @@
+export function drawEarlyRewardFeedbackWorld({
+  ctx,
+  width = 960,
+  feedback = null,
+  pulse = 0,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !feedback) return false;
+  const x = Math.round(width / 2 - 216);
+  const y = 72 + pulse;
+  ctx.save();
+  ctx.globalAlpha = Number(feedback.fade ?? 1);
+  drawCanvasCard(ctx, x, y, 432, 104, "rgba(255, 248, 232, 0.94)");
+  ctx.fillStyle = "rgba(224, 182, 109, 0.2)";
+  ctx.beginPath();
+  ctx.arc(x + 388, y + 24, 44, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#b47d2f";
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(`前三小时正反馈 · ${feedback.timeMin} 分钟节点`, x + 22, y + 26);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 19px Microsoft YaHei";
+  ctx.fillText(`${feedback.phase} 已达成`, x + 22, y + 54);
+  ctx.fillStyle = "#286f58";
+  ctx.font = "13px Microsoft YaHei";
+  ctx.fillText(String(feedback.instant || "").slice(0, 34), x + 22, y + 78);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "12px Microsoft YaHei";
+  ctx.fillText(`${feedback.delayed}${feedback.unlock ? ` · 解锁 ${feedback.unlock}` : ""}`.slice(0, 46), x + 22, y + 96);
+  ctx.restore();
+  return true;
+}
+
 export function drawEarlyRewardKeepsakeWorldWorld({
   ctx,
   spec = null,

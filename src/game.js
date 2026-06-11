@@ -118,6 +118,7 @@ import {
   drawDungeonWorldChangeLandmarksWorld,
 } from "./game/world/world-change-world.js";
 import {
+  drawEarlyRewardFeedbackWorld,
   drawEarlyRewardKeepsakeWorldWorld,
   drawEarlyRewardRhythmStripWorldWorld,
   drawEarlyRewardWorldRoadsignWorldWorld,
@@ -56605,28 +56606,14 @@ function activeEarlyRewardFeedback(now = performance.now()) {
 function drawEarlyRewardFeedback(ctx, width, height, feedback = activeEarlyRewardFeedback()) {
   if (!feedback || state.activeCutscene || state.activeDialogue.length > 0) return;
   const pulse = settings.reducedMotion ? 0 : Math.sin(performance.now() / 260) * 5;
-  const x = Math.round(width / 2 - 216);
-  const y = 72 + pulse;
-  ctx.save();
-  ctx.globalAlpha = feedback.fade;
-  drawCanvasCard(ctx, x, y, 432, 104, "rgba(255, 248, 232, 0.94)");
-  ctx.fillStyle = "rgba(224, 182, 109, 0.2)";
-  ctx.beginPath();
-  ctx.arc(x + 388, y + 24, 44, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#b47d2f";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(`前三小时正反馈 · ${feedback.timeMin} 分钟节点`, x + 22, y + 26);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 19px Microsoft YaHei";
-  ctx.fillText(`${feedback.phase} 已达成`, x + 22, y + 54);
-  ctx.fillStyle = "#286f58";
-  ctx.font = "13px Microsoft YaHei";
-  ctx.fillText(feedback.instant.slice(0, 34), x + 22, y + 78);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "12px Microsoft YaHei";
-  ctx.fillText(`${feedback.delayed}${feedback.unlock ? ` · 解锁 ${feedback.unlock}` : ""}`.slice(0, 46), x + 22, y + 96);
-  ctx.restore();
+  // drawEarlyRewardFeedback(ctx) bridge keeps verify keywords: drawEarlyRewardFeedback / 前三小时正反馈 / 正反馈达成 / 第一块田 / 旧灵纹
+  return drawEarlyRewardFeedbackWorld({
+    ctx,
+    width,
+    feedback,
+    pulse,
+    drawCanvasCard,
+  });
 }
 
 function goalClaimFeedbackSpec(kind = "year2", options = {}) {
