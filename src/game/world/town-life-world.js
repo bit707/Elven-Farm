@@ -323,6 +323,76 @@ export function drawTownLifeRouteWorldBoardWorld({
   return true;
 }
 
+export function drawTownLifeRelationshipWorldBoardWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect) return false;
+  const { rect, palette } = spec;
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.9) * 2;
+  ctx.save();
+  if (spec.point) {
+    ctx.strokeStyle = `${palette.accent}55`;
+    ctx.lineWidth = active ? 2.6 : 1.6;
+    ctx.setLineDash([4, 6]);
+    ctx.lineDashOffset = reducedMotion ? 0 : -motion * 8;
+    ctx.beginPath();
+    ctx.moveTo(rect.x + 28, rect.y + rect.height - 6 + bob);
+    ctx.quadraticCurveTo((rect.x + spec.point.x) / 2, rect.y + rect.height + 26, spec.point.x + 18, spec.point.y + 28);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = palette.glow;
+    ctx.beginPath();
+    ctx.ellipse(spec.point.x + 16, spec.point.y + 52, active ? 42 : 34, active ? 14 : 11, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawCanvasCard(ctx, rect.x, rect.y + bob, rect.width, rect.height, palette.soft);
+  ctx.fillStyle = palette.glow;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 12, rect.y + 12 + bob, rect.width - 24, 42, 16);
+  ctx.fill();
+  ctx.fillStyle = palette.accent;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 18, rect.y + 18 + bob, 34, 28, 12);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255, 253, 245, 0.96)";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(palette.badge || "见", rect.x + 28, rect.y + 38 + bob);
+  ctx.fillStyle = palette.ink;
+  ctx.font = "800 14px Microsoft YaHei";
+  ctx.fillText("今日关系机会", rect.x + 62, rect.y + 31 + bob);
+  ctx.fillStyle = palette.accent;
+  ctx.font = "700 11px Microsoft YaHei";
+  ctx.fillText(`${spec.count} 条动线 · ${spec.actionLabel}`, rect.x + 62, rect.y + 47 + bob);
+
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 16px Microsoft YaHei";
+  ctx.fillText(`${spec.npcName} · ${spec.shortTitle}`, rect.x + 18, rect.y + 78 + bob);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "12px Microsoft YaHei";
+  ctx.fillText(`${spec.area} · 好感 Lv.${spec.favorLv} / ${Math.round(spec.favorValue)}`, rect.x + 18, rect.y + 98 + bob);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "12px Microsoft YaHei";
+  ctx.fillText(spec.shortDetail, rect.x + 18, rect.y + 116 + bob);
+  ctx.fillStyle = palette.accent;
+  ctx.font = "700 11px Microsoft YaHei";
+  ctx.fillText(spec.shortCohab, rect.x + 18, rect.y + 132 + bob);
+  if (active) {
+    ctx.strokeStyle = "rgba(224, 182, 109, 0.78)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(rect.x + 4, rect.y + 4 + bob, rect.width - 8, rect.height - 8, 18);
+    ctx.stroke();
+  }
+  ctx.restore();
+  return true;
+}
+
 export function drawCohabCourtyardWorld({
   ctx,
   routeFlags = null,
