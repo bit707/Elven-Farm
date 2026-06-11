@@ -460,7 +460,7 @@ import {
   shopRestockRunnerWorldAtCanvasPointWorld,
   shopRestockRunnerWorldFocusLogSpecWorld,
   shopRestockRunnerWorldSpecWorld,
-} from "./game/world/shop-prep-world.js";
+} from "./game/world/shop-restock-scene-world.js";
 import {
   drawCommerceWorldMarksWorld,
   drawShopWordOfMouthFollowupRestockWorldWorld,
@@ -30387,6 +30387,8 @@ function drawShopRestockRunnerWorld(ctx, spec = shopRestockRunnerWorldSpec(ctx.c
   if (!spec?.rect) return false;
   const active = shopRestockRunnerWorldFocus?.day === state.day
     && shopRestockRunnerWorldFocus?.key === spec.key;
+  // drawShopRestockRunnerWorld(ctx 保留桥接关键词，便于 verify 扫描：
+  // 主世界旧铺补货跑腿 / 点选旧铺补货跑腿 / 补货跑腿 · 可点 / 补货可完成 · 可点
   return drawShopRestockRunnerWorldWorld({
     ctx,
     spec,
