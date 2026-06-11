@@ -160,6 +160,7 @@ import {
   workshopOpeningValueWorldSpecFromRuntimeWorld,
   drawWorkshopOpeningValueWorldWorld,
   drawWorkshopOutputRouteTriptychWorldWorld,
+  workshopOutputRouteTriptychWorldSpecFromRuntimeWorld,
   drawWorkshopOutputStorageRouteWorldWorld,
   workshopOutputStorageRouteWorldSpecFromRuntimeWorld,
   drawWorkshopOrderQueueWorldBoardWorld,
@@ -28306,8 +28307,30 @@ function workshopOutputRouteTriptychWorldSpec(aromaSpec = workshopAromaOrderWorl
   };
 }
 
+function workshopOutputRouteTriptychWorldSpecBridge(aromaSpec = workshopAromaOrderWorldSpec()) {
+  if (!aromaSpec?.aroma?.orderUnlocked) return null;
+  const aroma = aromaSpec.aroma;
+  const recipe = data.recipes.find((entry) => entry.recipe_id === aroma.recipeId) || null;
+  const outputItemId = aroma.itemId || recipe?.output_item_id || aromaSpec.orderMatch?.outputItemId || "";
+  if (!outputItemId) return null;
+  const shopTags = shopTagsForItem(outputItemId, ecologyCourtyardSummary());
+  const shopTag = prioritizeShopTag(shopTags, new Map(), "food");
+  return workshopOutputRouteTriptychWorldSpecFromRuntimeWorld({
+    day: state.day,
+    aromaSpec,
+    recipe,
+    outputItemId,
+    outputLabel: aromaSpec.outputLabel || aroma.itemName || itemName(outputItemId),
+    outputCount: Number(aroma.outputCount || recipe?.output_count || aromaSpec.orderMatch?.outputCount || 1),
+    haveCount: Number(state.inventory[outputItemId] || 0),
+    shopTag,
+    shopTagText: shopTagLabel(shopTag),
+    recipeLabel: recipe ? recipeName(recipe) : "Current recipe",
+  });
+}
+
 function workshopOutputRouteTriptychWorldAtCanvasPoint(px, py) {
-  const spec = workshopOutputRouteTriptychWorldSpec();
+  const spec = workshopOutputRouteTriptychWorldSpecBridge();
   if (!spec?.rect) return null;
   const { rect } = spec;
   return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
@@ -28315,7 +28338,7 @@ function workshopOutputRouteTriptychWorldAtCanvasPoint(px, py) {
     : null;
 }
 
-function focusWorkshopOutputRouteTriptychWorldFromCanvas(spec = workshopOutputRouteTriptychWorldSpec()) {
+function focusWorkshopOutputRouteTriptychWorldFromCanvas(spec = workshopOutputRouteTriptychWorldSpecBridge()) {
   if (!spec) return false;
   workshopOutputRouteTriptychWorldFocus = { key: spec.key, day: state.day };
   addLog("点选出锅去向三联签", `${spec.outputLabel} 的出锅去向已展开：订单去向、旧铺去向、备货再排产。这里只定位去向，不会自动交单、开铺或继续加工。`);
@@ -28338,7 +28361,7 @@ function focusWorkshopOutputRouteTriptychWorldFromCanvas(spec = workshopOutputRo
   return true;
 }
 
-function drawWorkshopOutputRouteTriptychWorld(ctx, spec = workshopOutputRouteTriptychWorldSpec(), motion = performance.now() / 1000) {
+function drawWorkshopOutputRouteTriptychWorld(ctx, spec = workshopOutputRouteTriptychWorldSpecBridge(), motion = performance.now() / 1000) {
   if (!spec?.rect) return false;
   const active = workshopOutputRouteTriptychWorldFocus?.day === state.day && workshopOutputRouteTriptychWorldFocus?.key === spec.key;
   return drawWorkshopOutputRouteTriptychWorldWorld({
@@ -75204,7 +75227,7 @@ function drawWorkshopAutomation(ctx, livingState) {
       ctx.fillText(aromaSpec.orderTitle.slice(0, 11), ticketRect.x + 14, ticketRect.y + 34);
     }
     drawWorkshopAromaStoryWorld(ctx, workshopAromaStoryWorldSpec(aromaSpec), motion);
-    drawWorkshopOutputRouteTriptychWorld(ctx, workshopOutputRouteTriptychWorldSpec(aromaSpec), motion);
+    drawWorkshopOutputRouteTriptychWorld(ctx, workshopOutputRouteTriptychWorldSpecBridge(aromaSpec), motion);
     drawWorkshopOutputStorageRouteWorld(ctx, workshopOutputStorageRouteWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion);
     drawWorkshopToShopStockBridgeWorld(ctx, workshopToShopStockBridgeWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion);
     drawWorkshopFirstOrderProfitWorld(ctx, workshopFirstOrderProfitWorldSpecBridge(aromaSpec), motion);

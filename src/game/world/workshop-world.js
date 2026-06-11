@@ -83,6 +83,88 @@ export function drawWorkshopOutputRouteTriptychWorldWorld({
   return true;
 }
 
+export function workshopOutputRouteTriptychWorldSpecFromRuntimeWorld({
+  day = 1,
+  aromaSpec = null,
+  recipe = null,
+  outputItemId = "",
+  outputLabel = "",
+  outputCount = 1,
+  haveCount = 0,
+  shopTag = "",
+  shopTagText = "",
+  recipeLabel = "Current recipe",
+} = {}) {
+  if (!aromaSpec?.aroma?.orderUnlocked) return null;
+  if (!outputItemId) return null;
+
+  const aroma = aromaSpec.aroma;
+  const safeOutputLabel = outputLabel || aroma.itemName || outputItemId;
+  const safeRecipeLabel = recipeLabel || "Current recipe";
+  const safeShopTag = shopTag || "food";
+  const safeShopTagText = shopTagText || "Shop shelf";
+  const orderTitleText = aromaSpec.orderTitle || "First order";
+  const orderDetail = aromaSpec.orderId
+    ? aromaSpec.ready
+      ? `${orderTitleText} is stocked`
+      : `${orderTitleText} missing ${aromaSpec.orderMatch?.missingText || "materials"}`
+    : "No linked order";
+  const shopDetail = `${safeShopTagText} / stock ${Number(haveCount || 0)}`;
+
+  return {
+    key: `${day}:${aroma.recipeId || "recipe"}:${outputItemId}:${aromaSpec.orderId || "no_order"}:${Number(haveCount || 0)}:${aromaSpec.ready ? 1 : 0}:triptych`,
+    day,
+    aroma,
+    recipe,
+    recipeId: recipe?.recipe_id || aroma.recipeId || "",
+    recipeLabel: safeRecipeLabel,
+    outputItemId,
+    outputLabel: safeOutputLabel,
+    outputCount: Number(outputCount || 1),
+    haveCount: Number(haveCount || 0),
+    orderId: aromaSpec.orderId || "",
+    orderTitle: orderTitleText,
+    orderReady: Boolean(aromaSpec.ready),
+    shopTag: safeShopTag,
+    shopTagText: safeShopTagText,
+    title: "Output route triptych - click",
+    headline: `${safeOutputLabel} has three post-pot routes`,
+    safety: "Will not auto-deliver, open shop, or continue crafting",
+    cta: "Focus route only / no auto action",
+    anchor: { x: 520, y: 428 },
+    rect: { x: 286, y: 330, width: 330, height: 126 },
+    nodes: [
+      {
+        key: "order",
+        badge: "ORD",
+        title: "Order route",
+        detail: orderDetail,
+        accent: aromaSpec.ready ? "#286f58" : "#b47d2f",
+        soft: aromaSpec.ready ? "rgba(202, 235, 210, 0.28)" : "rgba(246, 240, 182, 0.26)",
+        target: aromaSpec.orderId ? "order" : "recipe",
+      },
+      {
+        key: "shop",
+        badge: "SHP",
+        title: "Shop route",
+        detail: shopDetail,
+        accent: "#8f5f3f",
+        soft: "rgba(255, 248, 232, 0.64)",
+        target: "shop",
+      },
+      {
+        key: "stock",
+        badge: "INV",
+        title: "Stock prep",
+        detail: `${safeRecipeLabel} / next pot`,
+        accent: "#57756a",
+        soft: "rgba(202, 235, 210, 0.2)",
+        target: "recipe",
+      },
+    ],
+  };
+}
+
 export function drawWorkshopIngredientReadyWorldWorld({
   ctx,
   spec = null,
