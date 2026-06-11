@@ -84,6 +84,106 @@ export function drawFinalSupportOverviewWorldWorld({
   return true;
 }
 
+export function drawFinalSupportPrepFeedbackWorld({
+  ctx,
+  width = 960,
+  feedback = null,
+  age = 0,
+  ease = 0,
+  pulse = 0,
+  portrait = null,
+  day = 1,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !feedback) return false;
+  const x = Math.round(width / 2 - 250);
+  const y = Math.round(78 + pulse - ease * 12);
+  const accent = "#be4f37";
+  const gold = "#c9953d";
+
+  ctx.save();
+  ctx.globalAlpha = Number(feedback.fade ?? 1);
+  const glow = ctx.createRadialGradient(x + 250, y + 76, 24, x + 250, y + 76, 260);
+  glow.addColorStop(0, "rgba(246, 240, 182, 0.34)");
+  glow.addColorStop(0.56, "rgba(190, 79, 55, 0.13)");
+  glow.addColorStop(1, "rgba(255, 253, 245, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(x + 250, y + 76, 260, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawCanvasCard(ctx, x, y, 500, 146, "rgba(255, 248, 232, 0.96)");
+  ctx.fillStyle = "rgba(190, 79, 55, 0.14)";
+  ctx.beginPath();
+  ctx.roundRect(x + 16, y + 16, 468, 42, 18);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.beginPath();
+  ctx.roundRect(x + 26, y + 22, 42, 30, 12);
+  ctx.fill();
+  ctx.fillStyle = "#fffdf5";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText("阵", x + 38, y + 43);
+  ctx.fillStyle = gold;
+  ctx.font = "900 12px Microsoft YaHei";
+  ctx.fillText("预备支援入阵回响", x + 82, y + 36);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "700 10px Microsoft YaHei";
+  ctx.fillText(`${feedback.supportType || "终章支援"} · 第 ${day} 天`, x + 82, y + 51);
+
+  if (portrait) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(x + 30, y + 72, 58, 58, 18);
+    ctx.clip();
+    ctx.drawImage(portrait, x + 30, y + 72, 58, 58);
+    ctx.restore();
+  } else {
+    ctx.fillStyle = "rgba(190, 79, 55, 0.18)";
+    ctx.beginPath();
+    ctx.roundRect(x + 30, y + 72, 58, 58, 18);
+    ctx.fill();
+    ctx.fillStyle = accent;
+    ctx.font = "900 20px Microsoft YaHei";
+    ctx.fillText(String(feedback.npcName || "镇").slice(0, 1), x + 49, y + 108);
+  }
+
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 20px Microsoft YaHei";
+  ctx.fillText(String(feedback.headline || "预备支援入阵").slice(0, 18), x + 108, y + 86);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "13px Microsoft YaHei";
+  ctx.fillText(String(feedback.detail || "关系伏笔已经转成终阵准备。").slice(0, 42), x + 108, y + 109);
+  ctx.fillStyle = accent;
+  ctx.font = "800 12px Microsoft YaHei";
+  const memoryLine = feedback.latestTitle
+    ? `来自关系记忆「${feedback.latestTitle}」`
+    : String(feedback.note || "关系伏笔已写入终阵。");
+  ctx.fillText(memoryLine.slice(0, 36), x + 108, y + 130);
+
+  for (let i = 0; i < 9; i += 1) {
+    const angle = i * 0.7 + age / 560;
+    const radius = 34 + (i % 3) * 13 + ease * 10;
+    const cx = x + 418 + Math.cos(angle) * radius;
+    const cy = y + 92 + Math.sin(angle) * radius * 0.7;
+    ctx.fillStyle = i % 2 ? "rgba(201, 149, 61, 0.46)" : "rgba(190, 79, 55, 0.34)";
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3.2 + (i % 2), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.strokeStyle = "rgba(201, 149, 61, 0.72)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(x + 418, y + 92, 24 + ease * 5, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = accent;
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText("入阵", x + 402, y + 98);
+  ctx.restore();
+  return true;
+}
+
 export function drawFinalSupportPrepKeepsakeWorldWorld({
   ctx,
   spec = null,
