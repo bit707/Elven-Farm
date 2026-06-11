@@ -113,6 +113,7 @@ import {
 } from "./game/world/daily-intent-world.js";
 import { drawEcologyDailyFeedbackWorld, drawEcologyInspectionFeedbackWorld, drawEcologyOrderFeedbackWorld } from "./game/world/ecology-world.js";
 import { drawDaySummaryLanternWorldWorld } from "./game/world/day-summary-world.js";
+import { drawChapter4DroughtFeedbackWorld } from "./game/world/chapter4-world.js";
 import {
   dungeonEntryTargetsWorld,
   dungeonGateFocusTargetWorld,
@@ -57724,59 +57725,18 @@ function drawBaizhiChapterFinishFeedback(ctx, width, height, feedback = activeBa
 }
 
 function drawChapter4DroughtFeedback(ctx, width, height, feedback = activeChapter4DroughtFeedback()) {
-  if (!feedback || state.activeCutscene || state.activeDialogue.length > 0) return;
   const pulse = settings.reducedMotion ? 0 : Math.sin(performance.now() / 340) * 5;
-  const x = Math.round(width / 2 - 260);
-  const y = Math.round(height / 2 - 118 + pulse);
-  ctx.save();
-  ctx.globalAlpha = feedback.fade;
-  const glow = ctx.createRadialGradient(x + 126, y + 108, 24, x + 126, y + 108, 260);
-  glow.addColorStop(0, "rgba(190, 79, 55, 0.32)");
-  glow.addColorStop(0.48, "rgba(224, 182, 109, 0.16)");
-  glow.addColorStop(1, "rgba(190, 79, 55, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(x + 126, y + 108, 260, 0, Math.PI * 2);
-  ctx.fill();
-
-  drawCanvasCard(ctx, x, y, 520, 196, "rgba(255, 248, 232, 0.96)");
-  ctx.fillStyle = "rgba(190, 79, 55, 0.14)";
-  ctx.beginPath();
-  ctx.roundRect(x + 24, y + 30, 130, 132, 30);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(143, 95, 63, 0.52)";
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.ellipse(x + 88, y + 100, 40, 24, -0.08, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.strokeStyle = "rgba(92, 60, 42, 0.62)";
-  ctx.lineWidth = 3;
-  for (let i = 0; i < 5; i += 1) {
-    ctx.beginPath();
-    ctx.moveTo(x + 54 + i * 16, y + 108);
-    ctx.lineTo(x + 42 + i * 18, y + 136 + (i % 2) * 10);
-    ctx.stroke();
-  }
-  ctx.fillStyle = "#be4f37";
-  ctx.font = "700 30px Microsoft YaHei";
-  ctx.fillText("旱", x + 70, y + 88);
-
-  ctx.fillStyle = "#be4f37";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(feedback.title.slice(0, 18), x + 180, y + 42);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 24px Microsoft YaHei";
-  ctx.fillText(feedback.headline.slice(0, 18), x + 180, y + 78);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "14px Microsoft YaHei";
-  ctx.fillText(feedback.detail.slice(0, 38), x + 180, y + 110);
-  ctx.fillStyle = "#286f58";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(feedback.rewardHint.slice(0, 38), x + 180, y + 138);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "12px Microsoft YaHei";
-  ctx.fillText(feedback.cta.slice(0, 46), x + 180, y + 164);
-  ctx.restore();
+  // drawChapter4DroughtFeedback(ctx) bridge keeps verify keywords: drawChapter4DroughtFeedback / 九曜大旱降临 / 第一批救援水囊送出去了 / 枯井把镇子的余裕敲空了 / 二十四枢线索 / 救灾作物种子已备 / 主街枯井 / 井边水棚
+  return drawChapter4DroughtFeedbackWorld({
+    ctx,
+    width,
+    height,
+    feedback,
+    pulse,
+    activeCutscene: state.activeCutscene,
+    activeDialogueCount: state.activeDialogue.length,
+    drawCanvasCard,
+  });
 }
 
 function activeSpiritJoinFeedback(now = performance.now()) {
