@@ -230,6 +230,99 @@ export function drawCareChainWorldBloomWorld({
   return true;
 }
 
+export function drawTownLifeRouteWorldBoardWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  activeEntryKey = "",
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.entries?.length) return false;
+  const { rect } = spec;
+  const palettes = {
+    shop: { accent: "#8f5f3f", soft: "rgba(255, 248, 232, 0.96)", glow: "rgba(224, 182, 109, 0.24)" },
+    ready: { accent: "#286f58", soft: "rgba(237, 243, 223, 0.95)", glow: "rgba(40, 111, 88, 0.18)" },
+    route: { accent: "#4d91a6", soft: "rgba(241, 249, 251, 0.95)", glow: "rgba(77, 145, 166, 0.18)" },
+    greet: { accent: "#286f58", soft: "rgba(255, 253, 245, 0.94)", glow: "rgba(40, 111, 88, 0.14)" },
+    urgent: { accent: "#be4f37", soft: "rgba(255, 240, 232, 0.96)", glow: "rgba(190, 79, 55, 0.2)" },
+    festival: { accent: "#b47d2f", soft: "rgba(255, 248, 232, 0.96)", glow: "rgba(224, 182, 109, 0.22)" },
+    archive: { accent: "#5d6f65", soft: "rgba(255, 253, 245, 0.92)", glow: "rgba(93, 111, 101, 0.12)" },
+    daily: { accent: "#5d6f65", soft: "rgba(255, 253, 245, 0.92)", glow: "rgba(93, 111, 101, 0.12)" },
+  };
+  const mainPalette = palettes[spec.main?.tone] || palettes.daily;
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.7) * 1.5;
+
+  ctx.save();
+  if (spec.main?.point) {
+    ctx.strokeStyle = `${mainPalette.accent}44`;
+    ctx.lineWidth = active ? 2.4 : 1.4;
+    ctx.setLineDash([4, 6]);
+    ctx.lineDashOffset = reducedMotion ? 0 : -motion * 9;
+    ctx.beginPath();
+    ctx.moveTo(rect.x + 24, rect.y + rect.height - 8 + bob);
+    ctx.quadraticCurveTo(rect.x - 18, rect.y + rect.height + 18, spec.main.point.x + 16, spec.main.point.y + 52);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  drawCanvasCard(ctx, rect.x, rect.y + bob, rect.width, rect.height, mainPalette.soft);
+  ctx.fillStyle = mainPalette.glow;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 12, rect.y + 12 + bob, rect.width - 24, 36, 14);
+  ctx.fill();
+  ctx.fillStyle = mainPalette.accent;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 18, rect.y + 18 + bob, 32, 24, 10);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255, 253, 245, 0.96)";
+  ctx.font = "900 13px Microsoft YaHei";
+  ctx.fillText(spec.main?.badge || "见", rect.x + 28, rect.y + 35 + bob);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 14px Microsoft YaHei";
+  ctx.fillText("镇民动线 · 可点", rect.x + 60, rect.y + 30 + bob);
+  ctx.fillStyle = mainPalette.accent;
+  ctx.font = "700 10px Microsoft YaHei";
+  ctx.fillText(spec.title.slice(0, 13), rect.x + 60, rect.y + 44 + bob);
+
+  spec.entries.forEach((entry, index) => {
+    const rowRect = entry.rect;
+    const palette = palettes[entry.tone] || palettes.daily;
+    const rowBob = reducedMotion ? 0 : Math.sin(motion * 2 + index * 0.6) * 0.8;
+    const rowActive = activeEntryKey === entry.key;
+    ctx.fillStyle = rowActive ? "rgba(255, 248, 232, 0.78)" : index === 0 ? "rgba(255, 253, 245, 0.58)" : "rgba(255, 253, 245, 0.34)";
+    ctx.strokeStyle = rowActive ? "rgba(224, 182, 109, 0.72)" : `${palette.accent}33`;
+    ctx.lineWidth = rowActive ? 1.8 : 1;
+    ctx.beginPath();
+    ctx.roundRect(rowRect.x, rowRect.y + bob + rowBob, rowRect.width, rowRect.height, 9);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = `${palette.accent}22`;
+    ctx.beginPath();
+    ctx.roundRect(rowRect.x + 6, rowRect.y + 4 + bob + rowBob, 22, 16, 6);
+    ctx.fill();
+    ctx.fillStyle = palette.accent;
+    ctx.font = "900 10px Microsoft YaHei";
+    ctx.fillText(entry.badge, rowRect.x + 12, rowRect.y + 16 + bob + rowBob);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "800 11px Microsoft YaHei";
+    ctx.fillText(`${entry.npcName} · ${entry.shortTitle}`.slice(0, 15), rowRect.x + 34, rowRect.y + 12 + bob + rowBob);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "10px Microsoft YaHei";
+    ctx.fillText(entry.shortDetail, rowRect.x + 34, rowRect.y + 22 + bob + rowBob);
+    ctx.fillStyle = palette.accent;
+    ctx.font = "800 9px Microsoft YaHei";
+    ctx.fillText(entry.nextLabel.slice(0, 5), rowRect.x + rowRect.width - 42, rowRect.y + 17 + bob + rowBob);
+  });
+
+  ctx.fillStyle = active ? "#8f5f3f" : "#5d6f65";
+  ctx.font = "700 10px Microsoft YaHei";
+  ctx.fillText(`${spec.subtitle} · 点选只定位`, rect.x + 18, rect.y + rect.height - 10 + bob);
+  ctx.restore();
+  return true;
+}
+
 export function drawCohabCourtyardWorld({
   ctx,
   routeFlags = null,
