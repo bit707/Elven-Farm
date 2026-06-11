@@ -56,6 +56,43 @@ export function automationDayLedgerMarkupSafeWorld(spec = null) {
   `;
 }
 
+export function spiritAutomationBenefitBoardSpecWorld({
+  day = 1,
+  spiritCount = 0,
+  groups = {},
+  rows = [],
+  advice = null,
+  coveredJobs = 0,
+  totalPower = 0,
+  width = 960,
+  height = 640,
+} = {}) {
+  const safeRows = Array.isArray(rows) ? rows : [];
+  const top = safeRows[0] || null;
+  if (!top) return null;
+  const rect = {
+    x: Math.max(18, Math.min(width - 304, 330)),
+    y: Math.max(176, Math.min(height - 154, 398)),
+    width: 304,
+    height: 146,
+  };
+  return {
+    key: `${day}:${coveredJobs}:${top.job}:${Math.round(Number(totalPower || 0) * 10)}`,
+    day,
+    groups,
+    rows: safeRows,
+    top,
+    advice,
+    coveredJobs,
+    totalPower,
+    headline: coveredJobs >= 3
+      ? "\u7cbe\u602a\u5c97\u4f4d\u5df2\u7ecf\u63a5\u6210\u534a\u81ea\u52a8\u9662\u7ebf"
+      : "\u7cbe\u602a\u6b63\u5728\u66ff\u4f60\u63a5\u624b\u91cd\u590d\u52b3\u52a8\u3002",
+    summary: `\u5c97\u4f4d ${coveredJobs}/6 / \u7cbe\u602a ${spiritCount} / \u7701\u5de5 ${Math.round(Number(totalPower || 0) * 10)}`,
+    rect,
+  };
+}
+
 /*
 export function automationDayLedgerReportTextWorld(rows = []) {
   const safeRows = Array.isArray(rows) ? rows : [];

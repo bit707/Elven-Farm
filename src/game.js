@@ -105,6 +105,7 @@ import {
   automationDayLedgerReportTextSafeWorld,
   automationDayLedgerSpecSafeWorld,
   drawAutomationHubWorldNoteWorld,
+  spiritAutomationBenefitBoardSpecWorld,
   drawSpiritAutomationBenefitBoardWorld,
   drawSpiritAutomationGroundTraceWorld,
   drawSpiritAutomationRelayWorldWorld,
@@ -53468,8 +53469,31 @@ function spiritAutomationBenefitBoardSpec(width = refs.world?.width || 960, heig
   };
 }
 
+function spiritAutomationBenefitBoardSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640) {
+  if (!state.spirits.length || state.dungeon) return null;
+  const groups = spiritAutomationBenefitJobGroups();
+  const rows = spiritAutomationBenefitRows(groups);
+  if (!rows.length) return null;
+  const advice = spiritAutomationNextAssignmentAdvice(groups);
+  const coveredJobs = Object.keys(groups).length;
+  const totalPower = Object.values(groups)
+    .flat()
+    .reduce((sum, entry) => sum + Number(entry.power || 0), 0);
+  return spiritAutomationBenefitBoardSpecWorld({
+    day: state.day,
+    spiritCount: state.spirits.length,
+    groups,
+    rows,
+    advice,
+    coveredJobs,
+    totalPower,
+    width,
+    height,
+  });
+}
+
 function spiritAutomationBenefitBoardAtCanvasPoint(px, py) {
-  const spec = spiritAutomationBenefitBoardSpec();
+  const spec = spiritAutomationBenefitBoardSpecBridge();
   if (!spec?.rect) return null;
   const { rect } = spec;
   return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
@@ -53477,7 +53501,7 @@ function spiritAutomationBenefitBoardAtCanvasPoint(px, py) {
     : null;
 }
 
-function focusSpiritAutomationBenefitBoardFromCanvas(spec = spiritAutomationBenefitBoardSpec()) {
+function focusSpiritAutomationBenefitBoardFromCanvas(spec = spiritAutomationBenefitBoardSpecBridge()) {
   if (!spec) return false;
   const target = spec.top || spec.rows?.[0] || null;
   spiritAutomationBenefitBoardFocus = {
@@ -75048,7 +75072,7 @@ function spiritAutomationBenefitToneColor(tone = "stable") {
   return spiritAutomationBenefitToneColorWorld(tone);
 }
 
-function drawSpiritAutomationBenefitBoard(ctx, spec = spiritAutomationBenefitBoardSpec()) {
+function drawSpiritAutomationBenefitBoard(ctx, spec = spiritAutomationBenefitBoardSpecBridge()) {
   if (!spec?.rect) return false;
   const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
   const active = spiritAutomationBenefitBoardFocus?.day === state.day
@@ -82301,7 +82325,7 @@ function drawWorld() {
     drawFirstTwoSpiritDuoWorld(ctx, firstTwoSpiritDuoWorldSpec(width, height, livingState), settings.reducedMotion ? 0 : performance.now() / 1000);
     drawCareChainSpiritEcho(ctx, livingState);
     drawRareSpiritCompanionMoments(ctx);
-    drawSpiritAutomationBenefitBoard(ctx, spiritAutomationBenefitBoardSpec(width, height));
+    drawSpiritAutomationBenefitBoard(ctx, spiritAutomationBenefitBoardSpecBridge(width, height));
     drawSpiritJobReadyWorldBoard(ctx, spiritJobReadyWorldBoardSpec(width, height));
     drawSpiritJobShiftTheaterWorld(ctx, spiritJobShiftTheaterWorldSpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
   }
