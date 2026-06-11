@@ -177,6 +177,7 @@ import {
   drawWorkshopOutputStorageRouteWorldWorld,
   workshopOutputStorageRouteWorldSpecFromRuntimeWorld,
   drawWorkshopOrderQueueWorldBoardWorld,
+  workshopOrderQueueWorldBoardAtCanvasPointWorld,
   workshopOrderQueueWorldBoardSpecFromRuntimeWorld,
   drawWorkshopReadyOrderDispatchWorldWorld,
   workshopReadyOrderDispatchWorldAtCanvasPointWorld,
@@ -52487,23 +52488,12 @@ function drawWorkshopSpiritAssistActionWorld(ctx, spec = workshopSpiritAssistAct
 }
 
 function workshopOrderQueueWorldBoardSpec(lineSpec = workshopProductionLineSpec()) {
-  const activeJob = lineSpec?.activeJob || null;
-  const orderMatch = activeJob?.orderMatch || null;
+  return workshopOrderQueueWorldBoardSpecBridge(lineSpec);
+}
+
+function workshopOrderQueueWorldBoardCopy(activeJob, orderMatch) {
   if (!activeJob || !orderMatch?.orderId) return null;
-  const stagePoint = (workshopWorldProductionSceneSpec(lineSpec).stageProps || []).find((prop) => prop.active)
-    || { x: 618, y: 502 };
-  const cardWidth = 318;
-  const cardHeight = 78;
-  const x = 570;
-  const y = 492;
   return {
-    key: `${state.day}:${activeJob.id}:${orderMatch.orderId}:${activeJob.progress}`,
-    day: state.day,
-    activeJob,
-    orderMatch,
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: stagePoint.x, y: stagePoint.y },
-    boardAnchor: { x: 790, y: 374 },
     title: "主世界订单锅排产",
     headline: orderMatch.ready ? "这锅出完可交单" : "这锅正接订单",
     detail: `${activeJob.outputItemName} ${orderMatch.haveOutput}/${orderMatch.neededCount} +${activeJob.outputCount}`,
@@ -52521,19 +52511,16 @@ function workshopOrderQueueWorldBoardSpecBridge(lineSpec = workshopProductionLin
     activeJob,
     orderMatch,
     stagePoint,
+    copy: workshopOrderQueueWorldBoardCopy(activeJob, orderMatch),
   });
 }
 
 function workshopOrderQueueWorldBoardAtCanvasPoint(px, py) {
-  const spec = workshopOrderQueueWorldBoardSpecBridge();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return workshopOrderQueueWorldBoardAtCanvasPointWorld({
+    px,
+    py,
+    spec: workshopOrderQueueWorldBoardSpecBridge(),
+  });
 }
 
 function focusWorkshopOrderQueueWorldBoardFromCanvas(spec = workshopOrderQueueWorldBoardSpecBridge()) {
