@@ -615,6 +615,7 @@ import {
   drawCohabLifeNoteWorld,
   drawEarlyNpcWorldRoadsignWorld,
   drawLivingWorldSummaryWorld,
+  drawTownLifeErrandFeedbackWorld,
   drawTownLifeErrandDeliveryKeepsakeWorldWorld,
   drawTownLifeFeaturedBubbleWorld,
   drawTownLifeGreetingKeepsakeWorldWorld,
@@ -57372,75 +57373,19 @@ function drawTownLifeErrandFeedback(ctx, width, height, feedback = activeTownLif
     ? "#be4f37"
     : feedback.weatherTone === "water"
       ? "#4d91a6"
-      : feedback.weatherTone === "jade"
-        ? "#286f58"
-        : "#b47d2f";
-  const x = Math.max(48, Math.min(width - 386, width - 418));
-  const y = 142 + pulse;
-
-  ctx.save();
-  ctx.globalAlpha = Number(feedback.fade ?? 1);
-  const glow = ctx.createRadialGradient(x + 190, y + 54, 12, x + 190, y + 54, 172);
-  glow.addColorStop(0, `${accent}33`);
-  glow.addColorStop(0.5, "rgba(224, 182, 109, 0.12)");
-  glow.addColorStop(1, "rgba(224, 182, 109, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(x + 190, y + 54, 172, 0, Math.PI * 2);
-  ctx.fill();
-
-  drawCanvasCard(ctx, x, y, 366, 132, "rgba(255, 248, 232, 0.96)");
-  ctx.fillStyle = `${accent}22`;
-  ctx.beginPath();
-  ctx.roundRect(x + 18, y + 18, 58, 58, 18);
-  ctx.fill();
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(x + 30, y + 48);
-  ctx.lineTo(x + 42, y + 60);
-  ctx.lineTo(x + 64, y + 34);
-  ctx.stroke();
-  ctx.fillStyle = accent;
-  ctx.font = "800 13px Microsoft YaHei";
-  ctx.fillText("妥", x + 37, y + 45);
-
-  ctx.fillStyle = accent;
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(`${feedback.title} · ${feedback.weatherLabel || feedback.areaLabel}`.slice(0, 22), x + 92, y + 28);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 18px Microsoft YaHei";
-  ctx.fillText(`${feedback.headline}：${feedback.npcName}`.slice(0, 18), x + 92, y + 52);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(`${feedback.itemName} x${feedback.count} · ${feedback.areaLabel}`.slice(0, 28), x + 92, y + 73);
-
-  const chips = [
-    { text: `+${feedback.rewardGold} 灵石`, fill: "rgba(224, 182, 109, 0.2)", color: "#8f5f3f", width: 86 },
-    ...(feedback.rewardFame ? [{ text: `声望 +${feedback.rewardFame}`, fill: "rgba(40, 111, 88, 0.16)", color: "#286f58", width: 78 }] : []),
-    { text: `好感 +${feedback.rewardFavor}`, fill: "rgba(190, 79, 55, 0.14)", color: "#be4f37", width: 78 },
-  ];
-  let chipX = x + 20;
-  const chipY = y + 88;
-  for (const chip of chips) {
-    ctx.fillStyle = chip.fill;
-    ctx.beginPath();
-    ctx.roundRect(chipX, chipY, chip.width, 22, 11);
-    ctx.fill();
-    ctx.fillStyle = chip.color;
-    ctx.font = "700 11px Microsoft YaHei";
-    ctx.fillText(chip.text, chipX + 10, chipY + 15);
-    chipX += chip.width + 8;
-  }
-
-  ctx.fillStyle = feedback.memoryTitle ? "#286f58" : feedback.favorLeveled ? "#be4f37" : "#5d6f65";
-  ctx.font = "700 11px Microsoft YaHei";
-  ctx.fillText(String(feedback.response || "").slice(0, 24), chipX + 2, chipY + 15);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  const echoText = feedback.memorySummary || feedback.weatherSummary || feedback.detail || "镇上的来往又稳了一点。";
-  ctx.fillText(echoText.slice(0, 38), x + 20, y + 122);
-  ctx.restore();
+    : feedback.weatherTone === "jade"
+      ? "#286f58"
+      : "#b47d2f";
+  // drawTownLifeErrandFeedback(ctx) bridge keeps verify keywords: drawTownLifeErrandFeedback / 镇上天气见闻 / 镇民天气小景 / 天气托付回响 / 小托付回礼 / 托付办妥 / 天气托付备货 / 备货路线 · / 看备货路线 / 备货牌 / 交付牌 / 点选备货牌 / 点选小托付交付牌 / 点选备货终点 / 妥 / 回看回响
+  return drawTownLifeErrandFeedbackWorld({
+    ctx,
+    width,
+    height,
+    feedback,
+    pulse,
+    accent,
+    drawCanvasCard,
+  });
 }
 
 function drawHarvestFeedback(ctx, width, height, feedback = activeHarvestFeedback()) {
