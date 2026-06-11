@@ -295,11 +295,11 @@ import {
 } from "./game/world/shop-weather-shelf-render.js";
 import {
   shopWordNoteInteractionTargetsWorld,
-  shopWordOfMouthMissingShelfFocusSpecWorld,
+  shopWordOfMouthMissingShelfFocusTargetWorld,
   shopWordOfMouthMissingShelfLogWorld,
   shopWordOfMouthMissingShelfShopFocusTargetWorld,
-  shopWordOfMouthNoteFocusSpecWorld,
-  shopWordOfMouthReadyShelfFocusSpecWorld,
+  shopWordOfMouthNoteFocusTargetWorld,
+  shopWordOfMouthReadyShelfFocusTargetWorld,
   shopWordOfMouthReadyShelfLogWorld,
   shopWordOfMouthReadyShelfShopFocusTargetWorld,
 } from "./game/world/shop-word-note-interaction-world.js";
@@ -73587,7 +73587,7 @@ function focusWorldContentFromCanvas(target = null) {
     // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
     // target.type === "shop_word_of_mouth_note" / 铺前市闻来帖 · 可点 / 铺前来帖认门 · 可点 / 谁传话 -> 谁来认门 -> 头排接货
     // 只定位旧铺市闻和来帖，不会自动开铺、接客、成交、改价、补货或消耗材料
-    queueStoryCompassFocusTarget(shopWordOfMouthNoteFocusSpecWorld({ spec }));
+    queueStoryCompassFocusTarget(shopWordOfMouthNoteFocusTargetWorld({ spec }));
     return true;
   }
 
@@ -73605,7 +73605,7 @@ function focusWorldContentFromCanvas(target = null) {
         itemId: spec.routeItemId,
       });
     } else {
-      queueStoryCompassFocusTarget(shopWordOfMouthMissingShelfFocusSpecWorld({ spec }));
+      queueStoryCompassFocusTarget(shopWordOfMouthMissingShelfFocusTargetWorld({ spec }));
     }
     shopFocusTarget = shopWordOfMouthMissingShelfShopFocusTargetWorld({ spec });
     const logEntry = shopWordOfMouthMissingShelfLogWorld({ spec });
@@ -73622,7 +73622,7 @@ function focusWorldContentFromCanvas(target = null) {
     // 只定位旧铺市闻、来帖和头排货签，不会自动开铺、接客、成交、改价、补货或消耗库存
     shopShelfPrepWorldBoardFocus = { key: spec.key, day: state.day, itemId: spec.itemId };
     shopFocusTarget = shopWordOfMouthReadyShelfShopFocusTargetWorld({ spec });
-    queueStoryCompassFocusTarget(shopWordOfMouthReadyShelfFocusSpecWorld({ spec }));
+    queueStoryCompassFocusTarget(shopWordOfMouthReadyShelfFocusTargetWorld({ spec }));
     const logEntry = shopWordOfMouthReadyShelfLogWorld({ spec });
     addLog(logEntry.title, logEntry.log);
     render();

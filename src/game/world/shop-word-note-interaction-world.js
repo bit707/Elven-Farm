@@ -55,6 +55,10 @@ export function shopWordOfMouthNoteFocusSpecWorld({ spec = null } = {}) {
   };
 }
 
+export function shopWordOfMouthNoteFocusTargetWorld({ spec = null } = {}) {
+  return shopWordOfMouthNoteFocusSpecWorld({ spec });
+}
+
 export function shopWordOfMouthMissingShelfFocusSpecWorld({ spec = null } = {}) {
   if (!spec) return null;
   return {
@@ -66,6 +70,10 @@ export function shopWordOfMouthMissingShelfFocusSpecWorld({ spec = null } = {}) 
     missingTitle: "点选来帖缺货签",
     missingLog: `旧铺市闻或补货路线暂时没有找到，先打开旧铺经营报告查看最近口碑。${spec.safeNote}。`,
   };
+}
+
+export function shopWordOfMouthMissingShelfFocusTargetWorld({ spec = null } = {}) {
+  return shopWordOfMouthMissingShelfFocusSpecWorld({ spec });
 }
 
 export function shopWordOfMouthMissingShelfShopFocusTargetWorld({ spec = null } = {}) {
@@ -97,6 +105,10 @@ export function shopWordOfMouthReadyShelfFocusSpecWorld({ spec = null } = {}) {
     missingTitle: "点选来帖头排备齐签",
     missingLog: `旧铺市闻、来帖或头排货签暂时没有找到，先打开旧铺经营报告查看最近口碑。${spec.safeNote}。`,
   };
+}
+
+export function shopWordOfMouthReadyShelfFocusTargetWorld({ spec = null } = {}) {
+  return shopWordOfMouthReadyShelfFocusSpecWorld({ spec });
 }
 
 export function shopWordOfMouthReadyShelfShopFocusTargetWorld({ spec = null } = {}) {
