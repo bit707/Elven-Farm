@@ -1837,6 +1837,51 @@ export function workshopToShopStockBridgeWorldSpecFromRuntimeWorld({
   };
 }
 
+export function workshopToShopStockBridgeWorldCopyFromRuntimeWorld({
+  feedback = null,
+  stock = 0,
+  shopTagText = "",
+  customerName = "First passerby",
+  reason = "",
+  copy = null,
+} = {}) {
+  if (!feedback?.outputItemId) return null;
+  const safeCopy = copy || {};
+  const safeOutputItemName = feedback.outputItemName || "Output";
+  return {
+    title: safeCopy.title || "Workshop to shop stock bridge - click",
+    headline: safeCopy.headline || `${safeOutputItemName} can become front-door stock`,
+    detail: safeCopy.detail || `${safeCopy.stockPrefix || "Stock "}${stock}${safeCopy.detailDivider || " / "}${shopTagText || safeCopy.shopTagFallback || "Shop stock"}${safeCopy.detailTailDivider || " / "}${reason || safeCopy.reasonFallback || "Move this output from the pot story to the shop door."}`,
+    routeText: safeCopy.routeText || "Stock in -> Polish shelf tag -> Door sees it",
+    nodes: [
+      {
+        key: "stock",
+        badge: safeCopy.stockBadge || "INV",
+        title: safeCopy.stockTitle || "Stock in",
+        detail: `${safeOutputItemName} x${stock}`,
+        accent: "#be4f37",
+        selector: "#inventoryList",
+      },
+      {
+        key: "ticket",
+        badge: safeCopy.ticketBadge || "TAG",
+        title: safeCopy.ticketTitle || "Shelf tag",
+        detail: shopTagText || safeCopy.shopTagFallback || "Shop stock",
+        accent: "#b47d2f",
+        selector: "#shopReport",
+      },
+      {
+        key: "door",
+        badge: safeCopy.doorBadge || "EYE",
+        title: safeCopy.doorTitle || "Door sees",
+        detail: customerName || safeCopy.customerFallback || "Passerby",
+        accent: "#4d91a6",
+        selector: null,
+      },
+    ],
+  };
+}
+
 export function workshopToShopStockBridgeWorldAtCanvasPointWorld({
   px,
   py,

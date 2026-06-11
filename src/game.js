@@ -195,6 +195,7 @@ import {
   drawWorkshopSpiritAssistActionWorldWorld,
   workshopSpiritAssistActionWorldAtCanvasPointWorld,
   workshopSpiritAssistActionWorldSpecFromRuntimeWorld,
+  workshopToShopStockBridgeWorldCopyFromRuntimeWorld,
   drawWorkshopToShopStockBridgeWorldWorld,
   workshopToShopStockBridgeWorldAtCanvasPointWorld,
   workshopToShopStockBridgeWorldSpecFromRuntimeWorld,
@@ -28376,39 +28377,27 @@ function workshopToShopStockBridgeSafetyText() {
 }
 
 function workshopToShopStockBridgeCopy(feedback, stock = 0, shopTagText = "", customerName = "第一批路过客", reason = "") {
-  if (!feedback?.outputItemId) return null;
-  return {
-    title: "工坊到旧铺备货桥 · 可点",
-    headline: `${feedback.outputItemName || itemName(feedback.outputItemId)} 已能变成铺门前的货`,
-    detail: `库存 ${stock} · ${shopTagText || "旧铺货"} · ${reason || "先把这份成品从锅边讲到门口"}`,
-    routeText: "出锅入仓 -> 擦亮货签 -> 门口会看见",
-    nodes: [
-      {
-        key: "stock",
-        badge: "仓",
-        title: "出锅入仓",
-        detail: `${feedback.outputItemName || itemName(feedback.outputItemId)} x${stock}`,
-        accent: "#be4f37",
-        selector: "#inventoryList",
-      },
-      {
-        key: "ticket",
-        badge: "签",
-        title: "擦亮货签",
-        detail: shopTagText || "旧铺货",
-        accent: "#b47d2f",
-        selector: "#shopReport",
-      },
-      {
-        key: "door",
-        badge: "眼",
-        title: "门口会看见",
-        detail: customerName || "路过客",
-        accent: "#4d91a6",
-        selector: null,
-      },
-    ],
-  };
+  return workshopToShopStockBridgeWorldCopyFromRuntimeWorld({
+    feedback,
+    stock,
+    shopTagText,
+    customerName,
+    reason,
+    copy: {
+      title: "工坊到旧铺备货桥 · 可点",
+      headline: `${feedback?.outputItemName || (feedback?.outputItemId ? itemName(feedback.outputItemId) : "成品")} 已能变成铺门前的货`,
+      detail: `库存 ${stock} · ${shopTagText || "旧铺货"} · ${reason || "先把这份成品从锅边讲到门口"}`,
+      routeText: "出锅入仓 -> 擦亮货签 -> 门口会看见",
+      stockBadge: "仓",
+      stockTitle: "出锅入仓",
+      ticketBadge: "签",
+      ticketTitle: "擦亮货签",
+      doorBadge: "眼",
+      doorTitle: "门口会看见",
+      shopTagFallback: "旧铺货",
+      customerFallback: "路过客",
+    },
+  });
 }
 
 function workshopToShopStockBridgeWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
