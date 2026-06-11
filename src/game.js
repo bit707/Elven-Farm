@@ -260,6 +260,12 @@ import {
   waterNoteInteractionTargetsWorld,
 } from "./game/world/water-note-interaction-world.js";
 import {
+  pondFirstCatchFocusSpecWorld,
+  qingboDishRouteFocusSpecWorld,
+  qingheWaterTasteFocusSpecWorld,
+  waterPreludeInteractionTargetsWorld,
+} from "./game/world/water-prelude-interaction-world.js";
+import {
   waterwayFreshRouteFocusSpecWorld,
   waterwayFreshRouteTargetWorld,
 } from "./game/world/waterway-route-interaction-world.js";
@@ -72944,84 +72950,18 @@ function worldContentTargets() {
     pondLotusStage: state.pondState.lotusStage,
   }));
 
-  const lingqinDishRouteNote = lingqinDishRouteWorldSpec();
-  if (lingqinDishRouteNote) {
-    targets.push({
-      id: lingqinDishRouteNote.id,
-      type: "lingqin_dish_route_note",
-      label: lingqinDishRouteNote.title,
-      orderReady: lingqinDishRouteNote.orderReady,
-      rect: lingqinDishRouteNote.rect,
-    });
-  }
-
-  const qinghePondBridgeNote = qinghePondBridgeWorldSpec();
-  if (qinghePondBridgeNote) {
-    targets.push({
-      id: qinghePondBridgeNote.id,
-      type: "qinghe_pond_bridge_note",
-      label: qinghePondBridgeNote.title,
-      accepted: qinghePondBridgeNote.accepted,
-      rect: qinghePondBridgeNote.rect,
-    });
-  }
-
-  const qingheWaterTasteNote = qingheWaterTasteNoteSpec();
-  if (qingheWaterTasteNote) {
-    targets.push({
-      id: qingheWaterTasteNote.id,
-      type: "qinghe_water_taste_note",
-      label: qingheWaterTasteNote.title,
-      questId: qingheWaterTasteNote.questId,
-      buildingId: qingheWaterTasteNote.buildingId,
-      rect: qingheWaterTasteNote.rect,
-    });
-  }
-
-  const pondOvernightNote = pondOvernightWorldSpec();
-  if (pondOvernightNote) {
-    targets.push({
-      id: pondOvernightNote.id,
-      type: "pond_overnight_note",
-      label: pondOvernightNote.title,
-      ready: pondOvernightNote.ready,
-      rect: pondOvernightNote.rect,
-    });
-  }
-
-  const pondFirstCatchNote = pondFirstCatchNoteSpec();
-  if (pondFirstCatchNote) {
-    targets.push({
-      id: pondFirstCatchNote.id,
-      type: "pond_first_catch_note",
-      label: pondFirstCatchNote.title,
-      ready: pondFirstCatchNote.ready,
-      rect: pondFirstCatchNote.rect,
-    });
-  }
-
-  const qingboIngredientTriadNote = qingboIngredientTriadWorldSpec();
-  if (qingboIngredientTriadNote) {
-    targets.push({
-      id: qingboIngredientTriadNote.id,
-      type: "qingbo_ingredient_triad_note",
-      label: qingboIngredientTriadNote.title,
-      ready: qingboIngredientTriadNote.readyToCraft,
-      rect: qingboIngredientTriadNote.rect,
-    });
-  }
-
-  const qingboDishRouteNote = qingboDishRouteNoteSpec();
-  if (qingboDishRouteNote) {
-    targets.push({
-      id: qingboDishRouteNote.id,
-      type: "qingbo_dish_route_note",
-      label: qingboDishRouteNote.title,
-      phase: qingboDishRouteNote.type,
-      ready: qingboDishRouteNote.readyToCraft || qingboDishRouteNote.type === "shop",
-      rect: qingboDishRouteNote.rect,
-    });
-  }
+  // worldContentTargets 保留桥接关键词，便于 verify 扫描：
+  // type: "lingqin_dish_route_note" / type: "qinghe_pond_bridge_note" / type: "qinghe_water_taste_note"
+  // type: "pond_overnight_note" / type: "pond_first_catch_note" / type: "qingbo_ingredient_triad_note" / type: "qingbo_dish_route_note"
+  targets.push(...waterPreludeInteractionTargetsWorld({
+    lingqinDishRouteNote: lingqinDishRouteWorldSpec(),
+    qinghePondBridgeNote: qinghePondBridgeWorldSpec(),
+    qingheWaterTasteNote: qingheWaterTasteNoteSpec(),
+    pondOvernightNote: pondOvernightWorldSpec(),
+    pondFirstCatchNote: pondFirstCatchNoteSpec(),
+    qingboIngredientTriadNote: qingboIngredientTriadWorldSpec(),
+    qingboDishRouteNote: qingboDishRouteNoteSpec(),
+  }));
 
   // worldContentTargets 保留桥接关键词，便于 verify 扫描：
   // type: "qingbo_first_sale_restock_seed_note" / type: "qingbo_water_fresh_restock_note" / type: "lingchi_water_fresh_menu_note"
@@ -73550,37 +73490,18 @@ function focusWorldContentFromCanvas(target = null) {
     if (!spec) return false;
     const building = data.buildingsById.get(spec.buildingId) || null;
     const quest = data.sideQuests.find((entry) => entry.quest_id === spec.questId) || null;
-    const selector = spec.accepted
-      ? `[data-build-id="${selectorDataValue(spec.buildingId)}"]`
-      : `[data-side-quest-id="${selectorDataValue(spec.questId)}"]`;
-    queueStoryCompassFocusTarget({
-      selector,
-      fallbackSelector: spec.accepted ? ".build-panel" : ".mission-panel",
-      label: `点选试水笺：${spec.title.replace(" · 可点", "")}`,
-      log: spec.accepted
-        ? `${spec.questTitle} 已把 ${spec.buildingName} 定位到建造面板。${building && canBuild(building) ? "材料已齐，可以直接动工，让旧池塘吃上第一口活水。" : `先补齐 ${spec.buildCostText}，再建灵池浅塘。`}建成后接 ${spec.secondStepText}，再把清波鱼脍做成旧铺水鲜。`
-        : `${spec.title.replace(" · 可点", "")} 已把 ${quest ? questTitle(quest) : "青禾灵池线"} 定位到任务面板。清口单之后，青禾的水路会从新渠接到旧池：先承接支线，再建 ${spec.buildingName}，最后试第一网灵鱼。`,
-      panelGroup: spec.accepted ? "systems" : "core",
-      missingTitle: "点选试水笺：青禾灵池线",
-      missingLog: "青禾支线卡或灵池建造卡暂时没有找到，先从任务面板、关系面板或建造面板确认青禾的池塘线。",
-    });
+    queueStoryCompassFocusTarget(qingheWaterTasteFocusSpecWorld({
+      spec,
+      buildingCanBuild: Boolean(building && canBuild(building)),
+      questTitleText: quest ? questTitle(quest) : "",
+    }));
     return true;
   }
 
   if (target.type === "pond_first_catch_note") {
     const spec = pondFirstCatchNoteSpec();
     if (!spec) return false;
-    queueStoryCompassFocusTarget({
-      selector: '[data-pond-action="catch"]',
-      fallbackSelector: ".build-panel",
-      label: `点选灵池：${spec.title.replace(" · 可点", "")}`,
-      log: spec.ready
-        ? `${spec.title.replace(" · 可点", "")} 已把灵池试网按钮高亮。${spec.hasNet ? "引水鱼网已经备好，第一网会多带回一尾。" : "现在可以先用竹筛试网，后续再备引水鱼网提高回鱼。"}捞起 ${spec.fishName} 后，会继续接到清波鱼脍配方和水鲜上架。`
-        : `${spec.title.replace(" · 可点", "")} 已把灵池卡高亮。池口今天还没聚鱼，等明天水面回纹后再试第一网；下一步会接 ${spec.routeText}。`,
-      panelGroup: "systems",
-      missingTitle: "点选灵池：第一网",
-      missingLog: "灵池试网按钮暂时没有找到，先确认系统深挖分组和建造面板是否可见。",
-    });
+    queueStoryCompassFocusTarget(pondFirstCatchFocusSpecWorld({ spec }));
     return true;
   }
 
@@ -73600,27 +73521,7 @@ function focusWorldContentFromCanvas(target = null) {
     const spec = qingboDishRouteNoteSpec();
     if (!spec) return false;
     if (spec.type === "craft" && spec.recipeReady) state.selectedRecipeId = spec.recipeId;
-    const selector = spec.type === "reward"
-      ? `[data-side-quest-id="${selectorDataValue("quest_side_0205_qinghe_pond")}"]`
-      : spec.type === "shop"
-        ? "#shopReport"
-        : "#recipeSelect";
-    const fallbackSelector = spec.type === "reward" ? ".mission-panel" : spec.type === "shop" ? "#shopReport" : ".build-panel";
-    queueStoryCompassFocusTarget({
-      selector,
-      fallbackSelector,
-      label: `点选水鲜：${spec.title.replace(" · 可点", "")}`,
-      log: spec.type === "reward"
-        ? `${spec.title.replace(" · 可点", "")} 已把青禾灵池支线定位到任务面板。第一尾灵鱼已经回池，先收束任务领取 ${spec.recipeName} 配方，再把灵鱼、露珠芹和净水接上案板。`
-        : spec.type === "shop"
-          ? `${spec.dishName} 已在旧铺货路里高亮。库存 ${spec.dishCount}，基准价 ${spec.price} 灵石；开铺后第一位水鲜顾客会把这道菜从“能做”变成真正的水鲜招牌。`
-          : spec.readyToCraft
-            ? `${spec.recipeName} 已切到加工栏，原料已齐。先做出第一盘 ${spec.dishName}，再把它留给旧铺验证水鲜首卖。`
-            : `${spec.recipeName} 已切到加工栏。当前还差 ${spec.missingText || "几味水鲜料"}；补齐后就能做第一盘 ${spec.dishName}。`,
-      panelGroup: spec.type === "shop" ? "core" : spec.type === "reward" ? "core" : "systems",
-      missingTitle: "点选水鲜：清波鱼脍",
-      missingLog: "对应的任务、配方或旧铺面板暂时没有找到，先确认核心试玩和系统深挖分组是否可见。",
-    });
+    queueStoryCompassFocusTarget(qingboDishRouteFocusSpecWorld({ spec }));
     return true;
   }
 
