@@ -29038,15 +29038,25 @@ function readyOrderSealWorldSpec(width = refs.world?.width || 960, height = refs
   });
 }
 
+function readyOrderSealWorldSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640) {
+  return readyOrderSealWorldSpecWorld({
+    width,
+    height,
+    board: readyOrderWorldBoardSpec(width, height),
+    day: state.day,
+    selectorDataValue,
+  });
+}
+
 function readyOrderSealWorldAtCanvasPoint(px, py) {
   return readyOrderSealWorldAtCanvasPointWorld({
     px,
     py,
-    spec: readyOrderSealWorldSpec(refs.world?.width || 960, refs.world?.height || 640),
+    spec: readyOrderSealWorldSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
   });
 }
 
-function focusReadyOrderSealWorldFromCanvas(spec = readyOrderSealWorldSpec()) {
+function focusReadyOrderSealWorldFromCanvas(spec = readyOrderSealWorldSpecBridge()) {
   if (!spec?.orderId) return false;
   readyOrderSealWorldFocus = { key: spec.key, day: state.day, orderId: spec.orderId };
   addLog(
@@ -29057,7 +29067,7 @@ function focusReadyOrderSealWorldFromCanvas(spec = readyOrderSealWorldSpec()) {
   return true;
 }
 
-function drawReadyOrderSealWorld(ctx, spec = readyOrderSealWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
+function drawReadyOrderSealWorld(ctx, spec = readyOrderSealWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
   return drawReadyOrderSealWorldWorld({
     ctx,
     spec,
@@ -82616,7 +82626,7 @@ function drawWorld() {
   drawMatureHarvestBasketWorld(ctx, matureHarvestBasketWorldSpec(width, height, originX, originY, tile, gap));
   drawHarvestStorageRouteWorld(ctx, harvestStorageRouteWorldSpec(width, height, originX, originY, tile, gap), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawReadyOrderWorldBoard(ctx, readyOrderWorldBoardSpec(width, height));
-  drawReadyOrderSealWorld(ctx, readyOrderSealWorldSpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
+  drawReadyOrderSealWorld(ctx, readyOrderSealWorldSpecBridge(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawOrderDeliveryEchoWorld(ctx, orderDeliveryEchoWorldSpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawOrderRewardNextUseWorld(ctx, orderRewardNextUseWorldSpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawOrderRewardReinvestTrailWorld(ctx, orderRewardReinvestTrailWorldSpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
