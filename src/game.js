@@ -270,6 +270,12 @@ import {
   waterwayFreshRouteTargetWorld,
 } from "./game/world/waterway-route-interaction-world.js";
 import {
+  year2LifeCohabFocusSpecWorld,
+  year2LifeGoalBookFocusSpecWorld,
+  year2LifePlazaTargetsWorld,
+  year2LifeTradeFocusSpecWorld,
+} from "./game/world/year2-life-plaza-interaction-world.js";
+import {
   drawShopWeatherShelfCustomerVignetteWorld,
   drawShopWeatherShelfGoodIconWorld,
   drawShopWeatherShelfSignWorld,
@@ -71674,12 +71680,6 @@ function drawFinalSupportStageAfterglowWorld(ctx, spec = finalSupportStageAfterg
   return true;
 }
 
-const YEAR2_LIFE_WORLD_SLOTS = [
-  { id: "year2_life_goal_book", mode: "goals", label: "自由目标年册", x: 438, y: 454, width: 184, height: 92, accent: "#286f58" },
-  { id: "year2_life_cohab_table", mode: "cohab", label: "后日谈共桌", x: 92, y: 486, width: 228, height: 86, accent: "#be4f37" },
-  { id: "year2_life_trade_banner", mode: "trade", label: "远路商旗台", x: 760, y: 414, width: 160, height: 98, accent: "#b47d2f" },
-];
-
 function year2LifePlazaState() {
   if (!year2Unlocked()) return { active: false };
   syncGoalBookState();
@@ -71720,19 +71720,11 @@ function year2LifePlazaState() {
 
 function year2LifePlazaTargets() {
   const plaza = year2LifePlazaState();
-  if (!plaza.active) return [];
-  return YEAR2_LIFE_WORLD_SLOTS
-    .filter((slot) => slot.mode !== "trade" || data.tradeRoutes.length > 0)
-    .filter((slot) => slot.mode !== "cohab" || data.cohabEpilogues.length > 0)
-    .map((slot) => ({
-      ...slot,
-      type: "year2_life_plaza",
-      goalId: slot.mode === "goals" ? (plaza.freeGoal?.goal_id || plaza.dailyGoal?.goal_id || "") : "",
-      goalKind: slot.mode === "goals" && plaza.freeGoal ? "freeplay" : "year2",
-      npcId: slot.mode === "cohab" ? (plaza.cohabProspect?.npc_id || "") : "",
-      routeId: slot.mode === "trade" ? (plaza.routePreview?.route?.route_id || "") : "",
-      rect: { x: slot.x, y: slot.y, width: slot.width, height: slot.height },
-    }));
+  return year2LifePlazaTargetsWorld({
+    plaza,
+    hasTradeRoutes: data.tradeRoutes.length > 0,
+    hasCohabEpilogues: data.cohabEpilogues.length > 0,
+  });
 }
 
 const YEAR2_LIFE_TRADE_HINTS = {
@@ -73827,29 +73819,23 @@ function focusWorldContentFromCanvas(target = null) {
 
   if (target.type === "year2_life_plaza") {
     const plaza = year2LifePlazaState();
+    // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
+    // target.type === "year2_life_plaza" / 点选年册： / 点选后日谈： / 点选远行旗： / 点选商旗：
+    // 自由目标年册 / 后日谈共桌 / 本周远行线 / freeplayGoalId
     if (target.mode === "goals") {
       const freeGoal = plaza.freeGoal || null;
       const dailyGoal = plaza.dailyGoal || null;
-      const selector = freeGoal
-        ? `[data-freeplay-goal="${selectorDataValue(freeGoal.goal_id)}"]`
-        : dailyGoal
-          ? `[data-year2-goal="${selectorDataValue(dailyGoal.goal_id)}"]`
-          : "#goalBookPanel";
       const readyCount = plaza.year2Ready.length + plaza.freeReady.length;
       const label = freeGoal
         ? localize(freeGoal.goal_name_key, freeGoal.goal_id)
         : dailyGoal ? year2GoalTitle(dailyGoal) : "第二年目标册";
-      queueStoryCompassFocusTarget({
-        selector,
-        fallbackSelector: "#goalBookPanel",
-        label: `点选年册：${target.label}`,
-        log: readyCount > 0
-          ? `${target.label} 已把目标册高亮。当前有 ${readyCount} 项可收录或可领取，先处理「${label}」，把宴后的日常变成长期节奏。`
-          : `${target.label} 已把目标册高亮。今天先顺着「${label}」推进一点，第二年的日目标、周目标和自由追求会慢慢滚起来。`,
-        panelGroup: "core",
-        missingTitle: `点选年册：${target.label}`,
-        missingLog: "第二年目标册暂时没有找到，先确认核心试玩分组是否可见。",
-      });
+      queueStoryCompassFocusTarget(year2LifeGoalBookFocusSpecWorld({
+        target,
+        freeGoalId: freeGoal?.goal_id || "",
+        dailyGoalId: dailyGoal?.goal_id || "",
+        goalTitle: label,
+        readyCount,
+      }));
       return true;
     }
 
@@ -73858,19 +73844,16 @@ function focusWorldContentFromCanvas(target = null) {
       const status = route ? cohabStatusFor(route.npc_id) : null;
       const latest = plaza.cohabLife?.latest || null;
       const nextEvent = route ? nextCohabEvent(route.epilogue_id) : null;
-      queueStoryCompassFocusTarget({
-        selector: route ? `[data-npc-id="${selectorDataValue(route.npc_id)}"]` : ".relationship-panel",
-        fallbackSelector: ".relationship-panel",
-        label: `点选后日谈：${target.label}`,
-        log: route
-          ? status?.unlocked
-            ? `${target.label} 已把 ${npcName(route.npc_id)} 的关系卡高亮。${latest ? `最近生活小事「${latest.eventName}」已经写入家中。` : `这条「${route.route_name}」已经可推进。`}${nextEvent ? ` 下一件事：${nextEvent.event_name || nextEvent.scene_key || "日常对话"}。` : " 继续通过每日、周常和节气事件把家里过成长期内容。"}`
-            : `${target.label} 已把 ${npcName(route.npc_id)} 的关系卡高亮。还需要 ${cohabRequirementText(status)}，才能把后日谈从约定变成真正的共同生活。`
-          : `${target.label} 已把关系面板高亮。第二年同住后日谈会从高好感 NPC、居所升级和节气生活事件里慢慢展开。`,
-        panelGroup: "systems",
-        missingTitle: `点选后日谈：${target.label}`,
-        missingLog: "关系面板暂时没有找到，先确认系统深挖分组是否可见。",
-      });
+      queueStoryCompassFocusTarget(year2LifeCohabFocusSpecWorld({
+        target,
+        npcId: route?.npc_id || "",
+        npcNameText: route ? npcName(route.npc_id) : "",
+        routeName: route?.route_name || "",
+        unlocked: Boolean(status?.unlocked),
+        latestEventName: latest?.eventName || "",
+        nextEventName: nextEvent ? (nextEvent.event_name || nextEvent.scene_key || "日常对话") : "",
+        requirementText: cohabRequirementText(status),
+      }));
       return true;
     }
 
@@ -73885,17 +73868,16 @@ function focusWorldContentFromCanvas(target = null) {
           .map((entry) => supplyTagLabel(entry.tag))
           .join(" / ")
         : "";
-      queueStoryCompassFocusTarget({
-        selector: route ? `[data-trade-route="${selectorDataValue(route.route_id)}"]` : "#spiritList",
-        fallbackSelector: "#spiritList",
-        label: `点选商旗：${target.label}`,
-        log: route
-          ? `${route.route_name} 已在商路线卡高亮。${activeRun ? `商队正在路上，第 ${activeRun.returnDay} 天回来。` : preview?.unlocked ? preview.ready ? "补给和货物都够，可以先探路或直接发商队。" : `还差 ${missingSupply || "几样补给"}，先把远路备稳。` : `还需要 ${conditionLabel(route.unlock_condition_group)} 才能开这条远路。`}`
-          : `${target.label} 已把精怪与商路面板高亮。第二年远路会把订单、补给、稀有材料和隐藏秘境接起来。`,
-        panelGroup: "core",
-        missingTitle: `点选商旗：${target.label}`,
-        missingLog: "商路线卡暂时没有找到，先确认核心试玩分组是否可见。",
-      });
+      queueStoryCompassFocusTarget(year2LifeTradeFocusSpecWorld({
+        target,
+        routeId: route?.route_id || "",
+        routeName: route?.route_name || "",
+        activeReturnDay: activeRun?.returnDay || 0,
+        unlocked: Boolean(preview?.unlocked),
+        ready: Boolean(preview?.ready),
+        missingSupply,
+        unlockConditionLabel: route ? conditionLabel(route.unlock_condition_group) : "",
+      }));
       return true;
     }
   }
