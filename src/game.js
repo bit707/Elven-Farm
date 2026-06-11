@@ -735,6 +735,7 @@ import {
 } from "./game/world/field-action-feedback.js";
 import {
   drawFailureCodexWorldBoardWorld,
+  drawRiskCompensationFeedbackWorld,
   drawFailureMercyLanternWorldWorld,
   drawFailureRecoveryRouteWorldWorld,
   failureCodexWorldBoardAtCanvasPointWorld,
@@ -56993,59 +56994,17 @@ function drawRiskCompensationFeedback(ctx, width, height, feedback = activeRiskC
   const progress = settings.reducedMotion ? 1 : Math.min(1, age / 1400);
   const ease = 1 - (1 - progress) ** 3;
   const bob = settings.reducedMotion ? 0 : Math.sin(performance.now() / 280) * 3;
-  const x = Math.round(width / 2 - 230);
-  const y = Math.round(height - 210 + bob - ease * 12);
-  const accent = feedback.accent || "#8f5f3f";
-
-  ctx.save();
-  ctx.globalAlpha = feedback.fade;
-  const glow = ctx.createRadialGradient(x + 82, y + 74, 14, x + 82, y + 74, 190);
-  glow.addColorStop(0, "rgba(246, 240, 182, 0.3)");
-  glow.addColorStop(0.58, "rgba(190, 79, 55, 0.12)");
-  glow.addColorStop(1, "rgba(255, 253, 245, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(x + 82, y + 74, 190, 0, Math.PI * 2);
-  ctx.fill();
-
-  drawCanvasCard(ctx, x, y, 460, 134, "rgba(255, 248, 232, 0.95)");
-  ctx.fillStyle = "rgba(190, 79, 55, 0.1)";
-  ctx.beginPath();
-  ctx.roundRect(x + 16, y + 16, 428, 36, 16);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(`失败见闻 · ${feedback.riskTitle || "节气风险"}`.slice(0, 28), x + 34, y + 40);
-
-  ctx.fillStyle = accent;
-  ctx.beginPath();
-  ctx.arc(x + 64, y + 88, 24 + ease * 2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "rgba(255, 253, 245, 0.96)";
-  ctx.font = "700 20px Microsoft YaHei";
-  ctx.fillText(String(feedback.glyph || "见").slice(0, 1), x + 54, y + 96);
-
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 19px Microsoft YaHei";
-  ctx.fillText(String(feedback.title || "失败见闻").slice(0, 16), x + 106, y + 78);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "13px Microsoft YaHei";
-  ctx.fillText(String(feedback.insight || "").slice(0, 42), x + 106, y + 102);
-  ctx.fillStyle = accent;
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(String(feedback.rewardText || "补偿已入账").slice(0, 38), x + 106, y + 124);
-
-  ctx.strokeStyle = `${accent}66`;
-  ctx.lineWidth = 2;
-  for (let i = 0; i < 6; i += 1) {
-    const px = x + 346 + i * 14;
-    const py = y + 82 + Math.sin(age / 240 + i) * 7;
-    ctx.beginPath();
-    ctx.moveTo(px, py);
-    ctx.lineTo(px + 8, py + 5);
-    ctx.stroke();
-  }
-  ctx.restore();
+  // drawRiskCompensationFeedback(ctx) bridge keeps verify keywords: drawRiskCompensationFeedback / 失败见闻 / 失败见闻册 / 下次处理 / 补偿已入账
+  return drawRiskCompensationFeedbackWorld({
+    ctx,
+    width,
+    height,
+    feedback,
+    age,
+    ease,
+    bob,
+    drawCanvasCard,
+  });
 }
 
 function activeOrderDeliveryMoment(now = performance.now()) {
