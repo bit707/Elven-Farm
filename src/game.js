@@ -549,6 +549,7 @@ import {
   drawCohabLifeNoteWorld,
   drawLivingWorldSummaryWorld,
   drawTownLifeErrandDeliveryKeepsakeWorldWorld,
+  drawTownLifeGreetingKeepsakeWorldWorld,
   drawTownLifeMemoryKeepsakeWorldWorld,
   drawTownLifeMemoryNewPageWorldWorld,
   drawTownLifeMemoryThresholdKeepsakeWorldWorld,
@@ -76674,104 +76675,20 @@ function drawTownLifeGreetingKeepsakeWorld(ctx, rows = townLifeRows(6), motion =
   const spec = Array.isArray(rows)
     ? townLifeGreetingKeepsakeSpec(null, rows, ctx.canvas.width, ctx.canvas.height)
     : rows;
+  // drawTownLifeGreetingKeepsakeWorld(ctx) bridge keeps verify keywords: 今日寒暄留签 · 可点 / 在哪遇见 / 会聊什么 / 确认入口 / 只定位确认，不自动寒暄 / 点选今日寒暄留签
   if (!spec?.rect || !spec.nodes?.length || townLifeGreetingKeepsakeWorldFocus?.day !== state.day) return false;
-  const { rect } = spec;
-  const accent = spec.tone === "urgent" ? "#be4f37" : spec.tone === "festival" ? "#b47d2f" : "#4d91a6";
-  const gold = "#b47d2f";
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.52) * 1.8;
-  const activeNodeKey = townLifeGreetingKeepsakeWorldFocus?.key === spec.key
-    ? townLifeGreetingKeepsakeWorldFocus.nodeKey
-    : spec.activeNode?.key;
-
-  ctx.save();
-  if (spec.point) {
-    ctx.strokeStyle = `${accent}88`;
-    ctx.lineWidth = activeNodeKey ? 2.4 : 1.4;
-    ctx.setLineDash([4, 7]);
-    ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 8;
-    ctx.beginPath();
-    ctx.moveTo(rect.x + (spec.point.x > rect.x ? 24 : rect.width - 24), rect.y + rect.height - 10 + bob);
-    ctx.quadraticCurveTo((rect.x + spec.point.x) / 2, rect.y + rect.height + 20, spec.point.x + 16, spec.point.y + 32);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = spec.tone === "urgent" ? "rgba(190, 79, 55, 0.16)" : "rgba(77, 145, 166, 0.16)";
-    ctx.beginPath();
-    ctx.ellipse(spec.point.x + 16, spec.point.y + 52, 38, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  drawCanvasCard(ctx, rect.x, rect.y + bob, rect.width, rect.height, spec.tone === "urgent" ? "rgba(255, 240, 232, 0.96)" : "rgba(241, 249, 251, 0.96)");
-  ctx.fillStyle = spec.tone === "urgent" ? "rgba(190, 79, 55, 0.16)" : "rgba(77, 145, 166, 0.16)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 12, rect.y + 12 + bob, rect.width - 24, 46, 18);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 18, rect.y + 18 + bob, 36, 28, 12);
-  ctx.fill();
-  ctx.fillStyle = "rgba(255, 253, 245, 0.96)";
-  ctx.font = "900 14px Microsoft YaHei";
-  ctx.fillText("聊", rect.x + 29, rect.y + 38 + bob);
-  const portrait = npcPortraitImage(spec.npcId);
-  if (portrait) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.roundRect(rect.x + rect.width - 52, rect.y + 17 + bob, 30, 30, 10);
-    ctx.clip();
-    ctx.drawImage(portrait, rect.x + rect.width - 52, rect.y + 17 + bob, 30, 30);
-    ctx.restore();
-  }
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 14px Microsoft YaHei";
-  ctx.fillText("今日寒暄留签 · 可点", rect.x + 64, rect.y + 31 + bob);
-  ctx.fillStyle = accent;
-  ctx.font = "700 11px Microsoft YaHei";
-  ctx.fillText(townLifeWorldBoardShortText(spec.subtitle, 18), rect.x + 64, rect.y + 47 + bob);
-
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 13px Microsoft YaHei";
-  ctx.fillText(spec.lineText, rect.x + 18, rect.y + 78 + bob);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(spec.routeText, rect.x + 18, rect.y + 93 + bob);
-
-  for (const node of spec.nodes) {
-    const nodeRect = node.rect;
-    const active = activeNodeKey === node.key;
-    ctx.fillStyle = active ? "rgba(255, 253, 245, 0.94)" : "rgba(255, 253, 245, 0.66)";
-    ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.84)" : `${accent}44`;
-    ctx.lineWidth = active ? 1.8 : 1;
-    ctx.beginPath();
-    ctx.roundRect(nodeRect.x, nodeRect.y + bob, nodeRect.width, nodeRect.height, 11);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = active ? "rgba(224, 182, 109, 0.28)" : `${accent}22`;
-    ctx.beginPath();
-    ctx.roundRect(nodeRect.x + 6, nodeRect.y + 7 + bob, 20, 18, 8);
-    ctx.fill();
-    ctx.fillStyle = active ? gold : accent;
-    ctx.font = "900 10px Microsoft YaHei";
-    ctx.fillText(node.badge, nodeRect.x + 11, nodeRect.y + 20 + bob);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 10px Microsoft YaHei";
-    ctx.fillText(node.shortLabel, nodeRect.x + 31, nodeRect.y + 15 + bob);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "9px Microsoft YaHei";
-    ctx.fillText(node.shortTitle, nodeRect.x + 31, nodeRect.y + 27 + bob);
-  }
-
-  ctx.fillStyle = activeNodeKey ? accent : "#5d6f65";
-  ctx.font = "700 10px Microsoft YaHei";
-  ctx.fillText(spec.safety, rect.x + 18, rect.y + rect.height - 8 + bob);
-  if (activeNodeKey) {
-    ctx.strokeStyle = "rgba(224, 182, 109, 0.78)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 4, rect.y + 4 + bob, rect.width - 8, rect.height - 8, 18);
-    ctx.stroke();
-  }
-  ctx.restore();
-  return true;
+  return drawTownLifeGreetingKeepsakeWorldWorld({
+    ctx,
+    spec,
+    motion,
+    activeNodeKey: townLifeGreetingKeepsakeWorldFocus?.key === spec.key
+      ? townLifeGreetingKeepsakeWorldFocus.nodeKey
+      : spec.activeNode?.key,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+    npcPortraitImage,
+    shortText: townLifeWorldBoardShortText,
+  });
 }
 
 function drawTownLifeGiftKeepsakeWorld(ctx, rows = townLifeRows(6), motion = 0) {
