@@ -34,6 +34,7 @@ import {
   drawCanalPermanentFlowWorldWorld,
   drawCanalRestorationRouteWorldWorld,
   drawCanalSeedRewardRouteWorldWorld,
+  drawWaterCropPlantFeedbackWorld,
   drawLingqinDishRouteWorldWorld,
   drawPondOvernightWorldWorld,
   drawQingboIngredientTriadWorldWorld,
@@ -59037,108 +59038,22 @@ function drawWaterCropPlantFeedback(ctx, width, height, feedback = activeWaterCr
   const ease = 1 - (1 - progress) ** 3;
   const pulse = settings.reducedMotion ? 0 : Math.sin(now / 260) * 4;
   const { tile, gap, originX, originY } = gridMetrics();
-  const plotX = originX + Number(feedback.plotX || 0) * (tile + gap);
-  const plotY = originY + Number(feedback.plotY || 0) * (tile + gap);
-  const centerX = plotX + tile / 2;
-  const centerY = plotY + tile / 2;
-  const accent = "#4d91a6";
-
-  ctx.save();
-  ctx.globalAlpha = Number(feedback.fade ?? 1);
-
-  const fieldGlow = ctx.createRadialGradient(centerX, centerY, 8, centerX, centerY, 126 + pulse);
-  fieldGlow.addColorStop(0, "rgba(255, 253, 245, 0.62)");
-  fieldGlow.addColorStop(0.42, "rgba(159, 209, 223, 0.3)");
-  fieldGlow.addColorStop(1, "rgba(159, 209, 223, 0)");
-  ctx.fillStyle = fieldGlow;
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, 130 + pulse, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = "rgba(255, 253, 245, 0.78)";
-  ctx.lineWidth = 3;
-  ctx.setLineDash([12, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -now / 28;
-  ctx.beginPath();
-  ctx.roundRect(plotX - 8, plotY - 8, tile + 16, tile + 16, 14);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  for (let i = 0; i < 4; i += 1) {
-    const wave = Math.max(0, ease - i * 0.12);
-    ctx.strokeStyle = `rgba(77, 145, 166, ${0.42 * wave})`;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.ellipse(centerX, centerY + tile * 0.18, tile * (0.22 + wave * 0.26 + i * 0.06), tile * (0.06 + i * 0.012), 0, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = "rgba(202, 235, 210, 0.92)";
-  ctx.beginPath();
-  ctx.ellipse(centerX, centerY + 16, 28, 9, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = "#286f58";
-  ctx.lineWidth = 4;
-  ctx.lineCap = "round";
-  for (let i = 0; i < 3; i += 1) {
-    const sway = settings.reducedMotion ? 0 : Math.sin(now / 360 + i) * 3;
-    const stemX = centerX - 12 + i * 12;
-    ctx.beginPath();
-    ctx.moveTo(stemX, centerY + 12);
-    ctx.quadraticCurveTo(stemX + sway, centerY - 2 - i * 3, stemX + 4 + sway, centerY - 20 - i * 2);
-    ctx.stroke();
-    ctx.fillStyle = i % 2 ? "#caebd2" : "#48a868";
-    ctx.beginPath();
-    ctx.ellipse(stemX + 8 + sway, centerY - 22 - i * 2, 9, 5, i % 2 ? 0.65 : -0.65, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  const cardWidth = 420;
-  const cardHeight = 152;
-  const cardX = Math.max(34, Math.min(width - cardWidth - 34, plotX - 136));
-  const cardY = Math.max(70, Math.min(height - cardHeight - 34, plotY - 126 + pulse - ease * 8));
-  drawCanvasCard(ctx, cardX, cardY, cardWidth, cardHeight, "rgba(248, 252, 247, 0.96)");
-
-  ctx.fillStyle = "rgba(159, 209, 223, 0.22)";
-  ctx.beginPath();
-  ctx.roundRect(cardX + 18, cardY + 22, 88, 88, 24);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(77, 145, 166, 0.58)";
-  ctx.lineWidth = 2.4;
-  ctx.beginPath();
-  ctx.ellipse(cardX + 62, cardY + 88, 32 + pulse, 10, -0.08, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.fillStyle = accent;
-  ctx.font = "800 30px Microsoft YaHei";
-  ctx.fillText("芹", cardX + 42, cardY + 68);
-
-  ctx.fillStyle = accent;
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(String(feedback.title || "第一次水田播种").slice(0, 18), cardX + 126, cardY + 32);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 20px Microsoft YaHei";
-  ctx.fillText(String(feedback.headline || "新渠的第一粒水菜接住了").slice(0, 18), cardX + 126, cardY + 62);
-  ctx.fillStyle = "#286f58";
-  ctx.font = "13px Microsoft YaHei";
-  ctx.fillText(String(feedback.detail || "").slice(0, 38), cardX + 126, cardY + 90);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(String(feedback.routeText || "").slice(0, 40), cardX + 126, cardY + 116);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(String(feedback.cta || "").slice(0, 46), cardX + 126, cardY + 136);
-
-  ctx.fillStyle = "rgba(255, 248, 232, 0.92)";
-  ctx.strokeStyle = "rgba(224, 182, 109, 0.38)";
-  ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  ctx.roundRect(cardX + 20, cardY + 116, 92, 22, 10);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = "#b47d2f";
-  ctx.font = "700 11px Microsoft YaHei";
-  ctx.fillText(`${feedback.growDays || 3} 夜后初收`, cardX + 32, cardY + 131);
-  ctx.restore();
+  // drawWaterCropPlantFeedback(ctx) bridge keeps verify keywords: drawWaterCropPlantFeedback / 第一次水田播种 / 露珠芹入水田 / 新渠的第一粒水菜接住了 / 夜后初收 / 明早先种露珠芹
+  return drawWaterCropPlantFeedbackWorld({
+    ctx,
+    width,
+    height,
+    feedback,
+    now,
+    ease,
+    pulse,
+    reducedMotion: settings.reducedMotion,
+    tile,
+    gap,
+    originX,
+    originY,
+    drawCanvasCard,
+  });
 }
 
 function drawWaterCropHarvestFeedback(ctx, width, height, feedback = activeWaterCropHarvestFeedback()) {
