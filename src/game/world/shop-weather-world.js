@@ -787,6 +787,73 @@ export function shopWeatherShelfActionEchoSpecWorld(feedback = null) {
   };
 }
 
+export function drawShopWeatherShelfActionEchoWorld({
+  ctx,
+  feedback = null,
+  motion = 0,
+  reducedMotion = false,
+  shopWeatherShelfActionEchoSpec = shopWeatherShelfActionEchoSpecWorld,
+} = {}) {
+  const spec = shopWeatherShelfActionEchoSpec(feedback);
+  if (!ctx || !spec.active) return false;
+  const p = reducedMotion ? 1 : Math.min(1, spec.age / 760);
+  const ease = p < 0.5 ? 2 * p * p : 1 - ((-2 * p + 2) ** 2) / 2;
+  const x = 326;
+  const y = 252 - ease * 8 + (reducedMotion ? 0 : Math.sin(motion * 5.2) * 1.6);
+  const w = 176;
+  const h = 58;
+  ctx.save();
+  ctx.globalAlpha = spec.fade;
+  ctx.fillStyle = spec.soft;
+  ctx.strokeStyle = `${spec.accent}88`;
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, 16);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.strokeStyle = `${spec.accent}66`;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 7]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 12;
+  ctx.beginPath();
+  ctx.moveTo(x + w - 24, y + 10);
+  ctx.quadraticCurveTo(496, 236, 500, 224);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = spec.accent;
+  ctx.beginPath();
+  ctx.roundRect(x + 10, y + 12, 32, 32, 11);
+  ctx.fill();
+  ctx.fillStyle = "#fffdf5";
+  ctx.font = "800 13px Microsoft YaHei";
+  ctx.fillText(spec.icon, x + 18, y + 33);
+
+  ctx.fillStyle = spec.accent;
+  ctx.font = "800 10px Microsoft YaHei";
+  ctx.fillText(spec.title, x + 52, y + 18);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText(spec.label, x + 52, y + 35);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "9px Microsoft YaHei";
+  ctx.fillText(spec.subline.slice(0, 22), x + 52, y + 49);
+
+  if (!reducedMotion) {
+    const moteCount = spec.kind === "stock" ? 5 : 4;
+    for (let i = 0; i < moteCount; i += 1) {
+      const drift = (spec.age / 620 + i * 0.25) % 1;
+      ctx.fillStyle = i % 2 ? "rgba(246, 240, 182, 0.78)" : `${spec.accent}66`;
+      ctx.beginPath();
+      ctx.arc(x + 22 + i * 30, y + h + 4 - drift * 24, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+  return true;
+}
+
 export function shopWeatherShelfChoiceSupportWorld({
   choice = null,
   shelf = null,
