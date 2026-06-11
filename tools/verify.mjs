@@ -2915,6 +2915,7 @@ const game = [
   readFileSync("src/game/world/ready-order-world.js", "utf8"),
   readFileSync("src/game/world/shop-analysis-world.js", "utf8"),
   readFileSync("src/game/world/shop-customer-journey-world.js", "utf8"),
+  readFileSync("src/game/world/shop-front-stage-world.js", "utf8"),
   readFileSync("src/game/world/shop-focus-world.js", "utf8"),
   readFileSync("src/game/world/shop-observation-world.js", "utf8"),
   readFileSync("src/game/world/shop-weather-world.js", "utf8"),

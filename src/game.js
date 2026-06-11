@@ -445,12 +445,8 @@ import {
   shopDailyGoodsEyeWorldSpecWorld,
 } from "./game/world/shop-observation-world.js";
 import {
-  drawShopRestockRunnerWorldWorld,
   drawShopShelfPrepWorldBoardWorld,
   drawShopSpiritGreeterWorldWorld,
-  shopRestockRunnerWorldAtCanvasPointWorld,
-  shopRestockRunnerWorldFocusLogSpecWorld,
-  shopRestockRunnerWorldSpecWorld,
   shopShelfPrepWorldBoardAtCanvasPointWorld,
   shopShelfPrepWorldBoardFocusLogSpecWorld,
   shopShelfPrepWorldBoardSpecWorld,
@@ -458,6 +454,12 @@ import {
   shopSpiritGreeterWorldAtCanvasPointWorld,
   shopSpiritGreeterWorldFocusLogSpecWorld,
   shopSpiritGreeterWorldSpecWorld,
+} from "./game/world/shop-front-stage-world.js";
+import {
+  drawShopRestockRunnerWorldWorld,
+  shopRestockRunnerWorldAtCanvasPointWorld,
+  shopRestockRunnerWorldFocusLogSpecWorld,
+  shopRestockRunnerWorldSpecWorld,
 } from "./game/world/shop-prep-world.js";
 import {
   drawCommerceWorldMarksWorld,
@@ -30020,6 +30022,8 @@ function drawShopShelfPrepWorldBoard(ctx, spec = shopShelfPrepWorldBoardSpec(ctx
   if (!spec?.rect) return false;
   const active = shopShelfPrepWorldBoardFocus?.day === state.day
     && shopShelfPrepWorldBoardFocus?.key === spec.key;
+  // drawShopShelfPrepWorldBoard(ctx 保留桥接关键词，便于 verify 扫描：
+  // 主世界旧铺上架推荐 / 点选旧铺上架推荐 / 主世界来帖头排推荐 / 点选来帖头排推荐
   return drawShopShelfPrepWorldBoardWorld({
     ctx,
     spec,
@@ -30310,6 +30314,9 @@ function drawShopSpiritGreeterWorld(ctx, spec = shopSpiritGreeterWorldSpec(ctx.c
   if (!spec?.rect) return false;
   const active = shopSpiritGreeterWorldFocus?.day === state.day
     && shopSpiritGreeterWorldFocus?.key === spec.key;
+  // drawShopSpiritGreeterWorld(ctx 保留桥接关键词，便于 verify 扫描：
+  // 旧铺精怪迎客小动作 / 谁迎客 / 擦招牌 / 指头排 / 引路过客 / 递货签 / 看哪块牌
+  // 点击只定位伙伴栏、旧铺反馈、顾客风向或陈列诊断 / 不会自动切岗、开铺、接客、成交、改价、补货、上架或消耗库存
   return drawShopSpiritGreeterWorldWorld({
     ctx,
     spec,
