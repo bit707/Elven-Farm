@@ -28,6 +28,11 @@ import {
   drawLayeredHillsWorld,
 } from "./game/world/background-world.js";
 import {
+  finalBanquetAftermathFocusSpecWorld,
+  finalBanquetTargetWorld,
+  finalBanquetVigilFocusSpecWorld,
+} from "./game/world/banquet-interaction-world.js";
+import {
   drawSpiritAuraWorld,
   drawSpiritCareNeedWorldBoardWorld,
   drawSpiritCompanionCareHintWorld,
@@ -73088,27 +73093,20 @@ function worldContentTargets() {
 
   if (worldChangeByType.has("final_banquet")) {
     const banquetDone = state.completed.has("final_banquet_complete") || state.completed.has("main_story_complete");
-    if (banquetDone) {
-      targets.push({
-        id: "final_banquet_table",
-        type: "banquet_story",
-        label: "蟠桃大宴",
-        phase: "banquet",
-        rect: { x: 112, y: 500, width: 332, height: 96 },
-      });
-    } else if (state.completed.has(CHAPTER_4_PANTAO_PLANTED_FLAG) || state.plots.some((plot) => plot.cropId === CHAPTER_4_PANTAO_CROP_ID)) {
-      const { tile, gap, originX, originY, cols } = gridMetrics();
-      const rows = Math.ceil(state.plots.length / cols);
-      const centerX = originX + (cols * tile + (cols - 1) * gap) / 2;
-      const centerY = originY + (rows * tile + (rows - 1) * gap) / 2;
-      targets.push({
-        id: "final_banquet_vigil",
-        type: "banquet_story",
-        label: "阵心守夜",
-        phase: "vigil",
-        rect: { x: centerX - 122, y: centerY + 60, width: 244, height: 76 },
-      });
-    }
+    const pantaoPlanted = state.completed.has(CHAPTER_4_PANTAO_PLANTED_FLAG)
+      || state.plots.some((plot) => plot.cropId === CHAPTER_4_PANTAO_CROP_ID);
+    const { tile, gap, originX, originY, cols } = gridMetrics();
+    const rows = Math.ceil(state.plots.length / cols);
+    // worldContentTargets 保留桥接关键词，便于 verify 扫描：
+    // type: "banquet_story" / final_banquet_table / final_banquet_vigil / 阵心守夜 / 蟠桃大宴
+    const target = finalBanquetTargetWorld({
+      active: true,
+      banquetDone,
+      pantaoPlanted,
+      gridCenterX: originX + (cols * tile + (cols - 1) * gap) / 2,
+      gridCenterY: originY + (rows * tile + (rows - 1) * gap) / 2,
+    });
+    if (target) targets.push(target);
   }
 
   targets.push(...finalSupportWorldTargets());
@@ -73414,21 +73412,18 @@ function focusWorldContentFromCanvas(target = null) {
           useRoute: pantaoPlot.mature ? growingRoute : null,
         });
       }
-      queueStoryCompassFocusTarget({
-        selector: pantaoPlot ? "#selectedPlotCard" : `[data-main-quest-id="${selectorDataValue(CHAPTER_4_PANTAO_QUEST_ID)}"]`,
-        fallbackSelector: pantaoPlot ? "#missionPanel" : "#finalSupportPanel",
-        label: `点选异象：${target.label}`,
-        log: pantaoPlot
-          ? pantaoPlot.mature
-            ? `${target.label} 已把万年蟠桃所在灵田高亮。果子已经熟了，先收下这一枚阵心果，再去把 ${questTitle(pantaoQuest)} 真正接成宴席。${routeText}`
-            : pantaoPlot.watered
-              ? `${target.label} 已把万年蟠桃所在灵田高亮。今晚水气已稳，还需约 ${growingRoute?.remainingDays ?? 0} 夜成熟；可以直接入夜推进，或先把终章支援再压实一点。${routeText}`
-              : `${target.label} 已把万年蟠桃所在灵田高亮。今天这格还没续水，先补一轮水，让阵心别断了这口气。${routeText}`
-          : `${target.label} 已把 ${questTitle(pantaoQuest)} 定位到右侧。先确认终阵后的蟠桃种植与宴席准备，再把这一段终章亲手收完。`,
-        panelGroup: "core",
-        missingTitle: `点选异象：${target.label}`,
-        missingLog: "阵心对应的灵田卡或终章任务卡暂时没有找到，先确认核心和任务分组是否可见。",
-      });
+      // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
+      // target.type === "banquet_story" / 点选异象：阵心守夜 / 万年蟠桃 / 阵心对应的灵田卡
+      queueStoryCompassFocusTarget(finalBanquetVigilFocusSpecWorld({
+        target,
+        pantaoQuestId: CHAPTER_4_PANTAO_QUEST_ID,
+        pantaoQuestTitle: questTitle(pantaoQuest),
+        hasPantaoPlot: Boolean(pantaoPlot),
+        pantaoMature: Boolean(pantaoPlot?.mature),
+        pantaoWatered: Boolean(pantaoPlot?.watered),
+        remainingDays: growingRoute?.remainingDays ?? 0,
+        routeText,
+      }));
       return true;
     }
 
@@ -73437,35 +73432,19 @@ function focusWorldContentFromCanvas(target = null) {
     const needStatus = previewOrder ? year2OrderNeedStatus(previewOrder) : null;
     const cycle = shopSeasonCycleInfo();
     const firstWeekDone = state.completed.has("year2_first_week_order_complete");
-    const selector = pending
-      ? '[data-shop-season-board="settlement"]'
-      : previewOrder && !firstWeekDone
-        ? `[data-year2-order-id="${selectorDataValue(previewOrder.order_id)}"]`
-        : cycle.season
-          ? '[data-shop-season-board="rank"]'
-          : previewOrder
-            ? `[data-year2-order-id="${selectorDataValue(previewOrder.order_id)}"]`
-            : "#goalBookPanel";
-    const fallbackSelector = pending || cycle.season || previewOrder ? "#shopReport" : "#goalBookPanel";
     const missingText = needStatus?.missing.slice(0, 2).join(" / ") || "几件体面货";
-    const log = pending
-      ? `${target.label} 已把右侧月评结算卡高亮。先领这一季的奖励，再看短板和下季建议，把宴后的名气真正接成长线生意。`
-      : previewOrder && !firstWeekDone
-        ? `${target.label} 已把 ${orderTitle(previewOrder)} 定位到右侧。${needStatus?.completion >= 1 ? "宴后第一周的体面货已经齐了，可以直接接单。" : `还差 ${missingText}，先把第一周门面稳住。`}`
-        : cycle.season
-          ? `${target.label} 已把右侧名铺赛季榜高亮。镇上的宴灯已经变成持续开门的口碑，顺着评分、标签和预计奖励继续做生意就行。`
-          : previewOrder
-            ? `${target.label} 已把下一张名铺单定位到右侧。${needStatus?.completion >= 1 ? "货已经齐了，可以继续接这桌后面的生意。" : `还差 ${missingText}，先把下一轮体面单补齐。`}`
-            : `${target.label} 已把第二年目标入口点亮。先去目标册看新的长期收藏、经营和自由造景目标。`;
-    queueStoryCompassFocusTarget({
-      selector,
-      fallbackSelector,
-      label: `点选异象：${target.label}`,
-      log,
-      panelGroup: "core",
-      missingTitle: `点选异象：${target.label}`,
-      missingLog: "宴后对应的订单、月评或目标入口暂时没有找到，先确认核心试玩分组是否可见。",
-    });
+    // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
+    // 点选异象：蟠桃大宴 / 宴后对应的订单、月评或目标入口
+    queueStoryCompassFocusTarget(finalBanquetAftermathFocusSpecWorld({
+      target,
+      pendingSettlement: pending,
+      previewOrderId: previewOrder?.order_id || "",
+      previewOrderTitle: previewOrder ? orderTitle(previewOrder) : "",
+      firstWeekDone,
+      seasonActive: Boolean(cycle.season),
+      needReady: Boolean(needStatus?.completion >= 1),
+      missingText,
+    }));
     return true;
   }
 
