@@ -98,3 +98,96 @@ export function drawDungeonEntranceSilhouetteWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function drawDungeonEntranceFieldPreviewWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+  drawGlyph = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect) return false;
+  const { rect, anchor, theme } = spec;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 1.65) * 2.4;
+  const cardY = rect.y + pulse;
+
+  ctx.save();
+  if (anchor) {
+    ctx.strokeStyle = active ? `${theme.accent}cc` : `${theme.accent}55`;
+    ctx.lineWidth = active ? 3 : 1.8;
+    ctx.setLineDash([6, 8]);
+    ctx.lineDashOffset = reducedMotion ? 0 : -motion * 10;
+    ctx.beginPath();
+    ctx.moveTo(anchor.x, anchor.y + 8);
+    ctx.quadraticCurveTo(rect.x + rect.width - 42, cardY - 26, rect.x + rect.width - 30, cardY + 24);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 253, 245, 0.94)");
+  ctx.strokeStyle = active ? `${theme.accent}ee` : `${theme.accent}88`;
+  ctx.lineWidth = active ? 2.8 : 1.7;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = theme.soft;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 58, 58, 16);
+  ctx.fill();
+  drawGlyph(ctx, spec, rect.x + 21, cardY + 21, 44, motion);
+  ctx.fillStyle = theme.accent;
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText("三幕", rect.x + 31, cardY + 79);
+
+  ctx.fillStyle = theme.accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title.slice(0, 18), rect.x + 86, cardY + 24);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 20), rect.x + 86, cardY + 47);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText(`${spec.termLabel} · ${spec.puzzleCore}`.slice(0, 38), rect.x + 86, cardY + 64);
+
+  const laneY = cardY + 88;
+  ctx.strokeStyle = `${theme.accent}40`;
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(rect.x + 38, laneY);
+  ctx.lineTo(rect.x + rect.width - 38, laneY);
+  ctx.stroke();
+  spec.acts.forEach((act, index) => {
+    const actX = rect.x + 42 + index * 112;
+    const strong = active && index === 1;
+    ctx.fillStyle = strong ? `${act.accent}dd` : "rgba(255, 253, 245, 0.92)";
+    ctx.strokeStyle = `${act.accent}88`;
+    ctx.lineWidth = strong ? 2.6 : 1.5;
+    ctx.beginPath();
+    ctx.arc(actX, laneY, strong ? 12 : 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = strong ? "#fffdf5" : act.accent;
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(act.badge, actX - 4, laneY + 3);
+
+    ctx.fillStyle = act.accent;
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(act.title.slice(0, 5), actX - 22, laneY + 24);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "800 8px Microsoft YaHei";
+    ctx.fillText(act.detail.slice(0, 10), actX - 32, laneY + 39);
+  });
+
+  ctx.fillStyle = "rgba(236, 248, 243, 0.74)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 18, cardY + rect.height - 18, rect.width - 36, 14, 7);
+  ctx.fill();
+  ctx.fillStyle = "#286f58";
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText(spec.safeNote.slice(0, 48), rect.x + 26, cardY + rect.height - 8);
+  ctx.restore();
+  return true;
+}
