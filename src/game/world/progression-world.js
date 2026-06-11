@@ -772,3 +772,116 @@ export function drawYearOneRhythmStampLandmarksWorld({
   ctx.restore();
   return true;
 }
+
+export function drawBuiltStructuresWorld({
+  ctx,
+  slots = [],
+  builtBuildingIds = null,
+  reducedMotion = false,
+  newlyBuiltId = "",
+  newlyBuiltAt = 0,
+  now = 0,
+  chapter4FinalArrayBuilt = false,
+  chapter4FinalArrayBuildingId = "",
+  spiritManorBuildingId = "",
+  drawBuiltStructureIcon = () => {},
+  drawFinalArrayMonument = () => {},
+} = {}) {
+  if (!ctx || !slots.length || !builtBuildingIds) return false;
+  for (const slot of slots) {
+    if (slot.id !== "build_house_start" && !builtBuildingIds.has(slot.id)) continue;
+    if (slot.id === "build_fishpond_lv1" || slot.id === spiritManorBuildingId) continue;
+    const pulse = newlyBuiltId === slot.id ? Math.max(0, 1 - (now - Number(newlyBuiltAt || 0)) / 2200) : 0;
+    if (pulse > 0) {
+      ctx.save();
+      ctx.fillStyle = `rgba(246, 240, 182, ${0.2 * pulse})`;
+      ctx.beginPath();
+      ctx.ellipse(slot.x + 46, slot.y + 58, 86 + pulse * 28, 42 + pulse * 14, -0.08, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    drawBuiltStructureIcon(ctx, slot.id, slot.x, slot.y, slot.color, slot.accent, slot);
+  }
+  if (chapter4FinalArrayBuilt && chapter4FinalArrayBuildingId) drawFinalArrayMonument(ctx, "built");
+  return true;
+}
+
+export function drawOrderBuildPrepBlueprintWorld({
+  ctx,
+  target = null,
+  motion = 0,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+  drawBuiltStructureIcon = () => {},
+} = {}) {
+  if (!ctx || !target?.top) return false;
+  const { top } = target;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.2) * 3.5;
+  const ready = top.buildReady;
+  const accent = ready ? "#b47d2f" : "#4f6f8f";
+  const soft = ready ? "rgba(224, 182, 109, 0.22)" : "rgba(79, 111, 143, 0.2)";
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.55 + target.x) * 1.6;
+  const x = target.x;
+  const y = target.y + bob;
+
+  ctx.save();
+  ctx.fillStyle = soft;
+  ctx.beginPath();
+  ctx.ellipse(x + 48, y + 78, 82 + pulse, 28 + pulse * 0.28, -0.08, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = ready ? "rgba(224, 182, 109, 0.9)" : "rgba(79, 111, 143, 0.82)";
+  ctx.lineWidth = 2.8;
+  ctx.setLineDash([8, 6]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 14;
+  ctx.beginPath();
+  ctx.roundRect(x - 8, y + 20, 116, 78, 18);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x, y + 92);
+  ctx.lineTo(x + 50, y + 36);
+  ctx.lineTo(x + 104, y + 92);
+  ctx.moveTo(x + 20, y + 58);
+  ctx.lineTo(x + 86, y + 58);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.globalAlpha = 0.34;
+  drawBuiltStructureIcon(ctx, target.id, x, y, target.color, target.accent, target);
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+  ctx.beginPath();
+  ctx.roundRect(x + 4, y + 90, 96, 20, 10);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 10px Microsoft YaHei";
+  ctx.fillText(ready ? "材料已齐 · 可建" : "订单需建 · 缺料", x + 16, y + 104);
+
+  for (let index = 0; index < 4; index += 1) {
+    const pileX = x + 12 + index * 20;
+    const pileY = y + 76 - (index % 2) * 5;
+    ctx.fillStyle = index % 2 ? "#d8b56f" : "#8f7b5d";
+    ctx.beginPath();
+    ctx.roundRect(pileX, pileY, 15, 10, 3);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = accent;
+  ctx.beginPath();
+  ctx.arc(x + 100, y + 18, 17 + pulse * 0.18, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#fffdf5";
+  ctx.font = "900 12px Microsoft YaHei";
+  ctx.fillText((target.badge || "坊").slice(0, 1), x + 96, y + 23);
+
+  drawCanvasCard(ctx, x - 14, y - 44, 154, 42, ready ? "rgba(255, 248, 232, 0.92)" : "rgba(235, 248, 255, 0.9)");
+  ctx.fillStyle = accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText("订单工坊蓝图", x + 2, y - 25);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 11px Microsoft YaHei";
+  ctx.fillText(`${top.buildingLabel} · ${top.machineLabel}`.slice(0, 16), x + 2, y - 9);
+  ctx.restore();
+  return true;
+}
