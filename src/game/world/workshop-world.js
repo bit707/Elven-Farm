@@ -1014,6 +1014,102 @@ export function workshopOutputStorageRouteWorldSpecFromRuntimeWorld({
   };
 }
 
+export function workshopToShopStockBridgeWorldSpecFromRuntimeWorld({
+  width = 960,
+  height = 640,
+  day = 1,
+  feedback = null,
+  item = null,
+  stock = 0,
+  shopOpened = false,
+  bridgeGood = null,
+  shopTag = "",
+  shopTagText = "",
+  goodsEye = null,
+  shelfPrep = null,
+  itemName = (itemId) => itemId,
+  safeNote = "Focus only. No automatic craft, shelf placement, shop open, customer action, sale, repricing, restock, order delivery, inventory spend, or resource spend.",
+} = {}) {
+  if (!feedback?.outputItemId || Number(feedback.day || 0) !== Number(day || 0)) return null;
+  const currentStock = Number(stock || 0);
+  if (!item || currentStock <= 0 || item.item_type === "seed" || String(item.sell_price_base || "0") === "0") return null;
+  if (shopOpened || !bridgeGood) return null;
+
+  const safeItemName = feedback.outputItemName || itemName(feedback.outputItemId);
+  const safeShopTag = shopTag || feedback.shopTag || "food";
+  const safeShopTagText = shopTagText || feedback.shopTagText || "Shop shelf";
+  const goodsEyeMatches = goodsEye?.itemId === feedback.outputItemId;
+  const shelfPrepMatches = shelfPrep?.itemId === feedback.outputItemId;
+  const customerName = goodsEyeMatches
+    ? goodsEye.customerName
+    : shelfPrepMatches
+      ? shelfPrep.customerName
+      : "First passerby";
+  const reason = goodsEyeMatches
+    ? goodsEye.headline
+    : shelfPrepMatches
+      ? shelfPrep.openingExpectation
+      : `${safeShopTagText} helps customers understand this output before opening.`;
+  const routeText = "Stock in -> Polish shelf tag -> Door sees it";
+  const cardWidth = 328;
+  const cardHeight = 122;
+  const x = Math.max(46, Math.min(width - cardWidth - 34, 120));
+  const y = Math.max(318, Math.min(height - cardHeight - 32, 342));
+  const doorSelector = goodsEye?.selector || shelfPrep?.selector || '[data-shop-board="display-diagnosis"]';
+  const nodes = [
+    {
+      key: "stock",
+      badge: "INV",
+      title: "Stock in",
+      detail: `${safeItemName} x${currentStock}`,
+      accent: "#be4f37",
+      selector: "#inventoryList",
+    },
+    {
+      key: "ticket",
+      badge: "TAG",
+      title: "Shelf tag",
+      detail: safeShopTagText,
+      accent: "#b47d2f",
+      selector: "#shopReport",
+    },
+    {
+      key: "door",
+      badge: "EYE",
+      title: "Door sees",
+      detail: customerName || "Passerby",
+      accent: "#4d91a6",
+      selector: doorSelector,
+    },
+  ];
+
+  return {
+    active: true,
+    key: `${day}:${feedback.outputItemId}:${currentStock}:${safeShopTag}:${goodsEye?.mode || "bridge"}:${shelfPrep?.tone || "stock"}`,
+    day,
+    title: "Workshop to shop stock bridge - click",
+    headline: `${safeItemName} can become front-door stock`,
+    detail: `Stock ${currentStock} / ${safeShopTagText} / ${reason || "Move this output from the pot story to the shop door."}`,
+    routeText,
+    itemId: feedback.outputItemId,
+    itemName: safeItemName,
+    recipeId: feedback.recipeId || "",
+    recipeName: feedback.recipeName || "Current recipe",
+    stock: currentStock,
+    shopTag: safeShopTag,
+    shopTagText: safeShopTagText,
+    customerName,
+    reason,
+    goodsEye,
+    shelfPrep,
+    nodes,
+    safeNote,
+    rect: { x, y, width: cardWidth, height: cardHeight },
+    anchor: { x: 404, y: 470 },
+    shopAnchor: { x: 154, y: 232 },
+  };
+}
+
 export function drawWorkshopToShopStockBridgeWorldWorld({
   ctx,
   spec = null,

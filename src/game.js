@@ -166,6 +166,7 @@ import {
   drawWorkshopReadyOrderDispatchWorldWorld,
   drawWorkshopSpiritAssistActionWorldWorld,
   drawWorkshopToShopStockBridgeWorldWorld,
+  workshopToShopStockBridgeWorldSpecFromRuntimeWorld,
   drawWorkshopValueLedgerWorldWorld,
 } from "./game/world/workshop-world.js";
 import { drawNewPlayerTutorWorldWorld, newPlayerTutorWorldSpecWorld } from "./game/world/new-player-tutor-world.js";
@@ -28718,8 +28719,40 @@ function workshopToShopStockBridgeWorldSpec(width = refs.world?.width || 960, he
   };
 }
 
+function workshopToShopStockBridgeWorldSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640) {
+  const outputRoute = workshopOutputStorageRouteWorldSpecBridge(width, height);
+  const feedback = outputRoute || state.workshopOutputStorageRouteFeedback;
+  const item = feedback?.outputItemId ? data.itemsById.get(feedback.outputItemId) : null;
+  const stock = feedback?.outputItemId ? Number(state.inventory[feedback.outputItemId] || 0) : 0;
+  const opening = normalizeShopOpeningState(state.shopOpeningState);
+  const goods = sellableInventoryGoods();
+  const bridgeGood = feedback?.outputItemId ? goods.find((good) => good.itemId === feedback.outputItemId) : null;
+  const ecologyGarden = ecologyCourtyardSummary();
+  const tags = item ? shopTagsForItem(item, ecologyGarden) : [];
+  const shopTag = feedback?.shopTag || prioritizeShopTag(tags, new Map(tags.map((tag) => [tag, 1])), "food");
+  const shopTagText = feedback?.shopTagText || shopTagLabel(shopTag);
+  const goodsEye = shopDailyGoodsEyeWorldSpec(width, height);
+  const shelfPrep = shopShelfPrepWorldBoardSpec(width, height);
+  return workshopToShopStockBridgeWorldSpecFromRuntimeWorld({
+    width,
+    height,
+    day: state.day,
+    feedback,
+    item,
+    stock,
+    shopOpened: opening.opened,
+    bridgeGood,
+    shopTag,
+    shopTagText,
+    goodsEye,
+    shelfPrep,
+    itemName,
+    safeNote: workshopToShopStockBridgeSafetyText(),
+  });
+}
+
 function workshopToShopStockBridgeWorldAtCanvasPoint(px, py) {
-  const spec = workshopToShopStockBridgeWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
+  const spec = workshopToShopStockBridgeWorldSpecBridge(refs.world?.width || 960, refs.world?.height || 640);
   if (!spec?.rect) return null;
   const { rect } = spec;
   return (
@@ -28730,7 +28763,7 @@ function workshopToShopStockBridgeWorldAtCanvasPoint(px, py) {
   ) ? spec : null;
 }
 
-function focusWorkshopToShopStockBridgeWorldFromCanvas(spec = workshopToShopStockBridgeWorldSpec()) {
+function focusWorkshopToShopStockBridgeWorldFromCanvas(spec = workshopToShopStockBridgeWorldSpecBridge()) {
   if (!spec?.itemId) return false;
   workshopToShopStockBridgeWorldFocus = { key: spec.key, day: state.day, itemId: spec.itemId };
   if (settings.panelGroup !== "core") {
@@ -28758,7 +28791,7 @@ function focusWorkshopToShopStockBridgeWorldFromCanvas(spec = workshopToShopStoc
   return true;
 }
 
-function drawWorkshopToShopStockBridgeWorld(ctx, spec = workshopToShopStockBridgeWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
+function drawWorkshopToShopStockBridgeWorld(ctx, spec = workshopToShopStockBridgeWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
   if (!spec?.rect) return false;
   const focused = workshopToShopStockBridgeWorldFocus?.day === state.day
     && workshopToShopStockBridgeWorldFocus?.key === spec.key;
@@ -75101,7 +75134,7 @@ function drawWorkshopAutomation(ctx, livingState) {
     drawWorkshopAromaStoryWorld(ctx, workshopAromaStoryWorldSpec(aromaSpec), motion);
     drawWorkshopOutputRouteTriptychWorld(ctx, workshopOutputRouteTriptychWorldSpec(aromaSpec), motion);
     drawWorkshopOutputStorageRouteWorld(ctx, workshopOutputStorageRouteWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion);
-    drawWorkshopToShopStockBridgeWorld(ctx, workshopToShopStockBridgeWorldSpec(ctx.canvas.width, ctx.canvas.height), motion);
+    drawWorkshopToShopStockBridgeWorld(ctx, workshopToShopStockBridgeWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion);
     drawWorkshopFirstOrderProfitWorld(ctx, workshopFirstOrderProfitWorldSpec(aromaSpec), motion);
     drawWorkshopReadyOrderDispatchWorld(ctx, workshopReadyOrderDispatchWorldSpec());
   }
