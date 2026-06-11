@@ -169,6 +169,7 @@ import {
   drawWorkshopToShopStockBridgeWorldWorld,
   workshopToShopStockBridgeWorldSpecFromRuntimeWorld,
   drawWorkshopValueLedgerWorldWorld,
+  workshopValueLedgerWorldSpecFromRuntimeWorld,
 } from "./game/world/workshop-world.js";
 import { drawNewPlayerTutorWorldWorld, newPlayerTutorWorldSpecWorld } from "./game/world/new-player-tutor-world.js";
 import {
@@ -28430,6 +28431,48 @@ function workshopValueLedgerWorldSpec(aromaSpec = workshopAromaOrderWorldSpec())
   };
 }
 
+function workshopValueLedgerWorldSpecBridge(aromaSpec = workshopAromaOrderWorldSpec(), firstOrderProfit = false) {
+  if (!aromaSpec?.aroma?.orderUnlocked || state.completed.has("first_order_delivery")) return null;
+  const aroma = aromaSpec.aroma;
+  const recipe = data.recipes.find((entry) => entry.recipe_id === aroma.recipeId) || null;
+  const outputItemId = aroma.itemId || recipe?.output_item_id || aromaSpec.orderMatch?.outputItemId || "";
+  if (!recipe || !outputItemId) return null;
+  const outputCount = Number(aroma.outputCount || recipe.output_count || aromaSpec.orderMatch?.outputCount || 1);
+  const inputRows = recipeInputs(recipe);
+  const inputTotals = new Map();
+  inputRows.forEach(({ itemId, count }) => inputTotals.set(itemId, Number(inputTotals.get(itemId) || 0) + Number(count || 1)));
+  const rawValue = Array.from(inputTotals.entries())
+    .reduce((sum, [itemId, count]) => sum + Number(data.itemsById.get(itemId)?.sell_price_base || 0) * Number(count || 1), 0);
+  const outputValue = Number(data.itemsById.get(outputItemId)?.sell_price_base || 0) * outputCount;
+  const order = allOrderConfigs().find((entry) => entry.order_id === aromaSpec.orderId)
+    || visibleOrders().find((entry) => entry.order_id === aromaSpec.orderId)
+    || null;
+  const rewardGold = Number(order?.reward_gold || aromaSpec.orderMatch?.rewardGold || outputValue || 0);
+  const rewardFame = Number(order?.reward_fame || 0);
+  const inputText = Array.from(inputTotals.entries())
+    .slice(0, 2)
+    .map(([itemId, count]) => `${itemName(itemId)} x${count}`)
+    .join(" / ");
+  return workshopValueLedgerWorldSpecFromRuntimeWorld({
+    day: state.day,
+    aromaSpec,
+    recipe,
+    outputItemId,
+    outputCount,
+    inputTotals: Array.from(inputTotals.entries()),
+    rawValue,
+    outputValue,
+    order,
+    rewardGold,
+    rewardFame,
+    inputText,
+    recipeName: recipeName(recipe),
+    outputLabel: aromaSpec.outputLabel || itemName(outputItemId),
+    orderTitle: aromaSpec.orderTitle || (order ? orderTitle(order) : "First order"),
+    firstOrderProfit,
+  });
+}
+
 function workshopFirstOrderProfitWorldSpec(aromaSpec = workshopAromaOrderWorldSpec()) {
   const spec = workshopValueLedgerWorldSpec(aromaSpec);
   return spec
@@ -28442,8 +28485,12 @@ function workshopFirstOrderProfitWorldSpec(aromaSpec = workshopAromaOrderWorldSp
     : null;
 }
 
+function workshopFirstOrderProfitWorldSpecBridge(aromaSpec = workshopAromaOrderWorldSpec()) {
+  return workshopValueLedgerWorldSpecBridge(aromaSpec, true);
+}
+
 function workshopFirstOrderProfitWorldAtCanvasPoint(px, py) {
-  const spec = workshopFirstOrderProfitWorldSpec();
+  const spec = workshopFirstOrderProfitWorldSpecBridge();
   if (!spec?.rect) return null;
   const { rect } = spec;
   return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
@@ -28451,7 +28498,7 @@ function workshopFirstOrderProfitWorldAtCanvasPoint(px, py) {
     : null;
 }
 
-function focusWorkshopFirstOrderProfitWorldFromCanvas(spec = workshopFirstOrderProfitWorldSpec()) {
+function focusWorkshopFirstOrderProfitWorldFromCanvas(spec = workshopFirstOrderProfitWorldSpecBridge()) {
   if (!spec) return false;
   workshopFirstOrderProfitWorldFocus = { key: spec.key, day: state.day, orderId: spec.orderId || "" };
   workshopValueLedgerWorldFocus = { key: spec.key.replace(":first_order_profit", ""), day: state.day };
@@ -28468,12 +28515,12 @@ function focusWorkshopFirstOrderProfitWorldFromCanvas(spec = workshopFirstOrderP
   return true;
 }
 
-function drawWorkshopFirstOrderProfitWorld(ctx, spec = workshopFirstOrderProfitWorldSpec(), motion = performance.now() / 1000) {
+function drawWorkshopFirstOrderProfitWorld(ctx, spec = workshopFirstOrderProfitWorldSpecBridge(), motion = performance.now() / 1000) {
   return drawWorkshopValueLedgerWorld(ctx, spec, motion);
 }
 
 function workshopValueLedgerWorldAtCanvasPoint(px, py) {
-  const spec = workshopValueLedgerWorldSpec();
+  const spec = workshopValueLedgerWorldSpecBridge();
   if (!spec?.rect) return null;
   const { rect } = spec;
   return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
@@ -28481,7 +28528,7 @@ function workshopValueLedgerWorldAtCanvasPoint(px, py) {
     : null;
 }
 
-function focusWorkshopValueLedgerWorldFromCanvas(spec = workshopValueLedgerWorldSpec()) {
+function focusWorkshopValueLedgerWorldFromCanvas(spec = workshopValueLedgerWorldSpecBridge()) {
   if (!spec) return false;
   workshopValueLedgerWorldFocus = { key: spec.key, day: state.day };
   addLog("点选第一锅增值账签", `${spec.recipeName} 的账已经算清：${spec.routeText || "原料裸卖 -> 出锅增值 -> 订单回款"}，${spec.headline}，${spec.detail} ${spec.safety || "这里只定位订单板，不会自动交单、不会自动排产"}。`);
@@ -28500,7 +28547,7 @@ function focusWorkshopValueLedgerWorldFromCanvas(spec = workshopValueLedgerWorld
   return true;
 }
 
-function drawWorkshopValueLedgerWorld(ctx, spec = workshopValueLedgerWorldSpec(), motion = performance.now() / 1000) {
+function drawWorkshopValueLedgerWorld(ctx, spec = workshopValueLedgerWorldSpecBridge(), motion = performance.now() / 1000) {
   if (!spec?.rect) return false;
   const active = (workshopValueLedgerWorldFocus?.day === state.day && workshopValueLedgerWorldFocus?.key === spec.key)
     || (workshopFirstOrderProfitWorldFocus?.day === state.day && workshopFirstOrderProfitWorldFocus?.key === spec.key);
@@ -75160,7 +75207,7 @@ function drawWorkshopAutomation(ctx, livingState) {
     drawWorkshopOutputRouteTriptychWorld(ctx, workshopOutputRouteTriptychWorldSpec(aromaSpec), motion);
     drawWorkshopOutputStorageRouteWorld(ctx, workshopOutputStorageRouteWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion);
     drawWorkshopToShopStockBridgeWorld(ctx, workshopToShopStockBridgeWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion);
-    drawWorkshopFirstOrderProfitWorld(ctx, workshopFirstOrderProfitWorldSpec(aromaSpec), motion);
+    drawWorkshopFirstOrderProfitWorld(ctx, workshopFirstOrderProfitWorldSpecBridge(aromaSpec), motion);
     drawWorkshopReadyOrderDispatchWorld(ctx, workshopReadyOrderDispatchWorldSpecBridge());
   }
 

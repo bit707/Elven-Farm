@@ -851,6 +851,96 @@ export function drawWorkshopValueLedgerWorldWorld({
   return true;
 }
 
+export function workshopValueLedgerWorldSpecFromRuntimeWorld({
+  day = 1,
+  aromaSpec = null,
+  recipe = null,
+  outputItemId = "",
+  outputCount = 1,
+  inputTotals = [],
+  rawValue = 0,
+  outputValue = 0,
+  order = null,
+  rewardGold = 0,
+  rewardFame = 0,
+  inputText = "",
+  recipeName = "Current recipe",
+  outputLabel = "",
+  orderTitle = "",
+  firstOrderProfit = false,
+} = {}) {
+  if (!aromaSpec?.aroma?.orderUnlocked) return null;
+  if (!recipe || !outputItemId) return null;
+
+  const safeOutputCount = Number(outputCount || 1);
+  const safeRawValue = Number(rawValue || 0);
+  const safeOutputValue = Number(outputValue || 0);
+  const safeRewardGold = Number(rewardGold || 0);
+  const safeRewardFame = Number(rewardFame || 0);
+  const valueGain = Math.max(0, safeRewardGold - safeRawValue);
+  const orderPremium = safeRawValue > 0 ? Math.max(1, safeRewardGold / safeRawValue) : 1;
+  const valueLiftPercent = safeRawValue > 0 ? Math.round((safeRewardGold - safeRawValue) / safeRawValue * 100) : 0;
+  const outputGain = Math.max(0, safeOutputValue - safeRawValue);
+  const orderGain = Math.max(0, safeRewardGold - safeRawValue);
+  const orderVsOutputGain = Math.max(0, safeRewardGold - safeOutputValue);
+  const maxLedgerValue = Math.max(1, safeRawValue, safeOutputValue, safeRewardGold);
+  const rawRatio = safeRawValue / maxLedgerValue;
+  const outputRatio = safeOutputValue / maxLedgerValue;
+  const orderRatio = safeRewardGold / maxLedgerValue;
+  const safeRecipeName = recipeName || "Current recipe";
+  const safeOutputLabel = outputLabel || outputItemId;
+  const safeOrderTitle = orderTitle || order?.title || "First order";
+  const keyBase = `${day}:${recipe.recipe_id}:${outputItemId}:${aromaSpec.orderId || "no_order"}:value_ledger`;
+
+  return {
+    key: firstOrderProfit ? `${keyBase}:first_order_profit` : keyBase,
+    day,
+    recipe,
+    recipeName: safeRecipeName,
+    outputItemId,
+    outputLabel: safeOutputLabel,
+    outputCount: safeOutputCount,
+    orderId: aromaSpec.orderId || "",
+    orderTitle: safeOrderTitle,
+    ready: Boolean(aromaSpec.ready),
+    rawValue: safeRawValue,
+    outputValue: safeOutputValue,
+    rewardGold: safeRewardGold,
+    rewardFame: safeRewardFame,
+    valueGain,
+    orderPremium,
+    valueLiftPercent,
+    rawRatio,
+    outputRatio,
+    orderRatio,
+    premiumLabel: safeRewardGold > safeRawValue ? `Order ${orderPremium.toFixed(1)}x` : "Order value",
+    profitLabel: safeRewardGold > safeRawValue ? `Gain ${valueGain}` : "Relationship value",
+    conclusion: safeRewardGold > safeRawValue ? "Crafting order chain wins" : "Order chain is relationship-led",
+    inputText,
+    inputTotals,
+    title: "First order profit comparison - click",
+    legacyTitle: "First pot value ledger - click",
+    routeText: "Raw sale -> Output value -> Order return",
+    headline: `Raw ${safeRawValue} -> Order ${safeRewardGold}`,
+    detail: safeRewardGold > safeRawValue
+      ? `This order beats raw sale by ${valueGain}.`
+      : `${safeOrderTitle} is linked; fame and relationship value make up the gap.`,
+    cta: "Go to order board manually",
+    safety: "Focus only. No automatic craft, order delivery, stock spend, reward grant, or resource spend.",
+    rect: { x: 382, y: 486, width: 350, height: 144 },
+    anchor: { x: 520, y: 432 },
+    accent: safeRewardGold > safeRawValue ? "#286f58" : "#b47d2f",
+    soft: safeRewardGold > safeRawValue ? "rgba(202, 235, 210, 0.26)" : "rgba(246, 240, 182, 0.24)",
+    steps: [
+      { label: "Raw sale", value: `${safeRawValue}`, note: inputText || "Inputs" },
+      { label: "Output gain", value: `+${outputGain}`, note: `${safeRecipeName} x${safeOutputCount}` },
+      { label: "Order return", value: `${safeRewardGold}`, note: safeRewardFame ? `Fame +${safeRewardFame}` : "Commission reward" },
+    ],
+    orderGain,
+    orderVsOutputGain,
+  };
+}
+
 export function drawWorkshopOutputStorageRouteWorldWorld({
   ctx,
   spec = null,
