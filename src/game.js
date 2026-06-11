@@ -92,7 +92,10 @@ import {
   finalSupportFocusTargetWorld,
   finalSupportWorldTargetsWorld,
 } from "./game/world/final-support-interaction-world.js";
-import { drawFinalSupportOverviewWorldWorld } from "./game/world/final-support-world.js";
+import {
+  drawFinalSupportOverviewWorldWorld,
+  drawFinalSupportPrepKeepsakeWorldWorld,
+} from "./game/world/final-support-world.js";
 import {
   firstSpiritAssistPrimerWorldAtCanvasPointWorld,
   firstSpiritAssistPrimerWorldSpecWorld,
@@ -69246,98 +69249,20 @@ function focusFinalSupportPrepKeepsakeFromCanvas(spec = finalSupportPrepKeepsake
 }
 
 function drawFinalSupportPrepKeepsakeWorld(ctx, spec = finalSupportPrepKeepsakeSpec(), motion = 0) {
+  // drawFinalSupportPrepKeepsakeWorld(ctx) bridge keeps verify keywords: 终章伏笔亮签 · 可点 / 伏笔达标 / 预备效果 / 确认入口 / 点选终章伏笔亮签 / 只定位领取入口 · 不自动领取 / 不会自动领取预备支援、激活终章支援、应用阶段效果、播放演出、写入完成标记或消耗资源
   if (!spec?.rect || !spec.nodes?.length) return false;
-  const { rect } = spec;
-  const accent = "#be4f37";
-  const gold = "#c9953d";
-  const ink = "#17231d";
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.46) * 1.9;
-  const activeNodeKey = finalSupportPrepKeepsakeWorldFocus?.key === spec.key
-    ? finalSupportPrepKeepsakeWorldFocus.nodeKey
-    : "";
-  ctx.save();
-  if (spec.point) {
-    ctx.strokeStyle = activeNodeKey ? "rgba(190, 79, 55, 0.78)" : "rgba(190, 79, 55, 0.38)";
-    ctx.lineWidth = activeNodeKey ? 2.4 : 1.4;
-    ctx.setLineDash([3, 7]);
-    ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 7;
-    ctx.beginPath();
-    ctx.moveTo(rect.x + rect.width - 30, rect.y + rect.height - 14 + bob);
-    ctx.quadraticCurveTo((rect.x + spec.point.x) / 2, rect.y + rect.height + 22, spec.point.x, spec.point.y + 48);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  drawCanvasCard(ctx, rect.x, rect.y + bob, rect.width, rect.height, "rgba(255, 248, 232, 0.97)");
-  ctx.fillStyle = "rgba(190, 79, 55, 0.15)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 12, rect.y + 12 + bob, rect.width - 24, 46, 18);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 18, rect.y + 18 + bob, 38, 28, 12);
-  ctx.fill();
-  ctx.fillStyle = "#fffdf5";
-  ctx.font = "900 14px Microsoft YaHei";
-  ctx.fillText("阵", rect.x + 29, rect.y + 38 + bob);
-  ctx.fillStyle = gold;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 88, rect.y + 18 + bob, 58, 26, 13);
-  ctx.fill();
-  ctx.fillStyle = "#fffdf5";
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText("可领", rect.x + rect.width - 72, rect.y + 36 + bob);
-  ctx.fillStyle = ink;
-  ctx.font = "800 14px Microsoft YaHei";
-  ctx.fillText("终章伏笔亮签 · 可点", rect.x + 66, rect.y + 31 + bob);
-  ctx.fillStyle = accent;
-  ctx.font = "700 11px Microsoft YaHei";
-  ctx.fillText(townLifeWorldBoardShortText(spec.subtitle, 20), rect.x + 66, rect.y + 47 + bob);
-
-  ctx.fillStyle = ink;
-  ctx.font = "800 14px Microsoft YaHei";
-  ctx.fillText(spec.shortSummary, rect.x + 18, rect.y + 78 + bob);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(townLifeWorldBoardShortText(finalSupportEffectText(spec.prep.effectTarget, spec.prep.effectValue), 28), rect.x + 18, rect.y + 93 + bob);
-
-  for (const node of spec.nodes) {
-    const nodeRect = node.rect;
-    const active = activeNodeKey === node.key;
-    ctx.fillStyle = active ? "rgba(255, 253, 245, 0.96)" : "rgba(255, 253, 245, 0.68)";
-    ctx.strokeStyle = active ? "rgba(201, 149, 61, 0.88)" : "rgba(190, 79, 55, 0.3)";
-    ctx.lineWidth = active ? 1.8 : 1;
-    ctx.beginPath();
-    ctx.roundRect(nodeRect.x, nodeRect.y + bob, nodeRect.width, nodeRect.height, 11);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = active ? "rgba(201, 149, 61, 0.28)" : "rgba(190, 79, 55, 0.16)";
-    ctx.beginPath();
-    ctx.roundRect(nodeRect.x + 6, nodeRect.y + 7 + bob, 20, 18, 8);
-    ctx.fill();
-    ctx.fillStyle = active ? gold : accent;
-    ctx.font = "900 10px Microsoft YaHei";
-    ctx.fillText(node.badge, nodeRect.x + 11, nodeRect.y + 20 + bob);
-    ctx.fillStyle = ink;
-    ctx.font = "800 10px Microsoft YaHei";
-    ctx.fillText(node.shortLabel, nodeRect.x + 31, nodeRect.y + 15 + bob);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "9px Microsoft YaHei";
-    ctx.fillText(node.shortTitle, nodeRect.x + 31, nodeRect.y + 27 + bob);
-  }
-
-  ctx.fillStyle = activeNodeKey ? accent : "#5d6f65";
-  ctx.font = "700 10px Microsoft YaHei";
-  ctx.fillText("只定位领取入口 · 不自动领取", rect.x + 18, rect.y + rect.height - 8 + bob);
-  if (activeNodeKey) {
-    ctx.strokeStyle = "rgba(201, 149, 61, 0.84)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 4, rect.y + 4 + bob, rect.width - 8, rect.height - 8, 18);
-    ctx.stroke();
-  }
-  ctx.restore();
-  return true;
+  return drawFinalSupportPrepKeepsakeWorldWorld({
+    ctx,
+    spec,
+    motion,
+    activeNodeKey: finalSupportPrepKeepsakeWorldFocus?.key === spec.key
+      ? finalSupportPrepKeepsakeWorldFocus.nodeKey
+      : "",
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+    shortText: townLifeWorldBoardShortText,
+    effectText: finalSupportEffectText,
+  });
 }
 
 function finalSupportStageKeepsakeSafetyText() {
