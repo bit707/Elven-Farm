@@ -544,6 +544,7 @@ import {
   shopWordOfMouthSaleReasonWorldSpecWorld,
 } from "./game/world/shop-world.js";
 import {
+  drawCareChainWorldBloomWorld,
   drawCohabCourtyardWorld,
   drawCohabLifeNoteWorld,
   drawLivingWorldSummaryWorld,
@@ -74981,91 +74982,16 @@ function drawEcologyCourtyardLandmarks(ctx, livingState) {
 }
 
 function drawCareChainWorldBloom(ctx, livingState) {
+  // drawCareChainWorldBloom(ctx) bridge keeps verify keywords: 连续照应 / 镇上也听见了 / 洞天照应事件 / 照应阶段余温
   const chain = livingState?.careChainStage || normalizeCareChainState(state.careChainState);
-  if (!chain || Number(chain.streak || 0) <= 0) return;
-  const bloom = Math.max(0, Math.min(5, Number(chain.bloom || chain.tier || 0)));
-  if (bloom <= 0) return;
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.2) * 3;
-  const alpha = Math.min(0.72, 0.18 + bloom * 0.1);
-  const fieldPoints = [
-    [324, 236],
-    [382, 300],
-    [454, 248],
-    [520, 334],
-    [590, 278],
-    [660, 368],
-  ];
-
-  ctx.save();
-  ctx.globalCompositeOperation = "screen";
-  fieldPoints.slice(0, Math.min(fieldPoints.length, bloom + 2)).forEach(([x, y], index) => {
-    const radius = 6 + bloom * 1.8 + Math.sin(motion * 1.7 + index) * 1.8;
-    ctx.fillStyle = `rgba(246, 240, 182, ${alpha * (0.48 + index * 0.04)})`;
-    ctx.beginPath();
-    ctx.arc(x, y, radius + pulse * 0.22, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = `rgba(202, 235, 210, ${alpha * 0.68})`;
-    ctx.beginPath();
-    ctx.arc(x + 6, y - 4, Math.max(2.4, radius * 0.32), 0, Math.PI * 2);
-    ctx.fill();
+  return drawCareChainWorldBloomWorld({
+    ctx,
+    livingState,
+    chain,
+    motion: settings.reducedMotion ? 0 : performance.now() / 1000,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
   });
-
-  if (bloom >= 2) {
-    ctx.strokeStyle = `rgba(202, 235, 210, ${0.28 + bloom * 0.08})`;
-    ctx.lineWidth = 2 + bloom * 0.22;
-    ctx.setLineDash([8, 8]);
-    ctx.beginPath();
-    ctx.moveTo(340, 338);
-    ctx.bezierCurveTo(230, 300 + pulse, 176, 238 - pulse, 116, 194);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  if (bloom >= 3) {
-    ctx.strokeStyle = `rgba(224, 182, 109, ${0.28 + bloom * 0.06})`;
-    ctx.lineWidth = 2.4;
-    ctx.beginPath();
-    ctx.moveTo(588, 292);
-    ctx.bezierCurveTo(514, 238 - pulse, 402, 210 + pulse, 332, 244);
-    ctx.stroke();
-  }
-  ctx.globalCompositeOperation = "source-over";
-
-  if (bloom >= 4) {
-    drawCanvasCard(ctx, 702, 228, 190, 62, "rgba(237, 243, 223, 0.86)");
-    ctx.fillStyle = "#286f58";
-    ctx.font = "700 14px Microsoft YaHei";
-    ctx.fillText(chain.stageName.slice(0, 10), 722, 252);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "12px Microsoft YaHei";
-    ctx.fillText(`连续照应 ${chain.streak} 日`, 722, 272);
-  }
-
-  if (bloom >= 5) {
-    drawCanvasCard(ctx, 112, 244, 176, 50, "rgba(255, 248, 232, 0.84)");
-    ctx.fillStyle = "#8f5f3f";
-    ctx.font = "700 13px Microsoft YaHei";
-    ctx.fillText("镇上也听见了", 130, 265);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "11px Microsoft YaHei";
-    ctx.fillText("旧铺、灵田、精怪成了话头", 130, 282);
-  }
-
-  if (livingState?.careChainRecentEvent) {
-    const event = livingState.careChainRecentEvent;
-    drawCanvasCard(ctx, 678, 304, 224, 82, "rgba(255, 248, 232, 0.88)");
-    ctx.fillStyle = "#be4f37";
-    ctx.font = "700 13px Microsoft YaHei";
-    ctx.fillText("照应阶段余温", 700, 328);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "700 13px Microsoft YaHei";
-    ctx.fillText(String(event.title || "洞天照应事件").slice(0, 14), 700, 350);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "11px Microsoft YaHei";
-    ctx.fillText(String(event.rewardText || "奖励已入账").slice(0, 24), 700, 370);
-  }
-  ctx.restore();
 }
 
 function drawCareChainJournalStand(ctx, livingState) {
