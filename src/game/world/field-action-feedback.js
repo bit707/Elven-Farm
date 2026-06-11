@@ -17,6 +17,281 @@ export function colorWithAlphaWorld(rgb = [0, 0, 0], alpha = 1) {
   return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${Math.max(0, Math.min(1, alpha))})`;
 }
 
+export function drawFieldActionFeedbackWorld({
+  ctx,
+  pulse = null,
+  originX = 0,
+  originY = 0,
+  tile = 72,
+  gap = 6,
+  now = performance.now(),
+  spirits = [],
+  spiritVisualProfile = (spirit = {}) => ({
+    base: spirit.base || "#fff6d7",
+    accent: spirit.accent || "#286f58",
+    glyph: spirit.glyph || "灵",
+  }),
+  drawCanvasCard = null,
+} = {}) {
+  if (!ctx || !pulse) return false;
+  const spec = fieldActionFeedbackSpecWorld(pulse.kind);
+  const elapsed = now - Number(pulse.start || now);
+  if (elapsed >= spec.duration) return false;
+
+  const progress = Math.max(0, Math.min(1, elapsed / spec.duration));
+  const fade = 1 - progress;
+  const cx = originX + pulse.x * (tile + gap) + tile / 2;
+  const cy = originY + pulse.y * (tile + gap) + tile / 2;
+  const ringRadius = tile * 0.22 + progress * tile * 0.46;
+  const bob = Math.sin(progress * Math.PI) * 12;
+
+  ctx.save();
+  ctx.lineWidth = 3 + fade * 2;
+  ctx.strokeStyle = colorWithAlphaWorld(spec.core, fade * 0.82);
+  ctx.beginPath();
+  ctx.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = colorWithAlphaWorld(spec.soft, 0.16 + fade * 0.2);
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + tile * 0.18, tile * (0.28 + progress * 0.2), tile * 0.12, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  const moteCount = pulse.kind === "harvest" ? 9 : pulse.kind === "clear" ? 7 : 6;
+  for (let i = 0; i < moteCount; i += 1) {
+    const angle = i * 2.399 + progress * (pulse.kind === "water" ? 1.2 : 0.62);
+    const distance = tile * (0.12 + progress * (pulse.kind === "clear" ? 0.48 : 0.38)) + (i % 3) * 4;
+    const mx = cx + Math.cos(angle) * distance;
+    const my = cy + Math.sin(angle) * distance * 0.62 - progress * (pulse.kind === "harvest" ? 26 : 10);
+    ctx.fillStyle = colorWithAlphaWorld(spec.mote, fade * 0.78);
+    ctx.beginPath();
+    ctx.arc(mx, my, Math.max(1.8, 4.2 - progress * 2 + (i % 2)), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  if (pulse.kind === "clear") {
+    ctx.strokeStyle = colorWithAlphaWorld(spec.mote, fade * 0.62);
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 4; i += 1) {
+      const sx = cx - 24 + i * 16;
+      ctx.beginPath();
+      ctx.moveTo(sx, cy + 16 - progress * 8);
+      ctx.lineTo(sx + 10 + progress * 8, cy + 22 + i % 2 * 4);
+      ctx.stroke();
+    }
+  } else if (pulse.kind === "plant") {
+    ctx.strokeStyle = colorWithAlphaWorld(spec.core, fade * 0.78);
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    for (let i = 0; i < 3; i += 1) {
+      const sx = cx - 12 + i * 12;
+      ctx.beginPath();
+      ctx.moveTo(sx, cy + 14);
+      ctx.quadraticCurveTo(sx + (i - 1) * 8, cy - 2 - bob * 0.18, sx + (i - 1) * 5, cy - 12 - bob * 0.35);
+      ctx.stroke();
+    }
+  } else if (pulse.kind === "water") {
+    ctx.strokeStyle = colorWithAlphaWorld(spec.core, fade * 0.72);
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 3; i += 1) {
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 12 + i * 6, tile * (0.16 + progress * 0.28) + i * 4, tile * 0.05, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  } else if (pulse.kind === "spirit") {
+    const plots = Array.isArray(pulse.wateredPlots) ? pulse.wateredPlots : [];
+    const assistPrimer = Boolean(pulse.assistPrimer);
+    if (plots.length > 0) {
+      const bounds = plots.reduce((acc, plot) => ({
+        minX: Math.min(acc.minX, plot.x),
+        minY: Math.min(acc.minY, plot.y),
+        maxX: Math.max(acc.maxX, plot.x),
+        maxY: Math.max(acc.maxY, plot.y),
+      }), { minX: plots[0].x, minY: plots[0].y, maxX: plots[0].x, maxY: plots[0].y });
+      const left = originX + bounds.minX * (tile + gap) - 4;
+      const top = originY + bounds.minY * (tile + gap) - 4;
+      const boxWidth = (bounds.maxX - bounds.minX + 1) * tile + Math.max(0, bounds.maxX - bounds.minX) * gap + 8;
+      const boxHeight = (bounds.maxY - bounds.minY + 1) * tile + Math.max(0, bounds.maxY - bounds.minY) * gap + 8;
+
+      ctx.strokeStyle = colorWithAlphaWorld(spec.core, fade * 0.78);
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([8, 6]);
+      ctx.beginPath();
+      ctx.roundRect(left, top, boxWidth, boxHeight, 16);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      for (const [index, plot] of plots.entries()) {
+        const px = originX + plot.x * (tile + gap);
+        const py = originY + plot.y * (tile + gap);
+        const stepProgress = Math.max(0, Math.min(1, progress * (plots.length + 1) - index * 0.82));
+        const stepGlow = stepProgress > 0 ? Math.sin(Math.min(1, stepProgress) * Math.PI) : 0;
+        ctx.fillStyle = colorWithAlphaWorld(spec.soft, 0.16 + fade * 0.12 + stepGlow * 0.28);
+        ctx.beginPath();
+        ctx.roundRect(px + 3, py + 3, tile - 6, tile - 6, 12);
+        ctx.fill();
+        ctx.strokeStyle = colorWithAlphaWorld(spec.core, fade * (0.22 + stepGlow * 0.62));
+        ctx.lineWidth = 1.8 + stepGlow * 1.4;
+        ctx.beginPath();
+        ctx.roundRect(px + 7, py + 7, tile - 14, tile - 14, 12);
+        ctx.stroke();
+        ctx.fillStyle = colorWithAlphaWorld(spec.core, fade * (0.28 + stepGlow * 0.58));
+        ctx.beginPath();
+        ctx.arc(px + tile * 0.52, py + tile * 0.42, tile * (0.07 + stepGlow * 0.08), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = colorWithAlphaWorld(spec.mote, fade * 0.72);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(px + tile * 0.22, py + tile * 0.62);
+        ctx.quadraticCurveTo(px + tile * 0.46, py + tile * (0.34 - stepGlow * 0.08), px + tile * 0.74, py + tile * 0.36);
+        ctx.stroke();
+        ctx.fillStyle = colorWithAlphaWorld(spec.core, fade * (0.24 + stepGlow * 0.5));
+        ctx.font = "800 10px Microsoft YaHei";
+        ctx.fillText(String(index + 1), px + tile * 0.72, py + tile * 0.26);
+      }
+
+      if (!assistPrimer && plots.length > 1) {
+        ctx.strokeStyle = colorWithAlphaWorld(spec.core, fade * 0.5);
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        plots.forEach((plot, index) => {
+          const px = originX + plot.x * (tile + gap) + tile / 2;
+          const py = originY + plot.y * (tile + gap) + tile * 0.52;
+          if (index === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      if (!assistPrimer && plots.length > 1) {
+        const routeProgress = Math.min(plots.length - 1, progress * Math.max(1, plots.length - 1));
+        const routeIndex = Math.max(0, Math.min(plots.length - 1, Math.floor(routeProgress)));
+        const routeNext = Math.min(plots.length - 1, routeIndex + 1);
+        const t = routeNext === routeIndex ? 0 : routeProgress - routeIndex;
+        const routePlot = plots[routeIndex];
+        const nextPlot = plots[routeNext];
+        if (routePlot && nextPlot) {
+          const sx = originX + routePlot.x * (tile + gap) + tile / 2;
+          const sy = originY + routePlot.y * (tile + gap) + tile * 0.38;
+          const ex = originX + nextPlot.x * (tile + gap) + tile / 2;
+          const ey = originY + nextPlot.y * (tile + gap) + tile * 0.38;
+          const spiritX = sx + (ex - sx) * t;
+          const spiritY = sy + (ey - sy) * t - Math.sin(progress * Math.PI * 6) * 3;
+          ctx.fillStyle = "rgba(255, 253, 245, 0.96)";
+          ctx.strokeStyle = colorWithAlphaWorld(spec.core, fade * 0.78);
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(spiritX, spiritY, 13, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = "#48a868";
+          ctx.beginPath();
+          ctx.ellipse(spiritX - 6, spiritY - 9, 7, 4, -0.55, 0, Math.PI * 2);
+          ctx.ellipse(spiritX + 6, spiritY - 9, 7, 4, 0.55, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#286f58";
+          ctx.font = "900 12px Microsoft YaHei";
+          ctx.fillText("萝", spiritX - 6, spiritY + 5);
+        }
+      }
+    }
+
+    const spirit = spirits.find((entry) => entry.id === pulse.spiritId) || spirits[0] || null;
+    const cardWidth = 286;
+    const cardHeight = 94;
+    const cardX = Math.max(24, Math.min(ctx.canvas.width - cardWidth - 24, cx + tile * 0.78));
+    const cardY = Math.max(28, Math.min(ctx.canvas.height - cardHeight - 28, cy - cardHeight - tile * 0.45));
+    const profile = spiritVisualProfile(spirit || {
+      id: pulse.spiritId || "spirit_luobo_01",
+      lineId: pulse.lineId || "spirit_line_luobo",
+      name: pulse.spiritName || "大胖萝卜精",
+      job: "farm",
+    });
+
+    if (drawCanvasCard) {
+      drawCanvasCard(ctx, cardX, cardY, cardWidth, cardHeight, "rgba(255, 253, 245, 0.94)");
+      ctx.fillStyle = profile.base;
+      ctx.beginPath();
+      ctx.roundRect(cardX + 16, cardY + 18, 46, 46, 16);
+      ctx.fill();
+      ctx.fillStyle = profile.accent;
+      ctx.font = "700 24px Microsoft YaHei";
+      ctx.fillText(profile.glyph, cardX + 27, cardY + 49);
+      ctx.fillStyle = profile.accent;
+      ctx.font = "700 13px Microsoft YaHei";
+      ctx.fillText(`${pulse.spiritName || spirit?.name || "精怪"} ${assistPrimer ? "协助预览，未执行" : pulse.firstAssist ? "第一次接手农活" : "正在代浇"}`, cardX + 76, cardY + 28);
+      ctx.fillStyle = "#17231d";
+      ctx.font = "700 16px Microsoft YaHei";
+      ctx.fillText(assistPrimer ? `${Number(pulse.wateredCount || plots.length || 0)} 格 3x3 协助预览` : `${Number(pulse.wateredCount || plots.length || 0)} 格 3x3 自动浇水`, cardX + 76, cardY + 54);
+      ctx.fillStyle = "#5d6f65";
+      ctx.font = "12px Microsoft YaHei";
+      ctx.fillText(assistPrimer ? "只定位示范格 · 不会消耗体力" : `省下约 ${Number(pulse.staminaSaved || (plots.length * 5) || 0)} 点体力 · 自动化减负`, cardX + 76, cardY + 76);
+    }
+  } else if (pulse.kind === "harvest") {
+    ctx.fillStyle = colorWithAlphaWorld(spec.soft, fade * 0.86);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 22 - bob);
+    ctx.lineTo(cx + 7, cy - 4 - bob);
+    ctx.lineTo(cx + 26, cy - 2 - bob);
+    ctx.lineTo(cx + 10, cy + 8 - bob);
+    ctx.lineTo(cx + 15, cy + 26 - bob);
+    ctx.lineTo(cx, cy + 14 - bob);
+    ctx.lineTo(cx - 15, cy + 26 - bob);
+    ctx.lineTo(cx - 10, cy + 8 - bob);
+    ctx.lineTo(cx - 26, cy - 2 - bob);
+    ctx.lineTo(cx - 7, cy - 4 - bob);
+    ctx.closePath();
+    ctx.fill();
+
+    if (pulse.harvestText || pulse.qualityStars || pulse.qualityLabel) {
+      const harvestText = String(pulse.harvestText || "收获入仓").slice(0, 14);
+      const qualityText = `${pulse.qualityLabel || "品质星级"} ${pulse.qualityStars || ""}`.trim().slice(0, 12);
+      const textY = Math.max(22, cy - tile * 0.82 - bob - 18);
+      ctx.textAlign = "center";
+      ctx.font = "800 15px Microsoft YaHei";
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = `rgba(255, 253, 245, ${0.72 + fade * 0.24})`;
+      ctx.strokeText(harvestText, cx, textY);
+      ctx.fillStyle = colorWithAlphaWorld([190, 79, 55], fade * 0.96);
+      ctx.fillText(harvestText, cx, textY);
+      if (qualityText) {
+        ctx.font = "700 12px Microsoft YaHei";
+        ctx.strokeStyle = `rgba(255, 248, 232, ${0.68 + fade * 0.2})`;
+        ctx.strokeText(qualityText, cx, textY + 17);
+        ctx.fillStyle = colorWithAlphaWorld([180, 125, 47], fade * 0.9);
+        ctx.fillText(qualityText, cx, textY + 17);
+      }
+    }
+
+    if (pulse.useRoute?.badge) {
+      const routeLabel = pulse.useRoute.badge;
+      ctx.font = "700 12px Microsoft YaHei";
+      const tagWidth = Math.min(150, Math.max(72, ctx.measureText(routeLabel).width + 26));
+      const tagX = Math.max(12, Math.min(ctx.canvas.width - tagWidth - 12, cx - tagWidth / 2));
+      const tagY = Math.max(18, cy - tile * 0.98 - bob);
+      ctx.fillStyle = `rgba(255, 248, 232, ${0.74 + fade * 0.18})`;
+      ctx.strokeStyle = colorWithAlphaWorld(spec.core, fade * 0.46);
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.roundRect(tagX, tagY, tagWidth, 25, 12);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = colorWithAlphaWorld([143, 95, 63], fade * 0.92);
+      ctx.textAlign = "center";
+      ctx.fillText(routeLabel, tagX + tagWidth / 2, tagY + 17);
+    }
+  }
+
+  ctx.fillStyle = colorWithAlphaWorld([23, 35, 29], fade * 0.78);
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.textAlign = "center";
+  ctx.fillText(spec.label, cx, cy - tile * 0.54 - bob);
+  ctx.restore();
+  return true;
+}
+
 export function seedRestockBagSafetyTextWorld() {
   return "只定位种子栏、空田和播种按钮，不会自动播种、买种、浇水、入夜、扣除种子、扣除体力或消耗资源";
 }
