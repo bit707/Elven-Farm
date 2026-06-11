@@ -74,6 +74,7 @@ import {
   drawDailyIntentFeedbackWorld,
   drawDailyIntentWorldEchoWorld,
   drawDailyIntentWorldGuideWorld,
+  drawWorldPriorityTriageWorld,
   drawDailyIntentWorldScenesWorld,
 } from "./game/world/daily-intent-world.js";
 import {
@@ -47753,94 +47754,18 @@ function focusWorldPriorityTriageFromCanvas(spec = worldPriorityTriageSpec()) {
 }
 
 function drawWorldPriorityTriage(ctx, spec = worldPriorityTriageSpec(ctx.canvas.width, ctx.canvas.height)) {
+  // drawWorldPriorityTriage: 只看重点，只显示最高优先 3 件，不会自动收获，也不会自动执行明日动作。
   if (!spec?.rect) return false;
-  const { rect } = spec;
   const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 1.7) * 1.8;
   const active = worldPriorityTriageFocus?.day === state.day && worldPriorityTriageFocus?.key === spec.key;
-  const palettes = {
-    urgent: { accent: "#be4f37", fill: "rgba(255, 240, 232, 0.94)", soft: "rgba(190, 79, 55, 0.16)" },
-    active: { accent: "#b47d2f", fill: "rgba(255, 248, 232, 0.94)", soft: "rgba(224, 182, 109, 0.2)" },
-    calm: { accent: "#286f58", fill: "rgba(237, 243, 223, 0.94)", soft: "rgba(202, 235, 210, 0.28)" },
-    summary: { accent: "#8f5f3f", fill: "rgba(255, 248, 232, 0.96)", soft: "rgba(224, 182, 109, 0.22)" },
-  };
-  const palette = palettes[spec.stateClass] || palettes.active;
-  const cardY = rect.y + pulse;
-  const rowStartY = spec.fromDaySummary ? 94 : 78;
-  ctx.save();
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, palette.fill);
-  ctx.strokeStyle = active ? `${palette.accent}ee` : `${palette.accent}77`;
-  ctx.lineWidth = active ? 2.7 : 1.8;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = palette.soft;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 13, 48, 48, 15);
-  ctx.fill();
-  ctx.fillStyle = palette.accent;
-  ctx.font = spec.fromDaySummary ? "900 18px Microsoft YaHei" : "900 20px Microsoft YaHei";
-  ctx.fillText(spec.fromDaySummary ? "醒" : "三", rect.x + 27, cardY + 43);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText(spec.fromDaySummary ? "昨夜承接" : "只看重点", rect.x + 18, cardY + 58);
-
-  ctx.fillStyle = palette.accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(`${spec.title} · ${spec.fromDaySummary ? spec.summaryLabel : spec.termName}`.slice(0, 20), rect.x + 74, cardY + 22);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 14px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 20), rect.x + 74, cardY + 43);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "10px Microsoft YaHei";
-  ctx.fillText((spec.fromDaySummary ? `昨夜建议：${spec.summaryAdvice}` : `${spec.weatherName} · ${spec.detail}`).slice(0, 36), rect.x + 74, cardY + 60);
-  if (spec.fromDaySummary) {
-    ctx.fillStyle = "#8f5f3f";
-    ctx.font = "800 9px Microsoft YaHei";
-    ctx.fillText((spec.summaryDeltaText || spec.detail).slice(0, 36), rect.x + 74, cardY + 75);
-  }
-
-  spec.rows.slice(0, 3).forEach((row, index) => {
-    const rowY = cardY + rowStartY + index * 18;
-    const toneColor = {
-      ember: "#be4f37",
-      gold: "#b47d2f",
-      jade: "#286f58",
-      water: "#4d91a6",
-      flower: "#d87f8d",
-      care: "#8c7ab8",
-      seasonal: "#5d8b52",
-    }[row.tone] || palette.accent;
-    ctx.fillStyle = `${toneColor}1f`;
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 16, rowY - 12, rect.width - 32, 15, 8);
-    ctx.fill();
-    ctx.fillStyle = toneColor;
-    ctx.font = "900 9px Microsoft YaHei";
-    ctx.fillText(`${index + 1}`, rect.x + 27, rowY - 1);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 10px Microsoft YaHei";
-    ctx.fillText(row.title.slice(0, 16), rect.x + 46, rowY - 1);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "800 9px Microsoft YaHei";
-    ctx.fillText(row.cta.slice(0, 7), rect.x + rect.width - 72, rowY - 1);
+  return drawWorldPriorityTriageWorld({
+    ctx,
+    spec,
+    reducedMotion: settings.reducedMotion,
+    motion,
+    active,
+    drawCanvasCard,
   });
-
-  if (!settings.reducedMotion) {
-    for (let i = 0; i < 4; i += 1) {
-      const moteX = rect.x + rect.width - 22 - i * 18;
-      const moteY = cardY + 14 + Math.sin(motion * 1.8 + i) * 3;
-      ctx.fillStyle = i % 2 ? "rgba(255, 253, 245, 0.84)" : `${palette.accent}77`;
-      ctx.beginPath();
-      ctx.arc(moteX, moteY, 2.2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  ctx.restore();
-  return true;
 }
 
 function solarMorningSignTone(weather = currentWeatherConfig(), risks = unresolvedRisks()) {
