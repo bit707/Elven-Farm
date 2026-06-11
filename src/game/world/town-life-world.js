@@ -1136,6 +1136,124 @@ export function drawTownLifeGiftKeepsakeWorldWorld({
   return true;
 }
 
+export function drawTownLifePassalongLanternWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  activeNodeKey = "",
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+  npcPortraitImage = () => null,
+  shortText = (text) => String(text || ""),
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.nodes?.length) return false;
+  const { rect } = spec;
+  const tone = spec.passalong?.tone || "daily";
+  const palette = {
+    water: { accent: "#4d91a6", soft: "rgba(241, 249, 251, 0.96)", glow: "rgba(77, 145, 166, 0.2)" },
+    sprout: { accent: "#286f58", soft: "rgba(237, 243, 223, 0.96)", glow: "rgba(40, 111, 88, 0.18)" },
+    warm: { accent: "#b47d2f", soft: "rgba(255, 248, 232, 0.97)", glow: "rgba(224, 182, 109, 0.24)" },
+    linked: { accent: "#286f58", soft: "rgba(237, 243, 223, 0.96)", glow: "rgba(40, 111, 88, 0.18)" },
+    woven: { accent: "#8f5f3f", soft: "rgba(255, 248, 232, 0.96)", glow: "rgba(143, 95, 63, 0.18)" },
+    rooted: { accent: "#5d6f65", soft: "rgba(255, 253, 245, 0.94)", glow: "rgba(93, 111, 101, 0.14)" },
+    town: { accent: "#b47d2f", soft: "rgba(255, 248, 232, 0.97)", glow: "rgba(224, 182, 109, 0.24)" },
+    start: { accent: "#b47d2f", soft: "rgba(255, 248, 232, 0.96)", glow: "rgba(224, 182, 109, 0.22)" },
+    return: { accent: "#286f58", soft: "rgba(237, 243, 223, 0.96)", glow: "rgba(40, 111, 88, 0.18)" },
+    spread: { accent: "#4d91a6", soft: "rgba(241, 249, 251, 0.96)", glow: "rgba(77, 145, 166, 0.2)" },
+    trust: { accent: "#8f5f3f", soft: "rgba(255, 248, 232, 0.96)", glow: "rgba(143, 95, 63, 0.18)" },
+    complete: { accent: "#8f5f3f", soft: "rgba(255, 248, 232, 0.97)", glow: "rgba(224, 182, 109, 0.24)" },
+    afterword: { accent: "#8f5f3f", soft: "rgba(255, 248, 232, 0.97)", glow: "rgba(143, 95, 63, 0.2)" },
+  }[tone] || { accent: "#8f5f3f", soft: "rgba(255, 248, 232, 0.96)", glow: "rgba(143, 95, 63, 0.16)" };
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.55) * 1.8;
+
+  ctx.save();
+  if (spec.point) {
+    ctx.strokeStyle = `${palette.accent}66`;
+    ctx.lineWidth = activeNodeKey ? 2.4 : 1.4;
+    ctx.setLineDash([4, 7]);
+    ctx.lineDashOffset = reducedMotion ? 0 : -motion * 8;
+    ctx.beginPath();
+    ctx.moveTo(rect.x + (spec.point.x > rect.x ? 24 : rect.width - 24), rect.y + rect.height - 12 + bob);
+    ctx.quadraticCurveTo((rect.x + spec.point.x) / 2, rect.y + rect.height + 22, spec.point.x + 92, spec.point.y + 8);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = palette.glow;
+    ctx.beginPath();
+    ctx.ellipse(spec.point.x + 108, spec.point.y + 8, 42, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  drawCanvasCard(ctx, rect.x, rect.y + bob, rect.width, rect.height, palette.soft);
+  ctx.fillStyle = palette.glow;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 12, rect.y + 12 + bob, rect.width - 24, 48, 18);
+  ctx.fill();
+  ctx.fillStyle = palette.accent;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 18, rect.y + 19 + bob, 36, 28, 12);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255, 253, 245, 0.96)";
+  ctx.font = "900 14px Microsoft YaHei";
+  ctx.fillText(spec.passalong?.badge || "话", rect.x + 29, rect.y + 39 + bob);
+  const portrait = npcPortraitImage(spec.npcId);
+  if (portrait) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(rect.x + rect.width - 52, rect.y + 18 + bob, 30, 30, 10);
+    ctx.clip();
+    ctx.drawImage(portrait, rect.x + rect.width - 52, rect.y + 18 + bob, 30, 30);
+    ctx.restore();
+  }
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 14px Microsoft YaHei";
+  ctx.fillText("镇民顺路捎话灯 · 可点", rect.x + 64, rect.y + 32 + bob);
+  ctx.fillStyle = palette.accent;
+  ctx.font = "700 11px Microsoft YaHei";
+  ctx.fillText(shortText(spec.subtitle, 20), rect.x + 64, rect.y + 49 + bob);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 13px Microsoft YaHei";
+  ctx.fillText(spec.shortLine, rect.x + 18, rect.y + 80 + bob);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(spec.shortDetail, rect.x + 18, rect.y + 95 + bob);
+  const gold = "#b47d2f";
+  for (const node of spec.nodes) {
+    const nodeRect = node.rect;
+    const active = activeNodeKey === node.key;
+    ctx.fillStyle = active ? "rgba(255, 253, 245, 0.94)" : "rgba(255, 253, 245, 0.66)";
+    ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.84)" : `${palette.accent}44`;
+    ctx.lineWidth = active ? 1.8 : 1;
+    ctx.beginPath();
+    ctx.roundRect(nodeRect.x, nodeRect.y + bob, nodeRect.width, nodeRect.height, 11);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = active ? "rgba(224, 182, 109, 0.28)" : `${palette.accent}22`;
+    ctx.beginPath();
+    ctx.roundRect(nodeRect.x + 6, nodeRect.y + 7 + bob, 20, 18, 8);
+    ctx.fill();
+    ctx.fillStyle = active ? gold : palette.accent;
+    ctx.font = "900 10px Microsoft YaHei";
+    ctx.fillText(node.badge, nodeRect.x + 11, nodeRect.y + 20 + bob);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "800 10px Microsoft YaHei";
+    ctx.fillText(node.shortLabel, nodeRect.x + 31, nodeRect.y + 15 + bob);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "9px Microsoft YaHei";
+    ctx.fillText(node.shortTitle, nodeRect.x + 31, nodeRect.y + 27 + bob);
+  }
+  ctx.fillStyle = activeNodeKey ? palette.accent : "#5d6f65";
+  ctx.font = "700 10px Microsoft YaHei";
+  ctx.fillText(spec.safety, rect.x + 18, rect.y + rect.height - 8 + bob);
+  if (activeNodeKey) {
+    ctx.strokeStyle = "rgba(224, 182, 109, 0.78)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(rect.x + 4, rect.y + 4 + bob, rect.width - 8, rect.height - 8, 18);
+    ctx.stroke();
+  }
+  ctx.restore();
+  return true;
+}
+
 export function drawCohabCourtyardWorld({
   ctx,
   routeFlags = null,
