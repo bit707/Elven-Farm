@@ -653,6 +653,7 @@ import {
   drawTownLifeMemoryThresholdKeepsakeWorldWorld,
   drawTownLifePassalongLanternWorldWorld,
   drawTownLifeErrandRouteCueWorld,
+  drawTownLifePassalongMarkerWorld,
   drawTownLifeShopMomentMarkerWorld,
   drawTownLifeShopMomentKeepsakeWorldWorld,
   drawTownLifeWeatherErrandEchoWorld,
@@ -70506,67 +70507,23 @@ function drawTownLifeShopMomentMarker(ctx, row, point, index = 0, motion = 0) {
 }
 
 function drawTownLifePassalongMarker(ctx, row, point, index = 0, motion = 0) {
-  if (!row?.npc?.npc_id || !point) return;
+  if (!row?.npc?.npc_id || !point) return false;
   const passalong = townLifePassalongCandidateForRow(row);
-  if (!passalong) return;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 2.1 + index * 0.5) * 1.7;
-  const colors = {
-    water: "#4d91a6",
-    sprout: "#286f58",
-    warm: "#b47d2f",
-    linked: "#286f58",
-    woven: "#8f5f3f",
-    rooted: "#5d6f65",
-    town: "#b47d2f",
-    start: "#b47d2f",
-    return: "#286f58",
-    spread: "#4d91a6",
-    trust: "#8f5f3f",
-    complete: "#8f5f3f",
-    afterword: "#8f5f3f",
-  };
-  const accent = colors[passalong.tone] || "#8f5f3f";
-  const x = point.x + 72;
-  const y = point.y - 10 + bob;
+  if (!passalong) return false;
   const active = townLifePassalongLanternWorldFocus?.day === state.day
     && townLifePassalongLanternWorldFocus?.npcId === row.npc.npc_id
     && townLifePassalongLanternWorldFocus?.type === passalong.type;
-  ctx.save();
-  ctx.globalAlpha = active ? 1 : 0.92;
-  ctx.fillStyle = `${accent}22`;
-  ctx.beginPath();
-  ctx.ellipse(x + 30, y + 17, active ? 38 : 30, active ? 15 : 11, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "rgba(255, 248, 232, 0.96)";
-  ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.82)" : `${accent}66`;
-  ctx.lineWidth = active ? 2 : 1.4;
-  ctx.beginPath();
-  ctx.roundRect(x, y, 76, 34, 12);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = `${accent}22`;
-  ctx.beginPath();
-  ctx.roundRect(x + 6, y + 7, 22, 20, 8);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 12px Microsoft YaHei";
-  ctx.fillText(passalong.badge || "话", x + 12, y + 22);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText("捎话", x + 34, y + 14);
-  ctx.fillStyle = accent;
-  ctx.font = "700 9px Microsoft YaHei";
-  ctx.fillText(townLifeWorldBoardShortText(passalong.headline, 5), x + 34, y + 25);
-  if (active) {
-    ctx.strokeStyle = "rgba(224, 182, 109, 0.66)";
-    ctx.setLineDash([3, 4]);
-    ctx.beginPath();
-    ctx.moveTo(x + 6, y + 34);
-    ctx.quadraticCurveTo(point.x + 44, point.y + 20, point.x + 16, point.y + 48);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-  ctx.restore();
+  // drawTownLifePassalongMarker bridge keeps verify keywords: 捎话 镇民顺路捎话灯 清荒 首单 旧铺名声 连续照应 灵渠复流
+  return drawTownLifePassalongMarkerWorld({
+    ctx,
+    point,
+    passalong,
+    active,
+    headline: townLifeWorldBoardShortText(passalong.headline, 5),
+    index,
+    motion,
+    reducedMotion: settings.reducedMotion,
+  });
 }
 
 function drawTownLifePerson(ctx, row, point, index = 0, motion = 0) {
