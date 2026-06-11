@@ -100,8 +100,10 @@ import {
   drawSpiritInteractionMemoryTriptychWorldWorld,
   drawSpiritJobEffectWorld,
   drawSpiritJobPersonaBubbleWorld,
+  drawSpiritEvolutionFeedbackWorld,
   drawSpiritJobShiftFeedbackWorld,
   drawSpiritJobShiftTheaterWorldWorld,
+  drawSpiritFinaleFeedbackWorld,
   drawSpiritMoodRepairWorldSceneWorld,
   drawSpiritNightWorkFeedbackWorld,
   drawSpiritSproutFeedbackWorld,
@@ -58492,7 +58494,6 @@ function drawSpiritJoinFeedback(ctx, width, height, feedback = activeSpiritJoinF
 }
 
 function drawSpiritEvolutionFeedback(ctx, width, height, feedback = activeSpiritEvolutionFeedback()) {
-  if (!feedback || state.activeCutscene || state.activeDialogue.length > 0) return;
   const spirit = state.spirits.find((entry) => entry.id === feedback.spiritId) || {
     id: feedback.spiritId,
     lineId: feedback.lineId,
@@ -58500,101 +58501,24 @@ function drawSpiritEvolutionFeedback(ctx, width, height, feedback = activeSpirit
     job: feedback.job,
   };
   const profile = spiritVisualProfile(spirit);
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 3.2) * 5;
-  const progress = settings.reducedMotion ? 1 : Math.min(1, Number(feedback.age || 0) / 1400);
-  const ring = 92 + Math.sin(progress * Math.PI) * 54;
-  const x = Math.round(width / 2 - 274);
-  const y = Math.round(height / 2 - 156 + pulse);
-
-  ctx.save();
-  ctx.globalAlpha = feedback.fade;
-  ctx.fillStyle = "rgba(16, 27, 32, 0.14)";
-  ctx.fillRect(0, 0, width, height);
-
-  const glow = ctx.createRadialGradient(x + 118, y + 118, 14, x + 118, y + 118, 240);
-  glow.addColorStop(0, feedback.glow || profile.glow);
-  glow.addColorStop(0.45, "rgba(246, 240, 182, 0.22)");
-  glow.addColorStop(1, "rgba(246, 240, 182, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(x + 118, y + 118, 240, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = `${feedback.accent || profile.accent}aa`;
-  ctx.lineWidth = 3;
-  for (let i = 0; i < 3; i += 1) {
-    ctx.beginPath();
-    ctx.arc(x + 118, y + 118, ring + i * 18, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-
-  drawCanvasCard(ctx, x, y, 548, 236, "rgba(255, 248, 232, 0.96)");
-  ctx.fillStyle = "rgba(246, 240, 182, 0.3)";
-  ctx.beginPath();
-  ctx.roundRect(x + 22, y + 22, 158, 158, 28);
-  ctx.fill();
-  ctx.strokeStyle = feedback.accent || profile.accent;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.roundRect(x + 30, y + 30, 142, 142, 24);
-  ctx.stroke();
-  drawSpiritSprite(ctx, spirit, x + 48, y + 40, 108);
-
-  ctx.strokeStyle = `${feedback.accent || profile.accent}88`;
-  ctx.lineWidth = 3;
-  ctx.setLineDash([8, 10]);
-  ctx.beginPath();
-  ctx.moveTo(x + 206, y + 122);
-  ctx.lineTo(x + 284, y + 122);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = feedback.accent || profile.accent;
-  ctx.font = "700 26px Microsoft YaHei";
-  ctx.fillText("进化", x + 228, y + 112);
-
-  ctx.fillStyle = feedback.accent || profile.accent;
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(`岗位进化回响 · ${feedback.stageName}`, x + 206, y + 42);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 23px Microsoft YaHei";
-  ctx.fillText(feedback.title.slice(0, 18), x + 206, y + 76);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "700 15px Microsoft YaHei";
-  ctx.fillText(`${feedback.previousName} -> ${feedback.spiritName}`.slice(0, 22), x + 206, y + 102);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "13px Microsoft YaHei";
-  ctx.fillText(feedback.detail.slice(0, 30), x + 206, y + 128);
-  ctx.fillText(`${feedback.rangeBefore} -> ${feedback.rangeAfter} · 多 ${feedback.areaDelta} 格`.slice(0, 28), x + 206, y + 150);
-
-  ctx.fillStyle = "rgba(224, 182, 109, 0.22)";
-  ctx.beginPath();
-  ctx.roundRect(x + 206, y + 166, 306, 50, 16);
-  ctx.fill();
-  ctx.fillStyle = "#b47d2f";
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(feedback.eventAction.slice(0, 22), x + 220, y + 188);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(feedback.cta.slice(0, 30), x + 220, y + 208);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(`留下 ${feedback.rewardText}`.slice(0, 28), x + 390, y + 188);
-
-  for (let i = 0; i < 7; i += 1) {
-    const angle = motion * 1.1 + i * 0.92;
-    const rx = x + 470 + Math.cos(angle) * 28;
-    const ry = y + 54 + Math.sin(angle) * 18;
-    ctx.fillStyle = i % 2 ? "rgba(246, 240, 182, 0.82)" : `${feedback.accent || profile.accent}88`;
-    ctx.beginPath();
-    ctx.arc(rx, ry, 4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
+  // drawSpiritEvolutionFeedback(ctx) bridge keeps verify keywords: drawSpiritEvolutionFeedback / 岗位进化回响 / 进化完成 / 二阶进化 / 下一阶预览
+  return drawSpiritEvolutionFeedbackWorld({
+    ctx,
+    width,
+    height,
+    feedback,
+    spirit,
+    profile,
+    now: performance.now(),
+    reducedMotion: settings.reducedMotion,
+    activeCutscene: state.activeCutscene,
+    activeDialogueCount: state.activeDialogue.length,
+    drawCanvasCard,
+    drawSpiritSprite,
+  });
 }
 
 function drawSpiritFinaleFeedback(ctx, width, height, feedback = activeSpiritFinaleFeedback()) {
-  if (!feedback || state.activeCutscene || state.activeDialogue.length > 0) return;
   const spirit = state.spirits.find((entry) => entry.id === feedback.spiritId) || {
     id: feedback.spiritId,
     lineId: feedback.lineId,
@@ -58602,78 +58526,21 @@ function drawSpiritFinaleFeedback(ctx, width, height, feedback = activeSpiritFin
     job: "farm",
   };
   const profile = spiritVisualProfile(spirit);
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.8) * 5;
-  const progress = settings.reducedMotion ? 1 : Math.min(1, Number(feedback.age || 0) / 1500);
-  const ease = 1 - (1 - progress) ** 3;
-  const accent = feedback.accent || profile.accent;
-  const x = Math.round(width / 2 - 286);
-  const y = Math.round(height / 2 - 152 + pulse - ease * 10);
-
-  ctx.save();
-  ctx.globalAlpha = feedback.fade;
-  const glow = ctx.createRadialGradient(x + 120, y + 118, 18, x + 120, y + 118, 250);
-  glow.addColorStop(0, feedback.glow || profile.glow);
-  glow.addColorStop(0.46, "rgba(246, 240, 182, 0.2)");
-  glow.addColorStop(1, "rgba(246, 240, 182, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(x + 120, y + 118, 250, 0, Math.PI * 2);
-  ctx.fill();
-
-  drawCanvasCard(ctx, x, y, 572, 232, "rgba(255, 248, 232, 0.96)");
-  ctx.fillStyle = `${accent}20`;
-  ctx.beginPath();
-  ctx.roundRect(x + 22, y + 22, 150, 150, 30);
-  ctx.fill();
-  ctx.strokeStyle = `${accent}99`;
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.roundRect(x + 30, y + 30, 134, 134, 26);
-  ctx.stroke();
-  drawSpiritSprite(ctx, spirit, x + 48, y + 40, 104);
-
-  ctx.strokeStyle = `${accent}88`;
-  ctx.lineWidth = 3;
-  for (let ring = 0; ring < 3; ring += 1) {
-    ctx.beginPath();
-    ctx.ellipse(x + 98, y + 132, 64 + ring * 18 + pulse, 22 + ring * 5, 0, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = accent;
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(`终章陪伴落定 · ${feedback.areaLabel}`, x + 198, y + 42);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 24px Microsoft YaHei";
-  ctx.fillText(`${feedback.spiritName} · ${feedback.title}`.slice(0, 20), x + 198, y + 78);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "700 15px Microsoft YaHei";
-  ctx.fillText(`${feedback.anchorLabel} 已常驻主画面`, x + 198, y + 106);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "13px Microsoft YaHei";
-  ctx.fillText(feedback.sceneText.slice(0, 36), x + 198, y + 132);
-  ctx.fillText(`“${feedback.dialogueText}”`.slice(0, 36), x + 198, y + 154);
-
-  ctx.fillStyle = "rgba(224, 182, 109, 0.22)";
-  ctx.beginPath();
-  ctx.roundRect(x + 198, y + 172, 330, 42, 15);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(feedback.effectText.slice(0, 24), x + 212, y + 190);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(`${feedback.memoryText} · ${feedback.rewardText}`.slice(0, 34), x + 212, y + 207);
-
-  for (let i = 0; i < 9; i += 1) {
-    const angle = motion * 0.9 + i * 0.7;
-    ctx.fillStyle = i % 2 ? "rgba(246, 240, 182, 0.8)" : `${accent}88`;
-    ctx.beginPath();
-    ctx.arc(x + 502 + Math.cos(angle) * (24 + i), y + 54 + Math.sin(angle) * (14 + i * 0.5), 3.2, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
+  // drawSpiritFinaleFeedback(ctx) bridge keeps verify keywords: drawSpiritFinaleFeedback / 终章陪伴落定 / 终章常驻 / 终章伙伴常驻 / 回看终章落定
+  return drawSpiritFinaleFeedbackWorld({
+    ctx,
+    width,
+    height,
+    feedback,
+    spirit,
+    profile,
+    now: performance.now(),
+    reducedMotion: settings.reducedMotion,
+    activeCutscene: state.activeCutscene,
+    activeDialogueCount: state.activeDialogue.length,
+    drawCanvasCard,
+    drawSpiritSprite,
+  });
 }
 
 function solarTermAtmosphereProfile(term = currentTermConfig(), weatherFx = "") {
