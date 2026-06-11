@@ -1333,3 +1333,168 @@ export function worldLandmarkFocusSpecWorld({
 
   return null;
 }
+
+export function builtStructureWorldTargetsWorld({
+  slots = [],
+  builtBuildingIds = null,
+  excludedBuildingIds = [],
+  buildingsById = null,
+  houseBuildingId = "build_house_start",
+} = {}) {
+  const excluded = new Set(excludedBuildingIds || []);
+  return (slots || [])
+    .filter((slot) => slot.id === houseBuildingId || builtBuildingIds?.has(slot.id))
+    .filter((slot) => !excluded.has(slot.id))
+    .map((slot) => {
+      const scale = Number(slot.scale || 1);
+      const width = 100 * scale;
+      const height = 116 * scale;
+      return {
+        ...slot,
+        building: buildingsById?.get(slot.id) || null,
+        rect: {
+          x: slot.x - 8,
+          y: slot.y - 10,
+          width: width + 16,
+          height: height + 16,
+        },
+      };
+    });
+}
+
+export function builtStructureAtCanvasPointWorld(px, py, targets = []) {
+  return (targets || [])
+    .slice()
+    .reverse()
+    .find(({ rect }) => (
+      px >= rect.x
+      && px <= rect.x + rect.width
+      && py >= rect.y
+      && py <= rect.y + rect.height
+    )) || null;
+}
+
+export function builtStructureFocusSpecWorld({
+  target = null,
+  buildingLabel = "",
+  buildSelector = "",
+  waterPlotLabel = "",
+  brokenBridgeExpandedPlots = 0,
+  brokenBridgeSeedAvailable = false,
+  brokenBridgeSeedName = "",
+  finalArrayBuildingId = "",
+  finalArrayBanquetComplete = false,
+  workshopRecipeTitle = "",
+  workshopRecipeHint = "",
+  workshopRecipeInputText = "",
+  workshopMachineName = "",
+} = {}) {
+  if (!target) return null;
+
+  if (target.id === "build_house_start") {
+    return {
+      selector: "#sleepButton",
+      fallbackSelector: "#inventoryList",
+      label: `点选建筑：${buildingLabel}`,
+      log: "草庐是收束一天的地方。清完灵田、工坊和旧铺后，可以回这里入夜结算；背包整理也在手边。",
+      panelGroup: "core",
+      missingTitle: "点选建筑：草庐",
+      missingLog: "草庐入口暂时没有找到，先确认核心试玩分组是否可见。",
+    };
+  }
+
+  if (target.id === "build_storage_001") {
+    return {
+      selector: "#inventoryList",
+      label: `点选建筑：${buildingLabel}`,
+      log: "仓房对应背包与囤货路线。先看库存里哪些货能交单、上架，或继续接去工坊与种植。",
+      panelGroup: "core",
+      missingTitle: "点选建筑：仓房",
+      missingLog: "背包面板暂时没有找到，先确认核心试玩分组是否可见。",
+    };
+  }
+
+  if (target.variant === "water") {
+    return {
+      selector: "#selectedPlotCard",
+      fallbackSelector: "#seedSelect",
+      label: `点选建筑：${buildingLabel}`,
+      log: waterPlotLabel
+        ? `${buildingLabel} 连着灵田水脉，已替你定位到 ${waterPlotLabel}。先看播种、浇水和水生作物安排。`
+        : `${buildingLabel} 连着灵田水脉，先看灵田卡与种子栏安排今日灌溉。`,
+      panelGroup: "core",
+      missingTitle: "点选建筑：灵井",
+      missingLog: "灵田卡暂时没有找到，先确认核心试玩分组是否可见。",
+    };
+  }
+
+  if (target.id === "build_broken_bridge_repair") {
+    return {
+      selector: brokenBridgeSeedAvailable ? "#seedSelect" : "#selectedPlotCard",
+      fallbackSelector: "#selectedPlotCard",
+      label: `点选建筑：${buildingLabel}`,
+      log: `${buildingLabel} 接回的水路已经开出 ${brokenBridgeExpandedPlots} 格水润灵田。${
+        brokenBridgeSeedAvailable
+          ? `${brokenBridgeSeedName} 已切到种子栏，适合把新水线马上种起来。`
+          : "先看灵田卡，安排新开的水润地块。"
+      }`,
+      panelGroup: "core",
+      missingTitle: "点选建筑：断桥",
+      missingLog: "灵田与种子入口暂时没有找到，先确认核心试玩分组是否可见。",
+    };
+  }
+
+  if (target.id === finalArrayBuildingId || target.variant === "final") {
+    return finalArrayBanquetComplete
+      ? {
+        selector: "#goalBookPanel",
+        label: `点选建筑：${buildingLabel}`,
+        log: "二十四节气大阵已经把主线送进新的年册。去目标册看第二年目标、长期收藏和自由造景下一步。",
+        panelGroup: "core",
+        missingTitle: "点选建筑：节气阵",
+        missingLog: "目标册暂时没有找到，先确认核心试玩分组是否可见。",
+      }
+      : {
+        selector: "#finalSupportPanel",
+        fallbackSelector: "#buildPanel",
+        label: `点选建筑：${buildingLabel}`,
+        log: "终阵已经立起。去终章支援面板查看还有哪几路人手、关系线和建设效果能继续压进阵脚。",
+        panelGroup: "systems",
+        missingTitle: "点选建筑：节气阵",
+        missingLog: "终章支援面板暂时没有找到，先确认系统深挖分组是否可见。",
+      };
+  }
+
+  if (target.variant === "workshop") {
+    if (workshopRecipeTitle) {
+      return {
+        selector: "#recipeSelect",
+        fallbackSelector: buildSelector,
+        label: `点选建筑：${buildingLabel}`,
+        log: `${buildingLabel} 的工位已经替你接到 ${workshopRecipeTitle}。${workshopRecipeHint} · 原料 ${workshopRecipeInputText}`,
+        panelGroup: "systems",
+        missingTitle: "点选建筑：工坊",
+        missingLog: `${buildingLabel} 已切到配方，但当前没有找到加工栏。`,
+      };
+    }
+    return {
+      selector: buildSelector,
+      fallbackSelector: ".build-panel",
+      label: `点选建筑：${buildingLabel}`,
+      log: `${buildingLabel} 已在建设面板高亮。${workshopMachineName ? `当前对应设备是 ${workshopMachineName}，可以继续排产。` : "先看工坊效率、队列和建造进度。"}`,
+      panelGroup: "systems",
+      missingTitle: "点选建筑：工坊",
+      missingLog: "工坊对应的建造面板暂时没有找到，先确认系统深挖分组是否可见。",
+    };
+  }
+
+  return {
+    selector: buildSelector,
+    fallbackSelector: ".build-panel",
+    label: `点选建筑：${buildingLabel}`,
+    log: `${buildingLabel} 已在建设面板高亮。先看已建功能和下一步扩建路线。`,
+    panelGroup: "systems",
+    missingTitle: "点选建筑",
+    missingLog: "建筑对应的面板暂时没有找到，先确认系统深挖分组是否可见。",
+  };
+}

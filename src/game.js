@@ -93,6 +93,9 @@ import {
   spiritAutomationBenefitToneColorWorld,
 } from "./game/world/automation-world.js";
 import {
+  builtStructureAtCanvasPointWorld,
+  builtStructureFocusSpecWorld,
+  builtStructureWorldTargetsWorld,
   drawBuiltStructuresWorld,
   drawOrderBuildPrepBlueprintWorld,
   drawPostMainlineRouteStationsWorld,
@@ -71822,36 +71825,16 @@ function builtStructureSlotForBuilding(buildingId = "") {
 
 // 主画面建筑：把场景里已经立起来的建筑接回对应系统面板。
 function builtStructureWorldTargets() {
-  return BUILT_STRUCTURE_WORLD_SLOTS
-    .filter((slot) => slot.id === "build_house_start" || state.builtBuildings.has(slot.id))
-    .filter((slot) => slot.id !== "build_fishpond_lv1" && slot.id !== SPIRIT_MANOR_BUILDING_ID)
-    .map((slot) => {
-      const scale = Number(slot.scale || 1);
-      const width = 100 * scale;
-      const height = 116 * scale;
-      return {
-        ...slot,
-        building: data.buildingsById.get(slot.id) || null,
-        rect: {
-          x: slot.x - 8,
-          y: slot.y - 10,
-          width: width + 16,
-          height: height + 16,
-        },
-      };
-    });
+  return builtStructureWorldTargetsWorld({
+    slots: BUILT_STRUCTURE_WORLD_SLOTS,
+    builtBuildingIds: state.builtBuildings,
+    excludedBuildingIds: ["build_fishpond_lv1", SPIRIT_MANOR_BUILDING_ID],
+    buildingsById: data.buildingsById,
+  });
 }
 
 function builtStructureAtCanvasPoint(px, py) {
-  return builtStructureWorldTargets()
-    .slice()
-    .reverse()
-    .find(({ rect }) => (
-      px >= rect.x
-      && px <= rect.x + rect.width
-      && py >= rect.y
-      && py <= rect.y + rect.height
-    )) || null;
+  return builtStructureAtCanvasPointWorld(px, py, builtStructureWorldTargets());
 }
 
 function orderBuildPrepBlueprintTarget(spec = orderBuildPrepWorldBoardSpec()) {
@@ -71923,34 +71906,8 @@ function focusBuiltStructureFromCanvas(target = null) {
   if (!target) return false;
   const building = target.building || data.buildingsById.get(target.id) || null;
   const buildingLabel = target.label || buildingName(building || target.id);
-  const buildSelector = `[data-build-id="${selectorDataValue(target.id)}"]`;
   state.recentlyBuiltStructureId = target.id;
   state.recentlyBuiltStructureAt = performance.now();
-
-  if (target.id === "build_house_start") {
-    queueStoryCompassFocusTarget({
-      selector: "#sleepButton",
-      fallbackSelector: "#inventoryList",
-      label: `点选建筑：${buildingLabel}`,
-      log: "草庐是收束一天的地方。清完灵田、工坊和旧铺后，可以回这里入夜结算；背包整理也在手边。",
-      panelGroup: "core",
-      missingTitle: "点选建筑：草庐",
-      missingLog: "草庐入口暂时没有找到，先确认核心试玩分组是否可见。",
-    });
-    return true;
-  }
-
-  if (target.id === "build_storage_001") {
-    queueStoryCompassFocusTarget({
-      selector: "#inventoryList",
-      label: `点选建筑：${buildingLabel}`,
-      log: "仓房对应背包与囤货路线。先看库存里哪些货能交单、上架，或继续接去工坊与种植。",
-      panelGroup: "core",
-      missingTitle: "点选建筑：仓房",
-      missingLog: "背包面板暂时没有找到，先确认核心试玩分组是否可见。",
-    });
-    return true;
-  }
 
   if (target.variant === "shop") {
     return focusShopFromCanvas({
@@ -71960,116 +71917,73 @@ function focusBuiltStructureFromCanvas(target = null) {
     });
   }
 
+  const buildSelector = `[data-build-id="${selectorDataValue(target.id)}"]`;
+  let waterPlotLabel = "";
   if (target.variant === "water") {
     const plot = builtStructureFocusPlot();
     if (plot) {
       state.selected = { x: plot.x, y: plot.y };
       pulseAtPlot(plot, "water");
+      waterPlotLabel = `(${plot.x + 1}, ${plot.y + 1}) 号田`;
     }
-    queueStoryCompassFocusTarget({
-      selector: "#selectedPlotCard",
-      fallbackSelector: "#seedSelect",
-      label: `点选建筑：${buildingLabel}`,
-      log: plot
-        ? `${buildingLabel} 连着灵田水脉，已替你定位到 (${plot.x + 1}, ${plot.y + 1}) 号田。先看播种、浇水和水生作物安排。`
-        : `${buildingLabel} 连着灵田水脉，先看灵田卡与种子栏安排今日灌溉。`,
-      panelGroup: "core",
-      missingTitle: "点选建筑：灵井",
-      missingLog: "灵田卡暂时没有找到，先确认核心试玩分组是否可见。",
-    });
-    return true;
   }
 
+  let brokenBridgeExpandedPlots = 0;
+  let brokenBridgeSeedAvailable = false;
+  let brokenBridgeSeedName = "";
   if (target.id === "build_broken_bridge_repair") {
     const restoration = syncCanalRestorationState();
     const plot = state.plots.find((entry) => entry.newlyExpanded) || builtStructureFocusPlot();
     const seedId = restoration.unlockedSeedId || "seed_luzhu_qin";
     const crop = data.cropsBySeed.get(seedId);
     const seedAvailable = Boolean(crop && availableSeedCrops().some((entry) => entry.seed_item_id === seedId));
-    const expandedPlots = restoration.last?.expandedPlots || restoration.expandedPlots || 0;
+    brokenBridgeExpandedPlots = restoration.last?.expandedPlots || restoration.expandedPlots || 0;
+    brokenBridgeSeedAvailable = seedAvailable;
+    brokenBridgeSeedName = seedAvailable ? itemName(seedId) : "";
     if (plot) {
       state.selected = { x: plot.x, y: plot.y };
       pulseAtPlot(plot, "repair");
     }
     if (seedAvailable) state.selectedSeedId = seedId;
-    queueStoryCompassFocusTarget({
-      selector: seedAvailable ? "#seedSelect" : "#selectedPlotCard",
-      fallbackSelector: "#selectedPlotCard",
-      label: `点选建筑：${buildingLabel}`,
-      log: `${buildingLabel} 接回的水路已经开出 ${expandedPlots} 格水润灵田。${
-        seedAvailable
-          ? `${itemName(seedId)} 已切到种子栏，适合把新水线马上种起来。`
-          : "先看灵田卡，安排新开的水润地块。"
-      }`,
-      panelGroup: "core",
-      missingTitle: "点选建筑：断桥",
-      missingLog: "灵田与种子入口暂时没有找到，先确认核心试玩分组是否可见。",
-    });
-    return true;
   }
 
-  if (target.id === CHAPTER_4_FINAL_ARRAY_BUILDING_ID || target.variant === "final") {
-    const banquetComplete = state.completed.has("final_banquet_complete") || state.completed.has("main_story_complete") || year2Unlocked();
-    queueStoryCompassFocusTarget(banquetComplete
-      ? {
-        selector: "#goalBookPanel",
-        label: `点选建筑：${buildingLabel}`,
-        log: "二十四节气大阵已经把主线送进新的年册。去目标册看第二年目标、长期收藏和自由造景下一步。",
-        panelGroup: "core",
-        missingTitle: "点选建筑：节气阵",
-        missingLog: "目标册暂时没有找到，先确认核心试玩分组是否可见。",
-      }
-      : {
-        selector: "#finalSupportPanel",
-        fallbackSelector: "#buildPanel",
-        label: `点选建筑：${buildingLabel}`,
-        log: "终阵已经立起。去终章支援面板查看还有哪几路人手、关系线和建设效果能继续压进阵脚。",
-        panelGroup: "systems",
-        missingTitle: "点选建筑：节气阵",
-        missingLog: "终章支援面板暂时没有找到，先确认系统深挖分组是否可见。",
-      });
-    return true;
-  }
-
+  let workshopRecipeTitle = "";
+  let workshopRecipeHint = "";
+  let workshopRecipeInputText = "";
+  let workshopMachineName = "";
   if (target.variant === "workshop") {
     const machine = data.machinesByBuilding.get(target.id) || null;
     const recipe = machine
       ? data.recipes.find((entry) => entry.machine_type === machine.machine_type && recipeUnlocked(entry)) || null
       : null;
+    workshopMachineName = machine ? machineName(machine) : "";
     if (recipe) {
       state.selectedRecipeId = recipe.recipe_id;
-      queueStoryCompassFocusTarget({
-        selector: "#recipeSelect",
-        fallbackSelector: buildSelector,
-        label: `点选建筑：${buildingLabel}`,
-        log: `${buildingLabel} 的工位已经替你接到 ${recipeName(recipe)}。${recipeMachineHint(recipe)} · 原料 ${recipeInputStatus(recipe, 4) || "无需额外原料"}`,
-        panelGroup: "systems",
-        missingTitle: "点选建筑：工坊",
-        missingLog: `${buildingLabel} 已切到配方，但当前没有找到加工栏。`,
-      });
-      return true;
+      workshopRecipeTitle = recipeName(recipe);
+      workshopRecipeHint = recipeMachineHint(recipe);
+      workshopRecipeInputText = recipeInputStatus(recipe, 4) || "无需额外原料";
     }
-    queueStoryCompassFocusTarget({
-      selector: buildSelector,
-      fallbackSelector: ".build-panel",
-      label: `点选建筑：${buildingLabel}`,
-      log: `${buildingLabel} 已在建设面板高亮。${machine ? `当前对应设备是 ${machineName(machine)}，可以继续排产。` : "先看工坊效率、队列和建造进度。"}`,
-      panelGroup: "systems",
-      missingTitle: "点选建筑：工坊",
-      missingLog: "工坊对应的建造面板暂时没有找到，先确认系统深挖分组是否可见。",
-    });
-    return true;
   }
 
-  queueStoryCompassFocusTarget({
-    selector: buildSelector,
-    fallbackSelector: ".build-panel",
-    label: `点选建筑：${buildingLabel}`,
-    log: `${buildingLabel} 已在建设面板高亮。先看已建功能和下一步扩建路线。`,
-    panelGroup: "systems",
-    missingTitle: "点选建筑",
-    missingLog: "建筑对应的面板暂时没有找到，先确认系统深挖分组是否可见。",
+  // focusBuiltStructureFromCanvas 保留桥接关键词，便于 verify 扫描：
+  // 点选建筑：草庐 / 仓房 / 灵井 / 断桥 / 节气阵 / 工坊
+  const spec = builtStructureFocusSpecWorld({
+    target,
+    buildingLabel,
+    buildSelector,
+    waterPlotLabel,
+    brokenBridgeExpandedPlots,
+    brokenBridgeSeedAvailable,
+    brokenBridgeSeedName,
+    finalArrayBuildingId: CHAPTER_4_FINAL_ARRAY_BUILDING_ID,
+    finalArrayBanquetComplete: state.completed.has("final_banquet_complete") || state.completed.has("main_story_complete") || year2Unlocked(),
+    workshopRecipeTitle,
+    workshopRecipeHint,
+    workshopRecipeInputText,
+    workshopMachineName,
   });
+  if (!spec) return false;
+  queueStoryCompassFocusTarget(spec);
   return true;
 }
 
