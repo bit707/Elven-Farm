@@ -690,6 +690,176 @@ export function shopCustomerDecisionChainsMarkupWorld(chains = []) {
   `;
 }
 
+export function shopDecisionLedgerBlockerProfileWorld(reason = "", context = {}) {
+  const hotTagLabel = context.hotTagLabel || "热卖标签";
+  const lowStockName = context.lowStockName || "热卖货";
+  const profiles = {
+    price: {
+      label: "价签偏高",
+      detail: "顾客不是讨厌这件货，而是觉得今天这个价还需要更多理由。",
+      nextAction: "明天先压低 5% 到 10% 价签，等熟客留下再试探利润。",
+    },
+    stock: {
+      label: "货架太薄",
+      detail: "谨慎顾客看见余量太少，会担心买断别人要用的货。",
+      nextAction: `先补 ${lowStockName} 到 2 件以上，让货架看起来更稳。`,
+    },
+    tag: {
+      label: "标签不合",
+      detail: "来客有需求，但货架没有把需求讲明白。",
+      nextAction: `围绕“${hotTagLabel}”补一件更对口的商品或换陈列主题。`,
+    },
+  };
+  return profiles[reason] || {
+    label: "原因待观察",
+    detail: "今天反馈还不够集中，先保留这页账，下一次开铺再比较。",
+    nextAction: "继续开一轮小规模试营业，观察哪类顾客最常停下。",
+  };
+}
+
+export function shopCustomerDecisionLedgerSpecWorld({
+  customers = [],
+  report = [],
+  goods = [],
+  theme = null,
+  themeScore = 0,
+  hotTag = "",
+  sessionSales = 0,
+  needBubbles = [],
+  liveFocus = null,
+  failureRecovery = null,
+  day = 1,
+  themeName = "",
+  customerDisplayName = (archetype) => archetype || "",
+  shopTagLabel = (tag) => tag || "",
+  itemName = (itemId) => itemId || "",
+  lowStockGoods = [],
+  shopCustomerDecisionChains = () => [],
+  normalizeShopCustomerDecisionLedger = (ledger) => ledger,
+} = {}) {
+  const visitors = Array.isArray(customers) ? customers.length : 0;
+  const safeReport = Array.isArray(report) ? report : [];
+  const buys = safeReport.filter((entry) => entry.reason === "buy");
+  const leaves = safeReport.filter((entry) => ["price", "stock", "tag"].includes(entry.reason));
+  const archetypeCounts = (Array.isArray(customers) ? customers : []).reduce((counts, customer) => {
+    counts[customer.archetype] = Number(counts[customer.archetype] || 0) + 1;
+    return counts;
+  }, {});
+  const mainCustomerArchetype = Object.entries(archetypeCounts)
+    .sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] || "";
+  const mainCustomer = mainCustomerArchetype ? customerDisplayName(mainCustomerArchetype) : "客群未定";
+  const hotTagLabel = shopTagLabel(hotTag);
+  const conversion = visitors ? Math.round((buys.length / visitors) * 100) : 0;
+  const safeLowStockGoods = Array.isArray(lowStockGoods) ? lowStockGoods : [];
+  const lowStockName = safeLowStockGoods[0]?.itemName
+    || (safeLowStockGoods[0]?.itemId ? itemName(safeLowStockGoods[0].itemId) : "")
+    || (goods?.[0]?.itemId ? itemName(goods[0].itemId) : "热卖货");
+  const blockerCounts = leaves.reduce((counts, entry) => {
+    counts[entry.reason] = Number(counts[entry.reason] || 0) + 1;
+    return counts;
+  }, {});
+  const blockers = Object.entries(blockerCounts)
+    .sort((a, b) => Number(b[1]) - Number(a[1]))
+    .map(([reason, count]) => {
+      const profile = shopDecisionLedgerBlockerProfileWorld(reason, { hotTagLabel, lowStockName });
+      return {
+        reason,
+        label: profile.label,
+        count: Number(count || 0),
+        detail: profile.detail,
+        nextAction: profile.nextAction,
+      };
+    });
+  const openingLike = {
+    needBubbles,
+    liveFocus,
+    hotTagLabel,
+  };
+  const chains = shopCustomerDecisionChains(openingLike, safeReport)
+    .map((chain) => ({
+      ...chain,
+      evidence: chain.reason,
+    }))
+    .slice(0, 4);
+  const topItemId = liveFocus?.topItemId || buys[0]?.itemId || "";
+  const topItemName = liveFocus?.topItemName || (topItemId ? itemName(topItemId) : "");
+  const mainLine = visitors > 0
+    ? `${mainCustomer}今天最常进门，热点落在“${hotTagLabel}”。`
+    : `还没有稳定客群，先用“${hotTagLabel}”做一次小试。`;
+  const saleLine = buys.length > 0
+    ? `${buys.length} 位顾客买单，成交率 ${conversion}%${topItemName ? `，${topItemName}最能说明货架价值` : ""}。`
+    : "今天还没有成交，但顾客已经留下了可修正的线索。";
+  const leaveLine = leaves.length > 0
+    ? `${leaves.length} 位顾客犹豫离店，最大短板是${blockers[0]?.label || liveFocus?.topBlockerLabel || "标签不够清楚"}。`
+    : "没有明显离店短板，可以沿着这组陈列继续加深库存。";
+  const nextAction = failureRecovery?.action
+    || blockers[0]?.nextAction
+    || liveFocus?.shelfAdvice
+    || (buys.length > 0 ? `沿着“${hotTagLabel}”补一件同标签加工品。` : "先准备一件标签明确的可卖货，再开铺观察。");
+  const mood = buys.length >= leaves.length && buys.length > 0
+    ? "门口热度稳住了，顾客愿意把理由说出口。"
+    : leaves.length > 0
+      ? "今天不算失败，账页已经把流失原因圈出来了。"
+      : "旧铺还在试声量，先让货架讲清楚第一句话。";
+  return normalizeShopCustomerDecisionLedger({
+    day,
+    title: "顾客决策账页",
+    headline: liveFocus?.headline || (buys.length > 0 ? `${topItemName || hotTagLabel}开始被看懂` : `${hotTagLabel}还需要更清楚的陈列`),
+    mainCustomer,
+    mainCustomerArchetype,
+    hotTag,
+    hotTagLabel,
+    visitors,
+    buyers: buys.length,
+    leavers: leaves.length,
+    sales: sessionSales,
+    conversion,
+    themeName: theme?.note || themeName,
+    themeScore: Math.round(themeScore * 100),
+    summaryLines: [mainLine, saleLine, leaveLine],
+    chains,
+    blockers,
+    nextAction,
+    mood,
+    evidence: `${theme?.note || themeName} · 主题 ${Math.round(themeScore * 100)}% · 收入 ${sessionSales} 灵石`,
+  });
+}
+
+export function shopCustomerDecisionLedgerMarkupWorld(ledger = null, day = 1) {
+  if (!ledger) return "";
+  const blockerText = Array.isArray(ledger.blockers) && ledger.blockers.length
+    ? ledger.blockers.map((entry) => `<b>${entry.label} ${entry.count}</b>`).join("")
+    : "<b>无明显短板</b>";
+  const chainText = Array.isArray(ledger.chains) && ledger.chains.length
+    ? ledger.chains.slice(0, 3).map((chain) => `
+      <div class="shop-ledger-chain ${chain.tone}">
+        <b>${chain.name}</b>
+        <span>${chain.need}</span>
+        <small>${chain.result}</small>
+      </div>
+    `).join("")
+    : "<small>继续开铺后，这里会记录顾客从进店到成交或离店的路径。</small>";
+  return `
+    <div class="shop-decision-ledger" data-shop-board="decision-ledger">
+      <strong>${ledger.title} · 第 ${ledger.day || day} 天</strong>
+      <span>${ledger.headline}</span>
+      <div class="shop-ledger-metrics">
+        <b>主客 ${ledger.mainCustomer}</b>
+        <b>成交 ${ledger.buyers}/${ledger.visitors}</b>
+        <b>主题 ${ledger.themeScore}%</b>
+        <b>收入 ${ledger.sales}</b>
+      </div>
+      <div class="shop-ledger-lines">
+        ${ledger.summaryLines.map((line) => `<small>${line}</small>`).join("")}
+      </div>
+      <div class="shop-ledger-blockers">${blockerText}</div>
+      <div class="shop-ledger-chains">${chainText}</div>
+      <small>明日建议：${ledger.nextAction}</small>
+      <small>${ledger.mood} · ${ledger.evidence}</small>
+    </div>
+  `;
+}
+
 export function shopCustomerJourneyRowsWorld({
   opening = null,
   ledger = null,
