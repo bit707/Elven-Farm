@@ -1978,6 +1978,275 @@ export function drawShopCrowdHeatWorld({
   return true;
 }
 
+export function drawShopCourtyardDecorWorld({
+  ctx,
+  decor = null,
+  motion = 0,
+  reducedMotion = false,
+  pointOnPolyline = () => ({ x: 0, y: 0 }),
+  renderCrowdHeat = null,
+  renderJourneyTrace = null,
+  renderWaterwayShelfSpotlight = null,
+} = {}) {
+  if (!ctx || !decor) return false;
+  const {
+    color = "#7ba66c",
+    rareSpiritEventIds = null,
+    lowStockGoodsCount = 0,
+    lowStockSlots = [],
+    liveFocus = null,
+    themeNote = "旧铺主题陈列",
+    showThemeNote = false,
+    shopSpiritCount = 0,
+  } = decor;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(82, 220);
+  ctx.bezierCurveTo(126, 198, 176, 202, 214, 226);
+  ctx.stroke();
+  for (let i = 0; i < 4; i += 1) {
+    const pennantX = 96 + i * 30;
+    ctx.fillStyle = i % 2 ? color : "#fffdf5";
+    ctx.beginPath();
+    ctx.moveTo(pennantX, 220);
+    ctx.lineTo(pennantX + 14, 242);
+    ctx.lineTo(pennantX + 28, 220);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  if (rareSpiritEventIds?.has("rsea_002")) {
+    for (let i = 0; i < 6; i += 1) {
+      const petalX = 94 + i * 24 + Math.sin(motion + i) * 6;
+      const petalY = 208 + (i % 2) * 12 + Math.cos(motion * 1.2 + i) * 4;
+      ctx.fillStyle = i % 2 ? "rgba(216, 127, 141, 0.88)" : "rgba(242, 210, 139, 0.82)";
+      ctx.beginPath();
+      ctx.ellipse(petalX, petalY, 7, 4, motion + i * 0.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  if (rareSpiritEventIds?.has("rsea_012")) {
+    for (let i = 0; i < 3; i += 1) {
+      const poleX = 102 + i * 46;
+      ctx.strokeStyle = "#8f5f3f";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(poleX, 186);
+      ctx.lineTo(poleX, 236);
+      ctx.stroke();
+      ctx.fillStyle = i % 2 ? "rgba(216, 127, 141, 0.84)" : "rgba(242, 210, 139, 0.84)";
+      ctx.beginPath();
+      ctx.moveTo(poleX, 188);
+      ctx.lineTo(poleX + 22, 194 + Math.sin(motion * 1.4 + i) * 4);
+      ctx.lineTo(poleX, 202);
+      ctx.closePath();
+      ctx.fill();
+    }
+    for (let i = 0; i < 3; i += 1) {
+      const guestX = 214 + i * 28;
+      const guestY = 246 + (i % 2) * 10 + Math.sin(motion + i * 0.8) * 2;
+      ctx.fillStyle = "rgba(23, 35, 29, 0.16)";
+      ctx.beginPath();
+      ctx.arc(guestX, guestY + 16, 11, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = i === 1 ? "rgba(242, 210, 139, 0.7)" : "rgba(255, 253, 245, 0.66)";
+      ctx.beginPath();
+      ctx.arc(guestX, guestY - 2, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = i === 1 ? "rgba(216, 127, 141, 0.74)" : "rgba(143, 95, 63, 0.68)";
+      ctx.beginPath();
+      ctx.moveTo(guestX - 8, guestY + 10);
+      ctx.lineTo(guestX + 8, guestY + 10);
+      ctx.lineTo(guestX + 12, guestY + 28);
+      ctx.lineTo(guestX - 12, guestY + 28);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  if (rareSpiritEventIds?.has("rsea_009")) {
+    for (let i = 0; i < 4; i += 1) {
+      const pageX = 118 + i * 26 + Math.sin(motion * 1.1 + i) * 4;
+      const pageY = 248 + (i % 2) * 10 + Math.cos(motion + i * 0.7) * 3;
+      ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+      ctx.beginPath();
+      ctx.roundRect(pageX, pageY, 16, 22, 4);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(143, 95, 63, 0.72)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = i % 2 ? "rgba(143, 95, 63, 0.7)" : "rgba(23, 35, 29, 0.56)";
+      ctx.fillRect(pageX + 4, pageY + 6, 8, 2);
+      ctx.fillRect(pageX + 4, pageY + 11, 8, 2);
+      ctx.fillRect(pageX + 4, pageY + 16, 6, 2);
+    }
+  }
+
+  if (rareSpiritEventIds?.has("rsea_013")) {
+    const tagCount = Math.max(2, Math.min(4, lowStockGoodsCount || 2));
+    for (let i = 0; i < tagCount; i += 1) {
+      const tagX = 224 + i * 26;
+      const tagY = 190 + (i % 2) * 18 + Math.sin(motion * 1.3 + i * 0.5) * 4;
+      ctx.strokeStyle = lowStockGoodsCount > 0 ? "rgba(190, 79, 55, 0.58)" : "rgba(224, 182, 109, 0.58)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(tagX, 176);
+      ctx.lineTo(tagX + 2, tagY);
+      ctx.stroke();
+      ctx.fillStyle = lowStockSlots[i] ? "rgba(239, 217, 208, 0.94)" : "rgba(255, 246, 215, 0.92)";
+      ctx.beginPath();
+      ctx.roundRect(tagX - 8, tagY, 18, 24, 4);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(143, 95, 63, 0.7)";
+      ctx.stroke();
+      ctx.fillStyle = lowStockSlots[i] ? "rgba(190, 79, 55, 0.82)" : "rgba(143, 95, 63, 0.72)";
+      ctx.fillRect(tagX - 3, tagY + 6, 8, 2);
+      ctx.fillRect(tagX - 3, tagY + 11, 8, 2);
+      ctx.fillRect(tagX - 3, tagY + 16, 6, 2);
+    }
+  }
+
+  if (rareSpiritEventIds?.has("rsea_014")) {
+    ctx.fillStyle = "rgba(224, 182, 109, 0.86)";
+    ctx.beginPath();
+    ctx.roundRect(176, 232, 42, 28, 6);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(143, 95, 63, 0.72)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    for (let i = 0; i < 3; i += 1) {
+      const sparkX = 184 + i * 12 + Math.sin(motion * 1.4 + i) * 2;
+      const sparkY = 224 + Math.cos(motion + i * 0.7) * 4;
+      ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
+      ctx.beginPath();
+      ctx.arc(sparkX, sparkY, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  if (rareSpiritEventIds?.has("rsea_015")) {
+    for (let i = 0; i < 3; i += 1) {
+      const jarX = 254 + i * 24;
+      const jarBob = Math.sin(motion * 1.2 + i * 0.8) * 2;
+      ctx.fillStyle = i === 1 ? "rgba(224, 182, 109, 0.92)" : "rgba(242, 210, 139, 0.88)";
+      ctx.beginPath();
+      ctx.roundRect(jarX, 218 + jarBob, 16, 24, 5);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(143, 95, 63, 0.72)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = "rgba(255, 253, 245, 0.78)";
+      ctx.fillRect(jarX + 4, 224 + jarBob, 8, 5);
+    }
+  }
+
+  if (rareSpiritEventIds?.has("rsea_016")) {
+    ctx.fillStyle = "rgba(255, 244, 216, 0.9)";
+    ctx.beginPath();
+    ctx.ellipse(310, 230, 44, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+    for (let i = 0; i < 4; i += 1) {
+      const cupX = 284 + i * 16;
+      const cupY = 222 + (i % 2) * 8 + Math.cos(motion * 1.4 + i) * 2;
+      ctx.fillStyle = "rgba(224, 182, 109, 0.92)";
+      ctx.beginPath();
+      ctx.arc(cupX, cupY, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "rgba(255, 253, 245, 0.84)";
+      ctx.beginPath();
+      ctx.arc(cupX, cupY - 1, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  if (liveFocus) {
+    if (typeof renderCrowdHeat === "function") renderCrowdHeat();
+    if (typeof renderJourneyTrace === "function") renderJourneyTrace();
+    ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+    ctx.beginPath();
+    ctx.roundRect(52, 258, 146, 74, 14);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(40, 111, 88, 0.22)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(68, 286, 40, 20, 6);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+    ctx.fillRect(74, 292, 28, 3);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "700 12px Microsoft YaHei";
+    ctx.fillText(String(liveFocus.topItemName || liveFocus.hotTagLabel || "来客聚焦").slice(0, 6), 116, 282);
+    ctx.fillStyle = "#286f58";
+    ctx.font = "12px Microsoft YaHei";
+    ctx.fillText(`成交 ${liveFocus.buyers} · 离店 ${liveFocus.leavers}`, 116, 302);
+    ctx.fillStyle = liveFocus.topBlocker ? "#be4f37" : "#8f5f3f";
+    ctx.fillText(String(liveFocus.topBlockerLabel || "").slice(0, 14), 116, 322);
+    if (typeof renderWaterwayShelfSpotlight === "function") renderWaterwayShelfSpotlight();
+  }
+
+  if (shopSpiritCount > 0) {
+    const restockPath = [
+      { x: 244, y: 298 },
+      { x: 218, y: 264 },
+      { x: 184, y: 236 },
+      { x: 154, y: 210 },
+    ];
+    ctx.strokeStyle = "rgba(180, 125, 47, 0.34)";
+    ctx.lineWidth = 4;
+    ctx.setLineDash([8, 10]);
+    ctx.lineDashOffset = reducedMotion ? 0 : -motion * 16;
+    ctx.beginPath();
+    restockPath.forEach((routePoint, routeIndex) => {
+      if (routeIndex === 0) ctx.moveTo(routePoint.x, routePoint.y);
+      else ctx.lineTo(routePoint.x, routePoint.y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+    const runnerCount = Math.min(3, Math.max(1, shopSpiritCount));
+    for (let runner = 0; runner < runnerCount; runner += 1) {
+      const point = pointOnPolyline(restockPath, ((motion * 0.2) + runner * 0.28) % 1);
+      const bob = Math.sin(motion * 4 + runner) * (reducedMotion ? 0 : 2);
+      ctx.fillStyle = "#fff6d7";
+      ctx.beginPath();
+      ctx.arc(point.x, point.y + bob, 14, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#286f58";
+      ctx.fillRect(point.x - 10, point.y + 8 + bob, 20, 10);
+      ctx.fillStyle = "#8f5f3f";
+      ctx.fillRect(point.x + 8, point.y - 4 + bob, 12, 10);
+      ctx.fillStyle = runner % 2 ? "rgba(246, 240, 182, 0.82)" : "rgba(224, 182, 109, 0.82)";
+      ctx.beginPath();
+      ctx.roundRect(point.x + 15, point.y + 6 + bob, 14, 11, 4);
+      ctx.fill();
+    }
+    ctx.fillStyle = "rgba(255, 248, 232, 0.9)";
+    ctx.beginPath();
+    ctx.roundRect(152, 184, 104, 26, 11);
+    ctx.fill();
+    ctx.fillStyle = "#b47d2f";
+    ctx.font = "700 11px Microsoft YaHei";
+    ctx.fillText("补货跑动 · 货架接上", 164, 201);
+  }
+
+  if (showThemeNote) {
+    ctx.fillStyle = "rgba(255, 248, 232, 0.88)";
+    ctx.beginPath();
+    ctx.roundRect(224, 250, 146, 26, 12);
+    ctx.fill();
+    ctx.fillStyle = "#17231d";
+    ctx.font = "700 12px Microsoft YaHei";
+    ctx.fillText(String(themeNote || "旧铺主题陈列"), 236, 268);
+  }
+  ctx.restore();
+  return true;
+}
+
 export function drawYear2OrderPrepTableWorld({
   ctx,
   orderTitle = "",
