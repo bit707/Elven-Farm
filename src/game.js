@@ -273,9 +273,9 @@ import {
   waterNoteInteractionTargetsWorld,
 } from "./game/world/water-note-interaction-world.js";
 import {
-  pondFirstCatchFocusSpecWorld,
-  qingboDishRouteFocusSpecWorld,
-  qingheWaterTasteFocusSpecWorld,
+  pondFirstCatchFocusTargetWorld,
+  qingboDishRouteFocusTargetWorld,
+  qingheWaterTasteFocusTargetWorld,
   waterPreludeInteractionTargetsWorld,
 } from "./game/world/water-prelude-interaction-world.js";
 import {
@@ -73423,10 +73423,12 @@ function focusWorldContentFromCanvas(target = null) {
     if (!spec) return false;
     const building = data.buildingsById.get(spec.buildingId) || null;
     const quest = data.sideQuests.find((entry) => entry.quest_id === spec.questId) || null;
-    queueStoryCompassFocusTarget(qingheWaterTasteFocusSpecWorld({
+    queueStoryCompassFocusTarget(qingheWaterTasteFocusTargetWorld({
       spec,
-      buildingCanBuild: Boolean(building && canBuild(building)),
-      questTitleText: quest ? questTitle(quest) : "",
+      building,
+      quest,
+      canBuildFor: canBuild,
+      questTitleFor: questTitle,
     }));
     return true;
   }
@@ -73434,7 +73436,7 @@ function focusWorldContentFromCanvas(target = null) {
   if (target.type === "pond_first_catch_note") {
     const spec = pondFirstCatchNoteSpec();
     if (!spec) return false;
-    queueStoryCompassFocusTarget(pondFirstCatchFocusSpecWorld({ spec }));
+    queueStoryCompassFocusTarget(pondFirstCatchFocusTargetWorld({ spec }));
     return true;
   }
 
@@ -73454,7 +73456,7 @@ function focusWorldContentFromCanvas(target = null) {
     const spec = qingboDishRouteNoteSpec();
     if (!spec) return false;
     if (spec.type === "craft" && spec.recipeReady) state.selectedRecipeId = spec.recipeId;
-    queueStoryCompassFocusTarget(qingboDishRouteFocusSpecWorld({ spec }));
+    queueStoryCompassFocusTarget(qingboDishRouteFocusTargetWorld({ spec }));
     return true;
   }
 

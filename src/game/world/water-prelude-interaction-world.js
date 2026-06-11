@@ -76,6 +76,22 @@ export function qingheWaterTasteFocusSpecWorld({
   };
 }
 
+export function qingheWaterTasteFocusTargetWorld({
+  spec = null,
+  building = null,
+  quest = null,
+  canBuildFor = null,
+  questTitleFor = null,
+} = {}) {
+  const getQuestTitle = typeof questTitleFor === "function" ? questTitleFor : () => "";
+  const canBuildTarget = typeof canBuildFor === "function" ? canBuildFor : () => false;
+  return qingheWaterTasteFocusSpecWorld({
+    spec,
+    buildingCanBuild: Boolean(building && canBuildTarget(building)),
+    questTitleText: quest ? getQuestTitle(quest) : "",
+  });
+}
+
 export function pondFirstCatchFocusSpecWorld({ spec = null } = {}) {
   if (!spec) return null;
   const title = noteTitle(spec.title);
@@ -90,6 +106,10 @@ export function pondFirstCatchFocusSpecWorld({ spec = null } = {}) {
     missingTitle: "点选灵池：第一网",
     missingLog: "灵池试网按钮暂时没有找到，先确认系统深挖分组和建造面板是否可见。",
   };
+}
+
+export function pondFirstCatchFocusTargetWorld({ spec = null } = {}) {
+  return pondFirstCatchFocusSpecWorld({ spec });
 }
 
 export function qingboDishRouteFocusSpecWorld({ spec = null } = {}) {
@@ -116,4 +136,8 @@ export function qingboDishRouteFocusSpecWorld({ spec = null } = {}) {
     missingTitle: "点选水鲜：清波鱼脍",
     missingLog: "对应的任务、配方或旧铺面板暂时没有找到，先确认核心试玩和系统深挖分组是否可见。",
   };
+}
+
+export function qingboDishRouteFocusTargetWorld({ spec = null } = {}) {
+  return qingboDishRouteFocusSpecWorld({ spec });
 }
