@@ -1523,6 +1523,95 @@ export function drawSpiritJoinFeedbackWorld({
   return true;
 }
 
+export function drawSpiritSproutFeedbackWorld({
+  ctx,
+  width = 960,
+  height = 640,
+  feedback = null,
+  now = performance.now(),
+  reducedMotion = false,
+  activeCutscene = false,
+  activeDialogueCount = 0,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !feedback || activeCutscene || activeDialogueCount > 0) return false;
+  const motion = reducedMotion ? 0 : now / 1000;
+  const bob = reducedMotion ? 0 : Math.sin(motion * 3.2) * 5;
+  const accent = feedback.tone === "born" ? "#be4f37" : feedback.tone === "peek" ? "#b47d2f" : "#286f58";
+  const glowColor = feedback.tone === "born" ? "rgba(190, 79, 55, 0.28)" : feedback.tone === "peek" ? "rgba(224, 182, 109, 0.28)" : "rgba(202, 235, 210, 0.3)";
+  const x = Math.round(width / 2 - 228);
+  const y = 84 + bob;
+
+  ctx.save();
+  ctx.globalAlpha = Number(feedback.fade ?? 1);
+  const glow = ctx.createRadialGradient(x + 88, y + 64, 16, x + 88, y + 64, 190);
+  glow.addColorStop(0, glowColor);
+  glow.addColorStop(0.54, "rgba(246, 240, 182, 0.12)");
+  glow.addColorStop(1, "rgba(246, 240, 182, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(x + 88, y + 64, 190, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawCanvasCard(ctx, x, y, 456, 138, "rgba(255, 253, 245, 0.95)");
+  ctx.fillStyle = "rgba(237, 243, 223, 0.76)";
+  ctx.beginPath();
+  ctx.roundRect(x + 20, y + 22, 88, 88, 24);
+  ctx.fill();
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(x + 28, y + 30, 72, 72, 20);
+  ctx.stroke();
+
+  if (feedback.stage === "peek" || feedback.stage === "born") {
+    ctx.fillStyle = feedback.stage === "born" ? "#fffdf5" : "#f5f0b6";
+    ctx.beginPath();
+    ctx.arc(x + 64, y + 68 + bob * 0.2, 22, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#286f58";
+    ctx.beginPath();
+    ctx.arc(x + 56, y + 62 + bob * 0.2, 3.4, 0, Math.PI * 2);
+    ctx.arc(x + 72, y + 62 + bob * 0.2, 3.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#286f58";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x + 64, y + 70 + bob * 0.2, 8, 0.18, Math.PI - 0.18);
+    ctx.stroke();
+    ctx.fillStyle = "#48a868";
+    ctx.beginPath();
+    ctx.ellipse(x + 52, y + 42 + bob * 0.15, 12, 6, -0.55, 0, Math.PI * 2);
+    ctx.ellipse(x + 76, y + 42 + bob * 0.15, 12, 6, 0.55, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    const tremble = reducedMotion ? 0 : Math.sin(motion * 12) * 3;
+    ctx.fillStyle = "#48a868";
+    ctx.beginPath();
+    ctx.ellipse(x + 56 + tremble, y + 64, 18, 8, -0.45, 0, Math.PI * 2);
+    ctx.ellipse(x + 74 + tremble, y + 58, 18, 8, 0.45, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = accent;
+    ctx.font = "900 28px Microsoft YaHei";
+    ctx.fillText("?", x + 56 + tremble, y + 47);
+  }
+
+  ctx.fillStyle = accent;
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(String(feedback.label || "成精预告").slice(0, 14), x + 132, y + 34);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 21px Microsoft YaHei";
+  ctx.fillText(String(feedback.headline || feedback.title || "田垄里有异动").slice(0, 18), x + 132, y + 62);
+  ctx.fillStyle = "#286f58";
+  ctx.font = "13px Microsoft YaHei";
+  ctx.fillText(String(feedback.shortDetail || feedback.detail || "").slice(0, 36), x + 132, y + 90);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText(String(feedback.cta || "继续照料这株作物").slice(0, 40), x + 132, y + 116);
+  ctx.restore();
+  return true;
+}
+
 export function drawSpiritBondHeartlineWorldWorld({
   ctx,
   spec = null,
