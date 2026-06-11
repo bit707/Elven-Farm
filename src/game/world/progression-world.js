@@ -885,3 +885,296 @@ export function drawOrderBuildPrepBlueprintWorld({
   ctx.restore();
   return true;
 }
+
+export function drawSpiritManorSiteWorld({
+  ctx,
+  livingState = null,
+  motion = 0,
+  reducedMotion = false,
+  spiritManorBuildingId = "",
+  drawBuiltStructureIcon = () => {},
+} = {}) {
+  if (!ctx || !livingState?.spiritManorReady) return false;
+  const built = livingState.spiritManorBuilt;
+  const x = 316;
+  const y = 154;
+  ctx.save();
+
+  if (!built) {
+    const pulse = reducedMotion ? 0 : Math.sin(motion * 2.2) * 0.08 + 0.18;
+    ctx.fillStyle = `rgba(224, 182, 109, ${0.16 + pulse})`;
+    ctx.beginPath();
+    ctx.ellipse(x + 120, y + 126, 118, 28, -0.03, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "#b47d2f";
+    ctx.lineWidth = 3;
+    ctx.setLineDash([8, 6]);
+    ctx.strokeRect(x + 12, y + 20, 212, 102);
+    ctx.setLineDash([]);
+    ctx.strokeStyle = "rgba(143, 95, 63, 0.8)";
+    ctx.beginPath();
+    ctx.moveTo(x + 20, y + 112);
+    ctx.lineTo(x + 54, y + 40);
+    ctx.lineTo(x + 190, y + 40);
+    ctx.lineTo(x + 224, y + 112);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(255, 248, 232, 0.9)";
+    ctx.fillRect(x + 142, y - 12, 112, 44);
+    ctx.fillStyle = "#8f5f3f";
+    ctx.font = "700 13px Microsoft YaHei";
+    ctx.fillText("阿檀蓝图", x + 156, y + 6);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "12px Microsoft YaHei";
+    ctx.fillText("百怪大院待建", x + 156, y + 24);
+    ctx.restore();
+    return true;
+  }
+
+  drawBuiltStructureIcon(ctx, spiritManorBuildingId, x + 70, y + 8, "#9a7042", "#e0b66d");
+  ctx.fillStyle = "rgba(255, 248, 232, 0.86)";
+  ctx.fillRect(x + 116, y - 8, 136, 48);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText("百怪大院", x + 132, y + 10);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "12px Microsoft YaHei";
+  ctx.fillText("宿舍与岗位已接通", x + 132, y + 28);
+  ctx.restore();
+  return true;
+}
+
+export function drawPondLifeWorld({
+  ctx,
+  livingState = null,
+  motion = 0,
+  reducedMotion = false,
+} = {}) {
+  if (!ctx || !livingState?.pondBuilt) return false;
+  const centerX = 902;
+  const centerY = 408;
+  const pondLevel = Number(livingState.pondWaterLevel ?? 1);
+  const pondLabel = livingState.pondWaterLabel || "平水";
+  const waterWidth = pondLevel === 0 ? 68 : pondLevel === 2 ? 78 : 74;
+  const waterHeight = pondLevel === 0 ? 28 : pondLevel === 2 ? 38 : 33;
+  const waterY = centerY + (pondLevel === 0 ? 7 : pondLevel === 2 ? -2 : 2);
+  const waterColors = pondLevel === 0
+    ? ["#ccd6b6", "#8da38a", "#556c69"]
+    : pondLevel === 2
+      ? ["#b8ece1", "#78c3bb", "#3b747d"]
+      : ["#9fd7cb", "#63a4a1", "#3e6e73"];
+
+  ctx.save();
+  ctx.fillStyle = "rgba(43, 69, 79, 0.14)";
+  ctx.beginPath();
+  ctx.ellipse(centerX + 4, centerY + 16, 86, 42, -0.08, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(124, 93, 67, 0.18)";
+  ctx.beginPath();
+  ctx.ellipse(centerX - 6, centerY + 8, 66, 22, -0.08, 0, Math.PI * 2);
+  ctx.fill();
+
+  const pondGradient = ctx.createLinearGradient(centerX, waterY - 44, centerX, waterY + 46);
+  pondGradient.addColorStop(0, waterColors[0]);
+  pondGradient.addColorStop(0.52, waterColors[1]);
+  pondGradient.addColorStop(1, waterColors[2]);
+  ctx.fillStyle = pondGradient;
+  ctx.beginPath();
+  ctx.ellipse(centerX, waterY, waterWidth, waterHeight, -0.08, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(223, 247, 238, 0.42)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.ellipse(centerX, waterY, waterWidth, waterHeight, -0.08, Math.PI * 0.15, Math.PI * 1.12);
+  ctx.stroke();
+
+  for (let index = 0; index < 3; index += 1) {
+    const pulse = (motion + index * 0.8) % 2.8;
+    const radius = 8 + pulse * (pondLevel === 2 ? 9 : 7);
+    const alpha = Math.max(0, 0.22 - pulse * 0.06);
+    ctx.strokeStyle = `rgba(223, 247, 238, ${alpha})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(centerX - 18 + index * 20, waterY - 2 + (index % 2) * 10, radius, Math.max(4, radius * 0.38), -0.12, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = "#4f8278";
+  const reedBaseY = waterY + waterHeight - 12;
+  for (let index = 0; index < 5; index += 1) {
+    const reedX = centerX - 70 + index * 28;
+    const sway = reducedMotion ? 0 : Math.sin(motion * 1.4 + index) * 4;
+    ctx.fillRect(reedX, reedBaseY, 4, 18);
+    ctx.beginPath();
+    ctx.moveTo(reedX + 2, reedBaseY);
+    ctx.quadraticCurveTo(reedX + sway, reedBaseY - 10, reedX + 10 + sway, reedBaseY - 26);
+    ctx.lineTo(reedX + 6 + sway, reedBaseY - 26);
+    ctx.quadraticCurveTo(reedX + sway * 0.2, reedBaseY - 12, reedX - 2, reedBaseY);
+    ctx.fill();
+  }
+
+  if (livingState.pondLastCatch) {
+    ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
+    const fishCount = Math.min(2, Number(livingState.pondLastCatch.count || 1));
+    for (let index = 0; index < fishCount; index += 1) {
+      const fishX = centerX - 16 + index * 26;
+      const fishY = waterY - 6 + Math.sin(motion * 1.8 + index) * 4;
+      ctx.beginPath();
+      ctx.ellipse(fishX, fishY, 8, 4, -0.18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(fishX - 8, fishY);
+      ctx.lineTo(fishX - 14, fishY - 4);
+      ctx.lineTo(fishX - 14, fishY + 4);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  if (livingState.pondLotusStage && livingState.pondLotusStage !== "none") {
+    const pads = [
+      { x: centerX - 30, y: waterY + 8, r: 10 },
+      { x: centerX + 12, y: waterY + 12, r: 9 },
+      { x: centerX + 26, y: waterY - 3, r: 8 },
+    ];
+    for (const pad of pads) {
+      ctx.fillStyle = "rgba(79, 130, 120, 0.92)";
+      ctx.beginPath();
+      ctx.arc(pad.x, pad.y, pad.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "rgba(223, 247, 238, 0.28)";
+      ctx.beginPath();
+      ctx.moveTo(pad.x, pad.y);
+      ctx.arc(pad.x, pad.y, pad.r - 1.5, -0.3, 0.72);
+      ctx.closePath();
+      ctx.fill();
+    }
+    const lotusX = centerX - 4;
+    const lotusY = waterY - 10;
+    if (livingState.pondLotusStage === "bud") {
+      ctx.fillStyle = "rgba(255, 253, 245, 0.94)";
+      ctx.beginPath();
+      ctx.ellipse(lotusX, lotusY, 5, 9, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "rgba(159, 209, 223, 0.24)";
+      ctx.beginPath();
+      ctx.arc(lotusX, lotusY, 12, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = "rgba(159, 209, 223, 0.22)";
+      ctx.beginPath();
+      ctx.arc(lotusX, lotusY, 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#fffdf5";
+      for (let index = 0; index < 6; index += 1) {
+        const angle = (Math.PI * 2 * index) / 6;
+        ctx.beginPath();
+        ctx.ellipse(lotusX + Math.cos(angle) * 5, lotusY + Math.sin(angle) * 4, 3.8, 7, angle, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = "#e6c65e";
+      ctx.beginPath();
+      ctx.arc(lotusX, lotusY, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      for (let index = 0; index < 3; index += 1) {
+        const glintX = centerX + 22 + index * 10;
+        const glintY = waterY - 18 + Math.sin(motion * 1.2 + index) * 6;
+        ctx.fillStyle = `rgba(255, 253, 245, ${0.52 - index * 0.08})`;
+        ctx.beginPath();
+        ctx.arc(glintX, glintY, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  if (livingState.pondHasYuelianSpirit) {
+    const spiritX = centerX + 34 + Math.sin(motion * 0.8) * 5;
+    const spiritY = waterY - 36 + Math.cos(motion * 1.1) * 4;
+    ctx.fillStyle = "rgba(159, 209, 223, 0.2)";
+    ctx.beginPath();
+    ctx.arc(spiritX, spiritY, 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fffdf5";
+    ctx.beginPath();
+    ctx.ellipse(spiritX, spiritY, 6, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(159, 209, 223, 0.72)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(spiritX - 3, spiritY + 8);
+    ctx.quadraticCurveTo(spiritX - 9, spiritY + 18, spiritX - 2, spiritY + 22);
+    ctx.moveTo(spiritX + 3, spiritY + 8);
+    ctx.quadraticCurveTo(spiritX + 9, spiritY + 18, spiritX + 1, spiritY + 22);
+    ctx.stroke();
+  }
+
+  if (livingState.pondYuelianRestActive) {
+    ctx.fillStyle = "rgba(255, 253, 245, 0.5)";
+    ctx.beginPath();
+    ctx.ellipse(centerX - 46, waterY - 28, 24, 8, -0.18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(159, 209, 223, 0.66)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(centerX - 46, waterY - 28, 28, 11, -0.18, Math.PI * 0.1, Math.PI * 1.1);
+    ctx.stroke();
+    for (let index = 0; index < 4; index += 1) {
+      ctx.fillStyle = `rgba(255, 253, 245, ${0.62 - index * 0.08})`;
+      ctx.beginPath();
+      ctx.arc(centerX - 58 + index * 8, waterY - 32 + Math.sin(motion + index) * 2, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  if (livingState.pondMoonPondActive) {
+    ctx.strokeStyle = "rgba(255, 253, 245, 0.78)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(centerX + 50, waterY - 40, 16, Math.PI * 0.18, Math.PI * 1.82);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(159, 209, 223, 0.2)";
+    ctx.beginPath();
+    ctx.arc(centerX + 50, waterY - 40, 24, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  if (livingState.hasFishingNet) {
+    ctx.strokeStyle = "#8f5f3f";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(centerX + 58, waterY - 26);
+    ctx.lineTo(centerX + 80, waterY - 60);
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(255, 253, 245, 0.6)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(centerX + 54, waterY - 20, 12, 10, 0.1, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(`${livingState.pondFirstCatchDone ? "灵池有鱼" : "灵池浅塘"} · ${pondLabel}`, centerX - 52, centerY + 56);
+  if (livingState.pondWaterControlUnlocked) {
+    ctx.fillStyle = "rgba(23, 35, 29, 0.76)";
+    ctx.font = "12px Microsoft YaHei";
+    ctx.fillText(
+      livingState.pondMoonPondActive
+        ? "无月之月已经落成"
+        : livingState.pondYuelianRestActive
+          ? "凝露莲席正在收露"
+          : livingState.pondLotusStage !== "none"
+            ? livingState.pondLotusText
+            : livingState.pondWaterMastery
+              ? "稳水看口"
+              : "已学会调水",
+      centerX - 42,
+      centerY + 72,
+    );
+  }
+  ctx.restore();
+  return true;
+}
