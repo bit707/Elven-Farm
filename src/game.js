@@ -183,6 +183,7 @@ import {
   drawWorkshopSpiritAssistActionWorldWorld,
   workshopSpiritAssistActionWorldSpecFromRuntimeWorld,
   drawWorkshopToShopStockBridgeWorldWorld,
+  workshopToShopStockBridgeWorldAtCanvasPointWorld,
   workshopToShopStockBridgeWorldSpecFromRuntimeWorld,
   drawWorkshopValueLedgerWorldWorld,
   workshopValueLedgerWorldSpecFromRuntimeWorld,
@@ -28401,90 +28402,44 @@ function workshopToShopStockBridgeSafetyText() {
   return "只定位配方栏、背包、旧铺反馈或陈列诊断，不会自动加工、上架、开铺、接客、成交、改价、补货、交单、扣库存或消耗资源";
 }
 
-function workshopToShopStockBridgeWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
-  const outputRoute = workshopOutputStorageRouteWorldSpecBridge(width, height);
-  const feedback = outputRoute || state.workshopOutputStorageRouteFeedback;
-  if (!feedback?.outputItemId || Number(feedback.day || 0) !== Number(state.day || 0)) return null;
-  const item = data.itemsById.get(feedback.outputItemId);
-  const stock = Number(state.inventory[feedback.outputItemId] || 0);
-  if (!item || stock <= 0 || item.item_type === "seed" || String(item.sell_price_base || "0") === "0") return null;
-  const opening = normalizeShopOpeningState(state.shopOpeningState);
-  if (opening.opened) return null;
-  const goods = sellableInventoryGoods();
-  const bridgeGood = goods.find((good) => good.itemId === feedback.outputItemId);
-  if (!bridgeGood) return null;
-  const ecologyGarden = ecologyCourtyardSummary();
-  const tags = shopTagsForItem(item, ecologyGarden);
-  const shopTag = feedback.shopTag || prioritizeShopTag(tags, new Map(tags.map((tag) => [tag, 1])), "food");
-  const shopTagText = feedback.shopTagText || shopTagLabel(shopTag);
-  const goodsEye = shopDailyGoodsEyeWorldSpec(width, height);
-  const shelfPrep = shopShelfPrepWorldBoardSpec(width, height);
-  const customerName = goodsEye?.itemId === feedback.outputItemId
-    ? goodsEye.customerName
-    : shelfPrep?.itemId === feedback.outputItemId
-      ? shelfPrep.customerName
-      : "第一批路过客";
-  const reason = goodsEye?.itemId === feedback.outputItemId
-    ? goodsEye.headline
-    : shelfPrep?.itemId === feedback.outputItemId
-      ? shelfPrep.openingExpectation
-      : `${shopTagText}货签能让顾客先看懂这份成品`;
-  const routeText = "出锅入仓 -> 擦亮货签 -> 门口会看见";
-  const cardWidth = 328;
-  const cardHeight = 122;
-  const x = Math.max(46, Math.min(width - cardWidth - 34, 120));
-  const y = Math.max(318, Math.min(height - cardHeight - 32, 342));
-  const nodes = [
-    {
-      key: "stock",
-      badge: "仓",
-      title: "出锅入仓",
-      detail: `${feedback.outputItemName || itemName(feedback.outputItemId)} x${stock}`,
-      accent: "#be4f37",
-      selector: "#inventoryList",
-    },
-    {
-      key: "ticket",
-      badge: "签",
-      title: "擦亮货签",
-      detail: shopTagText || "旧铺货",
-      accent: "#b47d2f",
-      selector: "#shopReport",
-    },
-    {
-      key: "door",
-      badge: "眼",
-      title: "门口会看见",
-      detail: customerName || "路过客",
-      accent: "#4d91a6",
-      selector: goodsEye?.selector || shelfPrep?.selector || '[data-shop-board="display-diagnosis"]',
-    },
-  ];
+function workshopToShopStockBridgeCopy(feedback, stock = 0, shopTagText = "", customerName = "第一批路过客", reason = "") {
+  if (!feedback?.outputItemId) return null;
   return {
-    active: true,
-    key: `${state.day}:${feedback.outputItemId}:${stock}:${shopTag}:${goodsEye?.mode || "bridge"}:${shelfPrep?.tone || "stock"}`,
-    day: state.day,
     title: "工坊到旧铺备货桥 · 可点",
     headline: `${feedback.outputItemName || itemName(feedback.outputItemId)} 已能变成铺门前的货`,
     detail: `库存 ${stock} · ${shopTagText || "旧铺货"} · ${reason || "先把这份成品从锅边讲到门口"}`,
-    routeText,
-    itemId: feedback.outputItemId,
-    itemName: feedback.outputItemName || itemName(feedback.outputItemId),
-    recipeId: feedback.recipeId || "",
-    recipeName: feedback.recipeName || "当前配方",
-    stock,
-    shopTag,
-    shopTagText,
-    customerName,
-    reason,
-    goodsEye,
-    shelfPrep,
-    nodes,
-    safeNote: workshopToShopStockBridgeSafetyText(),
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: 404, y: 470 },
-    shopAnchor: { x: 154, y: 232 },
+    routeText: "出锅入仓 -> 擦亮货签 -> 门口会看见",
+    nodes: [
+      {
+        key: "stock",
+        badge: "仓",
+        title: "出锅入仓",
+        detail: `${feedback.outputItemName || itemName(feedback.outputItemId)} x${stock}`,
+        accent: "#be4f37",
+        selector: "#inventoryList",
+      },
+      {
+        key: "ticket",
+        badge: "签",
+        title: "擦亮货签",
+        detail: shopTagText || "旧铺货",
+        accent: "#b47d2f",
+        selector: "#shopReport",
+      },
+      {
+        key: "door",
+        badge: "眼",
+        title: "门口会看见",
+        detail: customerName || "路过客",
+        accent: "#4d91a6",
+        selector: null,
+      },
+    ],
   };
+}
+
+function workshopToShopStockBridgeWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
+  return workshopToShopStockBridgeWorldSpecBridge(width, height);
 }
 
 function workshopToShopStockBridgeWorldSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640) {
@@ -28501,6 +28456,19 @@ function workshopToShopStockBridgeWorldSpecBridge(width = refs.world?.width || 9
   const shopTagText = feedback?.shopTagText || shopTagLabel(shopTag);
   const goodsEye = shopDailyGoodsEyeWorldSpec(width, height);
   const shelfPrep = shopShelfPrepWorldBoardSpec(width, height);
+  const customerName = goodsEye?.itemId === feedback?.outputItemId
+    ? goodsEye.customerName
+    : shelfPrep?.itemId === feedback?.outputItemId
+      ? shelfPrep.customerName
+      : "第一批路过客";
+  const reason = goodsEye?.itemId === feedback?.outputItemId
+    ? goodsEye.headline
+    : shelfPrep?.itemId === feedback?.outputItemId
+      ? shelfPrep.openingExpectation
+      : `${shopTagText}货签能让顾客先看懂这份成品`;
+  const doorSelector = goodsEye?.selector || shelfPrep?.selector || '[data-shop-board="display-diagnosis"]';
+  const copy = workshopToShopStockBridgeCopy(feedback, stock, shopTagText, customerName, reason);
+  if (copy?.nodes?.[2]) copy.nodes[2].selector = doorSelector;
   return workshopToShopStockBridgeWorldSpecFromRuntimeWorld({
     width,
     height,
@@ -28516,19 +28484,17 @@ function workshopToShopStockBridgeWorldSpecBridge(width = refs.world?.width || 9
     shelfPrep,
     itemName,
     safeNote: workshopToShopStockBridgeSafetyText(),
+    copy,
+    doorSelector,
   });
 }
 
 function workshopToShopStockBridgeWorldAtCanvasPoint(px, py) {
-  const spec = workshopToShopStockBridgeWorldSpecBridge(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return workshopToShopStockBridgeWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: workshopToShopStockBridgeWorldSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
+  });
 }
 
 function focusWorkshopToShopStockBridgeWorldFromCanvas(spec = workshopToShopStockBridgeWorldSpecBridge()) {

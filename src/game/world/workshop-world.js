@@ -1315,6 +1315,8 @@ export function workshopToShopStockBridgeWorldSpecFromRuntimeWorld({
   shelfPrep = null,
   itemName = (itemId) => itemId,
   safeNote = "Focus only. No automatic craft, shelf placement, shop open, customer action, sale, repricing, restock, order delivery, inventory spend, or resource spend.",
+  copy = null,
+  doorSelector = '[data-shop-board="display-diagnosis"]',
 } = {}) {
   if (!feedback?.outputItemId || Number(feedback.day || 0) !== Number(day || 0)) return null;
   const currentStock = Number(stock || 0);
@@ -1326,6 +1328,7 @@ export function workshopToShopStockBridgeWorldSpecFromRuntimeWorld({
   const safeShopTagText = shopTagText || feedback.shopTagText || "Shop shelf";
   const goodsEyeMatches = goodsEye?.itemId === feedback.outputItemId;
   const shelfPrepMatches = shelfPrep?.itemId === feedback.outputItemId;
+  const safeCopy = copy || {};
   const customerName = goodsEyeMatches
     ? goodsEye.customerName
     : shelfPrepMatches
@@ -1336,47 +1339,47 @@ export function workshopToShopStockBridgeWorldSpecFromRuntimeWorld({
     : shelfPrepMatches
       ? shelfPrep.openingExpectation
       : `${safeShopTagText} helps customers understand this output before opening.`;
-  const routeText = "Stock in -> Polish shelf tag -> Door sees it";
   const cardWidth = 328;
   const cardHeight = 122;
   const x = Math.max(46, Math.min(width - cardWidth - 34, 120));
   const y = Math.max(318, Math.min(height - cardHeight - 32, 342));
-  const doorSelector = goodsEye?.selector || shelfPrep?.selector || '[data-shop-board="display-diagnosis"]';
-  const nodes = [
-    {
-      key: "stock",
-      badge: "INV",
-      title: "Stock in",
-      detail: `${safeItemName} x${currentStock}`,
-      accent: "#be4f37",
-      selector: "#inventoryList",
-    },
-    {
-      key: "ticket",
-      badge: "TAG",
-      title: "Shelf tag",
-      detail: safeShopTagText,
-      accent: "#b47d2f",
-      selector: "#shopReport",
-    },
-    {
-      key: "door",
-      badge: "EYE",
-      title: "Door sees",
-      detail: customerName || "Passerby",
-      accent: "#4d91a6",
-      selector: doorSelector,
-    },
-  ];
+  const nodes = Array.isArray(safeCopy.nodes) && safeCopy.nodes.length > 0
+    ? safeCopy.nodes
+    : [
+      {
+        key: "stock",
+        badge: "INV",
+        title: "Stock in",
+        detail: `${safeItemName} x${currentStock}`,
+        accent: "#be4f37",
+        selector: "#inventoryList",
+      },
+      {
+        key: "ticket",
+        badge: "TAG",
+        title: "Shelf tag",
+        detail: safeShopTagText,
+        accent: "#b47d2f",
+        selector: "#shopReport",
+      },
+      {
+        key: "door",
+        badge: "EYE",
+        title: "Door sees",
+        detail: customerName || "Passerby",
+        accent: "#4d91a6",
+        selector: doorSelector,
+      },
+    ];
 
   return {
     active: true,
     key: `${day}:${feedback.outputItemId}:${currentStock}:${safeShopTag}:${goodsEye?.mode || "bridge"}:${shelfPrep?.tone || "stock"}`,
     day,
-    title: "Workshop to shop stock bridge - click",
-    headline: `${safeItemName} can become front-door stock`,
-    detail: `Stock ${currentStock} / ${safeShopTagText} / ${reason || "Move this output from the pot story to the shop door."}`,
-    routeText,
+    title: safeCopy.title || "Workshop to shop stock bridge - click",
+    headline: safeCopy.headline || `${safeItemName} can become front-door stock`,
+    detail: safeCopy.detail || `Stock ${currentStock} / ${safeShopTagText} / ${reason || "Move this output from the pot story to the shop door."}`,
+    routeText: safeCopy.routeText || "Stock in -> Polish shelf tag -> Door sees it",
     itemId: feedback.outputItemId,
     itemName: safeItemName,
     recipeId: feedback.recipeId || "",
@@ -1394,6 +1397,21 @@ export function workshopToShopStockBridgeWorldSpecFromRuntimeWorld({
     anchor: { x: 404, y: 470 },
     shopAnchor: { x: 154, y: 232 },
   };
+}
+
+export function workshopToShopStockBridgeWorldAtCanvasPointWorld({
+  px,
+  py,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return (
+    px >= rect.x
+    && px <= rect.x + rect.width
+    && py >= rect.y
+    && py <= rect.y + rect.height
+  ) ? spec : null;
 }
 
 export function drawWorkshopToShopStockBridgeWorldWorld({
