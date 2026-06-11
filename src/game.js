@@ -174,8 +174,12 @@ import {
   shopCanvasTargetsWorld,
 } from "./game/world/shop-targets-world.js";
 import {
+  inventoryWeatherShelfHintMarkupWorld,
   shopSeasonalDoorstepSceneSpecWorld,
+  shopWeatherCustomerReactionMarkupWorld,
   shopWeatherCustomerReactionSpecWorld,
+  shopWeatherShelfRecommendationMarkupWorld,
+  shopWeatherShelfRecommendationSpecWorld,
 } from "./game/world/shop-weather-world.js";
 import {
   shopCustomerFocusActionsMarkupWorld,
@@ -26139,277 +26143,38 @@ function shopWeatherCustomerReactionSpec({
   });
 }
 
-function shopWeatherShelfProfile(kind = "clear") {
-  const profiles = {
-    "soft-rain": {
-      title: "雨棚天气主推货",
-      tags: ["refreshing", "water_food", "clean_food", "food", "staple", "portable_food", "drink"],
-      missingTags: ["refreshing", "food", "portable_food"],
-      reason: "避雨客停得住，既会问清润小食，也会顺手带走热汤和路粮。",
-      actionText: "清润货放干爽头排，热汤和纸包路粮靠近檐下货签。",
-    },
-    "storm-rain": {
-      title: "暴雨刚需货架",
-      tags: ["staple", "portable_food", "relief", "medicine", "herb", "warming", "food"],
-      missingTags: ["staple", "portable_food", "medicine"],
-      reason: "暴雨天顾客不愿久站，刚需、药草和能立刻带走的东西最容易成交。",
-      actionText: "把刚需货集中成一排，价签写清用途，减少顾客犹豫。",
-    },
-    mist: {
-      title: "雾灯故事货架",
-      tags: ["gift", "premium", "festival", "route_rare", "spirit_crafted", "ecology_product", "clean_food"],
-      missingTags: ["gift", "premium", "route_rare"],
-      reason: "雾天适合慢逛，带传闻、礼性和精怪手作感的货更容易被多看一眼。",
-      actionText: "稀奇货配一张故事货签，礼品和净食放在雾灯照得到的位置。",
-    },
-    "hot-wind": {
-      title: "暑风清凉货架",
-      tags: ["refreshing", "water_food", "food_cold", "clean_food", "cooling", "drink", "fresh_food"],
-      missingTags: ["refreshing", "water_food", "drink"],
-      reason: "热风天顾客先问清爽口，水生货、凉口菜和饮品会比厚重热食更亮眼。",
-      actionText: "把清凉标签写大，头排避开燥热货，先卖能解暑的这一格。",
-    },
-    drought: {
-      title: "旱天水润救急货",
-      tags: ["water", "water_food", "refreshing", "relief", "portable_supply", "drink", "staple"],
-      missingTags: ["water_food", "relief", "portable_supply"],
-      reason: "旱天顾客会先问水和顶用，水润、救急、耐放货更像真正能帮上忙。",
-      actionText: "水润货放第一格，旁边补耐放路粮，别只摆好看的礼货。",
-    },
-    frost: {
-      title: "霜天炉边暖货",
-      tags: ["warming", "food", "staple", "recover_sp", "medicine", "herb", "fire_food"],
-      missingTags: ["warming", "staple", "medicine"],
-      reason: "霜天顾客会往火盆边靠，温补、热汤和稳身药草更容易被问价。",
-      actionText: "暖货靠炉边陈列，热食配温补标签，药草放在第二排稳住客心。",
-    },
-    snow: {
-      title: "雪天归家货架",
-      tags: ["warming", "food", "staple", "festival", "gift", "premium", "recover_sp"],
-      missingTags: ["warming", "staple", "gift"],
-      reason: "雪天顾客想带点暖东西回家，成套暖食、节礼和主食更容易连带成交。",
-      actionText: "暖食做主推，旁边搭一件节礼，像一份能带回家的小包。",
-    },
-    dew: {
-      title: "晨露鲜货头排",
-      tags: ["fresh_food", "vegetable", "herb", "clean_food", "refreshing", "medicine", "crop"],
-      missingTags: ["fresh_food", "herb", "refreshing"],
-      reason: "晨露会让鲜货显得刚摘下，鲜食、药草和清润小食最有早市感。",
-      actionText: "鲜货擦亮放头排，药草和清润食物贴上“今早新收”的货签。",
-    },
-    cloudy: {
-      title: "阴天慢逛组合货",
-      tags: ["premium", "gift", "festival", "staple", "fresh_food", "ecology_product", "spirit_crafted"],
-      missingTags: ["premium", "gift", "staple"],
-      reason: "阴天脚步不急，顾客愿意比较组合、价格理由和熟客推荐。",
-      actionText: "做一组高低搭配：一件招牌货配一件平价耐用货。",
-    },
-    clear: {
-      title: "晴日热卖头牌",
-      tags: ["food", "fresh_food", "vegetable", "gift", "premium", "ecology_product", "spirit_crafted"],
-      missingTags: ["food", "fresh_food", "gift"],
-      reason: "晴天视线清楚，最适合把主题明确、卖相干净的货推成今日招牌。",
-      actionText: "主推货签写清楚，旁边补同标签小货，让顾客一眼知道今天卖什么。",
-    },
-  };
-  return profiles[kind] || profiles.clear;
-}
-
-function shopWeatherShelfRestockPlan({
-  desiredTags = [],
-  missingTags = [],
-  topGoods = [],
-} = {}, goods = sellableInventoryGoods(), ecologyGarden = ecologyCourtyardSummary()) {
-  const focusTags = [...new Set([...(missingTags || []), ...(desiredTags || [])].filter(Boolean))];
-  const topGood = topGoods[0] || null;
-  if (topGood?.itemId) {
-    const routes = shopRestockRouteCandidates({
-      day: state.day,
-      itemId: topGood.itemId,
-      itemName: topGood.itemName,
-      note: "天气主推货继续补厚",
-    });
-    const tag = topGood.matchedTags?.[0] || focusTags[0] || "";
-    return {
-      active: true,
-      mode: "featured",
-      itemId: topGood.itemId,
-      itemName: topGood.itemName,
-      desiredCount: Math.max(2, Number(topGood.count || 0) + 1),
-      tag,
-      tagLabel: shopTagLabel(tag),
-      reason: `天气主推货：${topGood.itemName}`,
-      note: "把已匹配天气的头排货补厚，下一次开铺更稳。",
-      routes,
-    };
-  }
-
-  const candidate = (Array.isArray(data.items) ? data.items : [])
-    .filter((item) => item?.item_id && item.sell_price_base !== "0" && item.item_type !== "seed")
-    .map((item) => {
-      const itemId = item.item_id;
-      const tags = shopTagsForItem(item, ecologyGarden);
-      const matchedTags = focusTags.filter((tag) => shopTagsOverlap(tags, [tag]));
-      if (!matchedTags.length) return null;
-      const count = Number(state.inventory[itemId] || 0);
-      const recipe = bestRecipeForOutput(itemId);
-      const crop = data.cropsById.get(itemId);
-      const seedReady = crop && availableSeedCrops().some((entry) => entry.seed_item_id === crop.seed_item_id);
-      const recipeScore = recipe ? recipeCraftReady(recipe) ? 90 : recipeUnlocked(recipe) ? 68 : 32 : 0;
-      const cropScore = crop ? seedReady ? 78 : 34 : 0;
-      const stockScore = count > 0 ? 120 : 0;
-      const rarityEase = Math.max(0, 6 - Number(item.rarity || 1));
-      const score = matchedTags.length * 12 + stockScore + recipeScore + cropScore + rarityEase;
-      if (score <= 0 || (!count && !recipe && !crop)) return null;
-      return {
-        itemId,
-        itemName: itemName(itemId),
-        count,
-        tags,
-        matchedTags,
-        score,
-      };
-    })
-    .filter(Boolean)
-    .sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || a.itemName.localeCompare(b.itemName, "zh-Hans-CN"))[0] || null;
-  const tag = candidate?.matchedTags?.[0] || focusTags[0] || "";
-  const routes = candidate
-    ? shopRestockRouteCandidates({
-      day: state.day,
-      itemId: candidate.itemId,
-      itemName: candidate.itemName,
-      note: `补 ${shopTagLabel(tag)} 天气对口货`,
-    })
-    : [];
-  return {
-    active: Boolean(candidate || tag),
-    mode: candidate ? "missing" : "generic",
-    itemId: candidate?.itemId || "",
-    itemName: candidate?.itemName || `${shopTagLabel(tag)}货`,
-    desiredCount: 2,
-    tag,
-    tagLabel: shopTagLabel(tag),
-    reason: candidate ? `补一件${shopTagLabel(tag)}天气对口货` : `先补${shopTagLabel(tag)}类可卖货`,
-    note: candidate ? "从推荐路线里挑最顺手的一条补上。" : "先从田地、工坊或商路找一件同标签货。",
-    routes,
-  };
-}
-
-function shopWeatherShelfRestockPlanMarkup(plan = null) {
-  if (!plan?.active) return "";
-  const routeRows = (plan.routes || []).slice(0, 3).map((route) => `
-    <div class="shop-weather-shelf-route ${route.type}">
-      <b>${route.label} · ${route.title}</b>
-      <small>${route.detail}</small>
-      <button type="button" data-shop-weather-route="${route.action}" data-shop-weather-recipe="${route.recipeId || ""}" data-shop-weather-seed="${route.seedId || ""}" data-shop-weather-tag="${route.shopTag || plan.tag || ""}" data-shop-weather-item="${route.itemId || plan.itemId || ""}">${route.action === "recipe" ? "看配方" : route.action === "seed" ? "看种子" : "看旧铺货签"}</button>
-    </div>
-  `).join("");
-  return `
-    <div class="shop-weather-shelf-plan">
-      <strong>天气补货路线 · ${plan.itemName}</strong>
-      <span>${plan.reason} · ${plan.note}</span>
-      <div class="shop-weather-shelf-actions">
-        <button type="button" data-shop-weather-restock="true" data-shop-weather-restock-item="${plan.itemId || ""}" data-shop-weather-restock-tag="${plan.tag || ""}">${plan.itemId ? "追踪这件补货" : `追踪${plan.tagLabel || "天气"}补货`}</button>
-      </div>
-      ${routeRows ? `<div class="shop-weather-shelf-routes">${routeRows}</div>` : `<small>暂无可定位路线，先从田地、工坊或商路找一件${plan.tagLabel || "应季"}货。</small>`}
-    </div>
-  `;
-}
-
 function shopWeatherShelfRecommendationSpec(
   weatherReaction = shopWeatherCustomerReactionSpec(),
   goods = sellableInventoryGoods(),
   ecologyGarden = ecologyCourtyardSummary(),
 ) {
-  if (!weatherReaction?.active) return null;
-  const profile = shopWeatherShelfProfile(weatherReaction.kind);
-  const desiredTags = [...new Set(profile.tags || [])];
-  const safeGoods = goods.filter(({ item, count }) => item && Number(count || 0) > 0);
-  const scoredGoods = safeGoods
-    .map(({ item, itemId, count }) => {
-      const tags = shopTagsForItem(item || itemId, ecologyGarden);
-      const matchedTags = desiredTags.filter((tag) => shopTagsOverlap(tags, [tag]));
-      const expressiveTags = tags.filter((tag) => isExpressiveShopTag(tag));
-      const ecologyTags = tags.filter((tag) => ["ecology_product", "spirit_crafted", "route_rare"].includes(tag));
-      const score = matchedTags.length * 8
-        + expressiveTags.filter((tag) => desiredTags.includes(tag)).length * 3
-        + ecologyTags.filter((tag) => desiredTags.includes(tag)).length * 3
-        + Math.min(4, Number(count || 0))
-        + Math.min(3, Number(item?.rarity || 1));
-      const labelTags = [...new Set([...matchedTags, ...ecologyTags, ...expressiveTags, ...tags])]
-        .filter(Boolean)
-        .slice(0, 3);
-      return {
-        itemId,
-        itemName: itemName(itemId),
-        count: Number(count || 0),
-        score,
-        matchedTags,
-        tagText: labelTags.map(shopTagLabel).join(" / ") || profile.title,
-      };
-    })
-    .filter((entry) => entry.score > 0 && entry.matchedTags.length > 0)
-    .sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(b.count || 0) - Number(a.count || 0))
-    .slice(0, 3);
-  const matchedTagSet = new Set(scoredGoods.flatMap((entry) => entry.matchedTags));
-  const missingTags = (profile.missingTags || desiredTags)
-    .filter((tag) => !matchedTagSet.has(tag))
-    .slice(0, 4);
-  const topGood = scoredGoods[0] || null;
-  const hasGoods = scoredGoods.length > 0;
-  const restockPlan = shopWeatherShelfRestockPlan({
-    desiredTags,
-    missingTags,
-    topGoods: scoredGoods,
-  }, safeGoods, ecologyGarden);
-  return {
-    active: true,
-    kind: weatherReaction.kind,
-    title: profile.title,
-    tone: hasGoods ? weatherReaction.tone || "good" : "warn",
-    weatherName: weatherReaction.weatherName,
-    desiredTags,
-    topGoods: scoredGoods,
-    missingTags,
-    missingTagText: missingTags.map(shopTagLabel).join(" / "),
-    restockPlan,
-    reason: profile.reason,
-    actionText: hasGoods
-      ? `天气主推货：${topGood.itemName}。${profile.actionText}`
-      : `缺少天气对口货：${missingTags.map(shopTagLabel).join(" / ") || "应季货"}。先从田地、工坊或商路补一件。`,
-    headline: hasGoods
-      ? `${topGood.itemName} x${topGood.count} 可以挂上“${weatherReaction.tagHint || "应季"}”货签。`
-      : `${weatherReaction.weatherName}有客意，但货架缺少对口商品。`,
-  };
+  return shopWeatherShelfRecommendationSpecWorld({
+    weatherReaction,
+    goods,
+    ecologyGarden,
+    day: state.day,
+    inventory: state.inventory,
+    items: data.items,
+    cropsById: data.cropsById,
+    availableSeedCrops,
+    itemName,
+    shopTagLabel,
+    shopTagsForItem,
+    shopTagsOverlap,
+    isExpressiveShopTag,
+    bestRecipeForOutput,
+    recipeCraftReady,
+    recipeUnlocked,
+    shopRestockRouteCandidates,
+  });
 }
 
 function shopWeatherShelfRecommendationMarkup(spec = shopWeatherShelfRecommendationSpec()) {
-  if (!spec?.active) return "";
-  const goodsText = spec.topGoods.length
-    ? spec.topGoods.map((good, index) => `
-      <div class="shop-weather-shelf-row ${index === 0 ? "feature" : ""}">
-        <b>${index === 0 ? "今日天气主推" : "顺手搭售"} · ${good.itemName} x${good.count}</b>
-        <small>${good.tagText}</small>
-      </div>
-    `).join("")
-    : `<div class="shop-weather-shelf-missing">缺少天气对口货：${spec.missingTagText || "应季货"}</div>`;
-  const missingText = spec.missingTags.length
-    ? `<small>待补标签：${spec.missingTags.map(shopTagLabel).join(" / ")}</small>`
-    : "<small>天气对口标签已经接上，可以直接开铺试卖。</small>";
-  const restockPlanText = shopWeatherShelfRestockPlanMarkup(spec.restockPlan);
-  const customerVignetteText = shopWeatherShelfCustomerVignetteMarkup(spec);
-  return `
-    <div class="shop-weather-shelf ${spec.tone}" data-shop-board="weather-shelf">
-      <strong>${spec.title} · ${spec.weatherName}</strong>
-      <span>${spec.headline}</span>
-      <small>${spec.reason}</small>
-      <div class="shop-weather-shelf-goods">${goodsText}</div>
-      ${missingText}
-      ${customerVignetteText}
-      ${restockPlanText}
-      <small>掌柜建议：${spec.actionText}</small>
-    </div>
-  `;
+  return shopWeatherShelfRecommendationMarkupWorld({
+    spec,
+    customerVignetteMarkup: shopWeatherShelfCustomerVignetteMarkup(spec),
+    shopTagLabel,
+  });
 }
 
 function shopWeatherShelfCustomerVignetteMarkup(spec = shopWeatherShelfRecommendationSpec()) {
@@ -26491,53 +26256,22 @@ function inventoryWeatherShelfHintMarkup(itemId = "", count = 0, shelf = shopWea
   const item = data.itemsById.get(itemId);
   if (!item) return "";
   const support = shopWeatherShelfChoiceSupport({ itemId, item, count }, shelf, null, ecologyCourtyardSummary());
-  if (!support.active) return "";
-  const topIndex = (shelf.topGoods || []).findIndex((good) => good.itemId === itemId);
-  const matchedText = (support.matchedTags || [])
-    .map((tag) => shopTagLabel(tag))
-    .filter(Boolean)
-    .slice(0, 2)
-    .join(" / ");
-  const isFeature = topIndex === 0;
-  const label = isFeature ? "今日天气主推" : "天气对口货";
-  const detail = isFeature
-    ? `${shelf.weatherName}货签适合放头排，开铺时更容易被第一眼看见。`
-    : `${shelf.weatherName}正合${matchedText || support.label || "应季货"}，可以做顺手搭售。`;
-  const routeText = isFeature ? "可追踪天气补货" : "补厚天气对口货";
-  return `
-    <small class="item-weather-shelf-hint ${isFeature ? "good" : "warn"}">
-      <b>背包天气货签：${label}</b>
-      <span>${matchedText ? `${matchedText} · ` : ""}${detail}</span>
-      <button type="button" data-inventory-weather-restock="${itemId}">${routeText}</button>
-    </small>
-  `;
+  return inventoryWeatherShelfHintMarkupWorld({
+    itemId,
+    count,
+    shelf,
+    support,
+    shopTagLabel,
+  });
 }
 
 function shopWeatherCustomerReactionMarkup(spec = shopWeatherCustomerReactionSpec(), shelfSpec = shopWeatherShelfRecommendationSpec(spec)) {
-  if (!spec?.active) return "";
-  const warningText = spec.warning && spec.disaster !== "none"
-    ? `灾害 ${spec.disaster} · 更要把${spec.tagHint}货放到一眼能看到的位置。`
-    : `水分 ${signedPercent(spec.waterBonus)} · 成长 ${multiplierText(spec.growthModifier)}。`;
-  const heatText = spec.heatBoost > 0
-    ? "天气帮你多留半步脚"
-    : spec.heatBoost < 0
-      ? "天气会缩短犹豫时间"
-      : "天气让客人慢慢看";
-  return `
-    <div class="shop-weather-customer ${spec.tone}" data-shop-board="weather-customer">
-      <strong>${spec.title} · ${spec.label}</strong>
-      <span>${spec.customerLabel}：“${spec.bubble}”</span>
-      <small>${spec.detail}</small>
-      <div class="shop-weather-customer-chips">
-        <b>${spec.weatherName}</b>
-        <b>${spec.tagHint}</b>
-        <b>${heatText}</b>
-      </div>
-      ${shopWeatherShelfRecommendationMarkup(shelfSpec)}
-      <small>掌柜建议：${spec.advice}</small>
-      <small>${warningText}</small>
-    </div>
-  `;
+  return shopWeatherCustomerReactionMarkupWorld({
+    spec,
+    shelfMarkup: shopWeatherShelfRecommendationMarkup(shelfSpec),
+    signedPercent,
+    multiplierText,
+  });
 }
 
 function shopCustomerForecastTone(display = null, shelf = null, goods = []) {
