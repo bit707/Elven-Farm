@@ -1161,6 +1161,26 @@ export function shopCustomerDayLessonMarkupWorld(spec = null) {
   `;
 }
 
+export function shopCustomerDayLessonFocusSpecWorld({
+  key = "buy_reason",
+  spec = null,
+  card = null,
+} = {}) {
+  const safeCards = Array.isArray(spec?.cards) ? spec.cards : [];
+  const safeKey = safeCards.some((entry) => entry.key === key) ? key : (safeCards[0]?.key || key || "buy_reason");
+  const safeCard = card || safeCards.find((entry) => entry.key === safeKey) || safeCards[0] || null;
+  return {
+    target: {
+      type: safeKey === "tomorrow_fix" ? "shop_diagnosis_world" : "journey_board",
+      label: "日终旧铺顾客三因复盘",
+      selector: safeKey === "tomorrow_fix" ? '[data-shop-board="reason-cards"]' : '[data-shop-board="customer-journey"]',
+      fallbackSelector: '[data-shop-board="opening"]',
+    },
+    logTitle: "日终旧铺顾客三因复盘",
+    logDetail: `${safeCard?.label || "顾客原因"}：${safeCard?.body || spec?.headline || "旧铺账页已高亮"}。${spec?.safety || "这里只回看旧铺账页和顾客旅线，不会自动开铺、调价、补货、交单或消耗资源。"}`,
+  };
+}
+
 export function shopFirstCustomerThresholdSafetyTextWorld() {
   return "只回看旧铺报告和顾客旅线，不会自动开铺、上架、接客、成交、改价、补货、交单、扣库存或消耗资源";
 }

@@ -223,6 +223,7 @@ import {
   shopCustomerDecisionLedgerSpecWorld,
   shopCustomerDayLessonMarkupWorld,
   shopCustomerDayLessonSpecWorld,
+  shopCustomerDayLessonFocusSpecWorld,
   shopCustomerJourneyMarkupWorld,
   shopCustomerJourneyRowsWorld,
   shopCustomerJourneySpecWorld,
@@ -27430,19 +27431,13 @@ function shopCustomerDayLessonMarkup(spec = shopCustomerDayLessonSpec()) {
 function focusDaySummaryShopCustomerLesson(key = "buy_reason") {
   const spec = state.lastDaySummary?.shopCustomerLesson || shopCustomerDayLessonSpec();
   const card = spec?.cards?.find((entry) => entry.key === key) || spec?.cards?.[0] || null;
-  const targetType = key === "tomorrow_fix" ? "shop_diagnosis_world" : "journey_board";
+  const focusSpec = shopCustomerDayLessonFocusSpecWorld({ key, spec, card });
   focusShopFromCanvas({
-    type: targetType,
-    label: "日终旧铺顾客三因复盘",
-    selector: key === "tomorrow_fix" ? '[data-shop-board="reason-cards"]' : '[data-shop-board="customer-journey"]',
-    fallbackSelector: '[data-shop-board="opening"]',
+    ...focusSpec.target,
     journeySpec: shopCustomerJourneySpec(),
     diagnosisBoard: shopDiagnosisWorldBoardSpec(),
   });
-  addLog(
-    "日终旧铺顾客三因复盘",
-    `${card?.label || "顾客原因"}：${card?.body || spec?.headline || "旧铺账页已高亮"}。这里只回看旧铺账页和顾客旅线，不会自动开铺、调价、补货、交单或消耗资源。`,
-  );
+  addLog(focusSpec.logTitle, focusSpec.logDetail);
   renderLogs();
   return true;
 }
