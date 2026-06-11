@@ -91,6 +91,7 @@ import {
 import {
   drawDungeonEntranceFieldPreviewWorldWorld,
   drawDungeonEntranceSilhouetteWorldWorld,
+  drawDungeonSolarAtlasWorldWorld,
 } from "./game/world/dungeon-entry-world.js";
 import {
   FINAL_SUPPORT_WORLD_SLOTS_WORLD,
@@ -35664,97 +35665,20 @@ function drawDungeonEntranceFieldPreviewWorld(ctx, spec = dungeonEntranceFieldPr
 }
 
 function drawDungeonSolarAtlasWorld(ctx, spec = dungeonSolarAtlasWorldSpec()) {
-  if (!spec?.rect || !spec.nodes.length) return false;
-  const { rect } = spec;
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const activeMechanicId = dungeonSolarAtlasWorldFocus?.day === state.day && dungeonSolarAtlasWorldFocus?.key === spec.key
-    ? dungeonSolarAtlasWorldFocus.mechanicId
-    : "";
-  const preferred = spec.preferred || spec.nodes[0];
-  const frameTheme = preferred?.theme || dungeonMechanicTheme("mist");
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 1.7) * 2.5;
-  ctx.save();
-
-  drawCanvasCard(ctx, rect.x, rect.y, rect.width, rect.height, "rgba(255, 253, 245, 0.9)");
-  ctx.strokeStyle = `${frameTheme.accent}88`;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1, rect.y + 1, rect.width - 2, rect.height - 2, 20);
-  ctx.stroke();
-
-  ctx.fillStyle = "rgba(23, 35, 29, 0.08)";
-  ctx.beginPath();
-  ctx.ellipse(rect.x + rect.width - 62, rect.y + 35, 78 + pulse, 23, -0.16, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = `${frameTheme.accent}55`;
-  ctx.lineWidth = 2;
-  ctx.setLineDash([6, 9]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 8;
-  ctx.beginPath();
-  ctx.ellipse(rect.x + rect.width - 62, rect.y + 35, 68, 18, -0.16, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 14px Microsoft YaHei";
-  ctx.fillText(spec.title, rect.x + 18, rect.y + 24);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "800 10px Microsoft YaHei";
-  ctx.fillText(`${spec.subtitle} · 已开 ${spec.availableCount}/8 · 已通 ${spec.clearedCount}/8`, rect.x + 18, rect.y + 42);
-  ctx.fillStyle = "rgba(255, 248, 232, 0.82)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 130, rect.y + 14, 112, 22, 11);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("只定位不进境", rect.x + rect.width - 116, rect.y + 28);
-
-  spec.nodes.forEach((node) => {
-    const nodeRect = node.rect;
-    const active = activeMechanicId === node.mechanicId;
-    const strong = active || node.termMatch;
-    const theme = node.theme;
-    ctx.fillStyle = node.available ? theme.soft : "rgba(255, 253, 245, 0.58)";
-    ctx.beginPath();
-    ctx.roundRect(nodeRect.x, nodeRect.y + (strong ? pulse / 3 : 0), nodeRect.width, nodeRect.height, 14);
-    ctx.fill();
-    ctx.strokeStyle = active
-      ? `${theme.accent}ee`
-      : node.termMatch
-        ? `${theme.accent}bb`
-        : node.cleared
-          ? "rgba(40, 111, 88, 0.55)"
-          : "rgba(93, 111, 101, 0.22)";
-    ctx.lineWidth = active ? 2.6 : node.termMatch ? 2.1 : 1.3;
-    ctx.stroke();
-
-    drawDungeonMechanicWorldGlyph(ctx, node, nodeRect.x + 6, nodeRect.y + 7, 30, motion);
-    ctx.fillStyle = node.available ? "#17231d" : "#8f7b5d";
-    ctx.font = "900 10px Microsoft YaHei";
-    ctx.fillText(node.termLabel.slice(0, 3), nodeRect.x + 42, nodeRect.y + 17);
-    ctx.fillStyle = theme.accent;
-    ctx.font = "900 9px Microsoft YaHei";
-    ctx.fillText(node.keyword.slice(0, 5), nodeRect.x + 42, nodeRect.y + 31);
-    ctx.fillStyle = node.termMatch ? "#b47d2f" : node.cleared ? "#286f58" : node.available ? "#5d6f65" : "#8f7b5d";
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(node.statusLabel, nodeRect.x + nodeRect.width - 23, nodeRect.y + nodeRect.height - 7);
+  // drawDungeonSolarAtlasWorld(ctx) bridge keeps verify keywords: 秘境节气图谱 / 八境节气机关 / 不会自动进入秘境 / 场规关键词 / failure_safeguard / spirit_solution
+  if (!spec?.rect || !spec.nodes?.length) return false;
+  return drawDungeonSolarAtlasWorldWorld({
+    ctx,
+    spec,
+    motion: settings.reducedMotion ? 0 : performance.now() / 1000,
+    activeMechanicId: dungeonSolarAtlasWorldFocus?.day === state.day && dungeonSolarAtlasWorldFocus?.key === spec.key
+      ? dungeonSolarAtlasWorldFocus.mechanicId
+      : "",
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+    drawGlyph: drawDungeonMechanicWorldGlyph,
+    fallbackTheme: dungeonMechanicTheme("mist"),
   });
-
-  const focus = activeMechanicId
-    ? spec.nodes.find((node) => node.mechanicId === activeMechanicId) || preferred
-    : preferred;
-  if (focus) {
-    ctx.fillStyle = "rgba(236, 248, 243, 0.76)";
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 18, rect.y + rect.height - 24, rect.width - 36, 16, 8);
-    ctx.fill();
-    ctx.fillStyle = "#286f58";
-    ctx.font = "800 9px Microsoft YaHei";
-    ctx.fillText(`场规关键词：${focus.keyword} · 推荐 ${focus.recommendedSpiritText} · 余波 ${focus.externalChange}`.slice(0, 58), rect.x + 30, rect.y + rect.height - 13);
-  }
-
-  ctx.restore();
-  return true;
 }
 
 function dungeonMechanicHudSpec(run = state.dungeon, mechanic = currentDungeonMechanic(), dungeon = currentDungeonConfig()) {
