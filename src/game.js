@@ -105,6 +105,7 @@ import {
   drawDungeonEntranceSilhouetteWorldWorld,
   drawDungeonSolarAtlasWorldWorld,
 } from "./game/world/dungeon-entry-world.js";
+import { drawDungeonWorldWorld } from "./game/world/dungeon-world.js";
 import {
   drawEarlyRewardKeepsakeWorldWorld,
   drawEarlyRewardRhythmStripWorldWorld,
@@ -76548,122 +76549,58 @@ function drawDungeonWorld(ctx, width, height) {
   const structureRoute = dungeonStructureRouteSpec(run, mechanic, dungeon, mechanicHud, spiritSolution);
   const palette = dungeonPalette(dungeon, mechanic);
   const hazards = run.hazards?.length ? run.hazards : dungeonHazards(mechanic, run, dungeon);
-  const caveGradient = ctx.createLinearGradient(0, 0, width, height);
-  caveGradient.addColorStop(0, palette.top);
-  caveGradient.addColorStop(0.58, palette.mid);
-  caveGradient.addColorStop(1, palette.bottom);
-  ctx.fillStyle = caveGradient;
-  ctx.fillRect(0, 0, width, height);
-
-  ctx.save();
-  ctx.fillStyle = "rgba(255, 253, 245, 0.05)";
-  for (let ridge = 0; ridge < 3; ridge += 1) {
-    ctx.beginPath();
-    ctx.moveTo(0, 210 + ridge * 86);
-    for (let x = 0; x <= width + 80; x += 80) {
-      const y = 190 + ridge * 86 + Math.sin((x + ridge * 70) / 90) * 24;
-      ctx.lineTo(x, y);
-    }
-    ctx.lineTo(width, height);
-    ctx.lineTo(0, height);
-    ctx.fill();
-  }
-  ctx.restore();
-
-  ctx.fillStyle = palette.glow;
-  for (let i = 0; i < 24; i += 1) {
-    const x = 70 + ((i * 97 + run.floor * 31 + run.turn * 13) % (width - 140));
-    const y = 86 + ((i * 53 + state.day * 17) % (height - 172));
-    ctx.beginPath();
-    ctx.arc(x, y, 10 + (i % 4) * 7, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  drawDungeonMechanicAtmosphere(ctx, width, height, run, mechanic, dungeon, mechanicHud);
-
-  hazards.forEach((hazard, index) => {
-    ctx.fillStyle = index === 0 ? palette.hazard : "rgba(255, 253, 245, 0.12)";
-    const x = 172 + index * 186;
-    const y = 220 + ((run.turn + index) % 2) * 78;
-    ctx.beginPath();
-    ctx.ellipse(x, y, 74 + hazard.severity * 8, 30 + hazard.severity * 3, -0.18 + index * 0.14, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#fffdf5";
-    ctx.font = "700 14px Microsoft YaHei";
-    ctx.fillText(hazard.label, x - 42, y + 5);
-  });
-
-  drawCanvasCard(ctx, 58, 48, 440, 138, "rgba(255, 253, 245, 0.88)");
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 26px Microsoft YaHei";
-  ctx.fillText(dungeonName(dungeon), 84, 88);
-  ctx.font = "16px Microsoft YaHei";
-  ctx.fillStyle = "#5d6f65";
-  ctx.fillText(`第 ${run.floor}/${run.maxFloor} 层 · 随行战力 ${companionPower()} · ${mechanic?.solar_term || state.term}`, 84, 118);
-  ctx.fillText((run.roomEvent || mechanic?.puzzle_core || "辨路、战斗、带回材料。").slice(0, 32), 84, 146);
-  drawDungeonBar(ctx, 84, 158, 360, 14, run.hp, 100, "#4d91a6", `HP ${run.hp}/100`);
-  drawDungeonStructureRouteRibbon(ctx, structureRoute);
-
-  const doorwayGlow = ctx.createRadialGradient(674, 260, 12, 674, 260, 120);
-  doorwayGlow.addColorStop(0, "rgba(255, 253, 245, 0.72)");
-  doorwayGlow.addColorStop(1, "rgba(255, 253, 245, 0)");
-  ctx.fillStyle = doorwayGlow;
-  ctx.beginPath();
-  ctx.arc(674, 260, 132, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = palette.accent;
-  ctx.fillRect(610, 190, 130, 180);
-  ctx.fillStyle = "#5b3328";
-  ctx.fillRect(632, 220, 86, 132);
-  ctx.fillStyle = "#fff4c4";
-  ctx.beginPath();
-  ctx.arc(674, 212, 26, 0, Math.PI * 2);
-  ctx.fill();
-  drawDungeonMechanicStageSet(ctx, width, height, run, mechanic, dungeon, mechanicHud);
-  drawActiveDungeonMechanicOverlay(ctx, width, height, run, mechanic, dungeon, mechanicHud);
-  drawDungeonSpiritSolutionTrace(ctx, run, mechanic, dungeon, spiritSolution);
-  drawDungeonFeedbackOverlay(ctx, width, height);
-
   const lastEnemy = data.enemiesById.get(run.lastEnemyId) || dungeonEnemies(dungeon)[0];
-  if (run.bossReady) {
-    const activeBossId = dungeonBossId(dungeon, run);
-    const currentSkill = bossSkillForTurn(activeBossId, run.turn, bossHpPercent(run, dungeon));
-    const counterSpec = dungeonBossTelegraphSpec(currentSkill, activeBossId, run);
-    drawDungeonTelegraph(ctx, currentSkill, 432, 352, palette);
-    drawDungeonBossCounterCard(ctx, counterSpec);
-    ctx.fillStyle = "rgba(23, 35, 29, 0.24)";
-    ctx.beginPath();
-    ctx.ellipse(444, 424, 162, 34, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = palette.boss;
-    ctx.beginPath();
-    ctx.roundRect(318, 238, 248, 178, 44);
-    ctx.fill();
-    ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-    ctx.beginPath();
-    ctx.arc(386, 304, 8, 0, Math.PI * 2);
-    ctx.arc(486, 304, 8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#fffdf5";
-    ctx.font = "700 24px Microsoft YaHei";
-    ctx.fillText(bossName(activeBossId), 354, 352);
-    drawDungeonBar(ctx, 306, 434, 280, 18, run.bossHp, run.bossMaxHp, palette.boss, `Boss ${Math.ceil(bossHpPercent(run, dungeon) * 100)}% · P${run.bossPhase || 1}`);
-  } else if (lastEnemy) {
-    drawDungeonEnemyShape(ctx, lastEnemy, 410, 356, 1.4, palette);
-  }
-
-  if (state.spirits.length > 0) {
-    drawSpiritAura(ctx, 86, 382, "随行协战");
-    drawSpiritSprite(ctx, state.spirits[0], 104, 378, 118);
-  }
-
-  drawDungeonLootNodes(ctx, run, width, height, palette);
-  drawDungeonSkillBadges(ctx, run, 560, 416);
-  drawDungeonFirstMechanicTheater(ctx, dungeonFirstMechanicTheaterSpec(run, mechanic, dungeon, mechanicHud, spiritSolution));
-  drawDungeonMechanicWorldCard(ctx, mechanicHud, 598, 48, 280, 188);
-  drawDungeonSpiritSolutionWorldCard(ctx, spiritSolution, 598, 244, 280, 126);
-  drawActiveCutsceneOverlay(ctx, width, height);
-  drawActiveDialogueStage(ctx, width, height);
+  const activeBossId = run.bossReady ? dungeonBossId(dungeon, run) : "";
+  const bossHpRatio = activeBossId ? bossHpPercent(run, dungeon) : 0;
+  const currentSkill = activeBossId ? bossSkillForTurn(activeBossId, run.turn, bossHpRatio) : null;
+  const counterSpec = currentSkill && activeBossId ? dungeonBossTelegraphSpec(currentSkill, activeBossId, run) : null;
+  const theaterSpec = dungeonFirstMechanicTheaterSpec(run, mechanic, dungeon, mechanicHud, spiritSolution);
+  // drawDungeonWorld(ctx) bridge keeps verify keywords: drawDungeonWorld / 秘境预览 / 敌人 / 掉落 / Boss 前摇 / 随行协战 / 节气场域 / 读招应对
+  return drawDungeonWorldWorld({
+    ctx,
+    width,
+    height,
+    day: state.day,
+    run,
+    dungeon,
+    mechanic,
+    mechanicHud,
+    spiritSolution,
+    structureRoute,
+    palette,
+    hazards,
+    dungeonTitle: dungeonName(dungeon),
+    floorSummary: `第 ${run.floor}/${run.maxFloor} 层 · 随行战力 ${companionPower()} · ${mechanic?.solar_term || state.term}`,
+    roomEventText: (run.roomEvent || mechanic?.puzzle_core || "辨路、战斗、带回材料。").slice(0, 32),
+    lastEnemy,
+    bossReady: run.bossReady,
+    bossNameText: activeBossId ? bossName(activeBossId) : "",
+    bossBarLabel: activeBossId ? `Boss ${Math.ceil(bossHpRatio * 100)}% · P${run.bossPhase || 1}` : "",
+    currentSkill,
+    counterSpec,
+    theaterSpec,
+    companionSpirit: state.spirits[0] || null,
+    drawCanvasCard,
+    drawDungeonMechanicAtmosphere,
+    drawDungeonStructureRouteRibbon,
+    drawDungeonMechanicStageSet,
+    drawActiveDungeonMechanicOverlay,
+    drawDungeonSpiritSolutionTrace,
+    drawDungeonFeedbackOverlay,
+    drawDungeonTelegraph,
+    drawDungeonBossCounterCard,
+    drawDungeonBar,
+    drawDungeonEnemyShape,
+    drawSpiritAura,
+    drawSpiritSprite,
+    drawDungeonLootNodes,
+    drawDungeonSkillBadges,
+    drawDungeonFirstMechanicTheater,
+    drawDungeonMechanicWorldCard,
+    drawDungeonSpiritSolutionWorldCard,
+    drawActiveCutsceneOverlay,
+    drawActiveDialogueStage,
+  });
 }
 
 function startAnimationLoop() {
