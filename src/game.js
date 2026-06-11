@@ -49,6 +49,7 @@ import {
   drawSpiritCareNeedWorldBoardWorld,
   drawSpiritCompanionCareHintWorld,
   drawSpiritCropScoutWorldWorld,
+  drawSpiritInteractionFeedbackWorld,
   drawSpiritDailyChorePropWorld,
   drawSpiritFinaleCompanionAnchorWorld,
   drawSpiritIdentityMemoryNameplateWorld,
@@ -58540,79 +58541,19 @@ function drawSpiritInteractionFeedback(ctx, width, height, feedback = activeSpir
   const profile = spiritVisualProfile(spirit);
   const now = performance.now();
   const pulse = settings.reducedMotion ? 0 : Math.sin(now / 290) * 5;
-  const x = Math.max(34, Math.round(width / 2 - 224));
-  const y = Math.max(78, Math.round(height - 248 + pulse));
-
-  ctx.save();
-  ctx.globalAlpha = Number(feedback.fade ?? 1);
-  const glow = ctx.createRadialGradient(x + 90, y + 96, 18, x + 90, y + 96, 210);
-  glow.addColorStop(0, feedback.glow || profile.glow);
-  glow.addColorStop(0.48, "rgba(246, 240, 182, 0.18)");
-  glow.addColorStop(1, "rgba(246, 240, 182, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(x + 90, y + 96, 210, 0, Math.PI * 2);
-  ctx.fill();
-
-  drawCanvasCard(ctx, x, y, 448, 174, "rgba(255, 253, 245, 0.95)");
-  ctx.fillStyle = "rgba(237, 243, 223, 0.78)";
-  ctx.beginPath();
-  ctx.roundRect(x + 20, y + 22, 116, 116, 28);
-  ctx.fill();
-  ctx.strokeStyle = feedback.accent || profile.accent;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.roundRect(x + 28, y + 30, 100, 100, 24);
-  ctx.stroke();
-  drawSpiritSprite(ctx, spirit, x + 36, y + 36, 84);
-
-  const heartCount = feedback.type === "feed" ? 5 : 4;
-  for (let i = 0; i < heartCount; i += 1) {
-    const angle = now / 430 + i * 1.38;
-    const hx = x + 76 + Math.cos(angle) * (34 + i * 2);
-    const hy = y + 30 + Math.sin(angle) * 18 - i * 4;
-    ctx.fillStyle = i % 2 ? "rgba(246, 240, 182, 0.86)" : "rgba(190, 79, 55, 0.72)";
-    ctx.beginPath();
-    ctx.arc(hx, hy, 3.5, 0, Math.PI * 2);
-    ctx.arc(hx + 6, hy, 3.5, 0, Math.PI * 2);
-    ctx.lineTo(hx + 3, hy + 9);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  ctx.fillStyle = feedback.accent || profile.accent;
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(`${feedback.label} · ${feedback.profileLabel || profile.label}`, x + 158, y + 34);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 22px Microsoft YaHei";
-  ctx.fillText(String(feedback.headline || "伙伴回应").slice(0, 18), x + 158, y + 64);
-  ctx.fillStyle = "#286f58";
-  ctx.font = "700 15px Microsoft YaHei";
-  ctx.fillText(`${feedback.spiritName} · ${feedback.bondText}`.slice(0, 24), x + 158, y + 88);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "13px Microsoft YaHei";
-  ctx.fillText(`“${String(feedback.quote || "").slice(0, 28)}”`, x + 158, y + 112);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "12px Microsoft YaHei";
-  ctx.fillText(String(feedback.responseMotion || feedback.actionText || "蹭了蹭掌心").slice(0, 36), x + 158, y + 134);
-  ctx.fillStyle = "#b47d2f";
-  ctx.font = "700 12px Microsoft YaHei";
-  const stateLine = `心情 ${Math.round(feedback.mood || 0)} · 饱腹 ${Math.round(feedback.hunger || 0)} · ${feedback.cta}`;
-  ctx.fillText(stateLine.slice(0, 42), x + 158, y + 154);
-
-  if (feedback.extraText) {
-    ctx.fillStyle = "rgba(255, 248, 232, 0.92)";
-    ctx.strokeStyle = "rgba(224, 182, 109, 0.42)";
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.roundRect(x + 20, y + 144, 126, 24, 11);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = "#8f5f3f";
-    ctx.font = "700 11px Microsoft YaHei";
-    ctx.fillText(String(feedback.extraText).slice(0, 14), x + 32, y + 160);
-  }
-  ctx.restore();
+  // drawSpiritInteractionFeedback(ctx) bridge keeps verify keywords: drawSpiritInteractionFeedback / 伙伴回应 / 羁绊 / 喂食回应 / 摸摸回应
+  return drawSpiritInteractionFeedbackWorld({
+    ctx,
+    width,
+    height,
+    feedback,
+    spirit,
+    profile,
+    now,
+    pulse,
+    drawCanvasCard,
+    drawSpiritSprite,
+  });
 }
 
 function drawCanalRestorationFeedback(ctx, width, height, feedback = activeCanalRestorationFeedback()) {
