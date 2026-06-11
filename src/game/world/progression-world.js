@@ -1334,6 +1334,32 @@ export function worldLandmarkFocusSpecWorld({
   return null;
 }
 
+export function worldLandmarkFocusTargetWorld({
+  target = null,
+  spiritContext = {},
+  pondContext = {},
+  finalArrayContext = {},
+} = {}) {
+  return worldLandmarkFocusSpecWorld({
+    target,
+    spiritCount: Number(spiritContext.spiritCount || 0),
+    spiritSelector: spiritContext.spiritSelector || "#spiritList",
+    spiritManorBuildSelector: spiritContext.spiritManorBuildSelector || "",
+    spiritManorReady: Boolean(spiritContext.spiritManorReady),
+    spiritManorMissing: spiritContext.spiritManorMissing || "",
+    pondSelector: pondContext.pondSelector || '[data-pond-action="catch"]',
+    pondWaterStatus: pondContext.pondWaterStatus || "",
+    pondReady: Boolean(pondContext.pondReady),
+    pondLotusText: pondContext.pondLotusText || "",
+    finalArrayBuildSelector: finalArrayContext.finalArrayBuildSelector || "",
+    finalArrayBuilt: Boolean(finalArrayContext.finalArrayBuilt),
+    finalArrayBuildingName: finalArrayContext.finalArrayBuildingName || "",
+    finalArrayBuildReady: Boolean(finalArrayContext.finalArrayBuildReady),
+    finalArrayCostText: finalArrayContext.finalArrayCostText || "",
+    finalArrayBanquetComplete: Boolean(finalArrayContext.finalArrayBanquetComplete),
+  });
+}
+
 export function builtStructureWorldTargetsWorld({
   slots = [],
   builtBuildingIds = null,
@@ -1497,4 +1523,30 @@ export function builtStructureFocusSpecWorld({
     missingTitle: "点选建筑",
     missingLog: "建筑对应的面板暂时没有找到，先确认系统深挖分组是否可见。",
   };
+}
+
+export function builtStructureFocusTargetWorld({
+  target = null,
+  buildingLabel = "",
+  buildSelector = "",
+  waterContext = {},
+  bridgeContext = {},
+  finalArrayContext = {},
+  workshopContext = {},
+} = {}) {
+  return builtStructureFocusSpecWorld({
+    target,
+    buildingLabel,
+    buildSelector,
+    waterPlotLabel: waterContext.waterPlotLabel || "",
+    brokenBridgeExpandedPlots: Number(bridgeContext.brokenBridgeExpandedPlots || 0),
+    brokenBridgeSeedAvailable: Boolean(bridgeContext.brokenBridgeSeedAvailable),
+    brokenBridgeSeedName: bridgeContext.brokenBridgeSeedName || "",
+    finalArrayBuildingId: finalArrayContext.finalArrayBuildingId || "",
+    finalArrayBanquetComplete: Boolean(finalArrayContext.finalArrayBanquetComplete),
+    workshopRecipeTitle: workshopContext.workshopRecipeTitle || "",
+    workshopRecipeHint: workshopContext.workshopRecipeHint || "",
+    workshopRecipeInputText: workshopContext.workshopRecipeInputText || "",
+    workshopMachineName: workshopContext.workshopMachineName || "",
+  });
 }

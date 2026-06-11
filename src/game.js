@@ -109,7 +109,7 @@ import {
 } from "./game/world/automation-world.js";
 import {
   builtStructureAtCanvasPointWorld,
-  builtStructureFocusSpecWorld,
+  builtStructureFocusTargetWorld,
   builtStructureWorldTargetsWorld,
   drawBuiltStructuresWorld,
   drawOrderBuildPrepBlueprintWorld,
@@ -125,7 +125,7 @@ import {
   drawYearOneRhythmWorldBoardWorld,
   spiritJobReadyWorldAccentWorld,
   worldLandmarkAtCanvasPointWorld,
-  worldLandmarkFocusSpecWorld,
+  worldLandmarkFocusTargetWorld,
   worldLandmarkTargetsWorld,
 } from "./game/world/progression-world.js";
 import {
@@ -72015,20 +72015,26 @@ function focusBuiltStructureFromCanvas(target = null) {
 
   // focusBuiltStructureFromCanvas 保留桥接关键词，便于 verify 扫描：
   // 点选建筑：草庐 / 仓房 / 灵井 / 断桥 / 节气阵 / 工坊
-  const spec = builtStructureFocusSpecWorld({
+  const spec = builtStructureFocusTargetWorld({
     target,
     buildingLabel,
     buildSelector,
-    waterPlotLabel,
-    brokenBridgeExpandedPlots,
-    brokenBridgeSeedAvailable,
-    brokenBridgeSeedName,
-    finalArrayBuildingId: CHAPTER_4_FINAL_ARRAY_BUILDING_ID,
-    finalArrayBanquetComplete: state.completed.has("final_banquet_complete") || state.completed.has("main_story_complete") || year2Unlocked(),
-    workshopRecipeTitle,
-    workshopRecipeHint,
-    workshopRecipeInputText,
-    workshopMachineName,
+    waterContext: { waterPlotLabel },
+    bridgeContext: {
+      brokenBridgeExpandedPlots,
+      brokenBridgeSeedAvailable,
+      brokenBridgeSeedName,
+    },
+    finalArrayContext: {
+      finalArrayBuildingId: CHAPTER_4_FINAL_ARRAY_BUILDING_ID,
+      finalArrayBanquetComplete: state.completed.has("final_banquet_complete") || state.completed.has("main_story_complete") || year2Unlocked(),
+    },
+    workshopContext: {
+      workshopRecipeTitle,
+      workshopRecipeHint,
+      workshopRecipeInputText,
+      workshopMachineName,
+    },
   });
   if (!spec) return false;
   queueStoryCompassFocusTarget(spec);
@@ -72871,23 +72877,29 @@ function focusWorldLandmarkFromCanvas(target = null) {
 
   // focusWorldLandmarkFromCanvas 仍保留桥接关键词，便于 verify 扫描：
   // 点选景物：百怪大院蓝图 / 灵池有鱼 / 终阵碑
-  const spec = worldLandmarkFocusSpecWorld({
+  const spec = worldLandmarkFocusTargetWorld({
     target,
-    spiritCount: state.spirits.length,
-    spiritSelector,
-    spiritManorBuildSelector: `[data-build-id="${selectorDataValue(SPIRIT_MANOR_BUILDING_ID)}"]`,
-    spiritManorReady,
-    spiritManorMissing,
-    pondSelector: '[data-pond-action="catch"]',
-    pondWaterStatus,
-    pondReady,
-    pondLotusText,
-    finalArrayBuildSelector: `[data-build-id="${selectorDataValue(CHAPTER_4_FINAL_ARRAY_BUILDING_ID)}"]`,
-    finalArrayBuilt: state.builtBuildings.has(CHAPTER_4_FINAL_ARRAY_BUILDING_ID),
-    finalArrayBuildingName,
-    finalArrayBuildReady,
-    finalArrayCostText,
-    finalArrayBanquetComplete: state.completed.has("final_banquet_complete") || state.completed.has("main_story_complete") || year2Unlocked(),
+    spiritContext: {
+      spiritCount: state.spirits.length,
+      spiritSelector,
+      spiritManorBuildSelector: `[data-build-id="${selectorDataValue(SPIRIT_MANOR_BUILDING_ID)}"]`,
+      spiritManorReady,
+      spiritManorMissing,
+    },
+    pondContext: {
+      pondSelector: '[data-pond-action="catch"]',
+      pondWaterStatus,
+      pondReady,
+      pondLotusText,
+    },
+    finalArrayContext: {
+      finalArrayBuildSelector: `[data-build-id="${selectorDataValue(CHAPTER_4_FINAL_ARRAY_BUILDING_ID)}"]`,
+      finalArrayBuilt: state.builtBuildings.has(CHAPTER_4_FINAL_ARRAY_BUILDING_ID),
+      finalArrayBuildingName,
+      finalArrayBuildReady,
+      finalArrayCostText,
+      finalArrayBanquetComplete: state.completed.has("final_banquet_complete") || state.completed.has("main_story_complete") || year2Unlocked(),
+    },
   });
   if (!spec) return false;
   queueStoryCompassFocusTarget(spec);
