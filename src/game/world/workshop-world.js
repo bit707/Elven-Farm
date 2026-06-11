@@ -351,6 +351,60 @@ export function workshopOutputRouteTriptychWorldSpecFromRuntimeWorld({
   };
 }
 
+export function workshopOutputRouteTriptychWorldCopyFromRuntimeWorld({
+  aromaSpec = null,
+  outputLabel = "",
+  haveCount = 0,
+  orderTitleText = "First order",
+  shopTagText = "",
+  recipeLabel = "Current recipe",
+  copy = null,
+} = {}) {
+  if (!aromaSpec?.aroma?.orderUnlocked) return null;
+  const safeCopy = copy || {};
+  const orderDetail = aromaSpec.orderId
+    ? aromaSpec.ready
+      ? safeCopy.orderReadyDetail || `${orderTitleText} is stocked`
+      : `${orderTitleText}${safeCopy.orderMissingPrefix || " missing "}${aromaSpec.orderMatch?.missingText || safeCopy.orderMissingFallback || "materials"}`
+    : safeCopy.noOrderDetail || "No linked order";
+  const shopDetail = `${shopTagText}${safeCopy.shopDetailSuffix || " / stock "}${haveCount}`;
+  return {
+    title: safeCopy.title || "Output route triptych - click",
+    headline: safeCopy.headline || `${outputLabel} has three post-pot routes`,
+    safety: safeCopy.safety || "Will not auto-deliver, open shop, or continue crafting",
+    cta: safeCopy.cta || "Focus route only / no auto action",
+    nodes: [
+      {
+        key: "order",
+        badge: safeCopy.orderBadge || "ORD",
+        title: safeCopy.orderTitle || "Order route",
+        detail: orderDetail,
+        accent: aromaSpec.ready ? "#286f58" : "#b47d2f",
+        soft: aromaSpec.ready ? "rgba(202, 235, 210, 0.28)" : "rgba(246, 240, 182, 0.26)",
+        target: aromaSpec.orderId ? "order" : "recipe",
+      },
+      {
+        key: "shop",
+        badge: safeCopy.shopBadge || "SHP",
+        title: safeCopy.shopTitle || "Shop route",
+        detail: shopDetail,
+        accent: "#8f5f3f",
+        soft: "rgba(255, 248, 232, 0.64)",
+        target: "shop",
+      },
+      {
+        key: "stock",
+        badge: safeCopy.stockBadge || "INV",
+        title: safeCopy.stockTitle || "Stock prep",
+        detail: `${recipeLabel}${safeCopy.stockDetailSuffix || " / next pot"}`,
+        accent: "#57756a",
+        soft: "rgba(202, 235, 210, 0.2)",
+        target: "recipe",
+      },
+    ],
+  };
+}
+
 export function workshopOutputRouteTriptychWorldAtCanvasPointWorld({
   px,
   py,

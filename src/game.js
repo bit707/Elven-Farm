@@ -179,6 +179,7 @@ import {
   workshopOpeningValueWorldSpecFromRuntimeWorld,
   drawWorkshopOpeningValueWorldWorld,
   drawWorkshopOutputRouteTriptychWorldWorld,
+  workshopOutputRouteTriptychWorldCopyFromRuntimeWorld,
   workshopOutputRouteTriptychWorldAtCanvasPointWorld,
   workshopOutputRouteTriptychWorldSpecFromRuntimeWorld,
   drawWorkshopOutputStorageRouteWorldWorld,
@@ -28011,48 +28012,32 @@ function workshopOutputRouteTriptychWorldCopy({
   shopTagText = "",
   recipeLabel = "当前配方",
 } = {}) {
-  if (!aromaSpec?.aroma?.orderUnlocked) return null;
-  const orderDetail = aromaSpec.orderId
-    ? aromaSpec.ready
-      ? `${orderTitleText} 已备齐`
-      : `${orderTitleText} 还差 ${aromaSpec.orderMatch?.missingText || "余料"}`
-    : "暂无指定订单";
-  const shopDetail = `${shopTagText}货签 · 库存 ${haveCount}`;
-  return {
-    title: "出锅去向三联签 · 可点",
-    headline: `${outputLabel} 出锅后有三条路`,
-    safety: "不会自动交单、开铺或继续加工",
-    cta: "只定位去向 · 不自动执行",
-    nodes: [
-      {
-        key: "order",
-        badge: "单",
-        title: "订单去向",
-        detail: orderDetail,
-        accent: aromaSpec.ready ? "#286f58" : "#b47d2f",
-        soft: aromaSpec.ready ? "rgba(202, 235, 210, 0.28)" : "rgba(246, 240, 182, 0.26)",
-        target: aromaSpec.orderId ? "order" : "recipe",
-      },
-      {
-        key: "shop",
-        badge: "铺",
-        title: "旧铺去向",
-        detail: shopDetail,
-        accent: "#8f5f3f",
-        soft: "rgba(255, 248, 232, 0.64)",
-        target: "shop",
-      },
-      {
-        key: "stock",
-        badge: "仓",
-        title: "备货再排产",
-        detail: `${recipeLabel} · 可再做一锅`,
-        accent: "#57756a",
-        soft: "rgba(202, 235, 210, 0.2)",
-        target: "recipe",
-      },
-    ],
-  };
+  return workshopOutputRouteTriptychWorldCopyFromRuntimeWorld({
+    aromaSpec,
+    outputLabel,
+    haveCount,
+    orderTitleText,
+    shopTagText,
+    recipeLabel,
+    copy: {
+      title: "出锅去向三联签 · 可点",
+      headline: `${outputLabel} 出锅后有三条路`,
+      safety: "不会自动交单、开铺或继续加工",
+      cta: "只定位去向 · 不自动执行",
+      orderReadyDetail: `${orderTitleText} 已备齐`,
+      orderMissingPrefix: " 还差 ",
+      orderMissingFallback: "余料",
+      noOrderDetail: "暂无指定订单",
+      shopDetailSuffix: "货签 · 库存 ",
+      orderBadge: "单",
+      orderTitle: "订单去向",
+      shopBadge: "铺",
+      shopTitle: "旧铺去向",
+      stockBadge: "仓",
+      stockTitle: "备货再排产",
+      stockDetailSuffix: " · 可再做一锅",
+    },
+  });
 }
 
 function workshopOutputRouteTriptychWorldSpecBridge(aromaSpec = workshopAromaOrderWorldSpec()) {
