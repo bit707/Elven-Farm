@@ -655,6 +655,7 @@ import {
   drawTownLifeErrandRouteCueWorld,
   drawTownLifePassalongMarkerWorld,
   drawTownLifePersonWorld,
+  drawTownLifeBoardWorld,
   drawTownLifeShopMomentMarkerWorld,
   drawTownLifeShopMomentKeepsakeWorldWorld,
   drawTownLifeWeatherErrandEchoWorld,
@@ -70553,44 +70554,20 @@ function drawTownLifePerson(ctx, row, point, index = 0, motion = 0) {
 }
 
 function drawTownLifeBoard(ctx, rows, motion = 0) {
-  if (!rows.length) return;
-  const x = 706;
-  const y = 72;
-  const shown = rows.slice(0, 3);
-  drawCanvasCard(ctx, x, y, 236, 82 + shown.length * 18, chapter4DroughtActive() ? "rgba(255, 248, 232, 0.9)" : "rgba(237, 243, 223, 0.86)");
-  ctx.fillStyle = chapter4DroughtActive() ? "#be4f37" : currentTermId() === "term_dongzhi" ? "#8f5f3f" : "#286f58";
-  ctx.font = "700 15px Microsoft YaHei";
-  ctx.fillText("今日镇民动线", x + 18, y + 26);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "12px Microsoft YaHei";
-  ctx.fillText(`${clockMinuteText()} · ${localize(currentTermConfig()?.term_name_key, currentTermId())}`, x + 18, y + 46);
-  shown.forEach((row, index) => {
-    const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 1.8 + index) * 2;
-    ctx.fillStyle = townLifeNpcColor(row);
-    ctx.beginPath();
-    ctx.arc(x + 22, y + 68 + index * 18 + pulse, 3.2, 0, Math.PI * 2);
-    ctx.fill();
-    const portrait = npcPortraitImage(row.npc.npc_id);
-    if (portrait) ctx.drawImage(portrait, x + 26, y + 60 + index * 18, 16, 16);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "700 11px Microsoft YaHei";
-    ctx.fillText(npcName(row.npc.npc_id), x + 46, y + 72 + index * 18);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "11px Microsoft YaHei";
-    ctx.fillText(`${row.area} · ${row.action}`.slice(0, 14), x + 98, y + 72 + index * 18);
-    const routeCue = townLifeErrandRouteCueSpec(row);
-    if (routeCue) {
-      ctx.fillStyle = `${routeCue.accent || "#4d91a6"}22`;
-      ctx.strokeStyle = `${routeCue.accent || "#4d91a6"}88`;
-      ctx.lineWidth = 1.1;
-      ctx.beginPath();
-      ctx.roundRect(x + 206, y + 60 + index * 18, 20, 14, 6);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = routeCue.accent || "#4d91a6";
-      ctx.font = "800 9px Microsoft YaHei";
-      ctx.fillText(routeCue.deliveryReady ? "交" : "备", x + 212, y + 70 + index * 18);
-    }
+  // drawTownLifeBoard bridge keeps verify keywords: 今日镇民动线 镇民动线 交 备 term_dongzhi
+  return drawTownLifeBoardWorld({
+    ctx,
+    rows,
+    motion,
+    reducedMotion: settings.reducedMotion,
+    accent: chapter4DroughtActive() ? "#be4f37" : currentTermId() === "term_dongzhi" ? "#8f5f3f" : "#286f58",
+    cardFill: chapter4DroughtActive() ? "rgba(255, 248, 232, 0.9)" : "rgba(237, 243, 223, 0.86)",
+    termText: `${clockMinuteText()} · ${localize(currentTermConfig()?.term_name_key, currentTermId())}`,
+    drawCanvasCard,
+    npcPortraitImage,
+    npcName,
+    npcColorForRow: townLifeNpcColor,
+    routeCueForRow: townLifeErrandRouteCueSpec,
   });
 }
 

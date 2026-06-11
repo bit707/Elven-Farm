@@ -688,6 +688,62 @@ export function drawTownLifePersonWorld({
   return true;
 }
 
+export function drawTownLifeBoardWorld({
+  ctx,
+  rows = [],
+  motion = 0,
+  reducedMotion = false,
+  accent = "#286f58",
+  cardFill = "rgba(237, 243, 223, 0.86)",
+  termText = "",
+  drawCanvasCard = () => {},
+  npcPortraitImage = () => null,
+  npcName = (npcId = "") => npcId,
+  npcColorForRow = () => "#5d6f65",
+  routeCueForRow = () => null,
+} = {}) {
+  if (!ctx || !rows.length) return false;
+  const x = 706;
+  const y = 72;
+  const shown = rows.slice(0, 3);
+  drawCanvasCard(ctx, x, y, 236, 82 + shown.length * 18, cardFill);
+  ctx.fillStyle = accent;
+  ctx.font = "700 15px Microsoft YaHei";
+  ctx.fillText("今日镇民动线", x + 18, y + 26);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "12px Microsoft YaHei";
+  ctx.fillText(termText, x + 18, y + 46);
+  shown.forEach((row, index) => {
+    const pulse = reducedMotion ? 0 : Math.sin(motion * 1.8 + index) * 2;
+    ctx.fillStyle = npcColorForRow(row);
+    ctx.beginPath();
+    ctx.arc(x + 22, y + 68 + index * 18 + pulse, 3.2, 0, Math.PI * 2);
+    ctx.fill();
+    const portrait = npcPortraitImage(row?.npc?.npc_id || "");
+    if (portrait) ctx.drawImage(portrait, x + 26, y + 60 + index * 18, 16, 16);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "700 11px Microsoft YaHei";
+    ctx.fillText(npcName(row?.npc?.npc_id || ""), x + 46, y + 72 + index * 18);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "11px Microsoft YaHei";
+    ctx.fillText(`${row.area} · ${row.action}`.slice(0, 14), x + 98, y + 72 + index * 18);
+    const routeCue = routeCueForRow(row);
+    if (routeCue) {
+      ctx.fillStyle = `${routeCue.accent || "#4d91a6"}22`;
+      ctx.strokeStyle = `${routeCue.accent || "#4d91a6"}88`;
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      ctx.roundRect(x + 206, y + 60 + index * 18, 20, 14, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = routeCue.accent || "#4d91a6";
+      ctx.font = "800 9px Microsoft YaHei";
+      ctx.fillText(routeCue.deliveryReady ? "交" : "备", x + 212, y + 70 + index * 18);
+    }
+  });
+  return true;
+}
+
 export function drawTownLifeRouteWorldBoardWorld({
   ctx,
   spec = null,
