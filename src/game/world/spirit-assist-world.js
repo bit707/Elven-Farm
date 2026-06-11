@@ -155,6 +155,96 @@ export function drawFirstSpiritAssistPrimerWorldWorld({
   return true;
 }
 
+export function firstSpiritAssistPrimerWorldSpecWorld({
+  width = 960,
+  height = 640,
+  originX = 0,
+  originY = 0,
+  tile = 56,
+  gap = 0,
+  day = 1,
+  dungeon = null,
+  spirits = [],
+  assistCompleted = false,
+  targetPlot = null,
+  previewPlots = [],
+  spiritVisualProfile = (spirit) => spirit,
+  spiritAssistRunPlots = (plots) => plots,
+  copy = {},
+} = {}) {
+  if (!(spirits || []).length || assistCompleted || (dungeon && !dungeon.finished)) return null;
+  const spirit = spirits[0];
+  if (!spirit || !targetPlot) return null;
+  const profile = spiritVisualProfile(spirit);
+  const enrichedPreviewPlots = (previewPlots || []).map((plot) => ({
+    ...plot,
+    screenX: originX + plot.x * (tile + gap),
+    screenY: originY + plot.y * (tile + gap),
+    hasCrop: Boolean(plot.cropId),
+    needsWater: Boolean(plot.cropId && !plot.watered),
+  }));
+  const targetX = originX + targetPlot.x * (tile + gap);
+  const targetY = originY + targetPlot.y * (tile + gap);
+  const waterableCount = enrichedPreviewPlots.filter((plot) => plot.needsWater).length;
+  const cropCount = enrichedPreviewPlots.filter((plot) => plot.hasCrop).length;
+  const takeoverPlots = spiritAssistRunPlots(enrichedPreviewPlots, targetPlot);
+  const coverageCount = enrichedPreviewPlots.length;
+  const staminaHint = Math.max(1, waterableCount || cropCount || 1) * 5;
+  const rectWidth = 348;
+  const rectHeight = 150;
+  const preferRight = targetX < width - rectWidth - tile - 42;
+  const rect = {
+    x: preferRight ? targetX + tile + 28 : Math.max(22, targetX - rectWidth - 28),
+    y: Math.max(54, Math.min(height - rectHeight - 30, targetY - 34)),
+    width: rectWidth,
+    height: rectHeight,
+  };
+  const bounds = enrichedPreviewPlots.reduce((acc, plot) => ({
+    minX: Math.min(acc.minX, plot.screenX),
+    minY: Math.min(acc.minY, plot.screenY),
+    maxX: Math.max(acc.maxX, plot.screenX + tile),
+    maxY: Math.max(acc.maxY, plot.screenY + tile),
+  }), { minX: targetX, minY: targetY, maxX: targetX + tile, maxY: targetY + tile });
+  return {
+    key: `${day}:${spirit.id}:${targetPlot.x},${targetPlot.y}:assist_primer`,
+    day,
+    tile,
+    spirit,
+    profile,
+    targetPlot,
+    previewPlots: enrichedPreviewPlots,
+    takeoverPlots,
+    bounds,
+    rect,
+    title: copy.title || "伙伴栏亮起 · 3x3 接管范围",
+    headline: `${spirit.name}${copy.headlineSuffix || "伙伴代劳预演"}`,
+    detail: waterableCount > 0
+      ? `这 9 格会被伙伴接手，其中 ${waterableCount} 格待浇，预计省下 ${staminaHint} 点体力。`
+      : (copy.noWaterDetail || "这 9 格会被伙伴接手，先选中示范格，等缺水时让伙伴上工。"),
+    action: copy.action || "选中示范格，去伙伴栏点「让精怪协助」",
+    previewLabel: copy.previewLabel || "3x3 预览",
+    coverageLabel: coverageCount >= 9 ? (copy.fullCoverageLabel || "这 9 格会被伙伴接手") : `这 ${coverageCount} 格会被伙伴接手`,
+    benefitLabel: `预计省下 ${staminaHint} 点体力`,
+    routeLabel: copy.routeLabel || "接管水脉",
+    cta: copy.cta || "只定位伙伴栏和示范格，不会自动协助浇水",
+    waterableCount,
+    coverageCount,
+    staminaHint,
+  };
+}
+
+export function firstSpiritAssistPrimerWorldAtCanvasPointWorld({
+  px,
+  py,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect, bounds } = spec;
+  const onCard = px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
+  const onPreview = px >= bounds.minX - 10 && px <= bounds.maxX + 10 && py >= bounds.minY - 10 && py <= bounds.maxY + 10;
+  return onCard || onPreview ? spec : null;
+}
+
 export function spiritAssistTrailWorldSpecWorld({
   width = 960,
   height = 640,

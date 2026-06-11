@@ -93,6 +93,8 @@ import {
   finalSupportWorldTargetsWorld,
 } from "./game/world/final-support-interaction-world.js";
 import {
+  firstSpiritAssistPrimerWorldAtCanvasPointWorld,
+  firstSpiritAssistPrimerWorldSpecWorld,
   drawFirstSpiritAssistPrimerWorldWorld,
   spiritAssistNineGridActionWorldAtCanvasPointWorld,
   spiritAssistNineGridActionWorldSpecWorld,
@@ -10702,77 +10704,46 @@ function firstSpiritAssistPrimerTargetPlot() {
 }
 
 function firstSpiritAssistPrimerWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, originX = gridMetrics().originX, originY = gridMetrics().originY, tile = gridMetrics().tile, gap = gridMetrics().gap) {
-  if (!state.spirits.length || state.completed.has("assist") || state.dungeon && !state.dungeon.finished) return null;
-  const spirit = state.spirits[0];
   const targetPlot = firstSpiritAssistPrimerTargetPlot();
-  if (!spirit || !targetPlot) return null;
-  const profile = spiritVisualProfile(spirit);
+  if (!targetPlot) return null;
   const previewPlots = state.plots
     .filter((plot) => Math.abs(plot.x - targetPlot.x) <= 1 && Math.abs(plot.y - targetPlot.y) <= 1)
-    .map((plot) => ({
-      ...plot,
-      screenX: originX + plot.x * (tile + gap),
-      screenY: originY + plot.y * (tile + gap),
-      hasCrop: Boolean(plot.cropId),
-      needsWater: Boolean(plot.cropId && !plot.watered),
-    }));
-  const targetX = originX + targetPlot.x * (tile + gap);
-  const targetY = originY + targetPlot.y * (tile + gap);
-  const waterableCount = previewPlots.filter((plot) => plot.needsWater).length;
-  const cropCount = previewPlots.filter((plot) => plot.hasCrop).length;
-  const takeoverPlots = spiritAssistRunPlots(previewPlots, targetPlot);
-  const coverageCount = previewPlots.length;
-  const staminaHint = Math.max(1, waterableCount || cropCount || 1) * 5;
-  const rectWidth = 348;
-  const rectHeight = 150;
-  const preferRight = targetX < width - rectWidth - tile - 42;
-  const rect = {
-    x: preferRight ? targetX + tile + 28 : Math.max(22, targetX - rectWidth - 28),
-    y: Math.max(54, Math.min(height - rectHeight - 30, targetY - 34)),
-    width: rectWidth,
-    height: rectHeight,
-  };
-  const bounds = previewPlots.reduce((acc, plot) => ({
-    minX: Math.min(acc.minX, plot.screenX),
-    minY: Math.min(acc.minY, plot.screenY),
-    maxX: Math.max(acc.maxX, plot.screenX + tile),
-    maxY: Math.max(acc.maxY, plot.screenY + tile),
-  }), { minX: targetX, minY: targetY, maxX: targetX + tile, maxY: targetY + tile });
-  return {
-    key: `${state.day}:${spirit.id}:${targetPlot.x},${targetPlot.y}:assist_primer`,
-    day: state.day,
-    tile,
-    spirit,
-    profile,
-    targetPlot,
-    previewPlots,
-    takeoverPlots,
-    bounds,
-    rect,
+    .map((plot) => ({ ...plot }));
+  const primerCopy = {
     title: "伙伴栏亮起 · 3x3 接管范围",
-    headline: `${spirit.name}伙伴代劳预演`,
-    detail: waterableCount > 0
-      ? `这 9 格会被伙伴接手，其中 ${waterableCount} 格待浇，预计省下 ${staminaHint} 点体力。`
-      : `这 9 格会被伙伴接手，先选中示范格，等缺水时让伙伴上工。`,
+    headlineSuffix: "伙伴代劳预演",
+    noWaterDetail: "这 9 格会被伙伴接手，先选中示范格，等缺水时让伙伴上工。",
     action: "选中示范格，去伙伴栏点「让精怪协助」",
     previewLabel: "3x3 预览",
-    coverageLabel: coverageCount >= 9 ? "这 9 格会被伙伴接手" : `这 ${coverageCount} 格会被伙伴接手`,
-    benefitLabel: `预计省下 ${staminaHint} 点体力`,
+    fullCoverageLabel: "这 9 格会被伙伴接手",
     routeLabel: "接管水脉",
     cta: "只定位伙伴栏和示范格，不会自动协助浇水",
-    waterableCount,
-    coverageCount,
-    staminaHint,
   };
+  return firstSpiritAssistPrimerWorldSpecWorld({
+    width,
+    height,
+    originX,
+    originY,
+    tile,
+    gap,
+    day: state.day,
+    dungeon: state.dungeon,
+    spirits: state.spirits,
+    assistCompleted: state.completed.has("assist"),
+    targetPlot,
+    previewPlots,
+    spiritVisualProfile,
+    spiritAssistRunPlots,
+    copy: primerCopy,
+  });
 }
 
 function firstSpiritAssistPrimerWorldAtCanvasPoint(px, py) {
-  const spec = firstSpiritAssistPrimerWorldSpec();
-  if (!spec?.rect) return null;
-  const { rect, bounds } = spec;
-  const onCard = px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
-  const onPreview = px >= bounds.minX - 10 && px <= bounds.maxX + 10 && py >= bounds.minY - 10 && py <= bounds.maxY + 10;
-  return onCard || onPreview ? spec : null;
+  return firstSpiritAssistPrimerWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: firstSpiritAssistPrimerWorldSpec(),
+  });
 }
 
 function focusFirstSpiritAssistPrimerWorldFromCanvas(spec = firstSpiritAssistPrimerWorldSpec()) {
