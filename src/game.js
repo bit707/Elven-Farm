@@ -134,6 +134,7 @@ import {
   drawShopDiagnosisWorldBoardWorld,
   drawShopThoughtBubbleChainWorldWorld,
   shopCustomerForecastCanvasTargetWorld,
+  shopCustomerForecastToneWorld,
   shopCustomerForecastWorldSpecWorld,
   shopCustomerReasonCompassWorldAtCanvasPointWorld,
   shopCustomerReasonCompassWorldSpecWorld,
@@ -26717,11 +26718,7 @@ function shopWeatherCustomerReactionMarkup(spec = shopWeatherCustomerReactionSpe
 }
 
 function shopCustomerForecastTone(display = null, shelf = null, goods = []) {
-  if (!goods.length) return "empty";
-  if (shelf?.active && shelf.tone === "warn") return "warn";
-  if (display?.tone === "warn") return "warn";
-  if (display?.themeScore >= Math.max(70, Number(display?.minThemeScore || 0))) return "ready";
-  return "focus";
+  return shopCustomerForecastToneWorld(display, shelf, goods);
 }
 
 function shopCustomerForecastWorldSpec(
