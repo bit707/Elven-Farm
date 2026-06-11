@@ -755,3 +755,82 @@ export function shopWeatherShelfActionEchoSpecWorld(feedback = null) {
     fade: Number.isFinite(feedback.fade) ? feedback.fade : 1,
   };
 }
+
+export function shopWeatherShelfChoiceSupportWorld({
+  choice = null,
+  shelf = null,
+  customer = null,
+  ecologyGarden = null,
+  runtimePlan = null,
+  itemTags = [],
+  itemName = (itemId) => itemId || "",
+  shopTagLabel = (tag) => tag || "",
+  shopTagsOverlap = () => false,
+  customerDisplayName = (archetype) => archetype || "顾客",
+} = {}) {
+  const itemId = choice?.itemId || choice?.item?.item_id || "";
+  if (runtimePlan) {
+    if (!runtimePlan.active) return { active: false, budgetBonus: 0, note: "" };
+    const label = runtimePlan.isTopGood ? "天气主推货" : shopTagLabel(runtimePlan.labelTag);
+    const customerLabel = customer?.archetype ? customerDisplayName(customer.archetype) : "顾客";
+    return {
+      ...runtimePlan,
+      label,
+      note: runtimePlan.isTopGood
+        ? `${shelf.weatherName}货签把${itemName(itemId)}推到头排，${customerLabel}愿意多停半步。`
+        : `${shelf.weatherName}正合${shopTagLabel(runtimePlan.labelTag)}，${customerLabel}对这件货更有耐心。`,
+    };
+  }
+  if (!choice || !shelf?.active) return { active: false, budgetBonus: 0, note: "" };
+  const safeTags = Array.isArray(itemTags) ? itemTags : [];
+  const topGood = (shelf.topGoods || []).find((good) => good.itemId === itemId) || null;
+  const matchedTags = (shelf.desiredTags || []).filter((tag) => shopTagsOverlap(safeTags, [tag]));
+  if (!topGood && matchedTags.length === 0) return { active: false, budgetBonus: 0, note: "" };
+  const weatherKindBonus = ["hot-wind", "drought", "frost", "snow", "storm-rain"].includes(shelf.kind) ? 0.015 : 0;
+  const topBonus = topGood ? 0.045 : 0;
+  const tagBonus = Math.min(0.035, matchedTags.length * 0.018);
+  const budgetBonus = Math.min(0.085, topBonus + tagBonus + weatherKindBonus);
+  const labelTag = matchedTags[0] || topGood?.matchedTags?.[0] || shelf.desiredTags?.[0] || "";
+  const label = topGood ? "天气主推货" : shopTagLabel(labelTag);
+  const customerLabel = customer?.archetype ? customerDisplayName(customer.archetype) : "顾客";
+  return {
+    active: true,
+    itemId,
+    isTopGood: Boolean(topGood),
+    matchedTags,
+    label,
+    labelTag,
+    budgetBonus,
+    priceRelief: Math.min(0.06, budgetBonus * 0.7),
+    note: topGood
+      ? `${shelf.weatherName}货签把${itemName(itemId)}推到头排，${customerLabel}愿意多停半步。`
+      : `${shelf.weatherName}正合${shopTagLabel(labelTag)}，${customerLabel}对这件货更有耐心。`,
+  };
+}
+
+export function shopWeatherShelfChoiceWeightWorld({
+  support = { active: false },
+  itemTags = [],
+  preferredTags = [],
+  runtimePlan = null,
+  shopTagsOverlap = () => false,
+} = {}) {
+  if (runtimePlan) {
+    const plan = runtimePlan;
+    if (!plan.support.active) return { support: plan.support, score: 0, label: "" };
+    return {
+      support: plan.support,
+      score: plan.score,
+      label: plan.labelKind === "top" ? "天气主推" : support.label || "天气对口",
+    };
+  }
+  if (!support.active) return { support, score: 0, label: "" };
+  const preferredBridge = shopTagsOverlap(itemTags, preferredTags) ? 12 : 0;
+  const topWeight = support.isTopGood ? 34 : 18;
+  const budgetWeight = Math.round(Number(support.budgetBonus || 0) * 180);
+  return {
+    support,
+    score: topWeight + budgetWeight + preferredBridge,
+    label: support.isTopGood ? "天气主推" : support.label || "天气对口",
+  };
+}
