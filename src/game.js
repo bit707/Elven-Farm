@@ -167,6 +167,9 @@ import {
   drawWaterFreshReturnToWaterwayReasonWorldNoteWorld,
 } from "./game/world/waterway-world.js";
 import {
+  drawWorkshopAromaStoryWorldWorld,
+  workshopAromaStoryWorldAtCanvasPointWorld,
+  workshopAromaStoryWorldSpecFromRuntimeWorld,
   drawWorkshopIngredientReadyWorldWorld,
   workshopIngredientReadyWorldAtCanvasPointWorld,
   workshopOutputStorageRouteWorldAtCanvasPointWorld,
@@ -27905,6 +27908,14 @@ function focusWorkshopAromaOrderFromCanvas(spec = workshopAromaOrderWorldSpec())
 }
 
 function workshopAromaStoryWorldSpec(aromaSpec = workshopAromaOrderWorldSpec()) {
+  return workshopAromaStoryWorldSpecFromRuntimeWorld({
+    day: state.day,
+    aromaSpec,
+    copy: workshopAromaStoryWorldCopy(aromaSpec),
+  });
+}
+
+function workshopAromaStoryWorldCopy(aromaSpec = null) {
   if (!aromaSpec?.aroma?.orderUnlocked) return null;
   const aroma = aromaSpec.aroma;
   const latest = aroma.history?.[0] || null;
@@ -27912,43 +27923,7 @@ function workshopAromaStoryWorldSpec(aromaSpec = workshopAromaOrderWorldSpec()) 
   const ready = Boolean(aromaSpec.ready);
   const orderTitle = aromaSpec.orderTitle || "第一张订单";
   const outputLabel = aromaSpec.outputLabel || aroma.itemName || "第一锅菜";
-  const steps = [
-    {
-      key: "pot",
-      label: "出锅",
-      title: outputLabel,
-      detail: firstAroma ? "第一锅香气" : "后厂出货",
-      done: true,
-      x: 518,
-      y: 354,
-    },
-    {
-      key: "aroma",
-      label: "飘香",
-      title: "旧铺门口",
-      detail: "顾客闻见",
-      done: true,
-      x: 588,
-      y: 334,
-    },
-    {
-      key: "order",
-      label: ready ? "可交" : "接单",
-      title: orderTitle,
-      detail: ready ? "订单板亮" : "还差余料",
-      done: Boolean(aromaSpec.orderId),
-      x: 668,
-      y: 352,
-    },
-  ];
   return {
-    key: `${state.day}:${aroma.recipeId}:${aroma.itemId}:${aromaSpec.orderId}:${ready ? 1 : 0}:${firstAroma ? 1 : 0}`,
-    day: state.day,
-    aroma,
-    aromaSpec,
-    firstAroma,
-    ready,
-    orderId: aromaSpec.orderId || "",
     orderTitle,
     outputLabel,
     title: firstAroma ? "香气引单小剧场 · 可点" : "后厂香气走线 · 可点",
@@ -27959,18 +27934,45 @@ function workshopAromaStoryWorldSpec(aromaSpec = workshopAromaOrderWorldSpec()) 
     cta: "只定位订单板，不会自动交单",
     accent: ready ? "#286f58" : firstAroma ? "#be4f37" : "#b47d2f",
     soft: ready ? "rgba(202, 235, 210, 0.24)" : "rgba(246, 240, 182, 0.24)",
-    steps,
+    steps: [
+      {
+        key: "pot",
+        label: "出锅",
+        title: outputLabel,
+        detail: firstAroma ? "第一锅香气" : "后厂出货",
+        done: true,
+        x: 518,
+        y: 354,
+      },
+      {
+        key: "aroma",
+        label: "飘香",
+        title: "旧铺门口",
+        detail: "顾客闻见",
+        done: true,
+        x: 588,
+        y: 334,
+      },
+      {
+        key: "order",
+        label: ready ? "可交" : "接单",
+        title: orderTitle,
+        detail: ready ? "订单板亮" : "还差余料",
+        done: Boolean(aromaSpec.orderId),
+        x: 668,
+        y: 352,
+      },
+    ],
     rect: { x: 462, y: 300, width: 292, height: 92 },
   };
 }
 
 function workshopAromaStoryWorldAtCanvasPoint(px, py) {
-  const spec = workshopAromaStoryWorldSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? spec
-    : null;
+  return workshopAromaStoryWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: workshopAromaStoryWorldSpec(),
+  });
 }
 
 function focusWorkshopAromaStoryWorldFromCanvas(spec = workshopAromaStoryWorldSpec()) {
@@ -74076,96 +74078,17 @@ function drawLajiaoHearthTheaterWorld(ctx, spec = lajiaoHearthTheaterWorldSpec()
 
 function drawWorkshopAromaStoryWorld(ctx, spec = workshopAromaStoryWorldSpec(), motion = 0) {
   if (!spec?.rect) return false;
-  const { rect } = spec;
   const active = workshopAromaStoryWorldFocus?.day === state.day && workshopAromaStoryWorldFocus?.key === spec.key;
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.2) * 2.8;
-  ctx.save();
-
-  ctx.strokeStyle = `${spec.accent}55`;
-  ctx.lineWidth = 3;
-  ctx.setLineDash([8, 9]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 18;
-  ctx.beginPath();
-  ctx.moveTo(spec.steps[0].x, spec.steps[0].y);
-  ctx.bezierCurveTo(558, 306 + pulse, 628, 306 - pulse, spec.steps[2].x, spec.steps[2].y);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  for (let i = 0; i < 8; i += 1) {
-    const t = settings.reducedMotion ? i / 8 : (motion * 0.12 + i / 8) % 1;
-    const point = pointOnPolyline(spec.aromaSpec.path || [], t) || { x: rect.x + 30 + i * 24, y: rect.y + 40 };
-    ctx.fillStyle = i % 2 ? "rgba(255, 253, 245, 0.78)" : "rgba(246, 240, 182, 0.68)";
-    ctx.beginPath();
-    ctx.arc(point.x, point.y - 24 - Math.sin(motion * 2 + i) * 4, 3.2 + (i % 3), 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  drawCanvasCard(ctx, rect.x, rect.y + pulse, rect.width, rect.height, "rgba(255, 253, 245, 0.92)");
-  ctx.strokeStyle = active ? `${spec.accent}ee` : `${spec.accent}88`;
-  ctx.lineWidth = active ? 2.8 : 1.8;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1, rect.y + 1 + pulse, rect.width - 2, rect.height - 2, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = spec.soft;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, rect.y + 14 + pulse, 50, 50, 15);
-  ctx.fill();
-  ctx.fillStyle = spec.accent;
-  ctx.font = "900 22px Microsoft YaHei";
-  ctx.fillText(spec.ready ? "单" : "香", rect.x + 28, rect.y + 47 + pulse);
-
-  ctx.fillStyle = spec.accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(spec.title.slice(0, 18), rect.x + 76, rect.y + 21 + pulse);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 14px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 20), rect.x + 76, rect.y + 42 + pulse);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText(spec.cta.slice(0, 22), rect.x + 76, rect.y + 61 + pulse);
-
-  ctx.strokeStyle = `${spec.accent}44`;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(rect.x + 34, rect.y + 78 + pulse);
-  ctx.lineTo(rect.x + rect.width - 36, rect.y + 78 + pulse);
-  ctx.stroke();
-  spec.steps.forEach((step, index) => {
-    const dotX = rect.x + 40 + index * 98;
-    const dotY = rect.y + 78 + pulse;
-    ctx.fillStyle = step.done ? spec.accent : "rgba(255, 253, 245, 0.94)";
-    ctx.strokeStyle = index === 2 && spec.ready ? "#286f58" : `${spec.accent}88`;
-    ctx.lineWidth = index === 2 && spec.ready ? 2.6 : 1.6;
-    ctx.beginPath();
-    ctx.arc(dotX, dotY, index === 2 && spec.ready ? 9 : 7.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = step.done ? "#fffdf5" : spec.accent;
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(String(index + 1), dotX - 3, dotY + 3);
-    ctx.fillStyle = step.done ? spec.accent : "#8f5f3f";
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(step.label.slice(0, 3), dotX - 10, dotY - 12);
+  return drawWorkshopAromaStoryWorldWorld({
+    ctx,
+    spec,
+    motion,
+    active,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+    pointOnPolyline,
+    drawShopCrowdPerson,
   });
-
-  const customerX = rect.x + rect.width - 30;
-  const customerY = rect.y + 35 + pulse;
-  drawShopCrowdPerson(ctx, customerX - 12, customerY + 10, {
-    coat: spec.ready ? "#286f58" : "#b47d2f",
-    scarf: "#f6f0b6",
-    scale: 0.54,
-  });
-  ctx.fillStyle = "rgba(255, 248, 232, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(customerX - 84, customerY - 18, 72, 20, 10);
-  ctx.fill();
-  ctx.fillStyle = spec.ready ? "#286f58" : "#8f5f3f";
-  ctx.font = "800 8px Microsoft YaHei";
-  ctx.fillText((spec.ready ? "这单能交了" : "闻着像订单料").slice(0, 8), customerX - 75, customerY - 5);
-
-  ctx.restore();
-  return true;
 }
 
 function drawWorkshopAutomation(ctx, livingState) {

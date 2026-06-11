@@ -1,3 +1,185 @@
+export function drawWorkshopAromaStoryWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+  pointOnPolyline = (points = []) => points[0] || null,
+  drawShopCrowdPerson = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !Array.isArray(spec.steps) || spec.steps.length < 3) return false;
+  const { rect } = spec;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.2) * 2.8;
+  ctx.save();
+
+  ctx.strokeStyle = `${spec.accent}55`;
+  ctx.lineWidth = 3;
+  ctx.setLineDash([8, 9]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 18;
+  ctx.beginPath();
+  ctx.moveTo(spec.steps[0].x, spec.steps[0].y);
+  ctx.bezierCurveTo(558, 306 + pulse, 628, 306 - pulse, spec.steps[2].x, spec.steps[2].y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  for (let i = 0; i < 8; i += 1) {
+    const t = reducedMotion ? i / 8 : (motion * 0.12 + i / 8) % 1;
+    const point = pointOnPolyline(spec.aromaSpec?.path || [], t) || { x: rect.x + 30 + i * 24, y: rect.y + 40 };
+    ctx.fillStyle = i % 2 ? "rgba(255, 253, 245, 0.78)" : "rgba(246, 240, 182, 0.68)";
+    ctx.beginPath();
+    ctx.arc(point.x, point.y - 24 - Math.sin(motion * 2 + i) * 4, 3.2 + (i % 3), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawCanvasCard(ctx, rect.x, rect.y + pulse, rect.width, rect.height, "rgba(255, 253, 245, 0.92)");
+  ctx.strokeStyle = active ? `${spec.accent}ee` : `${spec.accent}88`;
+  ctx.lineWidth = active ? 2.8 : 1.8;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, rect.y + 1 + pulse, rect.width - 2, rect.height - 2, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = spec.soft;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, rect.y + 14 + pulse, 50, 50, 15);
+  ctx.fill();
+  ctx.fillStyle = spec.accent;
+  ctx.font = "900 22px Microsoft YaHei";
+  ctx.fillText(spec.ready ? "单" : "香", rect.x + 28, rect.y + 47 + pulse);
+
+  ctx.fillStyle = spec.accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title.slice(0, 18), rect.x + 76, rect.y + 21 + pulse);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 14px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 20), rect.x + 76, rect.y + 42 + pulse);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(spec.cta.slice(0, 22), rect.x + 76, rect.y + 61 + pulse);
+
+  ctx.strokeStyle = `${spec.accent}44`;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(rect.x + 34, rect.y + 78 + pulse);
+  ctx.lineTo(rect.x + rect.width - 36, rect.y + 78 + pulse);
+  ctx.stroke();
+  spec.steps.forEach((step, index) => {
+    const dotX = rect.x + 40 + index * 98;
+    const dotY = rect.y + 78 + pulse;
+    ctx.fillStyle = step.done ? spec.accent : "rgba(255, 253, 245, 0.94)";
+    ctx.strokeStyle = index === 2 && spec.ready ? "#286f58" : `${spec.accent}88`;
+    ctx.lineWidth = index === 2 && spec.ready ? 2.6 : 1.6;
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, index === 2 && spec.ready ? 9 : 7.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = step.done ? "#fffdf5" : spec.accent;
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(String(index + 1), dotX - 3, dotY + 3);
+    ctx.fillStyle = step.done ? spec.accent : "#8f5f3f";
+    ctx.font = "800 8px Microsoft YaHei";
+    ctx.fillText(step.label.slice(0, 3), dotX - 10, dotY - 12);
+  });
+
+  const customerX = rect.x + rect.width - 30;
+  const customerY = rect.y + 35 + pulse;
+  drawShopCrowdPerson(ctx, customerX - 12, customerY + 10, {
+    coat: spec.ready ? "#286f58" : "#b47d2f",
+    scarf: "#f6f0b6",
+    scale: 0.54,
+  });
+  ctx.fillStyle = "rgba(255, 248, 232, 0.92)";
+  ctx.beginPath();
+  ctx.roundRect(customerX - 84, customerY - 18, 72, 20, 10);
+  ctx.fill();
+  ctx.fillStyle = spec.ready ? "#286f58" : "#8f5f3f";
+  ctx.font = "800 8px Microsoft YaHei";
+  ctx.fillText((spec.ready ? "这单能交了" : "闻着像订单料").slice(0, 8), customerX - 75, customerY - 5);
+
+  ctx.restore();
+  return true;
+}
+
+export function workshopAromaStoryWorldSpecFromRuntimeWorld({
+  day = 1,
+  aromaSpec = null,
+  copy = null,
+} = {}) {
+  if (!aromaSpec?.aroma?.orderUnlocked) return null;
+  const aroma = aromaSpec.aroma;
+  const latest = aroma.history?.[0] || null;
+  const firstAroma = Boolean(latest?.firstAroma || !aroma.history || aroma.history.length <= 1);
+  const ready = Boolean(aromaSpec.ready);
+  const safeCopy = copy || {};
+  const orderTitle = safeCopy.orderTitle || aromaSpec.orderTitle || "First order";
+  const outputLabel = safeCopy.outputLabel || aromaSpec.outputLabel || aroma.itemName || "First pot";
+  const steps = Array.isArray(safeCopy.steps) && safeCopy.steps.length > 0
+    ? safeCopy.steps
+    : [
+      {
+        key: "pot",
+        label: "Output",
+        title: outputLabel,
+        detail: firstAroma ? "First aroma" : "Back-room output",
+        done: true,
+        x: 518,
+        y: 354,
+      },
+      {
+        key: "aroma",
+        label: "Aroma",
+        title: "Old shop door",
+        detail: "Customer notices",
+        done: true,
+        x: 588,
+        y: 334,
+      },
+      {
+        key: "order",
+        label: ready ? "Ready" : "Linked",
+        title: orderTitle,
+        detail: ready ? "Order board lit" : "Needs more inputs",
+        done: Boolean(aromaSpec.orderId),
+        x: 668,
+        y: 352,
+      },
+    ];
+
+  return {
+    key: `${day}:${aroma.recipeId}:${aroma.itemId}:${aromaSpec.orderId}:${ready ? 1 : 0}:${firstAroma ? 1 : 0}`,
+    day,
+    aroma,
+    aromaSpec,
+    firstAroma,
+    ready,
+    orderId: aromaSpec.orderId || "",
+    orderTitle,
+    outputLabel,
+    title: safeCopy.title || (firstAroma ? "Aroma order vignette - click" : "Back-room aroma route - click"),
+    headline: safeCopy.headline || (firstAroma ? "First-pot aroma brings an order to the old shop" : `${outputLabel} keeps the order trail alive`),
+    detail: safeCopy.detail || (ready
+      ? `${orderTitle} is lit by this pot; deliver it manually at the order board.`
+      : `${orderTitle} is linked to ${outputLabel}; finish the remaining inputs before delivery.`),
+    cta: safeCopy.cta || "Focus order board only / no auto delivery",
+    accent: safeCopy.accent || (ready ? "#286f58" : firstAroma ? "#be4f37" : "#b47d2f"),
+    soft: safeCopy.soft || (ready ? "rgba(202, 235, 210, 0.24)" : "rgba(246, 240, 182, 0.24)"),
+    steps,
+    rect: safeCopy.rect || { x: 462, y: 300, width: 292, height: 92 },
+  };
+}
+
+export function workshopAromaStoryWorldAtCanvasPointWorld({
+  px,
+  py,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? spec
+    : null;
+}
+
 export function drawWorkshopOutputRouteTriptychWorldWorld({
   ctx,
   spec = null,
