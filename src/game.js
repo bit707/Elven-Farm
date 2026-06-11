@@ -192,6 +192,7 @@ import {
   workshopToShopStockBridgeWorldAtCanvasPointWorld,
   workshopToShopStockBridgeWorldSpecFromRuntimeWorld,
   drawWorkshopValueLedgerWorldWorld,
+  workshopValueLedgerWorldAtCanvasPointWorld,
   workshopValueLedgerWorldSpecFromRuntimeWorld,
 } from "./game/world/workshop-world.js";
 import { drawNewPlayerTutorWorldWorld, newPlayerTutorWorldSpecWorld } from "./game/world/new-player-tutor-world.js";
@@ -28126,62 +28127,29 @@ function drawWorkshopOutputRouteTriptychWorld(ctx, spec = workshopOutputRouteTri
 }
 
 function workshopValueLedgerWorldSpec(aromaSpec = workshopAromaOrderWorldSpec()) {
-  if (!aromaSpec?.aroma?.orderUnlocked || state.completed.has("first_order_delivery")) return null;
-  const aroma = aromaSpec.aroma;
-  const recipe = data.recipes.find((entry) => entry.recipe_id === aroma.recipeId) || null;
-  const outputItemId = aroma.itemId || recipe?.output_item_id || aromaSpec.orderMatch?.outputItemId || "";
-  if (!recipe || !outputItemId) return null;
-  const outputCount = Number(aroma.outputCount || recipe.output_count || aromaSpec.orderMatch?.outputCount || 1);
-  const inputRows = recipeInputs(recipe);
-  const inputTotals = new Map();
-  inputRows.forEach(({ itemId, count }) => inputTotals.set(itemId, Number(inputTotals.get(itemId) || 0) + Number(count || 1)));
-  const rawValue = Array.from(inputTotals.entries())
-    .reduce((sum, [itemId, count]) => sum + Number(data.itemsById.get(itemId)?.sell_price_base || 0) * Number(count || 1), 0);
-  const outputValue = Number(data.itemsById.get(outputItemId)?.sell_price_base || 0) * outputCount;
-  const order = allOrderConfigs().find((entry) => entry.order_id === aromaSpec.orderId)
-    || visibleOrders().find((entry) => entry.order_id === aromaSpec.orderId)
-    || null;
-  const rewardGold = Number(order?.reward_gold || aromaSpec.orderMatch?.rewardGold || outputValue || 0);
-  const rewardFame = Number(order?.reward_fame || 0);
+  return workshopValueLedgerWorldSpecBridge(aromaSpec);
+}
+
+function workshopValueLedgerWorldCopy({
+  aromaSpec = null,
+  recipe = null,
+  outputItemId = "",
+  outputCount = 1,
+  rawValue = 0,
+  outputValue = 0,
+  rewardGold = 0,
+  rewardFame = 0,
+  inputText = "",
+  recipeLabel = "当前配方",
+} = {}) {
+  if (!aromaSpec?.aroma?.orderUnlocked || !recipe || !outputItemId) return null;
   const valueGain = Math.max(0, rewardGold - rawValue);
   const orderPremium = rawValue > 0 ? Math.max(1, rewardGold / rawValue) : 1;
-  const valueLiftPercent = rawValue > 0 ? Math.round((rewardGold - rawValue) / rawValue * 100) : 0;
   const outputGain = Math.max(0, outputValue - rawValue);
-  const orderGain = Math.max(0, rewardGold - rawValue);
-  const orderVsOutputGain = Math.max(0, rewardGold - outputValue);
-  const maxLedgerValue = Math.max(1, rawValue, outputValue, rewardGold);
-  const rawRatio = rawValue / maxLedgerValue;
-  const outputRatio = outputValue / maxLedgerValue;
-  const orderRatio = rewardGold / maxLedgerValue;
-  const inputText = Array.from(inputTotals.entries())
-    .slice(0, 2)
-    .map(([itemId, count]) => `${itemName(itemId)} x${count}`)
-    .join(" / ");
   return {
-    key: `${state.day}:${recipe.recipe_id}:${outputItemId}:${aromaSpec.orderId || "no_order"}:value_ledger`,
-    day: state.day,
-    recipe,
-    recipeName: recipeName(recipe),
-    outputItemId,
-    outputLabel: aromaSpec.outputLabel || itemName(outputItemId),
-    outputCount,
-    orderId: aromaSpec.orderId || "",
-    orderTitle: aromaSpec.orderTitle || (order ? orderTitle(order) : "第一张订单"),
-    ready: Boolean(aromaSpec.ready),
-    rawValue,
-    outputValue,
-    rewardGold,
-    rewardFame,
-    valueGain,
-    orderPremium,
-    valueLiftPercent,
-    rawRatio,
-    outputRatio,
-    orderRatio,
     premiumLabel: rewardGold > rawValue ? `订单约 ${orderPremium.toFixed(1)}x` : "订单看声望",
     profitLabel: rewardGold > rawValue ? `多赚 ${valueGain} 灵石` : "声望关系补价值",
     conclusion: rewardGold > rawValue ? "加工订单收益链成立" : "订单链偏关系收益",
-    inputText,
     title: "第一单利润对照签 · 可点",
     legacyTitle: "第一锅增值账签 · 可点",
     routeText: "原料裸卖 -> 出锅增值 -> 订单回款",
@@ -28191,17 +28159,11 @@ function workshopValueLedgerWorldSpec(aromaSpec = workshopAromaOrderWorldSpec())
       : `${aromaSpec.orderTitle || "订单"} 已接上这锅，继续用声望和关系收益补足价值。`,
     cta: "去订单板手动交付",
     safety: "只定位订单板、配方栏和成品去向，不会自动加工、交单、扣库存、发奖励或消耗材料",
-    rect: { x: 382, y: 486, width: 350, height: 144 },
-    anchor: { x: 520, y: 432 },
-    accent: rewardGold > rawValue ? "#286f58" : "#b47d2f",
-    soft: rewardGold > rawValue ? "rgba(202, 235, 210, 0.26)" : "rgba(246, 240, 182, 0.24)",
     steps: [
       { label: "原料裸卖", value: `${rawValue} 灵石`, note: inputText || "原料" },
-      { label: "出锅增值", value: `+${outputGain} 灵石`, note: `${recipeName(recipe)} x${outputCount}` },
+      { label: "出锅增值", value: `+${outputGain} 灵石`, note: `${recipeLabel} x${outputCount}` },
       { label: "订单回款", value: `${rewardGold} 灵石`, note: rewardFame ? `声望 +${rewardFame}` : "委托奖励" },
     ],
-    orderGain,
-    orderVsOutputGain,
   };
 }
 
@@ -28227,6 +28189,7 @@ function workshopValueLedgerWorldSpecBridge(aromaSpec = workshopAromaOrderWorldS
     .slice(0, 2)
     .map(([itemId, count]) => `${itemName(itemId)} x${count}`)
     .join(" / ");
+  const recipeLabel = recipeName(recipe);
   return workshopValueLedgerWorldSpecFromRuntimeWorld({
     day: state.day,
     aromaSpec,
@@ -28240,10 +28203,22 @@ function workshopValueLedgerWorldSpecBridge(aromaSpec = workshopAromaOrderWorldS
     rewardGold,
     rewardFame,
     inputText,
-    recipeName: recipeName(recipe),
+    recipeName: recipeLabel,
     outputLabel: aromaSpec.outputLabel || itemName(outputItemId),
     orderTitle: aromaSpec.orderTitle || (order ? orderTitle(order) : "First order"),
     firstOrderProfit,
+    copy: workshopValueLedgerWorldCopy({
+      aromaSpec,
+      recipe,
+      outputItemId,
+      outputCount,
+      rawValue,
+      outputValue,
+      rewardGold,
+      rewardFame,
+      inputText,
+      recipeLabel,
+    }),
   });
 }
 
@@ -28294,12 +28269,11 @@ function drawWorkshopFirstOrderProfitWorld(ctx, spec = workshopFirstOrderProfitW
 }
 
 function workshopValueLedgerWorldAtCanvasPoint(px, py) {
-  const spec = workshopValueLedgerWorldSpecBridge();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? spec
-    : null;
+  return workshopValueLedgerWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: workshopValueLedgerWorldSpecBridge(),
+  });
 }
 
 function focusWorkshopValueLedgerWorldFromCanvas(spec = workshopValueLedgerWorldSpecBridge()) {

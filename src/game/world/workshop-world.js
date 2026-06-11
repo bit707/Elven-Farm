@@ -1155,6 +1155,7 @@ export function workshopValueLedgerWorldSpecFromRuntimeWorld({
   outputLabel = "",
   orderTitle = "",
   firstOrderProfit = false,
+  copy = null,
 } = {}) {
   if (!aromaSpec?.aroma?.orderUnlocked) return null;
   if (!recipe || !outputItemId) return null;
@@ -1178,6 +1179,7 @@ export function workshopValueLedgerWorldSpecFromRuntimeWorld({
   const safeOutputLabel = outputLabel || outputItemId;
   const safeOrderTitle = orderTitle || order?.title || "First order";
   const keyBase = `${day}:${recipe.recipe_id}:${outputItemId}:${aromaSpec.orderId || "no_order"}:value_ledger`;
+  const safeCopy = copy || {};
 
   return {
     key: firstOrderProfit ? `${keyBase}:first_order_profit` : keyBase,
@@ -1200,32 +1202,46 @@ export function workshopValueLedgerWorldSpecFromRuntimeWorld({
     rawRatio,
     outputRatio,
     orderRatio,
-    premiumLabel: safeRewardGold > safeRawValue ? `Order ${orderPremium.toFixed(1)}x` : "Order value",
-    profitLabel: safeRewardGold > safeRawValue ? `Gain ${valueGain}` : "Relationship value",
-    conclusion: safeRewardGold > safeRawValue ? "Crafting order chain wins" : "Order chain is relationship-led",
+    premiumLabel: safeCopy.premiumLabel || (safeRewardGold > safeRawValue ? `Order ${orderPremium.toFixed(1)}x` : "Order value"),
+    profitLabel: safeCopy.profitLabel || (safeRewardGold > safeRawValue ? `Gain ${valueGain}` : "Relationship value"),
+    conclusion: safeCopy.conclusion || (safeRewardGold > safeRawValue ? "Crafting order chain wins" : "Order chain is relationship-led"),
     inputText,
     inputTotals,
-    title: "First order profit comparison - click",
-    legacyTitle: "First pot value ledger - click",
-    routeText: "Raw sale -> Output value -> Order return",
-    headline: `Raw ${safeRawValue} -> Order ${safeRewardGold}`,
-    detail: safeRewardGold > safeRawValue
+    title: safeCopy.title || "First order profit comparison - click",
+    legacyTitle: safeCopy.legacyTitle || "First pot value ledger - click",
+    routeText: safeCopy.routeText || "Raw sale -> Output value -> Order return",
+    headline: safeCopy.headline || `Raw ${safeRawValue} -> Order ${safeRewardGold}`,
+    detail: safeCopy.detail || (safeRewardGold > safeRawValue
       ? `This order beats raw sale by ${valueGain}.`
-      : `${safeOrderTitle} is linked; fame and relationship value make up the gap.`,
-    cta: "Go to order board manually",
-    safety: "Focus only. No automatic craft, order delivery, stock spend, reward grant, or resource spend.",
+      : `${safeOrderTitle} is linked; fame and relationship value make up the gap.`),
+    cta: safeCopy.cta || "Go to order board manually",
+    safety: safeCopy.safety || "Focus only. No automatic craft, order delivery, stock spend, reward grant, or resource spend.",
     rect: { x: 382, y: 486, width: 350, height: 144 },
     anchor: { x: 520, y: 432 },
     accent: safeRewardGold > safeRawValue ? "#286f58" : "#b47d2f",
     soft: safeRewardGold > safeRawValue ? "rgba(202, 235, 210, 0.26)" : "rgba(246, 240, 182, 0.24)",
-    steps: [
-      { label: "Raw sale", value: `${safeRawValue}`, note: inputText || "Inputs" },
-      { label: "Output gain", value: `+${outputGain}`, note: `${safeRecipeName} x${safeOutputCount}` },
-      { label: "Order return", value: `${safeRewardGold}`, note: safeRewardFame ? `Fame +${safeRewardFame}` : "Commission reward" },
-    ],
+    steps: Array.isArray(safeCopy.steps) && safeCopy.steps.length > 0
+      ? safeCopy.steps
+      : [
+        { label: "Raw sale", value: `${safeRawValue}`, note: inputText || "Inputs" },
+        { label: "Output gain", value: `+${outputGain}`, note: `${safeRecipeName} x${safeOutputCount}` },
+        { label: "Order return", value: `${safeRewardGold}`, note: safeRewardFame ? `Fame +${safeRewardFame}` : "Commission reward" },
+      ],
     orderGain,
     orderVsOutputGain,
   };
+}
+
+export function workshopValueLedgerWorldAtCanvasPointWorld({
+  px,
+  py,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? spec
+    : null;
 }
 
 export function drawWorkshopOutputStorageRouteWorldWorld({
