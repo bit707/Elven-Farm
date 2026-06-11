@@ -11,6 +11,98 @@ export function spiritAutomationBenefitToneColorWorld(tone = "stable") {
   return colors[tone] || colors.stable;
 }
 
+export function automationDayLedgerReportTextSafeWorld(rows = []) {
+  const safeRows = Array.isArray(rows) ? rows : [];
+  if (!safeRows.length) return "\u81ea\u52a8\u5316\u65e5\u8d26\u672c\u8fd8\u6ca1\u6709\u63a5\u8d77\u7b2c\u4e00\u6761\u5c97\u4f4d\u7ebf\u3002";
+  return safeRows.map((row) => `${row.label}: ${row.value}`).join(" / ");
+}
+
+export function automationDayLedgerSpecSafeWorld({
+  summary = null,
+  rows = [],
+  reportText = "",
+} = {}) {
+  const safeRows = Array.isArray(rows) ? rows.filter((row) => row?.value || row?.detail) : [];
+  if (!summary || !safeRows.length) return null;
+  return {
+    active: true,
+    title: "\u81ea\u52a8\u5316\u65e5\u7ec8\u6d41\u6c34\u8d26",
+    headline: "\u7530\u91cc\u88ab\u63a5\u624b -> \u540e\u5382\u5728\u70e7 -> \u5165\u4ed3/\u8865\u8d27 -> \u65e7\u94fa/\u5546\u961f/\u5de1\u706f",
+    reportText: reportText || automationDayLedgerReportTextSafeWorld(safeRows),
+    rows: safeRows,
+    safety: "\u53ea\u5b9a\u4f4d\u81ea\u52a8\u5316\u5c97\u4f4d\u7ebf\uff0c\u4e0d\u4f1a\u81ea\u52a8\u5207\u5c97\u3001\u6d3e\u5de5\u3001\u6392\u4ea7\u3001\u5f00\u94fa\u3001\u53d1\u5546\u961f\u3001\u5904\u7406\u98ce\u9669\u3001\u5165\u591c\u6216\u6d88\u8017\u8d44\u6e90\u3002",
+  };
+}
+
+export function automationDayLedgerMarkupSafeWorld(spec = null) {
+  if (!spec?.active) return "";
+  return `
+    <div class="day-summary-automation-ledger">
+      <strong>${spec.title}</strong>
+      <span>${spec.headline}</span>
+      <small>${spec.reportText}</small>
+      <div class="day-summary-automation-ledger-grid">
+        ${(spec.rows || []).map((row) => `
+          <div class="day-summary-automation-ledger-row ${row.tone || "active"}">
+            <b>${row.label}</b>
+            <span>${row.value}</span>
+            <small>${row.detail}</small>
+            <button type="button" data-day-summary-automation-line="${row.key}">${row.cta}</button>
+          </div>
+        `).join("")}
+      </div>
+      <small>${spec.safety}</small>
+    </div>
+  `;
+}
+
+/*
+export function automationDayLedgerReportTextWorld(rows = []) {
+  const safeRows = Array.isArray(rows) ? rows : [];
+  if (!safeRows.length) return "鑷姩鍖栨棩璐︽湰杩樻病鏈夋帴璧风涓€鏉″矖浣嶇嚎銆?;
+  return safeRows.map((row) => `${row.label}锛?{row.value}`).join(" / ");
+}
+
+export function automationDayLedgerSpecWorld({
+  summary = null,
+  rows = [],
+  reportText = "",
+} = {}) {
+  const safeRows = Array.isArray(rows) ? rows.filter((row) => row?.value || row?.detail) : [];
+  if (!summary || !safeRows.length) return null;
+  return {
+    active: true,
+    title: "鑷姩鍖栨棩缁堟祦姘磋处",
+    headline: "鐢伴噷琚帴鎵?-> 鍚庡巶鍦ㄧ儳 -> 鍏ヤ粨/琛ヨ揣 -> 鏃ч摵/鍟嗛槦/宸＄伅",
+    reportText: reportText || automationDayLedgerReportTextWorld(safeRows),
+    rows: safeRows,
+    safety: "鍙畾浣嶈嚜鍔ㄥ寲宀椾綅绾匡紝涓嶄細鑷姩鍒囧矖銆佹淳宸ャ€佹帓浜с€佸紑閾恒€佸彂鍟嗛槦銆佸鐞嗛闄┿€佸叆澶滄垨娑堣€楄祫婧?,
+  };
+}
+
+export function automationDayLedgerMarkupWorld(spec = null) {
+  if (!spec?.active) return "";
+  return `
+    <div class="day-summary-automation-ledger">
+      <strong>${spec.title}</strong>
+      <span>${spec.headline}</span>
+      <small>${spec.reportText}</small>
+      <div class="day-summary-automation-ledger-grid">
+        ${(spec.rows || []).map((row) => `
+          <div class="day-summary-automation-ledger-row ${row.tone || "active"}">
+            <b>${row.label}</b>
+            <span>${row.value}</span>
+            <small>${row.detail}</small>
+            <button type="button" data-day-summary-automation-line="${row.key}">${row.cta}</button>
+          </div>
+        `).join("")}
+      </div>
+      <small>${spec.safety}</small>
+    </div>
+  `;
+}
+*/
+
 export function drawSpiritAutomationRelayWorldWorld({
   ctx,
   spec = null,

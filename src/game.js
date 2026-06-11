@@ -101,6 +101,9 @@ import {
   drawSpiritAssistTrailWorldWorld,
 } from "./game/world/spirit-assist-world.js";
 import {
+  automationDayLedgerMarkupSafeWorld,
+  automationDayLedgerReportTextSafeWorld,
+  automationDayLedgerSpecSafeWorld,
   drawAutomationHubWorldNoteWorld,
   drawSpiritAutomationBenefitBoardWorld,
   drawSpiritAutomationGroundTraceWorld,
@@ -50198,8 +50201,25 @@ function automationDayLedgerMarkup(spec = automationDayLedgerSpec()) {
   `;
 }
 
+function automationDayLedgerReportTextBridge(summary = state.lastDaySummary) {
+  if (!summary) return "";
+  return automationDayLedgerReportTextSafeWorld(automationDayLedgerRows(summary));
+}
+
+function automationDayLedgerSpecBridge(summary = state.lastDaySummary) {
+  return automationDayLedgerSpecSafeWorld({
+    summary,
+    rows: automationDayLedgerRows(summary),
+    reportText: automationDayLedgerReportTextBridge(summary),
+  });
+}
+
+function automationDayLedgerMarkupBridge(spec = automationDayLedgerSpecBridge()) {
+  return automationDayLedgerMarkupSafeWorld(spec);
+}
+
 function focusDaySummaryAutomationLedger(lineKey = "field") {
-  const spec = automationDayLedgerSpec();
+  const spec = automationDayLedgerSpecBridge();
   if (!spec?.rows?.length) return addLog("自动化日终流水账", "今晚还没有可回看的自动化岗位线，先让第一位伙伴接手重复劳动。");
   const row = spec.rows.find((entry) => entry.key === lineKey) || spec.rows[0];
   if (["field", "workshop", "patrol", "expedition", "garden"].includes(row.key)) {
@@ -57886,7 +57906,7 @@ function sleep() {
   state.lastDaySummary.careChainEcho = careChainEchoSpec(state.lastDaySummary.careChainStage);
   state.lastDaySummary.careChainEvent = claimCareChainStageEvent(state.lastDaySummary.careChainStage, state.lastDaySummary.careChainEcho, before.day, state.lastDaySummary);
   state.lastDaySummary.dailyIntentReview = dailyIntentReviewSpec(state.lastDaySummary);
-  state.lastDaySummary.automationDayLedger = automationDayLedgerSpec(state.lastDaySummary);
+  state.lastDaySummary.automationDayLedger = automationDayLedgerSpecBridge(state.lastDaySummary);
   triggerNightGrowthFeedback({ ...nightGrowth, careChain: state.lastDaySummary.careChain, careChainStage: state.lastDaySummary.careChainStage, careChainEvent: state.lastDaySummary.careChainEvent });
   triggerSpiritNightWorkFeedback(spiritJobReport);
   complete("day_summary");
@@ -84309,8 +84329,8 @@ function renderDaySummaryPanel() {
     earlyRewardNextDelightMarkup,
     earlyRewardNextDelightSpec,
     dungeonDayEchoDaySummaryMarkup,
-    automationDayLedgerMarkup,
-    automationDayLedgerSpec,
+    automationDayLedgerMarkupBridge,
+    automationDayLedgerSpecBridge,
     postMainlineRhythmDaySummaryMarkup,
     postMainlineEveningEchoMarkup,
     postMainlineLongTailResonanceMarkup,
