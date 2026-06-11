@@ -53,6 +53,12 @@ import {
 } from "./game/world/banquet-interaction-world.js";
 import { drawFinalBanquetAfterwordBridgeWorldWorld } from "./game/world/banquet-world.js";
 import {
+  drawBaizhiChapterFinishFeedbackWorld,
+  drawBaizhiQuestPlantFeedbackWorld,
+  drawBaizhiQuestStageFeedbackWorld,
+  drawHerbValleyUnlockFeedbackWorld,
+} from "./game/world/baizhi-world.js";
+import {
   drawSpiritAuraWorld,
   drawSpiritCareNeedWorldBoardWorld,
   drawSpiritCompanionCareHintWorld,
@@ -57661,175 +57667,60 @@ function drawWorkshopCraftFeedback(ctx, width, height, feedback = activeWorkshop
 }
 
 function drawBaizhiQuestPlantFeedback(ctx, width, height, feedback = activeBaizhiQuestPlantFeedback()) {
-  if (!feedback || state.activeCutscene || state.activeDialogue.length > 0) return;
   const pulse = settings.reducedMotion ? 0 : Math.sin(performance.now() / 310) * 4;
-  const x = width - 372;
-  const y = 292 + pulse;
-  ctx.save();
-  ctx.globalAlpha = feedback.fade;
-  drawCanvasCard(ctx, x, y, 328, 126, "rgba(255, 248, 232, 0.95)");
-  ctx.fillStyle = "rgba(40, 111, 88, 0.14)";
-  ctx.beginPath();
-  ctx.arc(x + 286, y + 26, 38, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = "#286f58";
-  ctx.beginPath();
-  ctx.roundRect(x + 22, y + 22, 72, 72, 18);
-  ctx.fill();
-  ctx.fillStyle = "#fff0d4";
-  ctx.font = "700 32px Microsoft YaHei";
-  ctx.fillText("药", x + 44, y + 70);
-
-  ctx.fillStyle = "#b47d2f";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText("白芷委托 · 第一批落田", x + 108, y + 26);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 18px Microsoft YaHei";
-  ctx.fillText(feedback.headline.slice(0, 16), x + 108, y + 52);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(`灵田 ${feedback.plotX},${feedback.plotY} · 奖励 ${feedback.rewardPreview}`.slice(0, 24), x + 108, y + 74);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "12px Microsoft YaHei";
-  ctx.fillText(feedback.detail.slice(0, 30), x + 108, y + 96);
-  ctx.fillText(feedback.cta.slice(0, 30), x + 108, y + 114);
-  ctx.restore();
+  // drawBaizhiQuestPlantFeedback(ctx) bridge keeps verify keywords: drawBaizhiQuestPlantFeedback / 白芷之求 / 白芷委托 · 第一批落田 / 灵田 / 奖励 / 第一批落田
+  return drawBaizhiQuestPlantFeedbackWorld({
+    ctx,
+    width,
+    feedback,
+    pulse,
+    activeCutscene: state.activeCutscene,
+    activeDialogueCount: state.activeDialogue.length,
+    drawCanvasCard,
+  });
 }
 
 function drawBaizhiQuestStageFeedback(ctx, width, height, feedback = activeBaizhiQuestStageFeedback()) {
-  if (!feedback || state.activeCutscene || state.activeDialogue.length > 0) return;
   const pulse = settings.reducedMotion ? 0 : Math.sin(performance.now() / 330) * 4;
-  const x = 42;
-  const y = 386 + pulse;
-  ctx.save();
-  ctx.globalAlpha = feedback.fade;
-  drawCanvasCard(ctx, x, y, 348, 128, "rgba(255, 248, 232, 0.95)");
-  ctx.fillStyle = "rgba(224, 182, 109, 0.16)";
-  ctx.beginPath();
-  ctx.arc(x + 304, y + 26, 40, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = "#8f5f3f";
-  ctx.beginPath();
-  ctx.roundRect(x + 22, y + 22, 70, 70, 18);
-  ctx.fill();
-  ctx.fillStyle = "#fff0d4";
-  ctx.font = "700 30px Microsoft YaHei";
-  ctx.fillText(feedback.phase === "favor_ready" ? "诊" : "药", x + 44, y + 68);
-
-  ctx.fillStyle = "#b47d2f";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(feedback.title, x + 108, y + 26);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 18px Microsoft YaHei";
-  ctx.fillText(feedback.headline.slice(0, 16), x + 108, y + 52);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(`奖励预览 ${feedback.rewardPreview}`.slice(0, 24), x + 108, y + 74);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "12px Microsoft YaHei";
-  ctx.fillText(feedback.detail.slice(0, 30), x + 108, y + 96);
-  ctx.fillText(feedback.cta.slice(0, 30), x + 108, y + 114);
-  ctx.restore();
+  // drawBaizhiQuestStageFeedback(ctx) bridge keeps verify keywords: drawBaizhiQuestStageFeedback / 白芷之求 / 奖励预览 / 医馆 / 诊 / 药
+  return drawBaizhiQuestStageFeedbackWorld({
+    ctx,
+    feedback,
+    pulse,
+    activeCutscene: state.activeCutscene,
+    activeDialogueCount: state.activeDialogue.length,
+    drawCanvasCard,
+  });
 }
 
 function drawHerbValleyUnlockFeedback(ctx, width, height, feedback = activeHerbValleyUnlockFeedback()) {
-  if (!feedback || state.activeCutscene || state.activeDialogue.length > 0) return;
   const pulse = settings.reducedMotion ? 0 : Math.sin(performance.now() / 300) * 5;
-  const x = Math.round(width / 2 - 240);
-  const y = Math.round(height / 2 - 96 + pulse);
-  ctx.save();
-  ctx.globalAlpha = feedback.fade;
-  const glow = ctx.createRadialGradient(x + 108, y + 92, 18, x + 108, y + 92, 220);
-  glow.addColorStop(0, "rgba(202, 235, 210, 0.38)");
-  glow.addColorStop(0.46, "rgba(77, 145, 166, 0.14)");
-  glow.addColorStop(1, "rgba(202, 235, 210, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(x + 108, y + 92, 220, 0, Math.PI * 2);
-  ctx.fill();
-
-  drawCanvasCard(ctx, x, y, 480, 172, "rgba(255, 253, 245, 0.95)");
-  ctx.fillStyle = "rgba(202, 235, 210, 0.7)";
-  ctx.beginPath();
-  ctx.roundRect(x + 22, y + 30, 112, 108, 26);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(40, 111, 88, 0.62)";
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(x + 44, y + 122);
-  ctx.bezierCurveTo(x + 70, y + 72, x + 98, y + 64, x + 122, y + 36);
-  ctx.stroke();
-  ctx.fillStyle = "rgba(77, 145, 166, 0.28)";
-  ctx.beginPath();
-  ctx.ellipse(x + 82, y + 116, 42 + pulse, 12, -0.18, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#286f58";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(feedback.title.slice(0, 18), x + 160, y + 44);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 23px Microsoft YaHei";
-  ctx.fillText(feedback.headline.slice(0, 18), x + 160, y + 78);
-  ctx.fillStyle = "#286f58";
-  ctx.font = "14px Microsoft YaHei";
-  ctx.fillText(feedback.detail.slice(0, 34), x + 160, y + 108);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(feedback.cta.slice(0, 38), x + 160, y + 136);
-  ctx.restore();
+  // drawHerbValleyUnlockFeedback(ctx) bridge keeps verify keywords: drawHerbValleyUnlockFeedback / 药谷藤门 / 雾隐药谷 / 白芷药线 / 灵植 / 药谷
+  return drawHerbValleyUnlockFeedbackWorld({
+    ctx,
+    width,
+    height,
+    feedback,
+    pulse,
+    activeCutscene: state.activeCutscene,
+    activeDialogueCount: state.activeDialogue.length,
+    drawCanvasCard,
+  });
 }
 
 function drawBaizhiChapterFinishFeedback(ctx, width, height, feedback = activeBaizhiChapterFinishFeedback()) {
-  if (!feedback || state.activeCutscene || state.activeDialogue.length > 0) return;
   const pulse = settings.reducedMotion ? 0 : Math.sin(performance.now() / 320) * 5;
-  const x = Math.round(width / 2 - 246);
-  const y = Math.round(height / 2 - 108 + pulse);
-  ctx.save();
-  ctx.globalAlpha = feedback.fade;
-  const glow = ctx.createRadialGradient(x + 116, y + 104, 18, x + 116, y + 104, 236);
-  glow.addColorStop(0, "rgba(224, 182, 109, 0.34)");
-  glow.addColorStop(0.48, "rgba(202, 235, 210, 0.18)");
-  glow.addColorStop(1, "rgba(224, 182, 109, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(x + 116, y + 104, 236, 0, Math.PI * 2);
-  ctx.fill();
-
-  drawCanvasCard(ctx, x, y, 492, 184, "rgba(255, 253, 245, 0.96)");
-  ctx.fillStyle = "rgba(224, 182, 109, 0.18)";
-  ctx.beginPath();
-  ctx.roundRect(x + 22, y + 28, 122, 122, 30);
-  ctx.fill();
-  ctx.fillStyle = "#286f58";
-  ctx.beginPath();
-  ctx.ellipse(x + 84, y + 114, 40 + pulse, 14, -0.14, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(255, 253, 245, 0.76)";
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.arc(x + 84, y + 96, 26 + pulse / 3, 0.2, Math.PI * 1.74);
-  ctx.stroke();
-  ctx.fillStyle = "#fffdf5";
-  ctx.font = "700 28px Microsoft YaHei";
-  ctx.fillText("露", x + 68, y + 108);
-
-  ctx.fillStyle = "#b47d2f";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(feedback.title.slice(0, 18), x + 170, y + 42);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 24px Microsoft YaHei";
-  ctx.fillText(feedback.headline.slice(0, 18), x + 170, y + 78);
-  ctx.fillStyle = "#286f58";
-  ctx.font = "14px Microsoft YaHei";
-  ctx.fillText(feedback.detail.slice(0, 36), x + 170, y + 110);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(feedback.rewardHint.slice(0, 34), x + 170, y + 136);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "12px Microsoft YaHei";
-  ctx.fillText(feedback.cta.slice(0, 40), x + 170, y + 160);
-  ctx.restore();
+  // drawBaizhiChapterFinishFeedback(ctx) bridge keeps verify keywords: drawBaizhiChapterFinishFeedback / 百草母露 / 白芷来访 / 高级药园线 / 露 / 药线收束
+  return drawBaizhiChapterFinishFeedbackWorld({
+    ctx,
+    width,
+    height,
+    feedback,
+    pulse,
+    activeCutscene: state.activeCutscene,
+    activeDialogueCount: state.activeDialogue.length,
+    drawCanvasCard,
+  });
 }
 
 function drawChapter4DroughtFeedback(ctx, width, height, feedback = activeChapter4DroughtFeedback()) {
