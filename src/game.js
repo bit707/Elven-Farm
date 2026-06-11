@@ -165,7 +165,7 @@ import {
   drawWorkshopToShopStockBridgeWorldWorld,
   drawWorkshopValueLedgerWorldWorld,
 } from "./game/world/workshop-world.js";
-import { drawNewPlayerTutorWorldWorld } from "./game/world/new-player-tutor-world.js";
+import { drawNewPlayerTutorWorldWorld, newPlayerTutorWorldSpecWorld } from "./game/world/new-player-tutor-world.js";
 import {
   drawCustomerThoughtBubblesWorld,
   drawShopCustomerForecastWorldBoardWorld,
@@ -44387,6 +44387,64 @@ function newPlayerTutorSafetyText() {
   return "只口授前三步和定位当前入口，不会自动清理、播种、浇水、收获、入夜、扣体力、扣种子、推进任务或消耗资源";
 }
 
+function newPlayerTutorWorldSpecBridge({
+  width = refs.world?.width || 960,
+  height = refs.world?.height || 640,
+  originX = 300,
+  originY = 142,
+  tile = 72,
+  gap = 8,
+  firstSteps = newPlayerFirstStepsSpec(),
+  guide = demoGuideStep(),
+  action = actionForGuideStep(guide),
+} = {}) {
+  if (state.activeCutscene || state.activeDialogue.length > 0 || state.dungeon && !state.dungeon.finished) return null;
+  if (!firstSteps?.rows?.length || firstSteps.doneCount >= firstSteps.total || state.day > 4) return null;
+  const actionKey = action.action || guide.action || "clear";
+  const target = earlyRewardWorldRoadsignTarget(
+    actionKey === "water" || actionKey === "sleep" ? "plant" : actionKey === "harvest" ? "spirit_sprout_preview" : actionKey,
+    originX,
+    originY,
+    tile,
+    gap,
+  );
+  const point = target?.point || worldGuideTargetPoint(actionKey);
+  const dialogue = actionKey === "clear"
+    ? guideScriptLine("on_enter_area", "area_cottage", 1, "先清理小屋前的杂物，腾出第一块能落脚的田地。")
+    : actionKey === "plant"
+      ? guideScriptLine("on_item_collected", "seed_bailuobo", 1, "把第一颗白萝卜种下去，让洞天重新开始回应你。")
+      : actionKey === "water"
+        ? guideScriptLine("on_item_collected", "seed_bailuobo", 3, "给作物浇水，明早它才会真正记住你的照料。")
+        : actionKey === "sleep"
+          ? "水痕已经稳住，今晚先休息，明早去看那块田有没有回应。"
+          : actionKey === "harvest"
+            ? "成熟后亲手收下第一批作物，洞天会把这次劳动记成第一段回响。"
+            : guide.text || firstSteps.headline;
+  const nodeCopy = {
+    clear: guideScriptLine("on_enter_area", "area_cottage", 1, "先清理小屋前的杂物，腾出第一块能落脚的田地。"),
+    plant: guideScriptLine("on_item_collected", "seed_bailuobo", 1, "把第一颗白萝卜种下去，让洞天重新开始回应你。"),
+    water: guideScriptLine("on_item_collected", "seed_bailuobo", 3, "给作物浇水，明早它才会真正记住你的照料。"),
+  };
+  return newPlayerTutorWorldSpecWorld({
+    day: state.day,
+    width,
+    height,
+    point,
+    target,
+    actionKey,
+    actionLabel: action.cta || guide.cta || "看下一步",
+    firstSteps,
+    dialogue,
+    nodeCopy,
+    targets: {
+      clear: earlyRewardWorldRoadsignTarget("clear", originX, originY, tile, gap),
+      plant: earlyRewardWorldRoadsignTarget("plant", originX, originY, tile, gap),
+      water: earlyRewardWorldRoadsignTarget("spirit_sprout_preview", originX, originY, tile, gap),
+    },
+    safetyText: newPlayerTutorSafetyText(),
+  });
+}
+
 function newPlayerTutorWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, originX = 300, originY = 142, tile = 72, gap = 8) {
   if (state.activeCutscene || state.activeDialogue.length > 0 || state.dungeon && !state.dungeon.finished) return null;
   const firstSteps = newPlayerFirstStepsSpec();
@@ -44479,7 +44537,7 @@ function newPlayerTutorWorldSpec(width = refs.world?.width || 960, height = refs
 }
 
 function newPlayerTutorWorldAtCanvasPoint(px, py) {
-  const spec = newPlayerTutorWorldSpec();
+  const spec = newPlayerTutorWorldSpecBridge();
   if (!spec?.rect) return null;
   const node = spec.nodes.find((entry) => {
     const hit = entry.hit;
@@ -44495,7 +44553,7 @@ function newPlayerTutorWorldAtCanvasPoint(px, py) {
   return null;
 }
 
-function focusNewPlayerTutorWorldFromCanvas(spec = newPlayerTutorWorldAtCanvasPoint(-1, -1) || newPlayerTutorWorldSpec()) {
+function focusNewPlayerTutorWorldFromCanvas(spec = newPlayerTutorWorldAtCanvasPoint(-1, -1) || newPlayerTutorWorldSpecBridge()) {
   if (!spec?.rect) return false;
   const node = spec.focusNode || spec.nodes.find((entry) => entry.live) || spec.nodes.find((entry) => !entry.done) || spec.nodes[0];
   const target = node?.target || spec.target || earlyRewardWorldRoadsignTarget(spec.actionKey);
@@ -66439,7 +66497,7 @@ function drawDailyIntentWorldGuide(ctx, width, height, originX, originY, tile, g
   });
 }
 
-function drawNewPlayerTutorWorld(ctx, spec = newPlayerTutorWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
+function drawNewPlayerTutorWorld(ctx, spec = newPlayerTutorWorldSpecBridge({ width: ctx.canvas.width, height: ctx.canvas.height }), motion = performance.now() / 1000) {
   if (!spec?.rect || !spec.point || !spec.nodes?.length) return;
   const focused = newPlayerTutorWorldFocus?.day === state.day && newPlayerTutorWorldFocus?.key === spec.key;
   return drawNewPlayerTutorWorldWorld({
@@ -82379,7 +82437,11 @@ function drawWorld() {
   drawDailyIntentWorldGuide(ctx, width, height, originX, originY, tile, gap);
   drawDailyIntentFeedback(ctx, width, height);
   drawDailyIntentWorldEcho(ctx, activeDailyIntentFeedback(), originX, originY, tile, gap);
-  drawNewPlayerTutorWorld(ctx, newPlayerTutorWorldSpec(width, height, originX, originY, tile, gap), settings.reducedMotion ? 0 : performance.now() / 1000);
+  drawNewPlayerTutorWorld(
+    ctx,
+    newPlayerTutorWorldSpecBridge({ width, height, originX, originY, tile, gap }),
+    settings.reducedMotion ? 0 : performance.now() / 1000,
+  );
   drawFirstSpiritAssistPrimerWorld(ctx, firstSpiritAssistPrimerWorldSpec(width, height, originX, originY, tile, gap), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawSpiritAssistTrailWorld(ctx, spiritAssistTrailWorldSpec(width, height, originX, originY, tile, gap), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawSpiritAssistNineGridActionWorld(ctx, spiritAssistNineGridActionWorldSpec(width, height, originX, originY, tile, gap), settings.reducedMotion ? 0 : performance.now() / 1000);

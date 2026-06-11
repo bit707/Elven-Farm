@@ -1,3 +1,85 @@
+export function newPlayerTutorWorldSpecWorld({
+  day = 1,
+  width = 960,
+  height = 640,
+  point = null,
+  target = null,
+  actionKey = "clear",
+  actionLabel = "",
+  firstSteps = null,
+  dialogue = "",
+  nodeCopy = {},
+  targets = {},
+  safetyText = "",
+} = {}) {
+  const safePoint = point && Number.isFinite(point.x) && Number.isFinite(point.y)
+    ? point
+    : target?.point || null;
+  if (!safePoint || !firstSteps?.rows?.length) return null;
+
+  const nodes = [
+    {
+      id: "clear",
+      label: "娓呰崚",
+      glyph: "娓?",
+      detail: nodeCopy.clear || "",
+      done: firstSteps.rows[0]?.done || false,
+      live: actionKey === "clear",
+      target: targets.clear || null,
+    },
+    {
+      id: "plant",
+      label: "钀界",
+      glyph: "绉?",
+      detail: nodeCopy.plant || "",
+      done: firstSteps.rows[1]?.done || false,
+      live: actionKey === "plant",
+      target: targets.plant || null,
+    },
+    {
+      id: "water",
+      label: "琛ユ按",
+      glyph: "姘?",
+      detail: nodeCopy.water || "",
+      done: firstSteps.rows[2]?.done || actionKey === "harvest",
+      live: actionKey === "water" || actionKey === "sleep" || actionKey === "harvest",
+      target: targets.water || null,
+    },
+  ];
+
+  const cardWidth = 318;
+  const cardHeight = 136;
+  const preferLeft = safePoint.x > width * 0.54;
+  const cardX = preferLeft
+    ? Math.max(18, safePoint.x - cardWidth - 42)
+    : Math.min(width - cardWidth - 18, Math.max(18, safePoint.x + 42));
+  const cardY = Math.max(92, Math.min(height - cardHeight - 116, safePoint.y - 102));
+
+  nodes.forEach((node, index) => {
+    const x = cardX + 58 + index * 96;
+    const y = cardY + 84;
+    node.point = { x, y };
+    node.hit = { x: x - 34, y: y - 31, width: 68, height: 58 };
+  });
+
+  return {
+    key: `${Number(day || 0)}:${Number(firstSteps.doneCount || 0)}:${actionKey}`,
+    day: Number(day || 0),
+    title: "鏂版墜涓夋鍙ｆ巿鐗?路 鍙偣",
+    subtitle: "娓呰崚 -> 钀界 -> 琛ユ按",
+    headline: firstSteps.headline || "",
+    dialogue,
+    actionKey,
+    actionLabel,
+    target,
+    point: safePoint,
+    rect: { x: cardX, y: cardY, width: cardWidth, height: cardHeight },
+    nodes,
+    progress: `${Number(firstSteps.doneCount || 0)}/${Number(firstSteps.total || nodes.length)}`,
+    safety: safetyText,
+  };
+}
+
 export function drawNewPlayerTutorWorldWorld({
   ctx,
   spec = null,
