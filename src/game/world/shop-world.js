@@ -1273,6 +1273,298 @@ export function drawCommerceWorldMarksWorld({
   return true;
 }
 
+function ecologyShopAuraVisitorBubbleWorld(
+  archetype = "",
+  ecologyShopAura = null,
+  ecologyShopAuraVisualPalette = () => ({ label: "余韵" }),
+) {
+  const label = ecologyShopAuraVisualPalette(ecologyShopAura?.comboId).label;
+  const bubbles = {
+    villager: `${label}，去看看`,
+    child: "好香呀",
+    rogue_cultivator: "路上补点货",
+    healer: "这味能入药",
+    crafter: "材料气不赖",
+    trader: "回单在这边",
+    guest: "今日有好礼？",
+    faction: "采办要核货",
+    pilgrim: "灵息往铺里走",
+    collector: "稀货有线索",
+  };
+  return bubbles[archetype] || "顺着余韵来";
+}
+
+function ecologyShopAuraVisitorRowsWorld({
+  ecologyShopAura = null,
+  customerDisplayName = (archetype = "") => archetype,
+  ecologyShopAuraVisitorColor = () => "#5d6f65",
+  ecologyShopAuraVisualPalette = () => ({ label: "余韵" }),
+} = {}) {
+  if (!ecologyShopAura?.active) return [];
+  const preferred = ecologyShopAura.preferredArchetypes?.length ? ecologyShopAura.preferredArchetypes : ["villager"];
+  return preferred.slice(0, 3).map((archetype, index) => ({
+    archetype,
+    name: customerDisplayName(archetype),
+    color: ecologyShopAuraVisitorColor(archetype),
+    bubble: ecologyShopAuraVisitorBubbleWorld(archetype, ecologyShopAura, ecologyShopAuraVisualPalette),
+    delay: index * 0.23,
+  }));
+}
+
+export function drawEcologyShopAuraVisitorsWorld({
+  ctx,
+  ecologyShopAura = null,
+  motion = 0,
+  reducedMotion = false,
+  pointOnPolyline = () => ({ x: 0, y: 0 }),
+  customerDisplayName = (archetype = "") => archetype,
+  ecologyShopAuraVisitorColor = () => "#5d6f65",
+  ecologyShopAuraVisualPalette = () => ({
+    accent: "#b47d2f",
+    mote: "#fffdf5",
+    label: "余韵",
+  }),
+} = {}) {
+  if (!ctx) return false;
+  const visitors = ecologyShopAuraVisitorRowsWorld({
+    ecologyShopAura,
+    customerDisplayName,
+    ecologyShopAuraVisitorColor,
+    ecologyShopAuraVisualPalette,
+  });
+  if (!visitors.length) return false;
+  const palette = ecologyShopAuraVisualPalette(ecologyShopAura?.comboId);
+  const paths = [
+    [{ x: 370, y: 342 }, { x: 282, y: 318 }, { x: 204, y: 286 }, { x: 138, y: 248 }],
+    [{ x: 424, y: 396 }, { x: 322, y: 360 }, { x: 236, y: 318 }, { x: 168, y: 270 }],
+    [{ x: 514, y: 366 }, { x: 394, y: 326 }, { x: 286, y: 294 }, { x: 198, y: 258 }],
+  ];
+  ctx.save();
+  visitors.forEach((visitor, index) => {
+    const path = paths[index % paths.length];
+    const progress = reducedMotion ? 0.78 : (0.58 + ((motion * 0.08 + visitor.delay) % 0.38));
+    const point = pointOnPolyline(path, progress);
+    const bob = reducedMotion ? 0 : Math.sin(motion * 3 + index) * 3;
+    const x = point.x;
+    const y = point.y + bob;
+
+    ctx.globalAlpha = 0.9;
+    ctx.strokeStyle = `${palette.accent}66`;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 8]);
+    ctx.lineDashOffset = reducedMotion ? 0 : -motion * 12;
+    ctx.beginPath();
+    path.forEach((routePoint, routeIndex) => {
+      if (routeIndex === 0) ctx.moveTo(routePoint.x, routePoint.y);
+      else ctx.lineTo(routePoint.x, routePoint.y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = "rgba(23, 35, 29, 0.16)";
+    ctx.beginPath();
+    ctx.ellipse(x + 14, y + 43, 20, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = visitor.color;
+    ctx.beginPath();
+    ctx.roundRect(x, y + 12, 28, 34, 10);
+    ctx.fill();
+    ctx.fillStyle = "#fff0d4";
+    ctx.beginPath();
+    ctx.arc(x + 14, y + 6, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = palette.mote;
+    ctx.beginPath();
+    ctx.arc(x + 24, y - 2, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    const bubbleWidth = Math.max(82, Math.min(120, visitor.bubble.length * 12));
+    ctx.fillStyle = "rgba(255, 248, 232, 0.94)";
+    ctx.strokeStyle = `${palette.accent}55`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(x + 30, y - 20, bubbleWidth, 26, 10);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = palette.accent;
+    ctx.font = "700 11px Microsoft YaHei";
+    ctx.fillText(visitor.bubble.slice(0, 9), x + 40, y - 4);
+
+    ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
+    ctx.beginPath();
+    ctx.roundRect(x - 12, y + 50, 62, 21, 9);
+    ctx.fill();
+    ctx.fillStyle = "#17231d";
+    ctx.font = "700 10px Microsoft YaHei";
+    ctx.fillText(String(visitor.name || "").slice(0, 5), x, y + 64);
+  });
+  ctx.restore();
+  return true;
+}
+
+export function drawEcologyShopAuraAtShopWorld({
+  ctx,
+  ecologyShopAura = null,
+  motion = 0,
+  reducedMotion = false,
+  pointOnPolyline = () => ({ x: 0, y: 0 }),
+  ecologyShopAuraVisualPalette = () => ({
+    accent: "#b47d2f",
+    soft: "rgba(255, 248, 232, 0.4)",
+    mote: "#fffdf5",
+    glyph: "铺",
+    label: "余韵",
+  }),
+} = {}) {
+  if (!ctx || !ecologyShopAura?.active) return false;
+  const palette = ecologyShopAuraVisualPalette(ecologyShopAura.comboId);
+  const route = [
+    { x: 508, y: 382 },
+    { x: 418, y: 330 },
+    { x: 312, y: 284 },
+    { x: 202, y: 238 },
+    { x: 96, y: 218 },
+  ];
+  const drift = reducedMotion ? 0 : motion;
+  ctx.save();
+  ctx.globalAlpha = 0.86;
+  ctx.strokeStyle = palette.soft;
+  ctx.lineWidth = ecologyShopAura.inspectionCareActive ? 7 : 5;
+  ctx.setLineDash([12, 14]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 18;
+  ctx.beginPath();
+  route.forEach((point, index) => {
+    if (index === 0) ctx.moveTo(point.x, point.y);
+    else ctx.quadraticCurveTo((route[index - 1].x + point.x) / 2, Math.min(route[index - 1].y, point.y) - 26, point.x, point.y);
+  });
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  for (let i = 0; i < 9; i += 1) {
+    const progress = (i / 9 + drift * 0.08) % 1;
+    const point = pointOnPolyline(route, progress);
+    const bob = Math.sin(drift * 2 + i * 0.9) * 5;
+    ctx.globalAlpha = 0.38 + (i % 3) * 0.12;
+    ctx.fillStyle = i % 2 ? palette.mote : "#fffdf5";
+    ctx.beginPath();
+    ctx.arc(point.x + Math.sin(drift + i) * 5, point.y + bob, ecologyShopAura.inspectionCareActive ? 4.2 : 3.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const doorGlow = ctx.createRadialGradient(116, 214, 8, 116, 214, 86);
+  doorGlow.addColorStop(0, palette.soft);
+  doorGlow.addColorStop(0.58, "rgba(255, 253, 245, 0.16)");
+  doorGlow.addColorStop(1, "rgba(255, 253, 245, 0)");
+  ctx.globalAlpha = 0.92;
+  ctx.fillStyle = doorGlow;
+  ctx.beginPath();
+  ctx.ellipse(116, 218, 96, 42, -0.04, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.globalAlpha = 0.96;
+  ctx.fillStyle = "rgba(255, 248, 232, 0.88)";
+  ctx.beginPath();
+  ctx.roundRect(62, 174, 128, 36, 14);
+  ctx.fill();
+  ctx.strokeStyle = `${palette.accent}88`;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fillStyle = palette.accent;
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(`${palette.glyph} · 夜事余韵`, 78, 197);
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+  ctx.beginPath();
+  ctx.roundRect(202, 204, 142, 30, 12);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(23, 35, 29, 0.12)";
+  ctx.stroke();
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "700 11px Microsoft YaHei";
+  ctx.fillText(`${palette.label} · 来客 +${ecologyShopAura.visitorBonus}`, 216, 224);
+
+  if (ecologyShopAura.inspectionCareActive) {
+    ctx.fillStyle = "rgba(246, 240, 182, 0.88)";
+    ctx.beginPath();
+    ctx.roundRect(214, 236, 112, 24, 10);
+    ctx.fill();
+    ctx.fillStyle = "#8f5f3f";
+    ctx.font = "700 10px Microsoft YaHei";
+    ctx.fillText("巡看照料已接入", 228, 252);
+  }
+  ctx.restore();
+  return true;
+}
+
+export function drawQingboWaterFreshSignatureSignWorld({
+  ctx,
+  aura = null,
+  motion = 0,
+  reducedMotion = false,
+} = {}) {
+  if (!ctx || !aura?.active) return false;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.1) * 2;
+  const ripple = reducedMotion ? 0 : Math.sin(motion * 2.8) * 3;
+  const x = 54;
+  const y = 134;
+  ctx.save();
+  ctx.globalAlpha = 0.95;
+  const glow = ctx.createRadialGradient(x + 82, y + 34, 10, x + 82, y + 34, 92);
+  glow.addColorStop(0, "rgba(77, 145, 166, 0.28)");
+  glow.addColorStop(0.58, "rgba(202, 235, 210, 0.14)");
+  glow.addColorStop(1, "rgba(241, 249, 251, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.ellipse(x + 82, y + 40, 108, 48, -0.08, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(77, 145, 166, 0.68)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x + 18, y + 8 + pulse);
+  ctx.lineTo(x + 18, y + 68 + pulse);
+  ctx.moveTo(x + 140, y + 8 + pulse);
+  ctx.lineTo(x + 140, y + 68 + pulse);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(241, 249, 251, 0.94)";
+  ctx.beginPath();
+  ctx.roundRect(x + 4, y + 12 + pulse, 152, 48, 14);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(77, 145, 166, 0.6)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = "#4d91a6";
+  ctx.font = "800 13px Microsoft YaHei";
+  ctx.fillText("清波水鲜招牌", x + 18, y + 32 + pulse);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "700 10px Microsoft YaHei";
+  ctx.fillText(
+    `${aura.regularsActive ? "熟客" : aura.itemName} x${aura.regularsActive ? aura.menuDishCount || aura.count : aura.count} · 来客 +${aura.visitorBonus}`,
+    x + 18,
+    y + 49 + pulse,
+  );
+
+  ctx.fillStyle = "rgba(77, 145, 166, 0.18)";
+  ctx.beginPath();
+  ctx.arc(x + 132, y + 36 + pulse, 14 + Math.max(0, ripple), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#4d91a6";
+  ctx.font = "800 12px Microsoft YaHei";
+  ctx.fillText("鲜", x + 126, y + 41 + pulse);
+
+  for (let i = 0; i < 3; i += 1) {
+    ctx.strokeStyle = `rgba(77, 145, 166, ${0.22 - i * 0.04})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(x + 124, y + 72 + pulse, 18 + i * 9 + Math.max(0, ripple), 0.12, Math.PI - 0.12);
+    ctx.stroke();
+  }
+  ctx.restore();
+  return true;
+}
+
 export function drawShopReputationStageSignWorld({
   ctx,
   spec = null,
