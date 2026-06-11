@@ -595,6 +595,9 @@ import {
   orderRewardReinvestTrailSafetyTextWorld,
   orderRewardReinvestTrailWorldAtCanvasPointWorld,
   orderRewardReinvestTrailWorldSpecWorld,
+  drawOrderSeedPrepWorldBoardWorld,
+  orderSeedPrepWorldBoardAtCanvasPointWorld,
+  orderSeedPrepWorldBoardSpecWorld,
   readyOrderSealNodesWorld,
   readyOrderSealSafetyTextWorld,
   readyOrderSealWorldAtCanvasPointWorld,
@@ -29255,45 +29258,35 @@ function orderSeedPrepWorldRows(limit = 3) {
 }
 
 function orderSeedPrepWorldBoardSpec(width = 960, height = 640) {
+  return orderSeedPrepWorldBoardSpecBridge(width, height);
+}
+
+const ORDER_SEED_PREP_WORLD_BOARD_COPY = {
+  title: "主世界订单缺口可播种",
+  cta: "缺口可下种 · 可点",
+};
+
+function orderSeedPrepWorldBoardSpecBridge(width = 960, height = 640) {
   const rows = orderSeedPrepWorldRows(3);
-  if (!rows.length) return null;
-  const top = rows[0];
-  const { tile, gap, originX, originY } = gridMetrics();
-  const anchor = {
-    x: originX + top.plot.x * (tile + gap) + tile * 0.5,
-    y: originY + top.plot.y * (tile + gap) + tile * 0.5,
-  };
-  const cardWidth = 306;
-  const cardHeight = 108 + rows.length * 22;
-  const x = Math.max(38, Math.min(width - cardWidth - 336, 78));
-  const y = Math.max(242, Math.min(height - cardHeight - 34, 306));
-  return {
-    key: `${state.day}:${rows.map((row) => `${row.orderId}:${row.seedId}:${row.plot.x},${row.plot.y}`).join("|")}`,
+  return orderSeedPrepWorldBoardSpecWorld({
+    width,
+    height,
     day: state.day,
     rows,
-    top,
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor,
-    title: "主世界订单缺口可播种",
-    headline: `${top.itemName} 还差 ${top.missingCount}`,
-    detail: `${top.seedName} 可播 ${top.plotLabel}`,
-    cta: "缺口可下种 · 可点",
-  };
+    metrics: gridMetrics(),
+    copy: ORDER_SEED_PREP_WORLD_BOARD_COPY,
+  });
 }
 
 function orderSeedPrepWorldBoardAtCanvasPoint(px, py) {
-  const spec = orderSeedPrepWorldBoardSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return orderSeedPrepWorldBoardAtCanvasPointWorld({
+    px,
+    py,
+    spec: orderSeedPrepWorldBoardSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
+  });
 }
 
-function focusOrderSeedPrepWorldBoardFromCanvas(spec = orderSeedPrepWorldBoardSpec()) {
+function focusOrderSeedPrepWorldBoardFromCanvas(spec = orderSeedPrepWorldBoardSpecBridge()) {
   if (!spec?.top?.seedId) return false;
   const { top } = spec;
   orderSeedPrepWorldBoardFocus = { key: spec.key, day: state.day, orderId: top.orderId, seedId: top.seedId };
@@ -29305,96 +29298,16 @@ function focusOrderSeedPrepWorldBoardFromCanvas(spec = orderSeedPrepWorldBoardSp
   return true;
 }
 
-function drawOrderSeedPrepWorldBoard(ctx, spec = orderSeedPrepWorldBoardSpec(ctx.canvas.width, ctx.canvas.height)) {
-  if (!spec?.rect) return false;
-  const { rect, rows, top, anchor } = spec;
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.78) * 2.2;
-  const cardY = rect.y + bob;
-  const active = orderSeedPrepWorldBoardFocus?.day === state.day
-    && orderSeedPrepWorldBoardFocus?.key === spec.key;
-  const accent = top.recommendation.className === "boost" ? "#48a868" : top.recommendation.className === "risk" ? "#be4f37" : "#286f58";
-
-  ctx.save();
-  ctx.strokeStyle = active ? "rgba(72, 168, 104, 0.86)" : "rgba(72, 168, 104, 0.48)";
-  ctx.lineWidth = active ? 2.8 : 1.7;
-  ctx.setLineDash([5, 7]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 11;
-  ctx.beginPath();
-  ctx.moveTo(rect.x + rect.width - 30, cardY + rect.height - 12);
-  ctx.quadraticCurveTo((rect.x + rect.width + anchor.x) / 2, cardY + rect.height + 24, anchor.x, anchor.y);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(248, 252, 247, 0.96)");
-  ctx.strokeStyle = active ? "rgba(72, 168, 104, 0.92)" : "rgba(72, 168, 104, 0.58)";
-  ctx.lineWidth = active ? 2.8 : 1.5;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = "rgba(72, 168, 104, 0.16)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 56, 52, 16);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(72, 168, 104, 0.66)";
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 56, 52, 16);
-  ctx.stroke();
-  ctx.fillStyle = accent;
-  ctx.font = "900 22px Microsoft YaHei";
-  ctx.fillText("种", rect.x + 31, cardY + 47);
-  ctx.strokeStyle = "rgba(202, 235, 210, 0.86)";
-  ctx.lineWidth = 2;
-  for (let leaf = 0; leaf < 3; leaf += 1) {
-    const sway = settings.reducedMotion ? 0 : Math.sin(motion * 2 + leaf) * 2;
-    ctx.beginPath();
-    ctx.moveTo(rect.x + 28 + leaf * 10, cardY + 58);
-    ctx.quadraticCurveTo(rect.x + 26 + leaf * 10 + sway, cardY + 44, rect.x + 34 + leaf * 10, cardY + 36 + leaf * 2);
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(`${spec.cta} · ${spec.headline}`, rect.x + 84, cardY + 26);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 15px Microsoft YaHei";
-  ctx.fillText(top.orderTitle.slice(0, 18), rect.x + 84, cardY + 48);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(`${spec.detail} · ${top.recommendation.text}`.slice(0, 34), rect.x + 84, cardY + 66);
-  ctx.fillStyle = "#286f58";
-  ctx.font = "800 10px Microsoft YaHei";
-  ctx.fillText(`预计 ${top.growDays} 天 · 收后 ${top.route?.badge || "订单备货"}`.slice(0, 36), rect.x + 84, cardY + 82);
-
-  rows.slice(0, 3).forEach((row, index) => {
-    const rowY = cardY + 106 + index * 22;
-    const primary = row.seedId === top.seedId && row.orderId === top.orderId;
-    ctx.fillStyle = primary ? "rgba(72, 168, 104, 0.14)" : "rgba(255, 253, 245, 0.72)";
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 16, rowY - 15, rect.width - 32, 18, 8);
-    ctx.fill();
-    ctx.fillStyle = primary ? "#286f58" : "#8f5f3f";
-    ctx.font = "900 10px Microsoft YaHei";
-    ctx.fillText(primary ? "先种" : "可种", rect.x + 28, rowY - 2);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 10px Microsoft YaHei";
-    ctx.fillText(row.seedName.slice(0, 13), rect.x + 64, rowY - 2);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "10px Microsoft YaHei";
-    ctx.fillText(`${row.itemName} ${row.haveText}`.slice(0, 14), rect.x + 178, rowY - 2);
+function drawOrderSeedPrepWorldBoard(ctx, spec = orderSeedPrepWorldBoardSpecBridge(ctx.canvas.width, ctx.canvas.height)) {
+  return drawOrderSeedPrepWorldBoardWorld({
+    ctx,
+    spec,
+    reducedMotion: settings.reducedMotion,
+    motion: performance.now() / 1000,
+    day: state.day,
+    focus: orderSeedPrepWorldBoardFocus,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 55, cardY + 12, 40, 18, 9);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + rect.width - 46, cardY + 25);
-  ctx.restore();
-  return true;
 }
 
 function orderSeedRestockWorldRows(limit = 3) {
@@ -82578,7 +82491,7 @@ function drawWorld() {
   drawOrderRewardReinvestTrailWorld(ctx, orderRewardReinvestTrailWorldSpecBridge(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawSeedRestockBagWorld(ctx, seedRestockBagWorldSpecBridge(width, height, originX, originY, tile, gap), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawOrderCraftPrepWorldBoard(ctx, orderCraftPrepWorldBoardSpecBridge(width, height));
-  drawOrderSeedPrepWorldBoard(ctx, orderSeedPrepWorldBoardSpec(width, height));
+  drawOrderSeedPrepWorldBoard(ctx, orderSeedPrepWorldBoardSpecBridge(width, height));
   drawOrderSeedRestockWorldBoard(ctx, orderSeedRestockWorldBoardSpec(width, height));
   drawOrderMarketPrepWorldBoard(ctx, orderMarketPrepWorldBoardSpec(width, height));
   drawOrderGapSupplyRouteWorld(ctx, orderGapSupplyRouteWorldSpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
