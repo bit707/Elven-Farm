@@ -168,6 +168,7 @@ import {
   drawWorkshopReadyOrderDispatchWorldWorld,
   workshopReadyOrderDispatchWorldSpecFromRuntimeWorld,
   drawWorkshopSpiritAssistActionWorldWorld,
+  workshopSpiritAssistActionWorldSpecFromRuntimeWorld,
   drawWorkshopToShopStockBridgeWorldWorld,
   workshopToShopStockBridgeWorldSpecFromRuntimeWorld,
   drawWorkshopValueLedgerWorldWorld,
@@ -53259,8 +53260,43 @@ function workshopSpiritAssistActionWorldSpec(width = refs.world?.width || 960, h
   };
 }
 
+function workshopSpiritAssistActionWorldSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640, livingState = currentLivingWorldState(), lineSpec = workshopProductionLineSpec(livingState?.queue || state.workshopQueue || [])) {
+  const helpers = state.spirits.filter((spirit) => spirit.job === "workshop");
+  const activeJob = lineSpec?.activeJob || null;
+  if (helpers.length === 0) return null;
+  const sceneSpec = workshopWorldProductionSceneSpec(lineSpec);
+  const stageProps = sceneSpec.stageProps || [];
+  const activeStage = activeJob
+    ? stageProps.find((prop) => prop.active) || stageProps[Math.max(0, Math.min(stageProps.length - 1, Number(activeJob.activeStageIndex || 0)))]
+    : stageProps.find((prop) => prop.key === "heat") || stageProps[2] || { key: "idle", label: "Standby", x: 618, y: 502 };
+  const helper = helpers[0];
+  const helperNames = helpers.slice(0, 2).map((spirit) => spirit.name).join(" / ");
+  const helperText = helpers.length > 2 ? `${helperNames} +${helpers.length}` : helperNames || helper.name || "Helper";
+  const stageKey = activeJob ? activeStage?.key || "heat" : "idle";
+  const copy = workshopSpiritAssistActionCopy(stageKey, helper.name || "Helper", activeJob);
+  const orderMatch = activeJob?.orderMatch || null;
+  const speedText = activeJob?.speedText || lineSpec.speedText || multiplierText(workshopMultiplier() * workshopSpiritBonus());
+  const recipeId = activeJob?.recipeId || state.selectedRecipeId || availableRecipes()[0]?.recipe_id || "";
+  return workshopSpiritAssistActionWorldSpecFromRuntimeWorld({
+    width,
+    height,
+    day: state.day,
+    helpers,
+    activeJob,
+    activeStage,
+    helper,
+    helperText,
+    stageKey,
+    copy,
+    orderMatch,
+    speedText,
+    recipeId,
+    safetyText: workshopSpiritAssistActionSafetyText(),
+  });
+}
+
 function workshopSpiritAssistActionWorldAtCanvasPoint(px, py) {
-  const spec = workshopSpiritAssistActionWorldSpec();
+  const spec = workshopSpiritAssistActionWorldSpecBridge();
   if (!spec?.rect) return null;
   const { rect } = spec;
   return (
@@ -53271,7 +53307,7 @@ function workshopSpiritAssistActionWorldAtCanvasPoint(px, py) {
   ) ? spec : null;
 }
 
-function focusWorkshopSpiritAssistActionWorldFromCanvas(spec = workshopSpiritAssistActionWorldSpec()) {
+function focusWorkshopSpiritAssistActionWorldFromCanvas(spec = workshopSpiritAssistActionWorldSpecBridge()) {
   if (!spec?.helperId) return false;
   workshopSpiritAssistActionWorldFocus = {
     key: spec.key,
@@ -53304,7 +53340,7 @@ function focusWorkshopSpiritAssistActionWorldFromCanvas(spec = workshopSpiritAss
   return true;
 }
 
-function drawWorkshopSpiritAssistActionWorld(ctx, spec = workshopSpiritAssistActionWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
+function drawWorkshopSpiritAssistActionWorld(ctx, spec = workshopSpiritAssistActionWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
   if (!spec?.rect) return false;
   const active = workshopSpiritAssistActionWorldFocus?.day === state.day
     && workshopSpiritAssistActionWorldFocus?.key === spec.key;
@@ -75331,7 +75367,7 @@ function drawWorkshopAutomation(ctx, livingState) {
   drawWorkshopLineOverviewWorldBoard(ctx, workshopLineOverviewWorldBoardSpec(lineSpec, livingState), motion);
   drawWorkshopOpeningValueWorld(ctx, workshopOpeningValueWorldSpecBridge(ctx.canvas.width, ctx.canvas.height, lineSpec), motion);
   drawWorkshopIngredientReadyWorld(ctx, workshopIngredientReadyWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion);
-  drawWorkshopSpiritAssistActionWorld(ctx, workshopSpiritAssistActionWorldSpec(ctx.canvas.width, ctx.canvas.height, livingState, lineSpec), motion);
+  drawWorkshopSpiritAssistActionWorld(ctx, workshopSpiritAssistActionWorldSpecBridge(ctx.canvas.width, ctx.canvas.height, livingState, lineSpec), motion);
 
   const orderBoard = workshopOrderBoardSpec(visibleOrders(), 1);
   if (orderBoard?.top) {

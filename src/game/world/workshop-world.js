@@ -611,6 +611,95 @@ export function workshopOpeningValueWorldSpecFromRuntimeWorld({
   };
 }
 
+export function workshopSpiritAssistActionWorldSpecFromRuntimeWorld({
+  width = 960,
+  height = 640,
+  day = 1,
+  helpers = [],
+  activeJob = null,
+  activeStage = null,
+  helper = null,
+  helperText = "",
+  stageKey = "idle",
+  copy = null,
+  orderMatch = null,
+  speedText = "",
+  recipeId = "",
+  safetyText = "Focus only. No auto role change, craft, schedule, output, delivery, shop open, night change, or material spend.",
+} = {}) {
+  const safeHelpers = Array.isArray(helpers) ? helpers : [];
+  if (safeHelpers.length === 0 || !helper || !copy) return null;
+
+  const orderDetail = orderMatch?.orderId
+    ? orderMatch.ready
+      ? "Order becomes deliverable after this pot"
+      : `Order connected / ${orderMatch.missingText || "still missing materials"}`
+    : activeJob
+      ? `${activeJob.outputItemName} will choose a route after stocking`
+      : "Pick a recipe, then schedule manually";
+  const cardWidth = 318;
+  const cardHeight = 112;
+  const x = Math.max(24, Math.min(width - cardWidth - 24, 72));
+  const y = Math.max(360, Math.min(height - cardHeight - 24, 486));
+
+  return {
+    key: `${day}:${helper.id}:${stageKey}:${activeJob?.id || "idle"}:${activeJob?.progress || 0}:${safeHelpers.length}`,
+    day,
+    active: Boolean(activeJob),
+    helper,
+    helperId: helper.id,
+    helperName: helper.name || "Helper",
+    helperText: helperText || helper.name || "Helper",
+    helperCount: safeHelpers.length,
+    stageKey,
+    stageLabel: activeJob ? activeStage?.label || activeJob.currentStage?.label || "Heat" : "Standby",
+    actionTitle: copy.title,
+    actionText: copy.action,
+    detail: copy.detail,
+    summary: copy.summary,
+    recipeId,
+    orderId: orderMatch?.orderId || "",
+    orderReady: Boolean(orderMatch?.ready),
+    orderDetail,
+    speedText: speedText || "1.0x",
+    title: "Spirit assist micro-action - click",
+    headline: activeJob
+      ? `${helper.name || "Helper"} is assisting ${activeStage?.label || activeJob.currentStage?.label || "the line"}`
+      : `${helper.name || "Helper"} is waiting by the workshop`,
+    cta: "Focus companion panel / workshop queue",
+    safety: safetyText,
+    accent: copy.accent,
+    rect: { x, y, width: cardWidth, height: cardHeight },
+    anchor: {
+      x: activeStage?.x || 618,
+      y: activeStage?.y || 502,
+    },
+    nodes: [
+      {
+        key: "helper",
+        badge: "HLP",
+        title: "Who helps",
+        detail: helperText || helper.name || "Helper",
+        accent: "#8f5f3f",
+      },
+      {
+        key: "action",
+        badge: copy.badge,
+        title: copy.title,
+        detail: copy.action,
+        accent: copy.accent,
+      },
+      {
+        key: "route",
+        badge: orderMatch?.orderId ? "ORD" : activeJob ? "POT" : "IDL",
+        title: activeJob ? "Next step" : "Queue next",
+        detail: orderDetail,
+        accent: orderMatch?.ready ? "#286f58" : "#b47d2f",
+      },
+    ],
+  };
+}
+
 export function drawWorkshopSpiritAssistActionWorldWorld({
   ctx,
   spec = null,
