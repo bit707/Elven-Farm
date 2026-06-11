@@ -174,6 +174,7 @@ import {
 import {
   shopCustomerFocusActionsMarkupWorld,
   shopCustomerFocusActionsWorld,
+  shopCustomerFocusReviewMarkupWorld,
   shopCustomerFocusReviewSpecWorld,
   shopFocusPreferredTagsWorld,
   shopFocusWorldData,
@@ -27593,18 +27594,12 @@ function shopCustomerFocusReviewMarkup() {
     restock,
     routeMarkup: restock ? shopRestockRouteMarkup(restock) : "",
   });
-  return `
-    <div class="shop-customer-focus ${spec.tone}" data-shop-board="customer-focus">
-      <strong>${spec.title} · ${spec.name}</strong>
-      <span>进店线索：${spec.need}</span>
-      <span>结果：${spec.result}</span>
-      <small>原因：${spec.reason}</small>
-      <small>下一步：${spec.advice}${spec.blockers ? ` · 今日盘面：${spec.blockers}` : ""}${spec.hotTagLabel ? ` · 热点：${spec.hotTagLabel}` : ""}</small>
-      ${restockMarkup}
-      ${actions}
-      ${reportLink}
-    </div>
-  `;
+  return shopCustomerFocusReviewMarkupWorld({
+    spec,
+    restockMarkup,
+    actionsMarkup: actions,
+    reportLink,
+  });
 }
 
 function recordShopOpeningFeedback({ customers, report, goods, theme, themeScore, sessionSales, compendiumDisplays = [], compendiumDisplayEffect = null, ecologyShopAura = null, qingboSignatureAura = null, restockFulfillment = null, spiritFinaleEffects = null, returningCustomers = [], introducedCustomers = [], shopWordOfMouthVisit = null }) {

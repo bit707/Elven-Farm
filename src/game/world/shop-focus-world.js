@@ -942,3 +942,24 @@ export function shopCustomerFocusActionsMarkupWorld({
     </div>
   `;
 }
+
+export function shopCustomerFocusReviewMarkupWorld({
+  spec = null,
+  restockMarkup = "",
+  actionsMarkup = "",
+  reportLink = "",
+} = {}) {
+  if (!spec) return "";
+  return `
+    <div class="shop-customer-focus ${spec.tone}" data-shop-board="customer-focus">
+      <strong>${spec.title} · ${spec.name}</strong>
+      <span>进店线索：${spec.need}</span>
+      <span>结果：${spec.result}</span>
+      <small>原因：${spec.reason}</small>
+      <small>下一步：${spec.advice}${spec.blockers ? ` · 今日盘面：${spec.blockers}` : ""}${spec.hotTagLabel ? ` · 热点：${spec.hotTagLabel}` : ""}</small>
+      ${restockMarkup}
+      ${actionsMarkup}
+      ${reportLink}
+    </div>
+  `;
+}
