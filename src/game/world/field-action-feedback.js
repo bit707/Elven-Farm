@@ -854,6 +854,30 @@ export function harvestStorageRouteSafetyTextWorld() {
   return "只定位背包、订单板、配方栏或旧铺货签，不会自动交单、加工、上架、开铺、售卖、扣库存、发奖励、入夜或消耗资源";
 }
 
+export function harvestStorageRouteFeedbackSpecFromRuntimeWorld({
+  feedback = null,
+  plot = null,
+  day = 1,
+  routeForHarvest = () => null,
+  routeSafe = (route) => route,
+  badgeForRoute = () => null,
+  itemName = (itemId) => itemId,
+  now = performance.now(),
+} = {}) {
+  if (!feedback?.cropId) return null;
+  const route = routeSafe(feedback.route || routeForHarvest(feedback.cropId, feedback.amount));
+  const badge = badgeForRoute(route);
+  return harvestStorageRouteFeedbackSpecWorld({
+    feedback,
+    plot,
+    day,
+    route,
+    badge,
+    itemName,
+    now,
+  });
+}
+
 export function harvestStorageRouteFeedbackSpecWorld({
   feedback = null,
   plot = null,
@@ -888,6 +912,41 @@ export function harvestStorageRouteFeedbackSpecWorld({
     createdAt: now,
     safety: harvestStorageRouteSafetyTextWorld(),
   };
+}
+
+export function harvestStorageRouteWorldSpecFromRuntimeWorld({
+  width = 960,
+  height = 640,
+  originXInput = null,
+  originYInput = null,
+  tileInput = null,
+  gapInput = null,
+  feedback = null,
+  day = 1,
+  inventory = {},
+  metrics = null,
+  routeSafe = (route) => route,
+  badgeForRoute = () => null,
+} = {}) {
+  if (!feedback?.cropId || Number(feedback.day || 0) !== Number(day || 0) || !metrics) return null;
+  const route = routeSafe(feedback.route);
+  const badge = badgeForRoute(route);
+  const { tile, gap, originX, originY } = metrics;
+  return harvestStorageRouteWorldSpecWorld({
+    width,
+    height,
+    feedback,
+    day,
+    stock: Number(inventory?.[feedback.cropId] || 0),
+    metrics: {
+      originX: Number(originXInput ?? originX),
+      originY: Number(originYInput ?? originY),
+      tile: Number(tileInput ?? tile),
+      gap: Number(gapInput ?? gap),
+    },
+    route,
+    badge,
+  });
 }
 
 export function harvestStorageRouteWorldSpecWorld({

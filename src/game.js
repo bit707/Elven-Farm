@@ -514,10 +514,10 @@ import {
   colorWithAlphaWorld,
   harvestRouteWorldBoardAtCanvasPointWorld,
   harvestRouteWorldBoardSpecWorld,
-  harvestStorageRouteFeedbackSpecWorld,
+  harvestStorageRouteFeedbackSpecFromRuntimeWorld,
   harvestStorageRouteSafetyTextWorld,
   harvestStorageRouteWorldAtCanvasPointWorld,
-  harvestStorageRouteWorldSpecWorld,
+  harvestStorageRouteWorldSpecFromRuntimeWorld,
   manualWaterAfterglowFeedbackSpecWorld,
   manualWaterAfterglowSafetyTextWorld,
   manualWaterAfterglowWorldAtCanvasPointWorld,
@@ -66189,15 +66189,13 @@ function harvestStorageRouteSafetyText() {
 }
 
 function harvestStorageRouteFeedbackSpec(feedback = state.harvestFeedback, plot = null) {
-  if (!feedback?.cropId) return null;
-  const route = harvestUseRouteSafe(feedback.route || harvestUseRouteSpec(feedback.cropId, feedback.amount));
-  const badge = nightGrowthRouteBadgeSpec(route);
-  return harvestStorageRouteFeedbackSpecWorld({
+  return harvestStorageRouteFeedbackSpecFromRuntimeWorld({
     feedback,
     plot,
     day: state.day,
-    route,
-    badge,
+    routeForHarvest: harvestUseRouteSpec,
+    routeSafe: harvestUseRouteSafe,
+    badgeForRoute: nightGrowthRouteBadgeSpec,
     itemName,
     now: performance.now(),
   });
@@ -66212,24 +66210,19 @@ function recordHarvestStorageRouteFeedback(feedback = state.harvestFeedback, plo
 
 function harvestStorageRouteWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, originXInput = null, originYInput = null, tileInput = null, gapInput = null) {
   const feedback = state.harvestStorageRouteFeedback;
-  if (!feedback?.cropId || Number(feedback.day || 0) !== Number(state.day || 0)) return null;
-  const { tile, gap, originX, originY } = gridMetrics();
-  const route = harvestUseRouteSafe(feedback.route);
-  const badge = nightGrowthRouteBadgeSpec(route);
-  return harvestStorageRouteWorldSpecWorld({
+  return harvestStorageRouteWorldSpecFromRuntimeWorld({
     width,
     height,
+    originXInput,
+    originYInput,
+    tileInput,
+    gapInput,
     feedback,
     day: state.day,
-    stock: Number(state.inventory[feedback.cropId] || 0),
-    metrics: {
-      originX: Number(originXInput ?? originX),
-      originY: Number(originYInput ?? originY),
-      tile: Number(tileInput ?? tile),
-      gap: Number(gapInput ?? gap),
-    },
-    route,
-    badge,
+    inventory: state.inventory,
+    metrics: gridMetrics(),
+    routeSafe: harvestUseRouteSafe,
+    badgeForRoute: nightGrowthRouteBadgeSpec,
   });
 }
 
