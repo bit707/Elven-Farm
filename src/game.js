@@ -138,6 +138,8 @@ import {
   shopCustomerForecastWorldSpecWorld,
   shopCustomerReasonCompassWorldAtCanvasPointWorld,
   shopCustomerReasonCompassWorldSpecWorld,
+  shopCrowdHeatSpecWorld,
+  shopCrowdHeatUiSpecWorld,
   shopDiagnosisWorldBoardAtCanvasPointWorld,
   shopDiagnosisWorldBoardSpecWorld,
   shopLiveFocusSpecWorld,
@@ -26862,167 +26864,22 @@ function shopLeaveRecoveryMarkup(recovery = null) {
 }
 
 function shopCrowdHeatSpec(liveFocus = normalizeShopOpeningState(state.shopOpeningState).liveFocus) {
-  const doorstep = shopDoorstepSceneSpec(normalizeShopOpeningState(state.shopOpeningState));
+  const opening = normalizeShopOpeningState(state.shopOpeningState);
+  const doorstep = shopDoorstepSceneSpec(opening);
   const weatherReaction = shopWeatherCustomerReactionSpec({ seasonalDoorstep: shopSeasonalDoorstepSceneSpec({ doorstepScene: doorstep }) });
-  const waterwayScene = shopWaterwayBrokerSceneSpec();
-  const buyers = Math.max(0, Number(liveFocus?.buyers || 0));
-  const leavers = Math.max(0, Number(liveFocus?.leavers || 0));
-  const themeScore = Math.max(0, Number(liveFocus?.themeScore || 0));
-  const topItemName = liveFocus?.topItemName || "";
-  const topBlockerLabel = liveFocus?.topBlockerLabel || "";
-  const hotTagLabel = liveFocus?.hotTagLabel || "";
-  const doorstepBoost = Number(doorstep?.crowdBoost || 0);
-  const weatherHeatBoost = Number(weatherReaction?.heatBoost || 0);
-  const waterwayHeatBoost = Number(waterwayScene?.visitorCount || 0) + Number(waterwayScene?.boughtCount || 0) * 2;
-  const returningCount = Number(doorstep?.returningCount || 0);
-  const introducedCount = Number(doorstep?.introducedCount || 0);
-  const active = Boolean((liveFocus && (buyers > 0 || leavers > 0 || topItemName || liveFocus.topBlocker)) || returningCount > 0 || introducedCount > 0 || weatherReaction?.active || waterwayScene?.active);
-  const heatScore = buyers * 3 + Math.round(themeScore / 25) - leavers + doorstepBoost + weatherHeatBoost + waterwayHeatBoost;
-  const heatTier = buyers >= 4 || heatScore >= 10
-    ? "packed"
-    : buyers >= 2 || heatScore >= 6
-      ? "busy"
-      : buyers > 0
-        ? "warm"
-        : leavers > 0
-          ? "hesitant"
-          : "quiet";
-  const buyerCount = active ? Math.min(5, buyers + (heatTier === "packed" ? 1 : 0) + Number(waterwayScene?.boughtCount || 0)) : 0;
-  const lookerCount = active ? Math.max(0, Math.min(4, Math.round(themeScore / 45) + (buyers > 0 ? 1 : 0) - Math.min(1, leavers) + doorstepBoost + Math.max(0, weatherHeatBoost) + Number(waterwayScene?.visitorCount || 0))) : 0;
-  const leaverCount = active ? Math.min(3, leavers) : 0;
-  const crowdCount = active ? Math.max(buyerCount + lookerCount + Math.min(1, leaverCount), buyers > 0 ? 2 : leaverCount) : 0;
-  const tagAccents = {
-    medicine: "#4d91a6",
-    herb: "#4d91a6",
-    food: "#b47d2f",
-    fresh_food: "#7ba66c",
-    clean_food: "#9fd1df",
-    water_food: "#7ac3d5",
-    food_cold: "#7ac3d5",
-    cooling: "#7ac3d5",
-    drink: "#d87f8d",
-    staple: "#dea952",
-    ecology_product: "#5d8b52",
-    spirit_crafted: "#8c7ab8",
-    route_rare: "#e0b66d",
-  };
-  const accent = tagAccents[liveFocus?.hotTag] || (heatTier === "hesitant" ? "#be4f37" : "#7ba66c");
-  const mood = introducedCount > 0
-    ? "熟脸把新脚步领到门口，旁边的人也更愿意停下来看一眼"
-    : waterwayScene?.active
-      ? "莲泽客船停在旧铺旁，水航客把商路口碑带进了店铺门槛"
-    : doorstepBoost >= 2
-    ? "熟脸回门，旁边几双脚步也跟着停住了"
-    : heatTier === "packed"
-      ? "门口排队，围观也跟着凑近"
-    : heatTier === "busy"
-      ? "排队成线，热卖牌被频频指到"
-      : heatTier === "warm"
-        ? "有人买单，旁边开始围观"
-        : leavers > 0
-          ? "犹豫离店的人在门口回头"
-          : weatherReaction?.active
-            ? weatherReaction.detail
-          : "旧铺还在等下一批客人";
-  const headline = introducedCount > 0
-    ? `${doorstep?.rows?.find((row) => row.sceneType === "introduced")?.hostLabel || "熟客"}带来新脚步`
-    : waterwayScene?.active
-      ? waterwayScene.title
-    : returningCount > 0
-    ? `${doorstep?.rows?.[0]?.customerLabel || "熟客"}又回门了`
-    : weatherReaction?.active
-      ? weatherReaction.label
-    : topItemName
-      ? `${topItemName}挂上热卖牌`
-    : leavers > 0
-      ? `${topBlockerLabel || "顾客犹豫"}正在劝退来客`
-      : hotTagLabel
-        ? `${hotTagLabel}货架等人驻足`
-        : "旧铺等下一批客人";
-  const queueText = buyers > 0
-    ? `排队 ${buyerCount} · 围观 ${lookerCount}${returningCount > 0 ? ` · 熟脸 ${returningCount}` : ""}${introducedCount > 0 ? ` · 新脚步 ${introducedCount}` : ""}${waterwayScene?.active ? ` · 水航客 ${waterwayScene.visitorCount}` : ""}`
-    : leavers > 0
-      ? `围观 ${lookerCount} · 犹豫离店 ${leaverCount}${returningCount > 0 ? ` · 熟脸 ${returningCount}` : ""}${introducedCount > 0 ? ` · 新脚步 ${introducedCount}` : ""}${waterwayScene?.active ? ` · 水航客 ${waterwayScene.visitorCount}` : ""}`
-      : returningCount > 0
-        ? `熟脸 ${returningCount}${introducedCount > 0 ? ` · 新脚步 ${introducedCount}` : ""} · 围观 ${lookerCount}`
-        : introducedCount > 0
-          ? `新脚步 ${introducedCount} · 围观 ${lookerCount}`
-          : waterwayScene?.active
-            ? `水航客 ${waterwayScene.visitorCount} · 围观 ${lookerCount}`
-        : "门口候客";
-  return {
-    active,
-    heatTier,
-    crowdCount,
-    buyerCount,
-    lookerCount,
-    leaverCount,
-    returningCount,
-    introducedCount,
-    doorstepBoost,
-    headline,
-    mood,
-    accent,
-    queueText,
-    topItemName,
-    topBlockerLabel,
-    hotTagLabel,
+  return shopCrowdHeatSpecWorld({
+    liveFocus,
+    doorstep,
     weatherReaction,
-    waterwayScene,
-    weatherHeatBoost,
-  };
+    waterwayScene: shopWaterwayBrokerSceneSpec(),
+  });
 }
 
 function shopCrowdHeatUiSpec(liveFocus = normalizeShopOpeningState(state.shopOpeningState).liveFocus) {
-  const heat = shopCrowdHeatSpec(liveFocus);
-  const buyers = Math.max(0, Number(liveFocus?.buyers || 0));
-  const leavers = Math.max(0, Number(liveFocus?.leavers || 0));
-  const themeScore = Math.max(0, Number(liveFocus?.themeScore || 0));
-  const stateClass = heat.heatTier === "hesitant"
-    ? "warn"
-    : buyers > 0
-      ? "good"
-      : "idle";
-  const title = heat.heatTier === "packed"
-    ? "门口排起小队"
-    : heat.heatTier === "busy"
-      ? "旧铺门口热起来了"
-      : heat.waterwayScene?.active
-        ? "莲泽客船停在旧铺旁"
-      : heat.heatTier === "warm"
-        ? "第一圈围观形成"
-        : heat.returningCount > 0
-          ? "熟脸先把门口点热了"
-        : leavers > 0
-          ? "有人在门口犹豫离店"
-          : "旧铺还在等第一波驻足";
-  const detail = heat.returningCount > 0
-    ? `${heat.topItemName || heat.hotTagLabel || "这排货"}已经被昨天记住，熟脸回门正在替你把门口重新点热。`
-    : heat.waterwayScene?.active
-      ? `${heat.waterwayScene.sceneLine}。${heat.waterwayScene.nextAction}`
-    : heat.topItemName
-      ? `${heat.topItemName} 已经挂上热卖牌，下一轮可以沿着这件货继续补同类陈列。`
-    : leavers > 0
-      ? `${heat.topBlockerLabel || "顾客犹豫"}让门口热度散了一点，先修正这处短板更稳。`
-      : heat.hotTagLabel
-        ? `货架正在围绕“${heat.hotTagLabel}”等人驻足，先准备一件高匹配加工品。`
-        : "先准备一件能讲清楚标签的商品，旧铺门口才会有第一圈人。";
-  const chips = [
-    { label: "排队", value: heat.buyerCount, tone: buyers > 0 ? "good" : "idle" },
-    { label: "围观", value: heat.lookerCount, tone: heat.lookerCount > 0 ? "good" : "idle" },
-    { label: "熟脸", value: heat.returningCount, tone: heat.returningCount > 0 ? "good" : "idle" },
-    { label: "水航客", value: heat.waterwayScene?.visitorCount || 0, tone: heat.waterwayScene?.active ? "good" : "idle" },
-    { label: "犹豫离店", value: heat.leaverCount, tone: leavers > 0 ? "warn" : "idle" },
-    { label: "主题", value: `${themeScore}%`, tone: themeScore >= 70 ? "good" : themeScore >= 40 ? "mid" : "warn" },
-  ];
-  return {
-    ...heat,
-    stateClass,
-    title,
-    detail,
-    chips,
-    nextAction: liveFocus?.shelfAdvice || "掌柜建议：先补一件主题明确的加工品，再开铺测试顾客反应。",
-  };
+  return shopCrowdHeatUiSpecWorld({
+    liveFocus,
+    heat: shopCrowdHeatSpec(liveFocus),
+  });
 }
 
 function shopSaleFeedbackSpec(sale, openingFeedback = {}) {
