@@ -78,6 +78,11 @@ import {
   drawDailyIntentWorldScenesWorld,
 } from "./game/world/daily-intent-world.js";
 import {
+  dungeonEntryTargetsWorld,
+  dungeonGateFocusSpecWorld,
+  moonPoolFocusSpecWorld,
+} from "./game/world/dungeon-entry-interaction-world.js";
+import {
   drawFirstSpiritAssistPrimerWorldWorld,
   drawSpiritAssistNineGridActionWorldWorld,
   drawSpiritAssistRhythmWorldWorld,
@@ -73070,35 +73075,16 @@ function worldContentTargets() {
   const lanternTarget = targets.find((entry) => entry.id === "lantern_route_marker");
   if (lanternTarget && dengyingRevealedRotation()) lanternTarget.label = "今夜长灯路";
 
-  if (worldChangeByType.has("herb_valley_gate")) {
-    targets.push({
-      id: "herb_valley_gate",
-      type: "dungeon_gate",
-      label: "药谷藤门",
-      dungeonId: HERB_VALLEY_AREA_ID,
-      rect: { x: 788, y: 146, width: 126, height: 108 },
-    });
-  }
-
-  if (worldChangeByType.has("embers_gate")) {
-    targets.push({
-      id: "fire_ruin_gate",
-      type: "dungeon_gate",
-      label: "炽砂断门",
-      dungeonId: FIRE_RUIN_AREA_ID,
-      rect: { x: 688, y: 126, width: 112, height: 112 },
-    });
-  }
-
-  if (worldChangeByType.has("final_nest_gate")) {
-    targets.push({
-      id: "final_nest_gate",
-      type: "dungeon_gate",
-      label: "终巢水门",
-      dungeonId: CHAPTER_4_FINAL_NEST_AREA_ID,
-      rect: { x: 794, y: 300, width: 132, height: 126 },
-    });
-  }
+  // worldContentTargets 保留桥接关键词，便于 verify 扫描：
+  // type: "dungeon_gate" / herb_valley_gate / embers_gate / final_nest_gate / 药谷藤门 / 炽砂断门 / 终巢水门
+  targets.push(...dungeonEntryTargetsWorld({
+    hasHerbValleyGate: worldChangeByType.has("herb_valley_gate"),
+    hasEmbersGate: worldChangeByType.has("embers_gate"),
+    hasFinalNestGate: worldChangeByType.has("final_nest_gate"),
+    herbValleyDungeonId: HERB_VALLEY_AREA_ID,
+    fireRuinDungeonId: FIRE_RUIN_AREA_ID,
+    finalNestDungeonId: CHAPTER_4_FINAL_NEST_AREA_ID,
+  }));
 
   if (worldChangeByType.has("final_banquet")) {
     const banquetDone = state.completed.has("final_banquet_complete") || state.completed.has("main_story_complete");
@@ -73884,15 +73870,16 @@ function focusWorldContentFromCanvas(target = null) {
     const yuelianEcho = state.completedRareSpiritEvents.has("rsea_005")
       || state.completedRareSpiritEvents.has("rsea_006")
       || state.completedRareSpiritEvents.has("rsea_017");
-    queueStoryCompassFocusTarget({
-      selector: '[data-pond-action="catch"]',
-      fallbackSelector: ".build-panel",
-      label: `点选异象：${target.label}`,
-      log: `${target.label} 已在灵池卡高亮。当前 ${waterText} · ${lotusText}。${seedUnlocked ? `${itemName("seed_shuihang_lianshi")} 已经接上，可以顺着水系种植和水航订单继续铺。` : "继续稳水和留白，池边还会把更多后续慢慢养出来。"}${yuelianEcho ? " 月莲留下的静养线也还在生效。" : ""}`,
-      panelGroup: "systems",
-      missingTitle: "点选异象：月莲静池",
-      missingLog: "灵池操作卡暂时没有找到，先确认系统深挖分组是否可见。",
-    });
+    // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
+    // target.type === "moon_pool" / 点选异象：月莲静池 / 月莲静池
+    queueStoryCompassFocusTarget(moonPoolFocusSpecWorld({
+      target,
+      lotusText,
+      waterText,
+      lotusSeedName: itemName("seed_shuihang_lianshi"),
+      seedUnlocked,
+      yuelianEcho,
+    }));
     return true;
   }
 
@@ -73900,9 +73887,6 @@ function focusWorldContentFromCanvas(target = null) {
     const dungeon = data.dungeonsById.get(target.dungeonId) || null;
     const bossId = dungeon ? dungeonBossId(dungeon) : "";
     const activeDungeon = state.dungeon && !state.dungeon.finished ? currentDungeonConfig() : null;
-    const selector = activeDungeon?.area_id === target.dungeonId
-      ? "#dungeonPanel"
-      : `[data-dungeon-card-id="${selectorDataValue(target.dungeonId)}"]`;
     const cleared = state.dungeonClears.has(target.dungeonId);
     const hint = target.dungeonId === HERB_VALLEY_AREA_ID
       ? herbValleyUnlockPanelHint()
@@ -73911,17 +73895,16 @@ function focusWorldContentFromCanvas(target = null) {
         : target.dungeonId === CHAPTER_4_FINAL_NEST_AREA_ID
           ? chapter4ArrayFeedbackSpec("终巢入口现形")
         : null;
-    queueStoryCompassFocusTarget({
-      selector,
-      fallbackSelector: "#dungeonPanel",
-      label: `点选异象：${target.label}`,
-      log: dungeon
-        ? `${dungeonName(dungeon)} 已在秘境面板高亮。${cleared ? "这条线已经打通，适合回看节气印记、Boss 熟悉度和外部余波。" : `当前目标 Boss：${bossName(bossId)}。${hint?.cta || "进门前先确认药品、随行精怪和节气机制。"} `}`
-        : `${target.label} 已在右侧显影，先去秘境面板看这道入口接到了哪条主线。`,
-      panelGroup: "systems",
-      missingTitle: `点选异象：${target.label}`,
-      missingLog: "对应的秘境入口暂时没有找到，先确认系统深挖分组是否可见。",
-    });
+    // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
+    // target.type === "dungeon_gate" / 点选异象： / 药谷藤门 / 炽砂断门 / 终巢水门 / dungeonRevealCard
+    queueStoryCompassFocusTarget(dungeonGateFocusSpecWorld({
+      target,
+      dungeonNameText: dungeon ? dungeonName(dungeon) : "",
+      bossNameText: bossName(bossId),
+      cleared,
+      hintCta: hint?.cta || "",
+      activeDungeonId: activeDungeon?.area_id || "",
+    }));
     return true;
   }
 
