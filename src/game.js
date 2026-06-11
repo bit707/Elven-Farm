@@ -176,6 +176,7 @@ import {
 import {
   inventoryWeatherShelfHintMarkupWorld,
   shopSeasonalDoorstepSceneSpecWorld,
+  shopWeatherShelfActionEchoSpecWorld,
   shopWeatherShelfAfterglowSpecWorld,
   shopWeatherShelfCustomerVignetteSpecWorld,
   shopWeatherShelfDaySummarySpecWorld,
@@ -77715,42 +77716,7 @@ function drawShopActionFeedback(ctx, feedback = activeShopActionFeedback(), moti
 }
 
 function shopWeatherShelfActionEchoSpec(feedback = null) {
-  if (!feedback || feedback.source !== "weather_shelf") return { active: false };
-  const profileMap = {
-    price: {
-      label: "价签轻压",
-      detail: "犹豫客脚步慢下来",
-      icon: "价",
-    },
-    theme: {
-      label: "陈列复盘",
-      detail: "天气主推被重新照亮",
-      icon: "诊",
-    },
-    stock: {
-      label: "补货钉牌",
-      detail: "明早路线已挂到门口",
-      icon: "补",
-    },
-  };
-  const profile = profileMap[feedback.kind] || {
-    label: feedback.verb || "经营回响",
-    detail: "天气货签动作已落到旧铺",
-    icon: feedback.icon || "铺",
-  };
-  return {
-    active: true,
-    title: "天气货签动作回响",
-    label: profile.label,
-    detail: feedback.weatherShelfLabel || profile.detail,
-    subline: `${feedback.weatherName || "今日天气"} · ${profile.detail}`,
-    icon: profile.icon,
-    kind: feedback.kind || "note",
-    accent: feedback.accent || "#b47d2f",
-    soft: feedback.soft || "rgba(255, 248, 232, 0.94)",
-    age: Number(feedback.age || 0),
-    fade: Number.isFinite(feedback.fade) ? feedback.fade : 1,
-  };
+  return shopWeatherShelfActionEchoSpecWorld(feedback);
 }
 
 function drawShopWeatherShelfActionEcho(ctx, feedback = null, motion = 0) {
