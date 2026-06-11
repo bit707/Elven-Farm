@@ -172,7 +172,7 @@ import {
   shopCrowdHeatUiSpecWorld,
   shopDiagnosisWorldBoardAtCanvasPointWorld,
   shopDiagnosisWorldBoardSpecWorld,
-  shopLiveFocusSpecWorld,
+  shopLiveFocusTargetWorld,
   shopThoughtBubbleChainAtCanvasPointWorld,
   shopThoughtBubbleChainSpecWorld,
   shopThoughtBubbleChainStatusWorld,
@@ -26397,9 +26397,9 @@ function shopCustomerForecastCanvasTarget(spec = shopCustomerForecastWorldSpec()
   return shopCustomerForecastCanvasTargetWorld(spec);
 }
 
-function shopLiveFocusSpec(report = [], goods = [], theme = currentShelfTheme(), themeScore = 0, hotTag = "") {
+function shopLiveFocusTarget(report = [], goods = [], theme = currentShelfTheme(), themeScore = 0, hotTag = "") {
   const lowStockGoods = shuqiLowStockGoods(goods);
-  return shopLiveFocusSpecWorld({
+  return shopLiveFocusTargetWorld({
     report,
     theme,
     themeName: state.shopShelfTheme,
@@ -27076,7 +27076,7 @@ function recordShopOpeningFeedback({ customers, report, goods, theme, themeScore
     ));
   const displaySummary = compendiumDisplayEffect?.summary || "";
   const displayDetail = compendiumDisplayEffect?.detail || "";
-  const liveFocus = shopLiveFocusSpec(report, goods, theme, themeScore, hotTag);
+  const liveFocus = shopLiveFocusTarget(report, goods, theme, themeScore, hotTag);
   const failureRecovery = shopFailureRecoverySpec(report, goods, theme, themeScore, hotTag);
   const customerDecisionLedger = shopCustomerDecisionLedgerSpec({
     customers,

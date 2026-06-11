@@ -343,6 +343,28 @@ export function shopLiveFocusSpecWorld({
   };
 }
 
+export function shopLiveFocusTargetWorld({
+  report = [],
+  theme = null,
+  themeName = "",
+  themeScore = 0,
+  hotTag = "",
+  lowStockGoods = [],
+  itemName = (itemId) => itemId || "",
+  shopTagLabel = (tag) => tag || "",
+} = {}) {
+  return shopLiveFocusSpecWorld({
+    report,
+    theme,
+    themeName,
+    themeScore,
+    hotTag,
+    lowStockGoods,
+    itemName,
+    shopTagLabel,
+  });
+}
+
 export function shopCrowdHeatSpecWorld({
   liveFocus = null,
   doorstep = null,
