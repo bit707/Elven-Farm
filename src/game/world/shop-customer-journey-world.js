@@ -862,14 +862,29 @@ export function shopCustomerDecisionLedgerMarkupWorld(ledger = null, day = 1) {
 
 export function shopCustomerJourneyRowsWorld({
   opening = null,
+  report = [],
   ledger = null,
   sourceChains = [],
   needBubbles = [],
+  shopCustomerDecisionChains = () => [],
   shopTagLabel = (tag) => tag || "",
   stages = SHOP_CUSTOMER_JOURNEY_STAGES_WORLD,
 } = {}) {
-  const safeChains = Array.isArray(sourceChains) ? sourceChains : [];
-  const safeNeedBubbles = Array.isArray(needBubbles) ? needBubbles : [];
+  const safeOpening = opening || null;
+  const safeLedger = ledger || safeOpening?.customerDecisionLedger || safeOpening?.lastSession?.customerDecisionLedger || null;
+  const safeReport = Array.isArray(report) ? report : [];
+  const safeChains = Array.isArray(sourceChains) && sourceChains.length
+    ? sourceChains
+    : Array.isArray(safeLedger?.chains) && safeLedger.chains.length
+      ? safeLedger.chains
+      : shopCustomerDecisionChains(safeOpening, safeReport);
+  const safeNeedBubbles = Array.isArray(needBubbles) && needBubbles.length
+    ? needBubbles
+    : Array.isArray(safeOpening?.needBubbles) && safeOpening.needBubbles.length
+      ? safeOpening.needBubbles
+      : Array.isArray(safeOpening?.lastSession?.needBubbles)
+        ? safeOpening.lastSession.needBubbles
+        : [];
   const rows = safeChains.slice(0, 4).map((chain, index) => {
     const resultText = chain.result || "";
     const bought = chain.tone === "good" || resultText.includes("成交");
@@ -877,17 +892,17 @@ export function shopCustomerJourneyRowsWorld({
     const bubble = safeNeedBubbles[index] || safeNeedBubbles.find((entry) => entry.name === chain.name) || null;
     const path = [
       { ...stages[0], text: bubble?.text || chain.need || "进门看看", state: "done" },
-      { ...stages[1], text: ledger?.hotTagLabel || opening?.hotTagLabel || "看热卖牌", state: "done" },
+      { ...stages[1], text: safeLedger?.hotTagLabel || safeOpening?.hotTagLabel || "看热卖牌", state: "done" },
       { ...stages[2], text: warned ? "价签卡住了" : "预算对上了", state: warned ? "warn" : "done" },
       { ...stages[3], text: bought ? "递货收钱" : "回头离店", state: bought ? "good" : warned ? "warn" : "mid" },
-      { ...stages[4], text: chain.advice || ledger?.nextAction || "记到明日备货", state: bought ? "good" : "mid" },
+      { ...stages[4], text: chain.advice || safeLedger?.nextAction || "记到明日备货", state: bought ? "good" : "mid" },
     ];
     return {
       name: chain.name || bubble?.name || "顾客",
       need: chain.need || bubble?.text || "随手看看",
       result: resultText || "等待下一次开铺复盘",
       reason: chain.reason || chain.evidence || "原因待观察",
-      advice: chain.advice || ledger?.nextAction || "明天继续沿着这条反馈调整。",
+      advice: chain.advice || safeLedger?.nextAction || "明天继续沿着这条反馈调整。",
       tone: bought ? "good" : warned ? "warn" : "mid",
       bought,
       warned,
@@ -900,7 +915,7 @@ export function shopCustomerJourneyRowsWorld({
     need: bubble.text || "想找一件顺眼的货",
     result: "还没有形成成交旅线",
     reason: bubble.detail || "等待下一次开铺",
-    advice: `围绕 ${bubble.tag ? shopTagLabel(bubble.tag) : opening?.hotTagLabel || "门口需求"} 准备一件对口商品。`,
+    advice: `围绕 ${bubble.tag ? shopTagLabel(bubble.tag) : safeOpening?.hotTagLabel || "门口需求"} 准备一件对口商品。`,
     tone: "mid",
     bought: false,
     warned: false,
@@ -914,32 +929,39 @@ export function shopCustomerJourneyRowsWorld({
 
 export function shopCustomerJourneySpecWorld({
   opening = null,
+  report = [],
   ledger = null,
   liveFocus = null,
   rows = [],
+  shopCustomerJourneyRows = () => [],
 } = {}) {
-  const safeRows = Array.isArray(rows) ? rows : [];
-  const buyers = Number(ledger?.buyers ?? liveFocus?.buyers ?? 0);
-  const visitors = Number(ledger?.visitors || opening?.lastSession?.visitors || Math.max(safeRows.length, buyers));
-  const leavers = Number(ledger?.leavers ?? liveFocus?.leavers ?? 0);
-  const conversion = visitors ? Math.round((buyers / visitors) * 100) : Number(ledger?.conversion || 0);
+  const safeOpening = opening || null;
+  const safeLedger = ledger || safeOpening?.customerDecisionLedger || safeOpening?.lastSession?.customerDecisionLedger || null;
+  const safeLiveFocus = liveFocus || safeOpening?.liveFocus || safeOpening?.lastSession?.liveFocus || null;
+  const safeRows = Array.isArray(rows) && rows.length
+    ? rows
+    : shopCustomerJourneyRows(safeOpening, Array.isArray(report) ? report : []);
+  const buyers = Number(safeLedger?.buyers ?? safeLiveFocus?.buyers ?? 0);
+  const visitors = Number(safeLedger?.visitors || safeOpening?.lastSession?.visitors || Math.max(safeRows.length, buyers));
+  const leavers = Number(safeLedger?.leavers ?? safeLiveFocus?.leavers ?? 0);
+  const conversion = visitors ? Math.round((buyers / visitors) * 100) : Number(safeLedger?.conversion || 0);
   const mainRow = safeRows.find((row) => row.bought) || safeRows[0] || null;
-  const blocker = ledger?.blockers?.[0] || null;
+  const blocker = safeLedger?.blockers?.[0] || null;
   return {
-    active: Boolean(ledger || liveFocus || safeRows.length),
+    active: Boolean(safeLedger || safeLiveFocus || safeRows.length),
     title: buyers > 0 ? "顾客旅线复盘" : leavers > 0 ? "顾客离店旅线" : "顾客旅线待形成",
-    headline: ledger?.headline || liveFocus?.headline || (mainRow ? `${mainRow.name}留下了第一条线索` : "等下一次开铺生成旅线"),
-    hotTagLabel: ledger?.hotTagLabel || liveFocus?.hotTagLabel || opening?.hotTagLabel || "旧铺需求",
-    mainCustomer: ledger?.mainCustomer || mainRow?.name || "客群未定",
+    headline: safeLedger?.headline || safeLiveFocus?.headline || (mainRow ? `${mainRow.name}留下了第一条线索` : "等下一次开铺生成旅线"),
+    hotTagLabel: safeLedger?.hotTagLabel || safeLiveFocus?.hotTagLabel || safeOpening?.hotTagLabel || "旧铺需求",
+    mainCustomer: safeLedger?.mainCustomer || mainRow?.name || "客群未定",
     conversion,
     visitors,
     buyers,
     leavers,
     rows: safeRows,
     mainRow,
-    nextAction: ledger?.nextAction || liveFocus?.shelfAdvice || mainRow?.advice || "先准备一件标签清楚的商品，再开铺观察。",
-    blockerText: blocker ? `${blocker.label} ${blocker.count}` : liveFocus?.topBlockerLabel || "无明显短板",
-    mood: ledger?.mood || (buyers > 0 ? "成交理由已经能被复盘，旧铺开始像真正的店。" : "门口有人回头，说明下一次调整有方向。"),
+    nextAction: safeLedger?.nextAction || safeLiveFocus?.shelfAdvice || mainRow?.advice || "先准备一件标签清楚的商品，再开铺观察。",
+    blockerText: blocker ? `${blocker.label} ${blocker.count}` : safeLiveFocus?.topBlockerLabel || "无明显短板",
+    mood: safeLedger?.mood || (buyers > 0 ? "成交理由已经能被复盘，旧铺开始像真正的店。" : "门口有人回头，说明下一次调整有方向。"),
     visualCue: "画面反馈：进店、看牌、试价、成交/离店、复购建议会沿旧铺动线亮起。",
   };
 }

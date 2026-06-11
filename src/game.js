@@ -27453,33 +27453,20 @@ function shopCustomerDecisionChainsMarkup(opening = syncShopOpeningState()) {
 const SHOP_CUSTOMER_JOURNEY_STAGES = SHOP_CUSTOMER_JOURNEY_STAGES_WORLD;
 
 function shopCustomerJourneyRows(opening = syncShopOpeningState(), report = state.shopReport) {
-  const ledger = opening.customerDecisionLedger || opening.lastSession?.customerDecisionLedger || null;
-  const sourceChains = ledger?.chains?.length
-    ? ledger.chains
-    : shopCustomerDecisionChains(opening, report);
-  const needBubbles = Array.isArray(opening.needBubbles) && opening.needBubbles.length
-    ? opening.needBubbles
-    : Array.isArray(opening.lastSession?.needBubbles)
-      ? opening.lastSession.needBubbles
-      : [];
   return shopCustomerJourneyRowsWorld({
     opening,
-    ledger,
-    sourceChains,
-    needBubbles,
+    report,
+    shopCustomerDecisionChains,
     shopTagLabel,
     stages: SHOP_CUSTOMER_JOURNEY_STAGES,
   });
 }
 
 function shopCustomerJourneySpec(opening = syncShopOpeningState(), report = state.shopReport) {
-  const ledger = opening.customerDecisionLedger || opening.lastSession?.customerDecisionLedger || null;
-  const liveFocus = opening.liveFocus || opening.lastSession?.liveFocus || null;
   return shopCustomerJourneySpecWorld({
     opening,
-    ledger,
-    liveFocus,
-    rows: shopCustomerJourneyRows(opening, report),
+    report,
+    shopCustomerJourneyRows,
   });
 }
 
