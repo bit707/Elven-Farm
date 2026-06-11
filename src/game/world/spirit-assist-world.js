@@ -155,6 +155,104 @@ export function drawFirstSpiritAssistPrimerWorldWorld({
   return true;
 }
 
+export function spiritAssistTrailWorldSpecWorld({
+  width = 960,
+  height = 640,
+  originX = 0,
+  originY = 0,
+  tile = 56,
+  gap = 0,
+  feedback = null,
+  day = 1,
+  dungeon = null,
+  spirits = [],
+  spiritVisualProfile = (spirit) => spirit,
+  copy = {},
+} = {}) {
+  if (!feedback || feedback.day !== day || (dungeon && !dungeon.finished)) return null;
+  const plots = Array.isArray(feedback.wateredPlots) ? feedback.wateredPlots.slice(0, 9) : [];
+  if (!plots.length) return null;
+  const fallbackSpirit = {
+    id: feedback.spiritId || "spirit_luobo_01",
+    lineId: feedback.lineId || "spirit_line_luobo",
+    name: feedback.spiritName || copy.defaultSpiritName || "精怪",
+    job: "farm",
+  };
+  const spirit = (spirits || []).find((entry) => entry.id === feedback.spiritId)
+    || spirits[0]
+    || fallbackSpirit;
+  const profile = spiritVisualProfile(spirit || fallbackSpirit);
+  const points = plots.map((plot) => ({
+    ...plot,
+    screenX: originX + plot.x * (tile + gap) + tile / 2,
+    screenY: originY + plot.y * (tile + gap) + tile / 2,
+    rect: {
+      x: originX + plot.x * (tile + gap),
+      y: originY + plot.y * (tile + gap),
+      width: tile,
+      height: tile,
+    },
+  }));
+  const bounds = points.reduce((acc, point) => ({
+    minX: Math.min(acc.minX, point.rect.x),
+    minY: Math.min(acc.minY, point.rect.y),
+    maxX: Math.max(acc.maxX, point.rect.x + point.rect.width),
+    maxY: Math.max(acc.maxY, point.rect.y + point.rect.height),
+  }), {
+    minX: points[0].rect.x,
+    minY: points[0].rect.y,
+    maxX: points[0].rect.x + points[0].rect.width,
+    maxY: points[0].rect.y + points[0].rect.height,
+  });
+  const rectWidth = 292;
+  const rectHeight = 106;
+  const preferRight = bounds.maxX < width - rectWidth - 34;
+  const rect = {
+    x: preferRight ? bounds.maxX + 24 : Math.max(24, bounds.minX - rectWidth - 24),
+    y: Math.max(72, Math.min(height - rectHeight - 28, bounds.minY - 10)),
+    width: rectWidth,
+    height: rectHeight,
+  };
+  const wateredCount = Number(feedback.wateredCount || points.length);
+  const staminaSaved = Number(feedback.staminaSaved || points.length * 5);
+  return {
+    key: `${feedback.day}:${feedback.spiritId}:${points.map((point) => `${point.x},${point.y}`).join("|")}`,
+    day: feedback.day,
+    title: feedback.firstAssist ? (copy.firstTitle || "第一次精怪代浇足迹 · 可点") : (copy.title || "精怪代浇足迹 · 可点"),
+    headline: `${feedback.spiritName || spirit?.name || copy.defaultSpiritName || "精怪"}跑完 3x3 灵田`,
+    detail: `浇水 ${wateredCount} 格 · 省下约 ${staminaSaved} 点体力`,
+    cta: copy.cta || "只定位足迹与伙伴栏，不会再次触发协助",
+    spirit,
+    profile,
+    points,
+    bounds,
+    rect,
+    anchor: {
+      x: (bounds.minX + bounds.maxX) / 2,
+      y: bounds.minY,
+    },
+    wateredCount,
+    staminaSaved,
+  };
+}
+
+export function spiritAssistTrailWorldAtCanvasPointWorld({
+  px,
+  py,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  const targetPlot = spec.points.find((point) => (
+    px >= point.rect.x
+    && px <= point.rect.x + point.rect.width
+    && py >= point.rect.y
+    && py <= point.rect.y + point.rect.height
+  )) || null;
+  const onCard = px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
+  return onCard || targetPlot ? { ...spec, targetPlot } : null;
+}
+
 export function drawSpiritAssistTrailWorldWorld({
   ctx,
   spec = null,

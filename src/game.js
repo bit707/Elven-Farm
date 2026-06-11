@@ -98,6 +98,8 @@ import {
   drawSpiritAssistRhythmWorldWorld,
   drawSpiritAssistSavingsLedgerWorldWorld,
   drawSpiritAssistToWorkshopBridgeWorldWorld,
+  spiritAssistTrailWorldAtCanvasPointWorld,
+  spiritAssistTrailWorldSpecWorld,
   drawSpiritAssistTrailWorldWorld,
 } from "./game/world/spirit-assist-world.js";
 import {
@@ -10224,73 +10226,34 @@ function triggerSpiritAssistFeedback(spirit, wateredPlots = [], options = {}) {
 }
 
 function spiritAssistTrailWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, originX = gridMetrics().originX, originY = gridMetrics().originY, tile = gridMetrics().tile, gap = gridMetrics().gap) {
-  const feedback = state.spiritAssistTrailFeedback;
-  if (!feedback || feedback.day !== state.day || state.dungeon && !state.dungeon.finished) return null;
-  const plots = Array.isArray(feedback.wateredPlots) ? feedback.wateredPlots.slice(0, 9) : [];
-  if (!plots.length) return null;
-  const spirit = state.spirits.find((entry) => entry.id === feedback.spiritId)
-    || state.spirits[0]
-    || { id: feedback.spiritId || "spirit_luobo_01", lineId: feedback.lineId || "spirit_line_luobo", name: feedback.spiritName || "萝卜精", job: "farm" };
-  const profile = spiritVisualProfile(spirit || { id: feedback.spiritId || "spirit_luobo_01", lineId: feedback.lineId || "spirit_line_luobo", name: feedback.spiritName || "萝卜精", job: "farm" });
-  const points = plots.map((plot) => ({
-    ...plot,
-    screenX: originX + plot.x * (tile + gap) + tile / 2,
-    screenY: originY + plot.y * (tile + gap) + tile / 2,
-    rect: {
-      x: originX + plot.x * (tile + gap),
-      y: originY + plot.y * (tile + gap),
-      width: tile,
-      height: tile,
-    },
-  }));
-  const bounds = points.reduce((acc, point) => ({
-    minX: Math.min(acc.minX, point.rect.x),
-    minY: Math.min(acc.minY, point.rect.y),
-    maxX: Math.max(acc.maxX, point.rect.x + point.rect.width),
-    maxY: Math.max(acc.maxY, point.rect.y + point.rect.height),
-  }), { minX: points[0].rect.x, minY: points[0].rect.y, maxX: points[0].rect.x + points[0].rect.width, maxY: points[0].rect.y + points[0].rect.height });
-  const rectWidth = 292;
-  const rectHeight = 106;
-  const preferRight = bounds.maxX < width - rectWidth - 34;
-  const rect = {
-    x: preferRight ? bounds.maxX + 24 : Math.max(24, bounds.minX - rectWidth - 24),
-    y: Math.max(72, Math.min(height - rectHeight - 28, bounds.minY - 10)),
-    width: rectWidth,
-    height: rectHeight,
-  };
-  return {
-    key: `${feedback.day}:${feedback.spiritId}:${points.map((point) => `${point.x},${point.y}`).join("|")}`,
-    day: feedback.day,
-    title: feedback.firstAssist ? "第一次精怪代浇足迹 · 可点" : "精怪代浇足迹 · 可点",
-    headline: `${feedback.spiritName || spirit?.name || "精怪"}跑完 3x3 灵田`,
-    detail: `浇水 ${Number(feedback.wateredCount || points.length)} 格 · 省下约 ${Number(feedback.staminaSaved || points.length * 5)} 点体力`,
+  const trailCopy = {
+    firstTitle: "第一次精怪代浇足迹 · 可点",
+    title: "精怪代浇足迹 · 可点",
     cta: "只定位足迹与伙伴栏，不会再次触发协助",
-    spirit,
-    profile,
-    points,
-    bounds,
-    rect,
-    anchor: {
-      x: (bounds.minX + bounds.maxX) / 2,
-      y: bounds.minY,
-    },
-    wateredCount: Number(feedback.wateredCount || points.length),
-    staminaSaved: Number(feedback.staminaSaved || points.length * 5),
+    defaultSpiritName: "精怪",
   };
+  return spiritAssistTrailWorldSpecWorld({
+    width,
+    height,
+    originX,
+    originY,
+    tile,
+    gap,
+    feedback: state.spiritAssistTrailFeedback,
+    day: state.day,
+    dungeon: state.dungeon,
+    spirits: state.spirits,
+    spiritVisualProfile,
+    copy: trailCopy,
+  });
 }
 
 function spiritAssistTrailWorldAtCanvasPoint(px, py) {
-  const spec = spiritAssistTrailWorldSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  const targetPlot = spec.points.find((point) =>
-    px >= point.rect.x
-    && px <= point.rect.x + point.rect.width
-    && py >= point.rect.y
-    && py <= point.rect.y + point.rect.height,
-  ) || null;
-  const onCard = px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
-  return onCard || targetPlot ? { ...spec, targetPlot } : null;
+  return spiritAssistTrailWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: spiritAssistTrailWorldSpec(),
+  });
 }
 
 function focusSpiritAssistTrailWorldFromCanvas(spec = spiritAssistTrailWorldSpec()) {
