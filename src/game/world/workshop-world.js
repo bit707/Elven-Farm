@@ -100,6 +100,115 @@ export function drawWorkshopAromaStoryWorldWorld({
   return true;
 }
 
+export function drawWorkshopCraftFeedbackWorld({
+  ctx,
+  width = 960,
+  feedback = null,
+  now = performance.now(),
+  pulse = 0,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !feedback) return false;
+  const orderMatch = feedback.orderMatch || null;
+  const firstAroma = Boolean(feedback.firstAroma);
+  const cardWidth = firstAroma ? 378 : 318;
+  const cardHeight = orderMatch ? (firstAroma ? 178 : 148) : (firstAroma ? 156 : 128);
+  const x = Math.max(28, Math.min(width - cardWidth - 28, width - cardWidth - 42));
+  const y = firstAroma ? 118 + pulse : 142 + pulse;
+  const accent = firstAroma ? "#b47d2f" : orderMatch?.ready ? "#286f58" : "#be4f37";
+  ctx.save();
+  ctx.globalAlpha = Number(feedback.fade ?? 1);
+
+  if (firstAroma) {
+    const glow = ctx.createRadialGradient(x + 82, y + 70, 16, x + 82, y + 70, 210);
+    glow.addColorStop(0, "rgba(246, 240, 182, 0.42)");
+    glow.addColorStop(0.48, "rgba(224, 182, 109, 0.18)");
+    glow.addColorStop(1, "rgba(224, 182, 109, 0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(x + 82, y + 70, 210, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawCanvasCard(ctx, x, y, cardWidth, cardHeight, "rgba(255, 248, 232, 0.96)");
+  ctx.fillStyle = firstAroma ? "rgba(224, 182, 109, 0.18)" : "rgba(190, 79, 55, 0.14)";
+  ctx.beginPath();
+  ctx.arc(x + cardWidth - 40, y + 30, 42, 0, Math.PI * 2);
+  ctx.fill();
+
+  for (let puff = 0; puff < (firstAroma ? 7 : 3); puff += 1) {
+    const lift = reducedMotion ? puff * 7 : ((now / 28) + puff * 13) % (firstAroma ? 48 : 26);
+    const drift = firstAroma ? Math.sin(now / 420 + puff) * 7 : 0;
+    ctx.fillStyle = puff % 2 ? "rgba(255, 253, 245, 0.78)" : "rgba(246, 240, 182, 0.62)";
+    ctx.beginPath();
+    ctx.arc(x + 42 + puff * 14 + drift, y + 58 - lift, Math.max(3, 9 - puff * 0.7), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  if (firstAroma) {
+    ctx.strokeStyle = "rgba(224, 182, 109, 0.62)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 7]);
+    ctx.lineDashOffset = reducedMotion ? 0 : -now / 36;
+    ctx.beginPath();
+    ctx.moveTo(x + 70, y + 54);
+    ctx.bezierCurveTo(x + 132, y + 24, x + 220, y + 34, x + cardWidth - 58, y + 70);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  ctx.fillStyle = "#8f5f3f";
+  ctx.beginPath();
+  ctx.roundRect(x + 22, y + 64, 56, 24, 10);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 253, 245, 0.72)";
+  ctx.strokeRect(x + 30, y + 70, 40, 10);
+
+  ctx.fillStyle = accent;
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(firstAroma ? "加工动画 · 香气特效" : "工坊出锅", x + 94, y + 26);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 18px Microsoft YaHei";
+  ctx.fillText(feedback.headline.slice(0, firstAroma ? 20 : 18), x + 94, y + 52);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "700 15px Microsoft YaHei";
+  ctx.fillText(`${feedback.outputItemName} x${feedback.outputCount}`, x + 94, y + 76);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "12px Microsoft YaHei";
+  ctx.fillText(feedback.detail.slice(0, firstAroma ? 36 : 28), x + 94, y + 98);
+  ctx.fillText((feedback.orderTitle ? `${feedback.orderTitle} · ${feedback.orderNpc}` : feedback.cta).slice(0, firstAroma ? 34 : 28), x + 94, y + 116);
+  if (firstAroma) {
+    const ticketX = x + cardWidth - 132;
+    const ticketY = y + 58;
+    ctx.fillStyle = "rgba(255, 253, 245, 0.94)";
+    ctx.strokeStyle = "rgba(224, 182, 109, 0.48)";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.roundRect(ticketX, ticketY, 104, 50, 12);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#b47d2f";
+    ctx.font = "800 12px Microsoft YaHei";
+    ctx.fillText("第一张订单出现", ticketX + 10, ticketY + 20);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "11px Microsoft YaHei";
+    ctx.fillText((orderMatch?.orderTitle || "订单板亮了").slice(0, 8), ticketX + 12, ticketY + 38);
+  }
+  if (orderMatch) {
+    ctx.fillStyle = orderMatch.ready ? "rgba(237, 243, 223, 0.92)" : "rgba(255, 248, 232, 0.92)";
+    ctx.strokeStyle = orderMatch.ready ? "rgba(40, 111, 88, 0.32)" : "rgba(224, 182, 109, 0.38)";
+    ctx.beginPath();
+    ctx.roundRect(x + 22, y + cardHeight - 26, cardWidth - 44, 22, 10);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = orderMatch.ready ? "#286f58" : "#8f5f3f";
+    ctx.font = "700 11px Microsoft YaHei";
+    ctx.fillText((orderMatch.ready ? `订单板亮了：${orderMatch.orderTitle} 可交` : `订单接上线：还差 ${orderMatch.missingText || "余料"}`).slice(0, firstAroma ? 34 : 26), x + 36, y + cardHeight - 11);
+  }
+  ctx.restore();
+  return true;
+}
+
 export function workshopAromaStoryWorldSpecFromRuntimeWorld({
   day = 1,
   aromaSpec = null,
