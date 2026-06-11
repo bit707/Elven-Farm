@@ -1385,6 +1385,44 @@ export function drawMatureHarvestBasketWorldWorld({
   return true;
 }
 
+export function harvestRouteWorldPriorityWorld({ route = null, plot = null } = {}) {
+  const safe = route || {};
+  const base = safe?.type === "order" ? 90 : safe?.type === "recipe" ? 72 : safe?.type === "shop" ? 58 : 34;
+  return base + (safe?.ready ? 18 : 0) + (plot?.waterSoil ? 4 : 0);
+}
+
+export function harvestRouteWorldRowsWorld({
+  limit = 4,
+  plots = [],
+  cropsById = new Map(),
+  routeForPlot = () => null,
+  routeSafe = (route) => route,
+  badgeForRoute = () => null,
+  priorityForRoute = ({ route, plot }) => 0,
+  itemName = (itemId) => itemId,
+} = {}) {
+  const safePlots = Array.isArray(plots) ? plots : [];
+  return safePlots
+    .filter((plot) => plot?.cropId && plot.mature)
+    .map((plot) => {
+      const route = routeSafe(routeForPlot(plot));
+      const crop = cropsById?.get?.(plot.cropId) || null;
+      return {
+        x: plot.x,
+        y: plot.y,
+        plot,
+        crop,
+        itemId: plot.cropId,
+        itemName: itemName(plot.cropId),
+        route,
+        badge: badgeForRoute(route),
+        priority: Number(priorityForRoute({ route, plot }) || 0),
+      };
+    })
+    .sort((a, b) => b.priority - a.priority || a.y - b.y || a.x - b.x)
+    .slice(0, limit);
+}
+
 export function harvestRouteWorldBoardSpecFromRuntimeWorld({
   width = 960,
   height = 640,

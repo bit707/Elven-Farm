@@ -514,6 +514,8 @@ import {
   colorWithAlphaWorld,
   harvestRouteWorldBoardAtCanvasPointWorld,
   harvestRouteWorldBoardSpecFromRuntimeWorld,
+  harvestRouteWorldPriorityWorld,
+  harvestRouteWorldRowsWorld,
   harvestStorageRouteFeedbackSpecFromRuntimeWorld,
   harvestStorageRouteSafetyTextWorld,
   harvestStorageRouteWorldAtCanvasPointWorld,
@@ -66067,31 +66069,20 @@ function nightGrowthRouteBadgeSpec(route = null) {
 }
 
 function harvestRouteWorldPriority(route = null, plot = null) {
-  const safe = harvestUseRouteSafe(route);
-  const base = safe?.type === "order" ? 90 : safe?.type === "recipe" ? 72 : safe?.type === "shop" ? 58 : 34;
-  return base + (safe?.ready ? 18 : 0) + (plot?.waterSoil ? 4 : 0);
+  return harvestRouteWorldPriorityWorld({ route: harvestUseRouteSafe(route), plot });
 }
 
 function harvestRouteWorldRows(limit = 4) {
-  return state.plots
-    .filter((plot) => plot.cropId && plot.mature)
-    .map((plot) => {
-      const route = harvestUseRouteSafe(growingCropUseRouteSpec(plot));
-      const crop = data.cropsById.get(plot.cropId);
-      return {
-        x: plot.x,
-        y: plot.y,
-        plot,
-        crop,
-        itemId: plot.cropId,
-        itemName: itemName(plot.cropId),
-        route,
-        badge: nightGrowthRouteBadgeSpec(route),
-        priority: harvestRouteWorldPriority(route, plot),
-      };
-    })
-    .sort((a, b) => b.priority - a.priority || a.y - b.y || a.x - b.x)
-    .slice(0, limit);
+  return harvestRouteWorldRowsWorld({
+    limit,
+    plots: state.plots,
+    cropsById: data.cropsById,
+    routeForPlot: growingCropUseRouteSpec,
+    routeSafe: harvestUseRouteSafe,
+    badgeForRoute: nightGrowthRouteBadgeSpec,
+    priorityForRoute: ({ route, plot }) => harvestRouteWorldPriority(route, plot),
+    itemName,
+  });
 }
 
 function harvestRouteWorldBoardSpec(width = 960, height = 640, originXInput = null, originYInput = null, tileInput = null, gapInput = null) {
