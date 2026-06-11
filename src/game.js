@@ -255,6 +255,14 @@ import {
   worldChangeTargetsWorld,
 } from "./game/world/world-change-interaction-world.js";
 import {
+  droughtStoryFocusTargetWorld,
+  lanternRouteFocusTargetWorld,
+  missionArcFocusTargetWorld,
+  moonPoolFocusTargetWorld,
+  shopSpecialFocusTargetWorld,
+  tradeRouteFocusTargetWorld,
+} from "./game/world/world-story-interaction-world.js";
+import {
   shopWeatherShelfFocusSpecWorld,
   shopWeatherShelfWorldTargetsWorld,
   weatherLifeVignetteFocusSpecWorld,
@@ -73229,12 +73237,10 @@ function focusWorldContentFromCanvas(target = null) {
   }
 
   if (target.type === "shop_special") {
-    const selector = `[data-shop-season-board="${selectorDataValue(target.board || "rank")}"]`;
     // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
     // 点选异象： / 雷竹路标 / 月莲静池 / 花蜜甜庭 / 书契账房 / 夜巡灯路 / 火位核心 / 主街枯井 / 井边水棚 / route_thunder_old_06
-    const spec = shopSpecialFocusSpecWorld({
+    const spec = shopSpecialFocusTargetWorld({
       target,
-      selector,
       year2Open: year2Unlocked(),
       honeyFeastActive: fengmiHoneyFeastActive(),
       ledgerFinalActive: shuqiLegacyLedgerActive(),
@@ -73249,9 +73255,8 @@ function focusWorldContentFromCanvas(target = null) {
     const quest = data.quests.find((entry) => entry.quest_id === target.questId) || { quest_id: target.questId, issuer_id: "npc_lu_sanxiao" };
     const questStarted = state.missionDone.has(target.questId);
     const finalNestReady = state.completed.has(CHAPTER_4_FINAL_NEST_UNLOCK_FLAG) || hasItem(CHAPTER_4_DINGHAI_ITEM_ID, 1);
-    const spec = missionArcFocusSpecWorld({
+    const spec = missionArcFocusTargetWorld({
       target,
-      selector: `[data-main-quest-id="${selectorDataValue(target.questId)}"]`,
       questTitle: questTitle(quest),
       questStarted,
       finalNestReady,
@@ -73272,19 +73277,15 @@ function focusWorldContentFromCanvas(target = null) {
         .map(({ itemId, count }) => `${itemName(itemId)} x${count}`)
         .join(" / ")
       : "";
-    const selector = !reliefDelivered && orderVisible
-      ? `[data-order-card-id="${selectorDataValue(CHAPTER_4_DROUGHT_ORDER_ID)}"]`
-      : `[data-main-quest-id="${selectorDataValue(CHAPTER_4_DROUGHT_QUEST_ID)}"]`;
-    const fallbackSelector = !reliefDelivered && orderVisible ? "#orderPanel" : "#missionPanel";
-    const spec = droughtStoryFocusSpecWorld({
+    const spec = droughtStoryFocusTargetWorld({
       target,
-      selector,
-      fallbackSelector,
       reliefDelivered,
       orderVisible,
       orderTitle: order ? orderTitle(order) : "",
       needText,
       hintCta: droughtHint?.cta || "",
+      orderId: CHAPTER_4_DROUGHT_ORDER_ID,
+      questId: CHAPTER_4_DROUGHT_QUEST_ID,
     });
     if (!spec) return false;
     queueStoryCompassFocusTarget(spec);
@@ -73382,9 +73383,8 @@ function focusWorldContentFromCanvas(target = null) {
         .map((entry) => supplyTagLabel(entry.tag))
         .join(" / ")
       : "";
-    const spec = tradeRouteFocusSpecWorld({
+    const spec = tradeRouteFocusTargetWorld({
       target,
-      selector: `[data-trade-route="${selectorDataValue(target.routeId)}"]`,
       routeName: route?.route_name || "",
       activeReturnDay: Number(activeRun?.returnDay || 0),
       previewUnlocked: Boolean(preview?.unlocked),
@@ -73406,17 +73406,10 @@ function focusWorldContentFromCanvas(target = null) {
       || state.completedRareSpiritEvents.has("rsea_018")
       || Boolean(dengyingBondFinalEvent && rareSpiritEventReady(dengyingBondFinalEvent))
     );
-    const selector = revealed
-      ? '[data-dungeon-reveal-card="hidden_rotation"]'
-      : lanternCardVisible
-        ? '[data-shop-season-board="lantern"]'
-        : "#dungeonPanel";
-    const fallbackSelector = revealed ? "#dungeonPanel" : lanternCardVisible ? "#shopReport" : "#dungeonPanel";
     const revealReady = dengyingHiddenRevealReady();
-    const spec = lanternRouteFocusSpecWorld({
+    const spec = lanternRouteFocusTargetWorld({
       target,
-      selector,
-      fallbackSelector,
+      revealed: Boolean(revealed),
       revealedDungeonName: revealed ? (revealedDungeon ? dungeonName(revealedDungeon) : "今夜秘境") : "",
       lanternCardVisible,
       bondFinalDone: state.completedRareSpiritEvents.has("rsea_018"),
@@ -73701,7 +73694,7 @@ function focusWorldContentFromCanvas(target = null) {
       || state.completedRareSpiritEvents.has("rsea_017");
     // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
     // target.type === "moon_pool" / 点选异象：月莲静池 / 月莲静池
-    queueStoryCompassFocusTarget(moonPoolFocusSpecWorld({
+    queueStoryCompassFocusTarget(moonPoolFocusTargetWorld({
       target,
       lotusText,
       waterText,
