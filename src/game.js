@@ -84,7 +84,7 @@ import {
 } from "./game/world/daily-intent-world.js";
 import {
   dungeonEntryTargetsWorld,
-  dungeonGateFocusSpecWorld,
+  dungeonGateFocusTargetWorld,
   moonPoolFocusSpecWorld,
 } from "./game/world/dungeon-entry-interaction-world.js";
 import {
@@ -73681,7 +73681,6 @@ function focusWorldContentFromCanvas(target = null) {
 
   if (target.type === "dungeon_gate") {
     const dungeon = data.dungeonsById.get(target.dungeonId) || null;
-    const bossId = dungeon ? dungeonBossId(dungeon) : "";
     const activeDungeon = state.dungeon && !state.dungeon.finished ? currentDungeonConfig() : null;
     const cleared = state.dungeonClears.has(target.dungeonId);
     const hint = target.dungeonId === HERB_VALLEY_AREA_ID
@@ -73693,13 +73692,15 @@ function focusWorldContentFromCanvas(target = null) {
         : null;
     // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
     // target.type === "dungeon_gate" / 点选异象： / 药谷藤门 / 炽砂断门 / 终巢水门 / dungeonRevealCard
-    queueStoryCompassFocusTarget(dungeonGateFocusSpecWorld({
+    queueStoryCompassFocusTarget(dungeonGateFocusTargetWorld({
       target,
-      dungeonNameText: dungeon ? dungeonName(dungeon) : "",
-      bossNameText: bossName(bossId),
+      dungeon,
+      activeDungeon,
       cleared,
-      hintCta: hint?.cta || "",
-      activeDungeonId: activeDungeon?.area_id || "",
+      hint,
+      dungeonNameFor: dungeonName,
+      dungeonBossIdFor: dungeonBossId,
+      bossNameFor: bossName,
     }));
     return true;
   }

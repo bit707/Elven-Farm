@@ -63,6 +63,30 @@ export function moonPoolFocusSpecWorld({
   };
 }
 
+export function dungeonGateFocusTargetWorld({
+  target = null,
+  dungeon = null,
+  activeDungeon = null,
+  cleared = false,
+  hint = null,
+  dungeonNameFor = null,
+  dungeonBossIdFor = null,
+  bossNameFor = null,
+} = {}) {
+  const getDungeonName = typeof dungeonNameFor === "function" ? dungeonNameFor : () => "";
+  const getDungeonBossId = typeof dungeonBossIdFor === "function" ? dungeonBossIdFor : () => "";
+  const getBossName = typeof bossNameFor === "function" ? bossNameFor : () => "";
+  const bossId = dungeon ? getDungeonBossId(dungeon) : "";
+  return dungeonGateFocusSpecWorld({
+    target,
+    dungeonNameText: dungeon ? getDungeonName(dungeon) : "",
+    bossNameText: getBossName(bossId),
+    cleared,
+    hintCta: hint?.cta || "",
+    activeDungeonId: activeDungeon?.area_id || "",
+  });
+}
+
 export function dungeonGateFocusSpecWorld({
   target = null,
   dungeonNameText = "",
