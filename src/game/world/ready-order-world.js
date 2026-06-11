@@ -1159,3 +1159,143 @@ export function drawOrderSeedPrepWorldBoardWorld({
   ctx.restore();
   return true;
 }
+
+export function orderSeedRestockWorldBoardSpecWorld({
+  width = 960,
+  height = 640,
+  rows = [],
+  day = 1,
+  metrics = null,
+  copy = null,
+} = {}) {
+  if (!rows.length || !metrics) return null;
+  const top = rows[0];
+  const { tile, gap, originX, originY } = metrics;
+  const anchor = {
+    x: originX + top.plot.x * (tile + gap) + tile * 0.5,
+    y: originY + top.plot.y * (tile + gap) + tile * 0.5,
+  };
+  const cardWidth = 306;
+  const cardHeight = 108 + rows.length * 22;
+  const x = Math.max(42, Math.min(width - cardWidth - 330, 76));
+  const y = Math.max(382, Math.min(height - cardHeight - 22, 428));
+  return {
+    key: `${day}:${rows.map((row) => `${row.orderId}:${row.seedId}`).join("|")}`,
+    day,
+    rows,
+    top,
+    rect: { x, y, width: cardWidth, height: cardHeight },
+    anchor,
+    title: copy?.title || "主世界订单缺口种子可补货",
+    headline: `${top.seedName} 库存为 0`,
+    detail: `${top.itemName} 还差 ${top.missingCount}`,
+    cta: copy?.cta || "缺口先补种 · 可点",
+  };
+}
+
+export function orderSeedRestockWorldBoardAtCanvasPointWorld({ px, py, spec = null } = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return (
+    px >= rect.x
+    && px <= rect.x + rect.width
+    && py >= rect.y
+    && py <= rect.y + rect.height
+  ) ? spec : null;
+}
+
+export function drawOrderSeedRestockWorldBoardWorld({
+  ctx,
+  spec = null,
+  reducedMotion = false,
+  motion = performance.now() / 1000,
+  day = 1,
+  focus = null,
+  drawCanvasCard,
+} = {}) {
+  if (!spec?.rect || !drawCanvasCard) return false;
+  const { rect, rows, top, anchor } = spec;
+  const safeMotion = reducedMotion ? 0 : motion;
+  const bob = reducedMotion ? 0 : Math.sin(safeMotion * 1.72) * 2.2;
+  const cardY = rect.y + bob;
+  const active = focus?.day === day && focus?.key === spec.key;
+  const accent = "#b47d2f";
+
+  ctx.save();
+  ctx.strokeStyle = active ? "rgba(180, 125, 47, 0.88)" : "rgba(180, 125, 47, 0.48)";
+  ctx.lineWidth = active ? 2.8 : 1.7;
+  ctx.setLineDash([5, 7]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -safeMotion * 11;
+  ctx.beginPath();
+  ctx.moveTo(rect.x + rect.width - 34, cardY + 18);
+  ctx.quadraticCurveTo(rect.x + rect.width + 82, cardY - 12, anchor.x, anchor.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
+  ctx.strokeStyle = active ? "rgba(180, 125, 47, 0.92)" : "rgba(180, 125, 47, 0.58)";
+  ctx.lineWidth = active ? 2.8 : 1.5;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(224, 182, 109, 0.18)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 56, 52, 16);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(180, 125, 47, 0.66)";
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 56, 52, 16);
+  ctx.stroke();
+  ctx.fillStyle = accent;
+  ctx.font = "900 22px Microsoft YaHei";
+  ctx.fillText("籽", rect.x + 31, cardY + 47);
+  for (let seed = 0; seed < 4; seed += 1) {
+    ctx.fillStyle = seed % 2 ? "#f5f0b6" : "#d19a4a";
+    ctx.beginPath();
+    ctx.ellipse(rect.x + 28 + seed * 10, cardY + 58 - (seed % 2) * 5, 4.5, 6.5, -0.45, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(`${spec.cta} · ${spec.headline}`, rect.x + 84, cardY + 26);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 15px Microsoft YaHei";
+  ctx.fillText(top.orderTitle.slice(0, 18), rect.x + 84, cardY + 48);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(`${spec.detail} · 补 ${top.buyCount} 包 ${top.totalCost} 灵石`.slice(0, 34), rect.x + 84, cardY + 66);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "800 10px Microsoft YaHei";
+  ctx.fillText(`买后下种 ${top.plotLabel} · ${top.recommendation.text}`.slice(0, 36), rect.x + 84, cardY + 82);
+
+  rows.slice(0, 3).forEach((row, index) => {
+    const rowY = cardY + 106 + index * 22;
+    const primary = row.seedId === top.seedId && row.orderId === top.orderId;
+    ctx.fillStyle = primary ? "rgba(224, 182, 109, 0.16)" : "rgba(255, 253, 245, 0.72)";
+    ctx.beginPath();
+    ctx.roundRect(rect.x + 16, rowY - 15, rect.width - 32, 18, 8);
+    ctx.fill();
+    ctx.fillStyle = primary ? accent : "#8f5f3f";
+    ctx.font = "900 10px Microsoft YaHei";
+    ctx.fillText(primary ? "先补" : "可补", rect.x + 28, rowY - 2);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "800 10px Microsoft YaHei";
+    ctx.fillText(row.seedName.slice(0, 13), rect.x + 64, rowY - 2);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "10px Microsoft YaHei";
+    ctx.fillText(`${row.totalCost} 灵石 · ${row.itemName}`.slice(0, 15), rect.x + 178, rowY - 2);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + rect.width - 55, cardY + 12, 40, 18, 9);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText("可点", rect.x + rect.width - 46, cardY + 25);
+  ctx.restore();
+  return true;
+}
