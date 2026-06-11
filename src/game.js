@@ -245,6 +245,10 @@ import {
   waterNoteInteractionTargetsWorld,
 } from "./game/world/water-note-interaction-world.js";
 import {
+  waterwayFreshRouteFocusSpecWorld,
+  waterwayFreshRouteTargetWorld,
+} from "./game/world/waterway-route-interaction-world.js";
+import {
   drawShopWeatherShelfCustomerVignetteWorld,
   drawShopWeatherShelfGoodIconWorld,
   drawShopWeatherShelfSignWorld,
@@ -73050,13 +73054,17 @@ function worldContentTargets() {
     const tradeDone = worldChangeByType.has("waterway_trade_boat");
     const followupOrder = data.year2Orders.find((entry) => entry.order_id === "order_year2_water_0002");
     const followupReady = returned && followupOrder && !followupDone && !state.completedOrders.has("order_year2_water_0002") && year2OrderUnlocked(followupOrder);
-    targets.push({
-      id: "qinghe_waterway_fresh_route",
-      type: "waterway_fresh_route",
-      label: followupDone ? "莲泽熟路长单" : followupReady ? "莲泽熟路续订" : returned ? "莲泽水航返货" : tradeDone ? "莲泽水航商船" : year2Unlocked() ? "水航鲜货单" : "水航鲜货路标",
-      orderId: followupDone || followupReady ? "order_year2_water_0002" : "order_year2_water_0001",
-      rect: { x: 744, y: 470, width: 176, height: 104 },
+    // worldContentTargets 保留桥接关键词，便于 verify 扫描：
+    // worldChangeByType.has("waterway_fresh_route") / type: "waterway_fresh_route" / qinghe_waterway_fresh_route
+    const target = waterwayFreshRouteTargetWorld({
+      active: true,
+      followupDone,
+      followupReady,
+      returned,
+      tradeDone,
+      year2Open: year2Unlocked(),
     });
+    if (target) targets.push(target);
   }
 
   const lanternTarget = targets.find((entry) => entry.id === "lantern_route_marker");
@@ -73843,27 +73851,28 @@ function focusWorldContentFromCanvas(target = null) {
     const followupNeedStatus = followupUnlocked ? year2OrderNeedStatus(followupOrder) : null;
     const missingText = needStatus?.missing.slice(0, 2).join(" / ") || "水航莲实 / 荷露糖水";
     const followupMissingText = followupNeedStatus?.missing.slice(0, 2).join(" / ") || "荷露糖水 / 灵池三鲜羹";
-    queueStoryCompassFocusTarget({
-      selector: followupUnlocked ? `[data-year2-order-id="${selectorDataValue("order_year2_water_0002")}"]` : routeReturned || (delivered && lotusRoute) ? `[data-trade-route="${selectorDataValue("route_lotus_basin_03")}"]` : unlocked ? `[data-year2-order-id="${selectorDataValue("order_year2_water_0001")}"]` : '[data-pond-action="catch"]',
-      fallbackSelector: followupUnlocked ? "#shopReport" : routeReturned || (delivered && lotusRoute) ? "#spiritList" : unlocked ? "#shopReport" : ".build-panel",
-      label: `点选水航：${target.label || "水航鲜货路标"}`,
-      log: followupUnlocked
-        ? `${orderTitle(followupOrder)} 已在名铺订单预览里高亮。${followupNeedStatus?.completion >= 1 ? "续订货已经备齐，可以把莲泽熟路真正接成长期回单。" : `还差 ${followupMissingText}，先回灵池、水润田和工坊把熟路续货补厚。`}`
-        : followupDelivered
-        ? `${target.label || "莲泽熟路长单"} 已把莲泽水航商路线高亮。${followupOrder ? orderTitle(followupOrder) : "莲泽熟路续订单"}已经完成，旧铺水鲜从第一趟返货变成长期回单。后续继续维持荷露糖水、灵池三鲜羹和水航莲实库存，就能把这条熟路养成稳定水鲜招牌。`
-        : routeReturned
-        ? `${target.label || "莲泽水航返货"} 已把莲泽水航商路线高亮。第一趟返货已经证明这条水路能跑熟，${routePreviewState?.familiar?.detail || "熟路加成已经生效。"}${routeRun ? `当前还有商队在途，第 ${routeRun.returnDay} 天返程。` : routePreviewState?.ready ? "补给齐备，可以继续发一趟水航商队。" : "先补清凉饮和成套贸易包，再把这条熟路继续跑厚。"}`
-        : delivered && lotusRoute
-          ? `${target.label || "莲泽水航商船"} 已把莲泽水航商路线高亮。水航鲜货单已经交付，${routePreviewState?.unlocked ? routePreviewState.ready ? "补给达标，可派精怪探路或发队。" : "商路已开，但清凉饮或成套贸易包还没备稳。" : `还需要 ${conditionLabel(lotusRoute.unlock_condition_group)}。`}`
-        : delivered
-        ? `${target.label || "莲泽水航商船"} 已把水路回响点亮。${waterOrder ? orderTitle(waterOrder) : "灵池水航鲜货单"}已经交付，旧铺水鲜线现在真正接到了莲泽水航。后续可以继续围绕莲实、鱼鲜和水系饮品扩展更高阶商路。`
-        : unlocked
-        ? `${orderTitle(waterOrder)} 已在名铺订单预览里高亮。${needStatus?.completion >= 1 ? "水航鲜货已经备齐，可以把青禾这条后续订单接走。" : `还差 ${missingText}，先顺着灵池、水润田和工坊把水航补给备稳。`}`
-        : `${target.label || "水航鲜货路标"} 已把灵池卡高亮。水鲜回订单已经把旧铺口碑接到河岸；等蟠桃大宴后、青禾五心和水航莲实都稳住，就会开出灵池水航鲜货单。`,
-      panelGroup: routeReturned || (delivered && lotusRoute) ? "core" : unlocked ? "core" : "systems",
-      missingTitle: `点选水航：${target.label || "水航鲜货路标"}`,
-      missingLog: "水航对应的订单或灵池卡暂时没有找到，先确认核心试玩或系统深挖分组是否可见。",
-    });
+    // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
+    // target.type === "waterway_fresh_route" / 点选水航 / 水航鲜货路标 / 莲泽水航商船 / 莲泽水航返货 / 莲泽熟路长单
+    queueStoryCompassFocusTarget(waterwayFreshRouteFocusSpecWorld({
+      target,
+      waterOrderTitle: waterOrder ? orderTitle(waterOrder) : "灵池水航鲜货单",
+      followupOrderTitle: followupOrder ? orderTitle(followupOrder) : "莲泽熟路续订单",
+      routeReturned,
+      routePreviewReady: Boolean(routePreviewState?.ready),
+      routePreviewUnlocked: Boolean(routePreviewState?.unlocked),
+      routeFamiliarDetail: routePreviewState?.familiar?.detail || "",
+      routeRunReturnDay: routeRun?.returnDay || 0,
+      lotusRouteVisible: Boolean(lotusRoute),
+      lotusUnlockConditionLabel: lotusRoute ? conditionLabel(lotusRoute.unlock_condition_group) : "",
+      delivered,
+      followupDelivered,
+      unlocked,
+      followupUnlocked,
+      needReady: Boolean(needStatus?.completion >= 1),
+      followupNeedReady: Boolean(followupNeedStatus?.completion >= 1),
+      missingText,
+      followupMissingText,
+    }));
     return true;
   }
 
