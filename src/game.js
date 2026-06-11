@@ -85,7 +85,7 @@ import {
 import {
   dungeonEntryTargetsWorld,
   dungeonGateFocusTargetWorld,
-  moonPoolFocusSpecWorld,
+  moonPoolFocusTargetWorld,
 } from "./game/world/dungeon-entry-interaction-world.js";
 import {
   FINAL_SUPPORT_WORLD_SLOTS_WORLD,
@@ -258,7 +258,6 @@ import {
   droughtStoryFocusTargetWorld,
   lanternRouteFocusTargetWorld,
   missionArcFocusTargetWorld,
-  moonPoolFocusTargetWorld,
   shopSpecialFocusTargetWorld,
   tradeRouteFocusTargetWorld,
 } from "./game/world/world-story-interaction-world.js";

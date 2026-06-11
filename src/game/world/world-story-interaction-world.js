@@ -6,7 +6,6 @@ import {
   shopSpecialFocusSpecWorld,
   tradeRouteFocusSpecWorld,
 } from "./world-change-interaction-world.js";
-import { moonPoolFocusSpecWorld } from "./dungeon-entry-interaction-world.js";
 
 export function shopSpecialFocusTargetWorld({
   target = null,
@@ -109,23 +108,5 @@ export function lanternRouteFocusTargetWorld({
     lanternCardVisible,
     bondFinalDone,
     revealReady,
-  });
-}
-
-export function moonPoolFocusTargetWorld({
-  target = null,
-  lotusText = "",
-  waterText = "",
-  lotusSeedName = "",
-  seedUnlocked = false,
-  yuelianEcho = false,
-} = {}) {
-  return moonPoolFocusSpecWorld({
-    target,
-    lotusText,
-    waterText,
-    lotusSeedName,
-    seedUnlocked,
-    yuelianEcho,
   });
 }

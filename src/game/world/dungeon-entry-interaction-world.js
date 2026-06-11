@@ -63,6 +63,24 @@ export function moonPoolFocusSpecWorld({
   };
 }
 
+export function moonPoolFocusTargetWorld({
+  target = null,
+  lotusText = "",
+  waterText = "",
+  lotusSeedName = "",
+  seedUnlocked = false,
+  yuelianEcho = false,
+} = {}) {
+  return moonPoolFocusSpecWorld({
+    target,
+    lotusText,
+    waterText,
+    lotusSeedName,
+    seedUnlocked,
+    yuelianEcho,
+  });
+}
+
 export function dungeonGateFocusTargetWorld({
   target = null,
   dungeon = null,
