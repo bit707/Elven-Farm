@@ -24,6 +24,37 @@ export function finalSupportWorldTargetsWorld({
     }));
 }
 
+export function finalSupportFocusTargetWorld({
+  target = null,
+  slotState = null,
+  npcLabel = "",
+  missingCondition = "",
+  effectTextFor = null,
+} = {}) {
+  const prepReady = slotState?.prepReady || null;
+  const readyStage = slotState?.readyStage || null;
+  const effectText = typeof effectTextFor === "function" ? effectTextFor : () => "";
+  const prepText = prepReady
+    ? `${prepReady.label}已经可领取，能先把${effectText(prepReady.effectTarget, prepReady.effectValue)}压进阵脚。`
+    : "";
+  const stageText = readyStage
+    ? `${readyStage.stage_phase} 阶段已经就绪，可以应用${effectText(readyStage.effect_target, readyStage.effect_value)}。`
+    : "";
+  return finalSupportFocusSpecWorld({
+    target,
+    unlocked: Boolean(slotState?.unlocked),
+    ready: Boolean(slotState?.ready),
+    prepReady: Boolean(prepReady),
+    readyStage: Boolean(readyStage),
+    foreshadowCount: Number(slotState?.foreshadow?.count || 0),
+    foreshadowTotal: Number(slotState?.foreshadow?.total || 0),
+    npcLabel,
+    missingCondition,
+    prepText,
+    stageText,
+  });
+}
+
 export function finalSupportFocusSpecWorld({
   target = null,
   unlocked = false,

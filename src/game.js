@@ -89,7 +89,7 @@ import {
 } from "./game/world/dungeon-entry-interaction-world.js";
 import {
   FINAL_SUPPORT_WORLD_SLOTS_WORLD,
-  finalSupportFocusSpecWorld,
+  finalSupportFocusTargetWorld,
   finalSupportWorldTargetsWorld,
 } from "./game/world/final-support-interaction-world.js";
 import {
@@ -73340,26 +73340,14 @@ function focusWorldContentFromCanvas(target = null) {
     const bundle = slotState.bundle || data.finalSupportBundlesById.get(target.bundleId) || null;
     const npcLabel = bundle ? npcName(bundle.npc_id) : target.label;
     const missingCondition = bundle ? conditionLabel(bundle.require_condition_group) : "对应支援配置";
-    const prepText = slotState.prepReady
-      ? `${slotState.prepReady.label}已经可领取，能先把${finalSupportEffectText(slotState.prepReady.effectTarget, slotState.prepReady.effectValue)}压进阵脚。`
-      : "";
-    const stageText = slotState.readyStage
-      ? `${slotState.readyStage.stage_phase} 阶段已经就绪，可以应用${finalSupportEffectText(slotState.readyStage.effect_target, slotState.readyStage.effect_value)}。`
-      : "";
     // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
     // 点选支援： / data-final-support-bundle / 对应的终章支援卡
-    queueStoryCompassFocusTarget(finalSupportFocusSpecWorld({
+    queueStoryCompassFocusTarget(finalSupportFocusTargetWorld({
       target,
-      unlocked: slotState.unlocked,
-      ready: slotState.ready,
-      prepReady: Boolean(slotState.prepReady),
-      readyStage: Boolean(slotState.readyStage),
-      foreshadowCount: Number(slotState.foreshadow.count || 0),
-      foreshadowTotal: Number(slotState.foreshadow.total || 0),
+      slotState,
       npcLabel,
       missingCondition,
-      prepText,
-      stageText,
+      effectTextFor: finalSupportEffectText,
     }));
     return true;
   }
