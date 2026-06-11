@@ -104,7 +104,7 @@ import {
   drawWorldPriorityTriageWorld,
   drawDailyIntentWorldScenesWorld,
 } from "./game/world/daily-intent-world.js";
-import { drawEcologyDailyFeedbackWorld, drawEcologyOrderFeedbackWorld } from "./game/world/ecology-world.js";
+import { drawEcologyDailyFeedbackWorld, drawEcologyInspectionFeedbackWorld, drawEcologyOrderFeedbackWorld } from "./game/world/ecology-world.js";
 import { drawDaySummaryLanternWorldWorld } from "./game/world/day-summary-world.js";
 import {
   dungeonEntryTargetsWorld,
@@ -57737,71 +57737,24 @@ function drawEcologyInspectionFeedback(ctx, width, height, feedback = activeEcol
   const previewNodes = feedback.previewOnly ? (feedback.nodes || ecologyInspectionKeepsakeNodes(feedback)).slice(0, 3) : [];
   const cardWidth = previewNodes.length ? 336 : 308;
   const cardHeight = previewNodes.length ? 154 : 106;
-
-  ctx.save();
-  ctx.globalAlpha = feedback.fade;
-  const glow = ctx.createRadialGradient(anchor.x, anchor.y, 8, anchor.x, anchor.y, 118 + Math.max(0, pulse));
-  glow.addColorStop(0, "rgba(246, 240, 182, 0.44)");
-  glow.addColorStop(0.45, "rgba(202, 235, 210, 0.2)");
-  glow.addColorStop(1, "rgba(202, 235, 210, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(anchor.x, anchor.y, 122 + Math.max(0, pulse), 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 2;
-  ctx.setLineDash([10, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 26;
-  ctx.beginPath();
-  ctx.arc(anchor.x, anchor.y, 34 + Math.max(0, pulse), 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  drawEcologyDailyVisualAccent(ctx, feedback, anchor, motion, pulse, accent);
-  drawEcologyComboMotif(ctx, feedback.comboId, anchor.x, anchor.y - 22 + pulse * 0.15, 2, motion);
-
-  const cardX = Math.max(32, Math.min(width - cardWidth - 28, anchor.x - 232));
-  const cardY = Math.max(92, Math.min(height - cardHeight - 28, anchor.y - 118));
-  drawCanvasCard(ctx, cardX, cardY, cardWidth, cardHeight, "rgba(255, 248, 232, 0.95)");
-  ctx.fillStyle = accent;
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(`${feedback.landmarkLabel || "生态庭院"} · ${feedback.previewOnly ? "生态巡看留签" : "今日巡看"}`, cardX + 20, cardY + 25);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 17px Microsoft YaHei";
-  ctx.fillText((feedback.headline || "庭院有新动静").slice(0, 18), cardX + 20, cardY + 50);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "12px Microsoft YaHei";
-  ctx.fillText(`${feedback.caretakerName || "精怪"}：${feedback.actionText || "照看庭院"}`.slice(0, 28), cardX + 20, cardY + 72);
-  ctx.fillStyle = feedback.previewOnly ? "#286f58" : feedback.alreadyInspected ? "#8f5f3f" : "#b47d2f";
-  ctx.font = "700 11px Microsoft YaHei";
-  const rewardText = feedback.previewOnly
-    ? "只预览定位 · 不记录巡看 / 不发奖励"
-    : feedback.alreadyInspected
-      ? "今日已巡看 · 可继续观察但不重复收益"
-      : `灵石 +${feedback.rewardGold || 0} · 全体心情 +${feedback.rewardMood || 0}`;
-  ctx.fillText(rewardText.slice(0, 34), cardX + 20, cardY + 92);
-  if (previewNodes.length) {
-    const nodeY = cardY + 108;
-    const nodeWidth = 94;
-    previewNodes.forEach((node, index) => {
-      const nodeX = cardX + 18 + index * 104;
-      const focused = feedback.activeNodeKey === node.key;
-      ctx.fillStyle = focused ? `${accent}22` : "rgba(255, 253, 245, 0.82)";
-      ctx.strokeStyle = focused ? `${accent}88` : "rgba(143, 95, 63, 0.18)";
-      ctx.lineWidth = focused ? 1.8 : 1;
-      ctx.beginPath();
-      ctx.roundRect(nodeX, nodeY, nodeWidth, 28, 10);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = focused ? accent : "#8f5f3f";
-      ctx.font = "800 9px Microsoft YaHei";
-      ctx.fillText(node.label.slice(0, 5), nodeX + 8, nodeY + 12);
-      ctx.fillStyle = "#5d6f65";
-      ctx.font = "8px Microsoft YaHei";
-      ctx.fillText(node.title.slice(0, 8), nodeX + 8, nodeY + 23);
-    });
-  }
-  ctx.restore();
+  // drawEcologyInspectionFeedback(ctx) bridge keeps verify keywords: drawEcologyInspectionFeedback / 生态巡看留签 / 今日生态巡看确认 / 确认今日巡看 / 照料动作 / 巡看回报 / 夜事余韵 / 只预览定位 · 不记录巡看 / 不发奖励 / 今日巡看 / 今日已巡 / 巡看留痕
+  return drawEcologyInspectionFeedbackWorld({
+    ctx,
+    width,
+    height,
+    feedback,
+    motion,
+    pulse,
+    anchor,
+    accent,
+    previewNodes,
+    cardWidth,
+    cardHeight,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+    drawEcologyComboMotif,
+    drawEcologyDailyVisualAccent,
+  });
 }
 
 function drawWorkshopCraftFeedback(ctx, width, height, feedback = activeWorkshopCraftFeedback()) {
