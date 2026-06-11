@@ -1842,6 +1842,142 @@ export function drawCompendiumDisplayAudienceWorld({
   return true;
 }
 
+export function drawShopCrowdHeatWorld({
+  ctx,
+  heat = null,
+  motion = 0,
+  reducedMotion = false,
+  pointOnPolyline = () => ({ x: 0, y: 0 }),
+  drawShopCrowdPerson = () => false,
+} = {}) {
+  if (!ctx || !heat?.active) return false;
+  const accent = heat.accent;
+  const queuePath = [
+    { x: 76, y: 300 },
+    { x: 106, y: 286 },
+    { x: 140, y: 278 },
+    { x: 176, y: 284 },
+    { x: 208, y: 300 },
+  ];
+
+  ctx.save();
+  ctx.globalAlpha = heat.heatTier === "hesitant" ? 0.88 : 0.94;
+
+  ctx.strokeStyle = `${accent}55`;
+  ctx.lineWidth = heat.heatTier === "packed" ? 5 : 3;
+  ctx.setLineDash([8, 10]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 10;
+  ctx.beginPath();
+  queuePath.forEach((point, index) => {
+    if (index === 0) ctx.moveTo(point.x, point.y);
+    else ctx.quadraticCurveTo((queuePath[index - 1].x + point.x) / 2, Math.min(queuePath[index - 1].y, point.y) - 12, point.x, point.y);
+  });
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  const shimmerCount = heat.heatTier === "packed" ? 8 : heat.heatTier === "busy" ? 6 : 4;
+  for (let i = 0; i < shimmerCount; i += 1) {
+    const point = pointOnPolyline(queuePath, ((i / shimmerCount) + motion * 0.05) % 1);
+    ctx.fillStyle = i % 2 ? "rgba(255, 253, 245, 0.7)" : `${accent}88`;
+    ctx.beginPath();
+    ctx.arc(point.x, point.y - 16 + Math.sin(motion * 2 + i) * 4, 2.8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const buyerColors = ["#8f5f3f", "#b47d2f", "#5d8b52", "#4d91a6", "#8c7ab8", "#d87f8d"];
+  for (let i = 0; i < heat.buyerCount; i += 1) {
+    const point = pointOnPolyline(queuePath, heat.buyerCount <= 1 ? 0.5 : i / Math.max(1, heat.buyerCount - 1));
+    drawShopCrowdPerson(ctx, point.x - 12, point.y - 38 + (i % 2) * 4, {
+      buyer: true,
+      index: i,
+      color: buyerColors[i % buyerColors.length],
+      accent,
+    }, motion);
+  }
+
+  for (let i = 0; i < heat.lookerCount; i += 1) {
+    drawShopCrowdPerson(ctx, 214 + i * 24, 278 + (i % 2) * 14, {
+      looker: true,
+      index: i + 6,
+      color: i % 2 ? "rgba(216, 127, 141, 0.78)" : "rgba(93, 111, 101, 0.78)",
+      accent,
+      alpha: 0.82,
+    }, motion);
+  }
+
+  for (let i = 0; i < heat.leaverCount; i += 1) {
+    drawShopCrowdPerson(ctx, 292 + i * 26, 296 + (i % 2) * 10, {
+      leaver: true,
+      index: i + 11,
+      color: i % 2 ? "#9b8f7a" : "#be4f37",
+      accent: "#be4f37",
+      alpha: 0.78,
+    }, motion);
+  }
+
+  if (heat.topItemName || heat.hotTagLabel) {
+    ctx.fillStyle = "rgba(255, 248, 232, 0.94)";
+    ctx.beginPath();
+    ctx.roundRect(86, 238, 124, 38, 12);
+    ctx.fill();
+    ctx.strokeStyle = `${accent}88`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = accent;
+    ctx.beginPath();
+    ctx.roundRect(98, 250, 34, 16, 5);
+    ctx.fill();
+    ctx.fillStyle = "#fffdf5";
+    ctx.font = "700 10px Microsoft YaHei";
+    ctx.fillText("热卖牌", 100, 262);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "700 12px Microsoft YaHei";
+    ctx.fillText((heat.topItemName || heat.hotTagLabel).slice(0, 6), 140, 262);
+  }
+
+  if (heat.weatherReaction?.active) {
+    const weather = heat.weatherReaction;
+    ctx.fillStyle = "rgba(255, 248, 232, 0.92)";
+    ctx.beginPath();
+    ctx.roundRect(226, 224, 172, 58, 15);
+    ctx.fill();
+    ctx.strokeStyle = `${weather.accent}66`;
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+    ctx.fillStyle = `${weather.accent}22`;
+    ctx.beginPath();
+    ctx.roundRect(238, 238, 34, 30, 11);
+    ctx.fill();
+    ctx.fillStyle = weather.accent;
+    ctx.font = "800 14px Microsoft YaHei";
+    ctx.fillText("天", 248, 258);
+    ctx.font = "700 11px Microsoft YaHei";
+    ctx.fillText("顾客天气反应", 282, 240);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "700 12px Microsoft YaHei";
+    ctx.fillText(weather.label.slice(0, 10), 282, 258);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "10px Microsoft YaHei";
+    ctx.fillText(`${weather.weatherName} · ${weather.tagHint}`.slice(0, 18), 282, 273);
+  }
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
+  ctx.beginPath();
+  ctx.roundRect(58, 332, 206, 34, 14);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(23, 35, 29, 0.1)";
+  ctx.stroke();
+  ctx.fillStyle = heat.heatTier === "hesitant" ? "#be4f37" : "#286f58";
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText(heat.queueText, 72, 352);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(String(heat.mood || "").slice(0, 16), 152, 352);
+
+  ctx.restore();
+  return true;
+}
+
 export function drawShopReputationStageSignWorld({
   ctx,
   spec = null,
