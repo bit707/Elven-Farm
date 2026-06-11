@@ -332,6 +332,112 @@ export function drawWorkshopOpeningValueWorldWorld({
   return true;
 }
 
+export function workshopOpeningValueWorldSpecFromRuntimeWorld({
+  width = 960,
+  height = 640,
+  day = 1,
+  lineSpec = null,
+  recipes = [],
+  selectedRecipeId = "",
+  availableRecipes = [],
+  recipePreviewSpec = () => null,
+  itemName = (itemId) => itemId,
+  orderMatchSpec = () => null,
+  shopTagsForItem = () => [],
+  ecologySummary = null,
+  prioritizeShopTag = () => "",
+  shopTagLabel = () => "",
+} = {}) {
+  const activeJob = lineSpec?.activeJob || null;
+  const safeRecipes = Array.isArray(recipes) ? recipes : [];
+  const safeAvailableRecipes = Array.isArray(availableRecipes) ? availableRecipes : [];
+  const activeRecipe = activeJob
+    ? safeRecipes.find((recipe) => recipe.recipe_id === activeJob.recipeId)
+    : null;
+  const selectedRecipe = safeRecipes.find((recipe) => recipe.recipe_id === selectedRecipeId) || safeAvailableRecipes[0] || null;
+  const recipe = activeRecipe || selectedRecipe;
+  if (!recipe) return null;
+  const preview = recipePreviewSpec(recipe);
+  if (!preview) return null;
+  const outputItemId = activeJob?.outputItemId || preview.outputItemId;
+  const outputCount = Number(activeJob?.outputCount || preview.outputCount || 1);
+  const outputName = itemName(outputItemId);
+  const orderMatch = activeJob?.orderMatch || preview.orderMatch || orderMatchSpec(outputItemId, outputCount);
+  const shopTags = shopTagsForItem(outputItemId, ecologySummary);
+  const shopTag = prioritizeShopTag(shopTags, new Map(), "food");
+  const shopTagText = shopTagLabel(shopTag);
+  const mode = activeJob ? "running" : preview.craftable ? "ready" : "blocked";
+  const maxValue = Math.max(1, Number(preview.rawValue || 0), Number(preview.outputValue || 0), Number(preview.orderReward || 0));
+  const rawRatio = Number(preview.rawValue || 0) / maxValue;
+  const outputRatio = Number(preview.outputValue || 0) / maxValue;
+  const orderRatio = Number(preview.orderReward || 0) / maxValue;
+  const activeStage = activeJob?.currentStage?.label || "";
+  const headline = activeJob
+    ? `${activeJob.recipeName} running ${activeStage || "line"}`
+    : preview.craftable
+      ? `${preview.recipeName} ready to cook`
+      : preview.headline;
+  const reason = activeJob
+    ? orderMatch?.ready
+      ? `${outputName} will complete ${orderMatch.orderTitle || "order"} after this pot.`
+      : orderMatch
+        ? `${outputName} is connecting to ${orderMatch.orderTitle || "order"} and still needs ${orderMatch.missingText || "materials"}.`
+        : `${outputName} can go to ${shopTagText || "shop shelf"} after cooking.`
+    : preview.orderMatch
+      ? preview.orderMatch.ready
+        ? `${preview.outputName} can complete ${preview.orderMatch.orderTitle || "order"} after cooking.`
+        : `${preview.outputName} will connect to ${preview.orderMatch.orderTitle || "order"} and still needs ${preview.orderMatch.missingText || "materials"}.`
+      : preview.firstAroma
+        ? "The first aroma will pull the first order onto the old shop board."
+        : `${preview.outputName} can go to ${shopTagText || "shop shelf"} or stay as stock.`;
+  const routeText = orderMatch?.orderId
+    ? orderMatch.ready
+      ? "Cook -> Finish pot -> Deliver order"
+      : "Cook -> Finish pot -> Fill missing order items"
+    : `Cook -> Finish pot -> ${shopTagText || "Shop shelf"}`;
+  const cardWidth = 334;
+  const cardHeight = 124;
+  const x = Math.max(506, Math.min(width - cardWidth - 28, 566));
+  const y = Math.max(408, Math.min(height - cardHeight - 28, 414));
+  return {
+    key: `${day}:${recipe.recipe_id}:${outputItemId}:${mode}:${activeJob?.progress || 0}:${orderMatch?.orderId || "shop"}:${preview.valueGain}`,
+    day,
+    mode,
+    active: Boolean(activeJob),
+    recipeId: recipe.recipe_id,
+    recipeName: activeJob?.recipeName || preview.recipeName,
+    outputItemId,
+    outputName,
+    outputCount,
+    craftable: Boolean(preview.craftable),
+    machineText: preview.machineText,
+    inputText: preview.inputText,
+    missingText: preview.missingText,
+    rawValue: Number(preview.rawValue || 0),
+    outputValue: Number(preview.outputValue || 0),
+    orderReward: Number(preview.orderReward || 0),
+    valueGain: Number(preview.valueGain || 0),
+    rawRatio,
+    outputRatio,
+    orderRatio,
+    orderId: orderMatch?.orderId || "",
+    orderTitle: orderMatch?.orderTitle || preview.orderMatch?.orderTitle || "",
+    orderReady: Boolean(orderMatch?.ready || preview.orderMatch?.ready),
+    shopTag,
+    shopTagText,
+    headline,
+    reason,
+    routeText,
+    title: "工坊开锅价值牌",
+    cta: "工坊开锅价值牌 路 可点",
+    safety: "只定位配方栏、订单板或旧铺货签，不会自动加工、排产、出锅、交单、开铺、入夜或消耗材料。",
+    rect: { x, y, width: cardWidth, height: cardHeight },
+    anchor: activeJob
+      ? { x: 618, y: 502 }
+      : { x: 708, y: 470 },
+  };
+}
+
 export function drawWorkshopSpiritAssistActionWorldWorld({
   ctx,
   spec = null,

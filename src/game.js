@@ -156,6 +156,7 @@ import {
 } from "./game/world/waterway-world.js";
 import {
   drawWorkshopIngredientReadyWorldWorld,
+  workshopOpeningValueWorldSpecFromRuntimeWorld,
   drawWorkshopOpeningValueWorldWorld,
   drawWorkshopOutputRouteTriptychWorldWorld,
   drawWorkshopOutputStorageRouteWorldWorld,
@@ -52873,8 +52874,31 @@ function drawWorkshopIngredientReadyWorld(ctx, spec = workshopIngredientReadyWor
   });
 }
 
+function workshopOpeningValueWorldSpecBridge(
+  width = refs.world?.width || 960,
+  height = refs.world?.height || 640,
+  lineSpec = workshopProductionLineSpec(),
+) {
+  return workshopOpeningValueWorldSpecFromRuntimeWorld({
+    width,
+    height,
+    day: state.day,
+    lineSpec,
+    recipes: data.recipes,
+    selectedRecipeId: state.selectedRecipeId,
+    availableRecipes: availableRecipes(),
+    recipePreviewSpec: recipeCraftPreviewSpec,
+    itemName,
+    orderMatchSpec: workshopOutputOrderMatchSpec,
+    shopTagsForItem,
+    ecologySummary: ecologyCourtyardSummary(),
+    prioritizeShopTag,
+    shopTagLabel,
+  });
+}
+
 function workshopOpeningValueWorldAtCanvasPoint(px, py) {
-  const spec = workshopOpeningValueWorldSpec();
+  const spec = workshopOpeningValueWorldSpecBridge();
   if (!spec?.rect) return null;
   const { rect } = spec;
   return (
@@ -52885,7 +52909,7 @@ function workshopOpeningValueWorldAtCanvasPoint(px, py) {
   ) ? spec : null;
 }
 
-function focusWorkshopOpeningValueWorldFromCanvas(spec = workshopOpeningValueWorldSpec()) {
+function focusWorkshopOpeningValueWorldFromCanvas(spec = workshopOpeningValueWorldSpecBridge()) {
   if (!spec?.recipeId) return false;
   workshopOpeningValueWorldFocus = {
     key: spec.key,
@@ -52908,7 +52932,7 @@ function focusWorkshopOpeningValueWorldFromCanvas(spec = workshopOpeningValueWor
   return true;
 }
 
-function drawWorkshopOpeningValueWorld(ctx, spec = workshopOpeningValueWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
+function drawWorkshopOpeningValueWorld(ctx, spec = workshopOpeningValueWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
   if (!spec?.rect) return false;
   const active = workshopOpeningValueWorldFocus?.day === state.day
     && workshopOpeningValueWorldFocus?.key === spec.key;
@@ -75125,7 +75149,7 @@ function drawWorkshopAutomation(ctx, livingState) {
     ctx.fillText((lineSpec.activeJob?.orderText || "精怪搬运、投料、冒烟、出货、入仓").slice(0, 24), 582, 644);
   }
   drawWorkshopLineOverviewWorldBoard(ctx, workshopLineOverviewWorldBoardSpec(lineSpec, livingState), motion);
-  drawWorkshopOpeningValueWorld(ctx, workshopOpeningValueWorldSpec(ctx.canvas.width, ctx.canvas.height, lineSpec), motion);
+  drawWorkshopOpeningValueWorld(ctx, workshopOpeningValueWorldSpecBridge(ctx.canvas.width, ctx.canvas.height, lineSpec), motion);
   drawWorkshopIngredientReadyWorld(ctx, workshopIngredientReadyWorldSpec(ctx.canvas.width, ctx.canvas.height), motion);
   drawWorkshopSpiritAssistActionWorld(ctx, workshopSpiritAssistActionWorldSpec(ctx.canvas.width, ctx.canvas.height, livingState, lineSpec), motion);
 
