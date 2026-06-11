@@ -230,7 +230,14 @@ import {
   year2OrderPrepFocusSpecWorld,
   year2OrderPrepTargetWorld,
 } from "./game/world/goalbook-world.js";
-import { goalbookInteractionTargetsWorld } from "./game/world/goalbook-interaction-world.js";
+import {
+  careChainJournalFocusTargetWorld,
+  compendiumMonumentFocusTargetWorld,
+  goalbookInteractionTargetsWorld,
+  shopSeasonFocusTargetWorld,
+  solarTrialFocusTargetWorld,
+  year2OrderPrepFocusTargetWorld,
+} from "./game/world/goalbook-interaction-world.js";
 import {
   postMainlineGoalRouteLogSpecsWorld,
   postMainlineRouteStationFocusTargetWorld,
@@ -73171,11 +73178,7 @@ function focusWorldContentFromCanvas(target = null) {
     // 点选札记：洞天照应札记 / 点选陈设： / 年轮纪念碑 / 名铺订单备货台 / 名铺月评榜 / 年轮试炼盘 / 照应札记台
     // care_chain_journal_stand / care_chain_journal / dungeon_compendium_monument / year2_order_prep_table
     // year2_shop_season_billboard / year2_solar_trial_dial / 洞天照应札记 / 点选札记 / 年轮纪念碑 / 名铺订单备货台 / 名铺月评榜 / 年轮试炼盘
-    const spec = careChainJournalFocusSpecWorld({
-      target,
-      streak: chainState.streak,
-      bestStreak: chainState.bestStreak,
-    });
+    const spec = careChainJournalFocusTargetWorld({ target, chainState });
     if (!spec) return false;
     queueStoryCompassFocusTarget(spec);
     return true;
@@ -73219,11 +73222,7 @@ function focusWorldContentFromCanvas(target = null) {
   if (target.type === "compendium") {
     const pageKey = target.pageKey || "";
     const page = pageKey ? dungeonMemoryPageSpec(state.dungeonCompendium?.[pageKey]) : null;
-    const spec = compendiumMonumentFocusSpecWorld({
-      target,
-      selector: pageKey ? `[data-dungeon-memory-open="${selectorDataValue(pageKey)}"]` : "#goalBookPanel",
-      pageTitle: page?.title || "",
-    });
+    const spec = compendiumMonumentFocusTargetWorld({ target, pageKey, pageTitle: page?.title || "" });
     if (!spec) return false;
     queueStoryCompassFocusTarget(spec);
     return true;
@@ -73743,12 +73742,11 @@ function focusWorldContentFromCanvas(target = null) {
       || allOrderConfigs().find((entry) => entry.order_id === target.orderId)
       || null;
     const needStatus = order ? year2OrderNeedStatus(order) : null;
-    const spec = year2OrderPrepFocusSpecWorld({
+    const spec = year2OrderPrepFocusTargetWorld({
       target,
-      selector: `[data-year2-order-id="${selectorDataValue(target.orderId)}"]`,
+      orderId: target.orderId,
       orderTitle: order ? orderTitle(order) : "",
-      completion: needStatus?.completion || 0,
-      missingText: needStatus?.missing.slice(0, 2).join(" / ") || "",
+      needStatus,
     });
     if (!spec) return false;
     queueStoryCompassFocusTarget(spec);
@@ -73757,10 +73755,7 @@ function focusWorldContentFromCanvas(target = null) {
 
   if (target.type === "shop_season") {
     const pending = normalizeShopStats(state.shopStats).pendingSettlement;
-    const spec = shopSeasonFocusSpecWorld({
-      target,
-      pendingSettlement: pending,
-    });
+    const spec = shopSeasonFocusTargetWorld({ target, pendingSettlement: pending });
     if (!spec) return false;
     queueStoryCompassFocusTarget(spec);
     return true;
@@ -73770,9 +73765,9 @@ function focusWorldContentFromCanvas(target = null) {
     const trial = data.solarTrialsById.get(target.trialId) || null;
     const support = trial ? solarTrialCompendiumSupport(trial) : null;
     const active = trial && state.activeSolarTrial?.trialId === trial.trial_id ? state.activeSolarTrial : null;
-    const spec = solarTrialFocusSpecWorld({
+    const spec = solarTrialFocusTargetWorld({
       target,
-      selector: `[data-solar-trial="${selectorDataValue(target.trialId)}"]`,
+      trialId: target.trialId,
       trialName: trial ? solarTrialName(trial) : "",
       activeDayIndex: active ? Math.max(1, state.day - Number(active.startDay || state.day) + 1) : 0,
       challengeDays: trial ? Number(trial.challenge_days || 3) : 0,
