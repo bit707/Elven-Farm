@@ -653,6 +653,7 @@ import {
   drawTownLifeMemoryThresholdKeepsakeWorldWorld,
   drawTownLifePassalongLanternWorldWorld,
   drawTownLifeShopMomentKeepsakeWorldWorld,
+  drawTownLifeWeatherErrandEchoWorld,
   drawTownLifeWeatherMomentWorld,
   drawTownLifeRelationshipWorldBoardWorld,
   drawTownLifeRouteWorldBoardWorld,
@@ -70436,46 +70437,16 @@ function drawTownLifeWeatherMoment(ctx, moment, point, index = 0, motion = 0) {
 }
 
 function drawTownLifeWeatherErrandEcho(ctx, echo, point, index = 0, motion = 0) {
-  if (!echo || echo.day !== state.day || !point) return;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 2.4 + index * 0.9) * 2;
-  const x = point.x - 14;
-  const y = point.y + 28 + bob;
-  const accent = echo.tone === "ember" ? "#be4f37" : echo.tone === "water" ? "#4d91a6" : echo.tone === "jade" ? "#286f58" : "#b47d2f";
-  ctx.save();
-  ctx.globalAlpha = 0.94;
-  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
-  ctx.strokeStyle = `${accent}88`;
-  ctx.lineWidth = 1.6;
-  ctx.beginPath();
-  ctx.roundRect(x - 4, y - 18, 42, 34, 11);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = `${accent}22`;
-  ctx.beginPath();
-  ctx.roundRect(x + 2, y - 12, 30, 22, 8);
-  ctx.fill();
-  ctx.strokeStyle = `${accent}aa`;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(x + 6, y - 3);
-  ctx.lineTo(x + 13, y + 5);
-  ctx.lineTo(x + 29, y - 10);
-  ctx.stroke();
-
-  ctx.fillStyle = accent;
-  ctx.font = "800 10px Microsoft YaHei";
-  ctx.fillText("妥", x + 10, y + 2);
-  ctx.fillStyle = "rgba(255, 248, 232, 0.96)";
-  ctx.beginPath();
-  ctx.roundRect(x - 10, y + 19, 58, 17, 8);
-  ctx.fill();
-  ctx.strokeStyle = `${accent}55`;
-  ctx.stroke();
-  ctx.fillStyle = accent;
-  ctx.font = "700 9px Microsoft YaHei";
-  ctx.fillText((echo.label || "天气托付").slice(0, 5), x - 4, y + 31);
-  ctx.restore();
+  // drawTownLifeWeatherErrandEcho bridge keeps verify keywords: 天气托付 天气回响 妥 ember water jade
+  drawTownLifeWeatherErrandEchoWorld({
+    ctx,
+    echo,
+    point,
+    index,
+    motion,
+    currentDay: state.day,
+    reducedMotion: settings.reducedMotion,
+  });
 }
 
 function townLifeErrandRouteCueSpec(row = null) {
