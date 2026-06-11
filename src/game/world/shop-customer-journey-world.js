@@ -1865,6 +1865,69 @@ export function shopFirstSaleReceiptWorldSpecWorld({
   };
 }
 
+export function drawShopFirstSaleReceiptWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  reducedMotion = false,
+} = {}) {
+  if (!ctx || !spec?.rect) return false;
+  const { rect } = spec;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.2) * 2;
+
+  ctx.save();
+  ctx.fillStyle = "rgba(23, 35, 29, 0.14)";
+  ctx.beginPath();
+  ctx.ellipse(rect.x + rect.width * 0.5, rect.y + rect.height + 7, rect.width * 0.42, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255, 248, 232, 0.95)";
+  ctx.strokeStyle = "rgba(224, 182, 109, 0.56)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(rect.x, rect.y + pulse, rect.width, rect.height, 14);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "rgba(224, 182, 109, 0.18)";
+  ctx.beginPath();
+  ctx.arc(rect.x + 24, rect.y + 22 + pulse, 16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#b47d2f";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText("单", rect.x + 16, rect.y + 28 + pulse);
+  ctx.fillStyle = "#286f58";
+  ctx.font = "800 11px Microsoft YaHei";
+  ctx.fillText("首单成交 · 可点", rect.x + 48, rect.y + 21 + pulse);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText(`${spec.customerName} 买走 ${spec.itemName}`.slice(0, 18), rect.x + 48, rect.y + 40 + pulse);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(`为什么买：${spec.reasonText}`.slice(0, 31), rect.x + 14, rect.y + 59 + pulse);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText(`顾客短评：${spec.reviewQuote}`.slice(0, 31), rect.x + 14, rect.y + 75 + pulse);
+  if (spec.returnPreview) {
+    const accent = spec.returnTone === "good" ? "#286f58" : spec.returnTone === "mid" ? "#b47d2f" : "#8f5f3f";
+    ctx.fillStyle = spec.returnTone === "good" ? "rgba(40, 111, 88, 0.12)" : "rgba(224, 182, 109, 0.16)";
+    ctx.beginPath();
+    ctx.roundRect(rect.x + 12, rect.y + 84 + pulse, rect.width - 24, 24, 11);
+    ctx.fill();
+    ctx.fillStyle = accent;
+    ctx.font = "800 10px Microsoft YaHei";
+    ctx.fillText(`回头苗头 ${spec.returnChance}% · ${spec.returnSummary || "明日认门"}`.slice(0, 28), rect.x + 22, rect.y + 100 + pulse);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "9px Microsoft YaHei";
+    ctx.fillText((spec.returnCta || "明天继续补同类货").slice(0, 30), rect.x + 18, rect.y + 115 + pulse);
+  }
+  if (spec.price > 0) {
+    ctx.fillStyle = "#b47d2f";
+    ctx.font = "800 10px Microsoft YaHei";
+    ctx.fillText(`+${spec.price}`, rect.x + rect.width - 42, rect.y + 21 + pulse);
+  }
+  ctx.restore();
+  return true;
+}
+
 export function shopFirstSaleLessonWorldSpecWorld({
   opening = null,
   receipt = null,
