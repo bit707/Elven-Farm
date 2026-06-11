@@ -172,6 +172,7 @@ import {
   workshopAromaStoryWorldSpecFromRuntimeWorld,
   drawWorkshopIngredientReadyWorldWorld,
   workshopIngredientReadyWorldAtCanvasPointWorld,
+  workshopOutputStorageRouteWorldCopyFromFeedbackWorld,
   workshopOutputStorageRouteWorldAtCanvasPointWorld,
   workshopIngredientReadyWorldSpecFromRuntimeWorld,
   workshopOpeningValueWorldAtCanvasPointWorld,
@@ -3276,42 +3277,44 @@ function workshopOutputStorageRouteSafetyText() {
 }
 
 function workshopOutputStorageRouteCopy(feedback, stock = 0, orderVisible = false) {
-  if (!feedback?.outputItemId) return null;
-  const queuedOutput = feedback.source === "queued";
-  const routeText = queuedOutput
-    ? orderVisible
-      ? feedback.orderReady
-        ? "夜间排产 -> 成品入仓 -> 订单可交"
-        : "夜间排产 -> 成品入仓 -> 订单接线"
-      : `夜间排产 -> 成品入仓 -> ${feedback.shopTagText}货签`
-    : orderVisible
-      ? feedback.orderReady
-        ? "手动加工 -> 成品入仓 -> 订单可交"
-        : "手动加工 -> 成品入仓 -> 订单接线"
-      : `手动加工 -> 成品入仓 -> ${feedback.shopTagText}货签`;
-  const headline = orderVisible
-    ? feedback.orderReady
-      ? `${feedback.outputItemName} 已让订单可交`
-      : `${feedback.outputItemName} 接上订单线`
-    : `${feedback.outputItemName} 适合摆旧铺`;
-  const detail = orderVisible
-    ? feedback.orderReady
-      ? `${feedback.orderTitle} 库存已够，去订单板手动交付。`
-      : `${feedback.orderTitle} 已接到这锅，还差 ${feedback.orderMissingText || "余料"}。`
-    : `当前库存 ${stock}，可按 ${feedback.shopTagText} 留作旧铺头排或继续备货。`;
-  return {
-    title: "成品入仓去向签 · 可点",
-    routeText,
-    headline,
-    detail,
-    nodes: [
-      { key: "pot", badge: "锅", title: "出锅", detail: `${feedback.outputItemName}x${feedback.outputCount}`, accent: "#be4f37" },
-      { key: "stock", badge: "仓", title: "入仓", detail: `库存 ${stock}`, accent: "#b47d2f" },
-      orderVisible
-        ? { key: "order", badge: "单", title: feedback.orderReady ? "可交" : "接线", detail: feedback.orderTitle || "订单板", accent: feedback.orderReady ? "#286f58" : "#8f5f3f" }
-        : { key: "shop", badge: "铺", title: "旧铺", detail: feedback.shopTagText || "货签", accent: "#4d91a6" },
-    ],
-  };
+  return workshopOutputStorageRouteWorldCopyFromFeedbackWorld({
+    feedback,
+    stock,
+    orderVisible,
+    copy: {
+      title: "成品入仓去向签 · 可点",
+      queuedReadyRouteText: "夜间排产 -> 成品入仓 -> 订单可交",
+      queuedLinkedRouteText: "夜间排产 -> 成品入仓 -> 订单接线",
+      queuedShopRoutePrefix: "夜间排产 -> 成品入仓 -> ",
+      manualReadyRouteText: "手动加工 -> 成品入仓 -> 订单可交",
+      manualLinkedRouteText: "手动加工 -> 成品入仓 -> 订单接线",
+      manualShopRoutePrefix: "手动加工 -> 成品入仓 -> ",
+      shopRouteSuffix: "货签",
+      readyHeadlineSuffix: " 已让订单可交",
+      linkedHeadlineSuffix: " 接上订单线",
+      shopHeadlineSuffix: " 适合摆旧铺",
+      readyDetailSuffix: " 库存已够，去订单板手动交付。",
+      linkedDetailPrefix: " 已接到这锅，还差 ",
+      linkedDetailSuffix: "。",
+      missingFallbackText: "余料",
+      shopDetailPrefix: "当前库存 ",
+      shopDetailMiddle: "，可按 ",
+      shopDetailSuffix: " 留作旧铺头排或继续备货。",
+      potBadge: "锅",
+      potTitle: "出锅",
+      stockBadge: "仓",
+      stockTitle: "入仓",
+      stockDetailPrefix: "库存 ",
+      orderBadge: "单",
+      orderReadyTitle: "可交",
+      orderLinkedTitle: "接线",
+      orderFallbackTitle: "订单板",
+      shopBadge: "铺",
+      shopTitle: "旧铺",
+      shopFallbackDetail: "货签",
+      shopTagText: feedback?.shopTagText || "货签",
+    },
+  });
 }
 
 function workshopOutputStorageRouteFeedbackSpec(feedback = state.workshopCraftFeedback, recipe = null) {

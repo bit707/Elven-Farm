@@ -1549,6 +1549,80 @@ export function drawWorkshopOutputStorageRouteWorldWorld({
   return true;
 }
 
+export function workshopOutputStorageRouteWorldCopyFromFeedbackWorld({
+  feedback = null,
+  stock = 0,
+  orderVisible = false,
+  copy = null,
+} = {}) {
+  if (!feedback?.outputItemId) return null;
+  const safeCopy = copy || {};
+  const safeOutputItemName = feedback.outputItemName || "成品";
+  const safeOutputCount = Number(feedback.outputCount || 1);
+  const safeStock = Number(stock || 0);
+  const safeShopTagText = feedback.shopTagText || safeCopy.shopTagText || "货签";
+  const queuedOutput = feedback.source === "queued";
+  const routeText = queuedOutput
+    ? orderVisible
+      ? feedback.orderReady
+        ? safeCopy.queuedReadyRouteText || "Night queue -> Stock in -> Order ready"
+        : safeCopy.queuedLinkedRouteText || "Night queue -> Stock in -> Order linked"
+      : `${safeCopy.queuedShopRoutePrefix || "Night queue -> Stock in -> "}${safeShopTagText}${safeCopy.shopRouteSuffix || " shelf tag"}`
+    : orderVisible
+      ? feedback.orderReady
+        ? safeCopy.manualReadyRouteText || "Manual craft -> Stock in -> Order ready"
+        : safeCopy.manualLinkedRouteText || "Manual craft -> Stock in -> Order linked"
+      : `${safeCopy.manualShopRoutePrefix || "Manual craft -> Stock in -> "}${safeShopTagText}${safeCopy.shopRouteSuffix || " shelf tag"}`;
+  const headline = orderVisible
+    ? feedback.orderReady
+      ? `${safeOutputItemName}${safeCopy.readyHeadlineSuffix || " is order-ready"}`
+      : `${safeOutputItemName}${safeCopy.linkedHeadlineSuffix || " links the order line"}`
+    : `${safeOutputItemName}${safeCopy.shopHeadlineSuffix || " fits the old shop"}`;
+  const detail = orderVisible
+    ? feedback.orderReady
+      ? `${feedback.orderTitle}${safeCopy.readyDetailSuffix || " has enough stock; deliver it manually at the order board."}`
+      : `${feedback.orderTitle}${safeCopy.linkedDetailPrefix || " is linked to this pot and still needs "}${feedback.orderMissingText || safeCopy.missingFallbackText || "materials"}${safeCopy.linkedDetailSuffix || "."}`
+    : `${safeCopy.shopDetailPrefix || "Current stock "}${safeStock}${safeCopy.shopDetailMiddle || "; keep it for "}${safeShopTagText}${safeCopy.shopDetailSuffix || " and continue prep if needed."}`;
+
+  return {
+    title: safeCopy.title || "Output storage route - click",
+    routeText,
+    headline,
+    detail,
+    nodes: [
+      {
+        key: "pot",
+        badge: safeCopy.potBadge || "POT",
+        title: safeCopy.potTitle || "Output",
+        detail: `${safeOutputItemName}x${safeOutputCount}`,
+        accent: "#be4f37",
+      },
+      {
+        key: "stock",
+        badge: safeCopy.stockBadge || "INV",
+        title: safeCopy.stockTitle || "Stock",
+        detail: `${safeCopy.stockDetailPrefix || "Stock "}${safeStock}`,
+        accent: "#b47d2f",
+      },
+      orderVisible
+        ? {
+          key: "order",
+          badge: safeCopy.orderBadge || "ORD",
+          title: feedback.orderReady ? (safeCopy.orderReadyTitle || "Ready") : (safeCopy.orderLinkedTitle || "Linked"),
+          detail: feedback.orderTitle || safeCopy.orderFallbackTitle || "Order board",
+          accent: feedback.orderReady ? "#286f58" : "#8f5f3f",
+        }
+        : {
+          key: "shop",
+          badge: safeCopy.shopBadge || "SHP",
+          title: safeCopy.shopTitle || "Shop",
+          detail: safeShopTagText || safeCopy.shopFallbackDetail || "Shelf",
+          accent: "#4d91a6",
+        },
+    ],
+  };
+}
+
 export function workshopOutputStorageRouteWorldSpecFromRuntimeWorld({
   width = 960,
   height = 640,
