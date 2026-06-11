@@ -293,10 +293,10 @@ import {
   waterwayFreshRouteTargetWorld,
 } from "./game/world/waterway-route-interaction-world.js";
 import {
-  year2LifeCohabFocusSpecWorld,
-  year2LifeGoalBookFocusSpecWorld,
+  year2LifeCohabFocusTargetWorld,
+  year2LifeGoalBookFocusTargetWorld,
   year2LifePlazaTargetsWorld,
-  year2LifeTradeFocusSpecWorld,
+  year2LifeTradeFocusTargetWorld,
 } from "./game/world/year2-life-plaza-interaction-world.js";
 import {
   drawShopWeatherShelfCustomerVignetteWorld,
@@ -73751,18 +73751,11 @@ function focusWorldContentFromCanvas(target = null) {
     // target.type === "year2_life_plaza" / 点选年册： / 点选后日谈： / 点选远行旗： / 点选商旗：
     // 自由目标年册 / 后日谈共桌 / 本周远行线 / freeplayGoalId
     if (target.mode === "goals") {
-      const freeGoal = plaza.freeGoal || null;
-      const dailyGoal = plaza.dailyGoal || null;
-      const readyCount = plaza.year2Ready.length + plaza.freeReady.length;
-      const label = freeGoal
-        ? localize(freeGoal.goal_name_key, freeGoal.goal_id)
-        : dailyGoal ? year2GoalTitle(dailyGoal) : "第二年目标册";
-      queueStoryCompassFocusTarget(year2LifeGoalBookFocusSpecWorld({
+      queueStoryCompassFocusTarget(year2LifeGoalBookFocusTargetWorld({
         target,
-        freeGoalId: freeGoal?.goal_id || "",
-        dailyGoalId: dailyGoal?.goal_id || "",
-        goalTitle: label,
-        readyCount,
+        plaza,
+        goalTitleFor: year2GoalTitle,
+        localizeFor: localize,
       }));
       return true;
     }
@@ -73770,17 +73763,14 @@ function focusWorldContentFromCanvas(target = null) {
     if (target.mode === "cohab") {
       const route = plaza.cohabProspect || null;
       const status = route ? cohabStatusFor(route.npc_id) : null;
-      const latest = plaza.cohabLife?.latest || null;
       const nextEvent = route ? nextCohabEvent(route.epilogue_id) : null;
-      queueStoryCompassFocusTarget(year2LifeCohabFocusSpecWorld({
+      queueStoryCompassFocusTarget(year2LifeCohabFocusTargetWorld({
         target,
-        npcId: route?.npc_id || "",
-        npcNameText: route ? npcName(route.npc_id) : "",
-        routeName: route?.route_name || "",
-        unlocked: Boolean(status?.unlocked),
-        latestEventName: latest?.eventName || "",
-        nextEventName: nextEvent ? (nextEvent.event_name || nextEvent.scene_key || "日常对话") : "",
-        requirementText: cohabRequirementText(status),
+        plaza,
+        status,
+        nextEvent,
+        npcNameFor: npcName,
+        requirementTextFor: cohabRequirementText,
       }));
       return true;
     }
@@ -73789,22 +73779,13 @@ function focusWorldContentFromCanvas(target = null) {
       const route = target.routeId ? data.tradeRoutesById.get(target.routeId) : plaza.routePreview?.route || null;
       const preview = route ? routePreview(route) : null;
       const activeRun = route ? tradeRunFor(route.route_id) : null;
-      const missingSupply = preview
-        ? preview.supply
-          .filter((entry) => !entry.ready)
-          .slice(0, 2)
-          .map((entry) => supplyTagLabel(entry.tag))
-          .join(" / ")
-        : "";
-      queueStoryCompassFocusTarget(year2LifeTradeFocusSpecWorld({
+      queueStoryCompassFocusTarget(year2LifeTradeFocusTargetWorld({
         target,
-        routeId: route?.route_id || "",
-        routeName: route?.route_name || "",
-        activeReturnDay: activeRun?.returnDay || 0,
-        unlocked: Boolean(preview?.unlocked),
-        ready: Boolean(preview?.ready),
-        missingSupply,
-        unlockConditionLabel: route ? conditionLabel(route.unlock_condition_group) : "",
+        route,
+        preview,
+        activeRun,
+        supplyTagLabelFor: supplyTagLabel,
+        conditionLabelFor: conditionLabel,
       }));
       return true;
     }

@@ -53,6 +53,28 @@ export function year2LifeGoalBookFocusSpecWorld({
   };
 }
 
+export function year2LifeGoalBookFocusTargetWorld({
+  target = null,
+  plaza = null,
+  goalTitleFor = null,
+  localizeFor = null,
+} = {}) {
+  const freeGoal = plaza?.freeGoal || null;
+  const dailyGoal = plaza?.dailyGoal || null;
+  const getGoalTitle = typeof goalTitleFor === "function" ? goalTitleFor : () => "";
+  const localizeGoal = typeof localizeFor === "function" ? localizeFor : (_key, fallback = "") => fallback;
+  const goalTitle = freeGoal
+    ? localizeGoal(freeGoal.goal_name_key, freeGoal.goal_id)
+    : dailyGoal ? getGoalTitle(dailyGoal) : "第二年目标册";
+  return year2LifeGoalBookFocusSpecWorld({
+    target,
+    freeGoalId: freeGoal?.goal_id || "",
+    dailyGoalId: dailyGoal?.goal_id || "",
+    goalTitle,
+    readyCount: Number(plaza?.year2Ready?.length || 0) + Number(plaza?.freeReady?.length || 0),
+  });
+}
+
 export function year2LifeCohabFocusSpecWorld({
   target = null,
   npcId = "",
@@ -80,6 +102,30 @@ export function year2LifeCohabFocusSpecWorld({
   };
 }
 
+export function year2LifeCohabFocusTargetWorld({
+  target = null,
+  plaza = null,
+  status = null,
+  nextEvent = null,
+  npcNameFor = null,
+  requirementTextFor = null,
+} = {}) {
+  const route = plaza?.cohabProspect || null;
+  const latest = plaza?.cohabLife?.latest || null;
+  const getNpcName = typeof npcNameFor === "function" ? npcNameFor : () => "";
+  const getRequirementText = typeof requirementTextFor === "function" ? requirementTextFor : () => "更高好感与居所条件";
+  return year2LifeCohabFocusSpecWorld({
+    target,
+    npcId: route?.npc_id || "",
+    npcNameText: route ? getNpcName(route.npc_id) : "",
+    routeName: route?.route_name || "",
+    unlocked: Boolean(status?.unlocked),
+    latestEventName: latest?.eventName || "",
+    nextEventName: nextEvent ? (nextEvent.event_name || nextEvent.scene_key || "日常对话") : "",
+    requirementText: getRequirementText(status),
+  });
+}
+
 export function year2LifeTradeFocusSpecWorld({
   target = null,
   routeId = "",
@@ -103,4 +149,34 @@ export function year2LifeTradeFocusSpecWorld({
     missingTitle: `点选商旗：${target.label}`,
     missingLog: "商路线卡暂时没有找到，先确认核心试玩分组是否可见。",
   };
+}
+
+export function year2LifeTradeFocusTargetWorld({
+  target = null,
+  route = null,
+  preview = null,
+  activeRun = null,
+  supplyTagLabelFor = null,
+  conditionLabelFor = null,
+} = {}) {
+  const routeConfig = route || null;
+  const getSupplyTagLabel = typeof supplyTagLabelFor === "function" ? supplyTagLabelFor : (tag) => tag;
+  const getConditionLabel = typeof conditionLabelFor === "function" ? conditionLabelFor : () => "";
+  const missingSupply = preview
+    ? preview.supply
+      .filter((entry) => !entry.ready)
+      .slice(0, 2)
+      .map((entry) => getSupplyTagLabel(entry.tag))
+      .join(" / ")
+    : "";
+  return year2LifeTradeFocusSpecWorld({
+    target,
+    routeId: routeConfig?.route_id || "",
+    routeName: routeConfig?.route_name || "",
+    activeReturnDay: activeRun?.returnDay || 0,
+    unlocked: Boolean(preview?.unlocked),
+    ready: Boolean(preview?.ready),
+    missingSupply,
+    unlockConditionLabel: routeConfig ? getConditionLabel(routeConfig.unlock_condition_group) : "",
+  });
 }
