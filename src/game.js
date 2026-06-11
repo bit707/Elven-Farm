@@ -601,6 +601,9 @@ import {
   drawOrderSeedRestockWorldBoardWorld,
   orderSeedRestockWorldBoardAtCanvasPointWorld,
   orderSeedRestockWorldBoardSpecWorld,
+  drawOrderMarketPrepWorldBoardWorld,
+  orderMarketPrepWorldBoardAtCanvasPointWorld,
+  orderMarketPrepWorldBoardSpecWorld,
   readyOrderSealNodesWorld,
   readyOrderSealSafetyTextWorld,
   readyOrderSealWorldAtCanvasPointWorld,
@@ -29506,40 +29509,34 @@ function orderMarketPrepWorldRows(limit = 3) {
 }
 
 function orderMarketPrepWorldBoardSpec(width = 960, height = 640) {
+  return orderMarketPrepWorldBoardSpecBridge(width, height);
+}
+
+const ORDER_MARKET_PREP_WORLD_BOARD_COPY = {
+  title: "主世界订单缺口市集备料",
+  cta: "市集备料 · 可点",
+};
+
+function orderMarketPrepWorldBoardSpecBridge(width = 960, height = 640) {
   const rows = orderMarketPrepWorldRows(3);
-  if (!rows.length) return null;
-  const top = rows[0];
-  const cardWidth = 312;
-  const cardHeight = 108 + rows.length * 22;
-  const x = Math.max(330, Math.min(width - cardWidth - 300, 372));
-  const y = Math.max(384, Math.min(height - cardHeight - 24, 432));
-  return {
-    key: `${state.day}:${rows.map((row) => `${row.orderId}:${row.recipeId}:${row.inputId}`).join("|")}`,
+  return orderMarketPrepWorldBoardSpecWorld({
+    width,
+    height,
     day: state.day,
     rows,
-    top,
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: 714, y: 430 },
-    title: "主世界订单缺口市集备料",
-    headline: `${top.recipeTitle} 差 ${top.inputName}`,
-    detail: `${top.inputName} 还差 ${top.missingCount}`,
-    cta: "市集备料 · 可点",
-  };
+    copy: ORDER_MARKET_PREP_WORLD_BOARD_COPY,
+  });
 }
 
 function orderMarketPrepWorldBoardAtCanvasPoint(px, py) {
-  const spec = orderMarketPrepWorldBoardSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return orderMarketPrepWorldBoardAtCanvasPointWorld({
+    px,
+    py,
+    spec: orderMarketPrepWorldBoardSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
+  });
 }
 
-function focusOrderMarketPrepWorldBoardFromCanvas(spec = orderMarketPrepWorldBoardSpec()) {
+function focusOrderMarketPrepWorldBoardFromCanvas(spec = orderMarketPrepWorldBoardSpecBridge()) {
   if (!spec?.top?.recipeId) return false;
   const { top } = spec;
   orderMarketPrepWorldBoardFocus = { key: spec.key, day: state.day, orderId: top.orderId, recipeId: top.recipeId, inputId: top.inputId };
@@ -29556,93 +29553,16 @@ function focusOrderMarketPrepWorldBoardFromCanvas(spec = orderMarketPrepWorldBoa
   return true;
 }
 
-function drawOrderMarketPrepWorldBoard(ctx, spec = orderMarketPrepWorldBoardSpec(ctx.canvas.width, ctx.canvas.height)) {
-  if (!spec?.rect) return false;
-  const { rect, rows, top, anchor } = spec;
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.68) * 2.1;
-  const cardY = rect.y + bob;
-  const active = orderMarketPrepWorldBoardFocus?.day === state.day
-    && orderMarketPrepWorldBoardFocus?.key === spec.key;
-  const accent = "#8f5f3f";
-
-  ctx.save();
-  ctx.strokeStyle = active ? "rgba(143, 95, 63, 0.86)" : "rgba(143, 95, 63, 0.46)";
-  ctx.lineWidth = active ? 2.8 : 1.7;
-  ctx.setLineDash([6, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 10;
-  ctx.beginPath();
-  ctx.moveTo(rect.x + rect.width - 34, cardY + 18);
-  ctx.quadraticCurveTo(rect.x + rect.width + 78, cardY - 8, anchor.x, anchor.y);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 253, 245, 0.96)");
-  ctx.strokeStyle = active ? "rgba(143, 95, 63, 0.92)" : "rgba(143, 95, 63, 0.58)";
-  ctx.lineWidth = active ? 2.8 : 1.5;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = "rgba(180, 125, 47, 0.16)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 56, 52, 16);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(143, 95, 63, 0.62)";
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 56, 52, 16);
-  ctx.stroke();
-  ctx.fillStyle = accent;
-  ctx.font = "900 22px Microsoft YaHei";
-  ctx.fillText("市", rect.x + 31, cardY + 47);
-  for (let coin = 0; coin < 4; coin += 1) {
-    ctx.fillStyle = coin % 2 ? "#f5f0b6" : "#e0b66d";
-    ctx.beginPath();
-    ctx.arc(rect.x + 28 + coin * 11, cardY + 58 - (coin % 2) * 5, 4.5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(`${spec.cta} · ${spec.headline}`, rect.x + 84, cardY + 26);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 15px Microsoft YaHei";
-  ctx.fillText(top.orderTitle.slice(0, 18), rect.x + 84, cardY + 48);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(`${spec.detail} · 约 ${top.totalCost} 灵石`.slice(0, 34), rect.x + 84, cardY + 66);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "800 10px Microsoft YaHei";
-  ctx.fillText(`切到 ${top.recipeTitle} · ${top.machineText}`.slice(0, 36), rect.x + 84, cardY + 82);
-
-  rows.slice(0, 3).forEach((row, index) => {
-    const rowY = cardY + 106 + index * 22;
-    const primary = row.recipeId === top.recipeId && row.orderId === top.orderId && row.inputId === top.inputId;
-    ctx.fillStyle = primary ? "rgba(143, 95, 63, 0.14)" : "rgba(255, 248, 232, 0.72)";
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 16, rowY - 15, rect.width - 32, 18, 8);
-    ctx.fill();
-    ctx.fillStyle = primary ? accent : "#b47d2f";
-    ctx.font = "900 10px Microsoft YaHei";
-    ctx.fillText(primary ? "先买" : "可买", rect.x + 28, rowY - 2);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 10px Microsoft YaHei";
-    ctx.fillText(row.inputName.slice(0, 12), rect.x + 64, rowY - 2);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "10px Microsoft YaHei";
-    ctx.fillText(`${row.totalCost} 灵石 · ${row.recipeTitle}`.slice(0, 16), rect.x + 166, rowY - 2);
+function drawOrderMarketPrepWorldBoard(ctx, spec = orderMarketPrepWorldBoardSpecBridge(ctx.canvas.width, ctx.canvas.height)) {
+  return drawOrderMarketPrepWorldBoardWorld({
+    ctx,
+    spec,
+    reducedMotion: settings.reducedMotion,
+    motion: performance.now() / 1000,
+    day: state.day,
+    focus: orderMarketPrepWorldBoardFocus,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 55, cardY + 12, 40, 18, 9);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText("可点", rect.x + rect.width - 46, cardY + 25);
-  ctx.restore();
-  return true;
 }
 
 function orderBuildPrepWorldRows(limit = 3) {
@@ -82409,7 +82329,7 @@ function drawWorld() {
   drawOrderCraftPrepWorldBoard(ctx, orderCraftPrepWorldBoardSpecBridge(width, height));
   drawOrderSeedPrepWorldBoard(ctx, orderSeedPrepWorldBoardSpecBridge(width, height));
   drawOrderSeedRestockWorldBoard(ctx, orderSeedRestockWorldBoardSpecBridge(width, height));
-  drawOrderMarketPrepWorldBoard(ctx, orderMarketPrepWorldBoardSpec(width, height));
+  drawOrderMarketPrepWorldBoard(ctx, orderMarketPrepWorldBoardSpecBridge(width, height));
   drawOrderGapSupplyRouteWorld(ctx, orderGapSupplyRouteWorldSpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawOrderBuildPrepWorldBoard(ctx, orderBuildPrepWorldBoardSpec(width, height));
   drawDailyIntentWorldScenes(ctx, originX, originY, tile, gap);

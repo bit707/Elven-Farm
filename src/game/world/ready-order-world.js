@@ -1299,3 +1299,137 @@ export function drawOrderSeedRestockWorldBoardWorld({
   ctx.restore();
   return true;
 }
+
+export function orderMarketPrepWorldBoardSpecWorld({
+  width = 960,
+  height = 640,
+  rows = [],
+  day = 1,
+  copy = null,
+} = {}) {
+  if (!rows.length) return null;
+  const top = rows[0];
+  const cardWidth = 312;
+  const cardHeight = 108 + rows.length * 22;
+  const x = Math.max(330, Math.min(width - cardWidth - 300, 372));
+  const y = Math.max(384, Math.min(height - cardHeight - 24, 432));
+  return {
+    key: `${day}:${rows.map((row) => `${row.orderId}:${row.recipeId}:${row.inputId}`).join("|")}`,
+    day,
+    rows,
+    top,
+    rect: { x, y, width: cardWidth, height: cardHeight },
+    anchor: { x: 714, y: 430 },
+    title: copy?.title || "主世界订单缺口市集备料",
+    headline: `${top.recipeTitle} 差 ${top.inputName}`,
+    detail: `${top.inputName} 还差 ${top.missingCount}`,
+    cta: copy?.cta || "市集备料 · 可点",
+  };
+}
+
+export function orderMarketPrepWorldBoardAtCanvasPointWorld({ px, py, spec = null } = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return (
+    px >= rect.x
+    && px <= rect.x + rect.width
+    && py >= rect.y
+    && py <= rect.y + rect.height
+  ) ? spec : null;
+}
+
+export function drawOrderMarketPrepWorldBoardWorld({
+  ctx,
+  spec = null,
+  reducedMotion = false,
+  motion = performance.now() / 1000,
+  day = 1,
+  focus = null,
+  drawCanvasCard,
+} = {}) {
+  if (!spec?.rect || !drawCanvasCard) return false;
+  const { rect, rows, top, anchor } = spec;
+  const safeMotion = reducedMotion ? 0 : motion;
+  const bob = reducedMotion ? 0 : Math.sin(safeMotion * 1.68) * 2.1;
+  const cardY = rect.y + bob;
+  const active = focus?.day === day && focus?.key === spec.key;
+  const accent = "#8f5f3f";
+
+  ctx.save();
+  ctx.strokeStyle = active ? "rgba(143, 95, 63, 0.86)" : "rgba(143, 95, 63, 0.46)";
+  ctx.lineWidth = active ? 2.8 : 1.7;
+  ctx.setLineDash([6, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -safeMotion * 10;
+  ctx.beginPath();
+  ctx.moveTo(rect.x + rect.width - 34, cardY + 18);
+  ctx.quadraticCurveTo(rect.x + rect.width + 78, cardY - 8, anchor.x, anchor.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 253, 245, 0.96)");
+  ctx.strokeStyle = active ? "rgba(143, 95, 63, 0.92)" : "rgba(143, 95, 63, 0.58)";
+  ctx.lineWidth = active ? 2.8 : 1.5;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(180, 125, 47, 0.16)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 56, 52, 16);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(143, 95, 63, 0.62)";
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 56, 52, 16);
+  ctx.stroke();
+  ctx.fillStyle = accent;
+  ctx.font = "900 22px Microsoft YaHei";
+  ctx.fillText("市", rect.x + 31, cardY + 47);
+  for (let coin = 0; coin < 4; coin += 1) {
+    ctx.fillStyle = coin % 2 ? "#f5f0b6" : "#e0b66d";
+    ctx.beginPath();
+    ctx.arc(rect.x + 28 + coin * 11, cardY + 58 - (coin % 2) * 5, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(`${spec.cta} · ${spec.headline}`, rect.x + 84, cardY + 26);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 15px Microsoft YaHei";
+  ctx.fillText(top.orderTitle.slice(0, 18), rect.x + 84, cardY + 48);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(`${spec.detail} · 约 ${top.totalCost} 灵石`.slice(0, 34), rect.x + 84, cardY + 66);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "800 10px Microsoft YaHei";
+  ctx.fillText(`切到 ${top.recipeTitle} · ${top.machineText}`.slice(0, 36), rect.x + 84, cardY + 82);
+
+  rows.slice(0, 3).forEach((row, index) => {
+    const rowY = cardY + 106 + index * 22;
+    const primary = row.recipeId === top.recipeId && row.orderId === top.orderId && row.inputId === top.inputId;
+    ctx.fillStyle = primary ? "rgba(143, 95, 63, 0.14)" : "rgba(255, 248, 232, 0.72)";
+    ctx.beginPath();
+    ctx.roundRect(rect.x + 16, rowY - 15, rect.width - 32, 18, 8);
+    ctx.fill();
+    ctx.fillStyle = primary ? accent : "#b47d2f";
+    ctx.font = "900 10px Microsoft YaHei";
+    ctx.fillText(primary ? "先买" : "可买", rect.x + 28, rowY - 2);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "800 10px Microsoft YaHei";
+    ctx.fillText(row.inputName.slice(0, 12), rect.x + 64, rowY - 2);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "10px Microsoft YaHei";
+    ctx.fillText(`${row.totalCost} 灵石 · ${row.recipeTitle}`.slice(0, 16), rect.x + 166, rowY - 2);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + rect.width - 55, cardY + 12, 40, 18, 9);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText("可点", rect.x + rect.width - 46, cardY + 25);
+  ctx.restore();
+  return true;
+}
