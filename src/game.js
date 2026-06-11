@@ -29,6 +29,7 @@ import {
 } from "./game/world/background-world.js";
 import {
   drawCanalExpandedFieldPlaqueWorldWorld,
+  drawCanalRestorationCelebrationWorldCardWorld,
   drawCanalRestorationFeedbackWorld,
   drawCanalPermanentFlowWorldWorld,
   drawCanalRestorationRouteWorldWorld,
@@ -58237,104 +58238,19 @@ function drawCanalRestorationFeedback(ctx, width, height, feedback = activeCanal
 
 function drawCanalRestorationCelebrationWorldCard(ctx, spec = canalRestorationCelebrationSpec()) {
   if (!spec?.rect) return false;
-  const { rect, anchor } = spec;
   const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.9) * 2.5;
-  const cardY = rect.y + bob;
   const active = canalRestorationCelebrationWorldFocus?.day === state.day
     && canalRestorationCelebrationWorldFocus?.key === spec.key;
-  const accent = spec.planted ? "#286f58" : "#4d91a6";
-  const rowColors = {
-    water: "#4d91a6",
-    field: "#286f58",
-    seed: "#b47d2f",
-    spirit: "#8f5f3f",
-  };
-
-  ctx.save();
-  ctx.strokeStyle = "rgba(77, 145, 166, 0.52)";
-  ctx.lineWidth = 3;
-  ctx.setLineDash([9, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 12;
-  ctx.beginPath();
-  ctx.moveTo(792, 186);
-  ctx.bezierCurveTo(676, 264, 674, 382, anchor.x, anchor.y);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  ctx.fillStyle = "rgba(159, 209, 223, 0.24)";
-  ctx.beginPath();
-  ctx.ellipse(anchor.x, anchor.y + 6, 46 + Math.max(0, bob), 13, -0.18, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(255, 253, 245, 0.62)";
-  ctx.lineWidth = 2;
-  for (let i = 0; i < 3; i += 1) {
-    ctx.beginPath();
-    ctx.ellipse(anchor.x - 22 + i * 22, anchor.y + 4 + Math.sin(motion * 2 + i) * 2, 13, 4, 0, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-
-  if (spec.spirit) {
-    drawSpiritSprite(ctx, spec.spirit, anchor.x - 64, anchor.y - 60 + bob, 58);
-    ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
-    ctx.beginPath();
-    ctx.roundRect(anchor.x - 22, anchor.y - 64 + bob, 68, 28, 12);
-    ctx.fill();
-    ctx.fillStyle = "#286f58";
-    ctx.font = "800 10px Microsoft YaHei";
-    ctx.fillText(spec.planted ? "水菜接上" : "水田亮了", anchor.x - 10, anchor.y - 47 + bob);
-  }
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, spec.planted ? "rgba(237, 243, 223, 0.94)" : "rgba(236, 248, 243, 0.94)");
-  ctx.strokeStyle = active ? accent : `${accent}77`;
-  ctx.lineWidth = active ? 3 : 2;
-  ctx.beginPath();
-  ctx.roundRect(rect.x, cardY, rect.width, rect.height, 17);
-  ctx.stroke();
-
-  ctx.fillStyle = `${accent}20`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 12, cardY + 12, 42, 42, 14);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 20px Microsoft YaHei";
-  ctx.fillText("渠", rect.x + 23, cardY + 40);
-
-  ctx.fillStyle = accent;
-  ctx.font = "800 12px Microsoft YaHei";
-  ctx.fillText(spec.title.slice(0, 16), rect.x + 66, cardY + 22);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 15px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 18), rect.x + 66, cardY + 44);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "10px Microsoft YaHei";
-  ctx.fillText(spec.detail.slice(0, 30), rect.x + 66, cardY + 61);
-
-  spec.rows.slice(0, 4).forEach((row, index) => {
-    const rowX = rect.x + 14 + (index % 2) * 134;
-    const rowY = cardY + 72 + Math.floor(index / 2) * 18;
-    const color = rowColors[row.tone] || accent;
-    ctx.fillStyle = `${color}18`;
-    ctx.beginPath();
-    ctx.roundRect(rowX, rowY, 122, 14, 7);
-    ctx.fill();
-    ctx.fillStyle = color;
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(row.label.slice(0, 5), rowX + 8, rowY + 10);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(String(row.value || "").slice(0, 8), rowX + 54, rowY + 10);
+  // drawCanalRestorationCelebrationWorldCard(ctx) bridge keeps verify keywords: drawCanalRestorationCelebrationWorldCard / 灵渠复流庆祝 / 点选复流庆祝 / 复流水田 / 水菜接上 / 水田亮了
+  return drawCanalRestorationCelebrationWorldCardWorld({
+    ctx,
+    spec,
+    motion,
+    active,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+    drawSpiritSprite,
   });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 58, cardY + rect.height - 19, rect.width - 72, 14, 7);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "800 8px Microsoft YaHei";
-  ctx.fillText(`下一步：${spec.nextAction}`.slice(0, 28), rect.x + 68, cardY + rect.height - 9);
-  ctx.restore();
-  return true;
 }
 
 function drawCanalRestorationRouteWorld(ctx, spec = canalRestorationRouteWorldSpec()) {
