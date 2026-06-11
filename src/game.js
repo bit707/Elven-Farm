@@ -27381,15 +27381,18 @@ function shopCustomerDecisionLedgerSpec({
 function shopCustomerReasonCardsSpec(
   opening = syncShopOpeningState(),
   report = state.shopReport,
-  ledger = opening.customerDecisionLedger || opening.lastSession?.customerDecisionLedger || null,
-  journey = shopCustomerJourneySpec(opening, report),
-  failureRecovery = opening.failureRecovery || opening.lastSession?.failureRecovery || null,
+  ledger = null,
+  journey = null,
+  failureRecovery = null,
 ) {
   return shopCustomerReasonCardsSpecWorld({
     opening,
-    safeLedger: normalizeShopCustomerDecisionLedger(ledger),
+    report,
+    safeLedger: ledger,
     journey,
     failureRecovery,
+    normalizeShopCustomerDecisionLedger,
+    shopCustomerJourneySpec,
   });
 }
 

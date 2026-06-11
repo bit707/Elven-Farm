@@ -999,22 +999,31 @@ export function shopCustomerJourneyMarkupWorld(spec = null) {
 
 export function shopCustomerReasonCardsSpecWorld({
   opening = null,
+  report = [],
   safeLedger = null,
   journey = null,
   failureRecovery = null,
+  normalizeShopCustomerDecisionLedger = (ledger) => ledger,
+  shopCustomerJourneySpec = () => null,
 } = {}) {
-  const rows = Array.isArray(journey?.rows) ? journey.rows : [];
-  const buyChain = (safeLedger?.chains || []).find((chain) => (
+  const safeOpening = opening || null;
+  const ledger = normalizeShopCustomerDecisionLedger(
+    safeLedger || safeOpening?.customerDecisionLedger || safeOpening?.lastSession?.customerDecisionLedger || null,
+  );
+  const activeJourney = journey || shopCustomerJourneySpec(safeOpening, Array.isArray(report) ? report : []);
+  const activeFailureRecovery = failureRecovery || safeOpening?.failureRecovery || safeOpening?.lastSession?.failureRecovery || null;
+  const rows = Array.isArray(activeJourney?.rows) ? activeJourney.rows : [];
+  const buyChain = (ledger?.chains || []).find((chain) => (
     chain.tone === "good"
     || String(chain.result || "").includes("成交")
   )) || rows.find((row) => row.bought) || null;
-  const hesitateChain = (safeLedger?.chains || []).find((chain) => (
+  const hesitateChain = (ledger?.chains || []).find((chain) => (
     chain.tone === "warn"
     || String(chain.result || "").includes("离店")
     || String(chain.result || "").includes("嫌贵")
   )) || rows.find((row) => row.warned) || null;
-  const blocker = safeLedger?.blockers?.[0] || null;
-  const hotTagLabel = safeLedger?.hotTagLabel || journey?.hotTagLabel || opening?.hotTagLabel || "今日客需";
+  const blocker = ledger?.blockers?.[0] || null;
+  const hotTagLabel = ledger?.hotTagLabel || activeJourney?.hotTagLabel || safeOpening?.hotTagLabel || "今日客需";
   const buyTitle = buyChain
     ? `${buyChain.name || "顾客"}为什么买`
     : "成交理由待验证";
@@ -1023,33 +1032,33 @@ export function shopCustomerReasonCardsSpecWorld({
     : `先围绕“${hotTagLabel}”摆一件标签明确的货，等第一位顾客把理由说出口。`;
   const buyDetail = buyChain?.need
     ? `进店需求：${buyChain.need}`
-    : safeLedger?.buyers > 0
-      ? `${safeLedger.buyers} 单成交已经写入账页。`
+    : ledger?.buyers > 0
+      ? `${ledger.buyers} 单成交已经写入账页。`
       : "开铺后这里会记录第一条购买理由。";
   const hesitateTitle = blocker?.label
     || (hesitateChain ? `${hesitateChain.name || "顾客"}为什么犹豫` : "暂无集中离店短板");
   const hesitateBody = blocker?.detail
     || hesitateChain?.reason
-    || failureRecovery?.learningLine
-    || (safeLedger?.leavers > 0 ? "顾客有犹豫，但原因还需要下一轮开铺继续确认。" : "当前没有明显劝退点，可以继续沿着成交标签补厚。");
+    || activeFailureRecovery?.learningLine
+    || (ledger?.leavers > 0 ? "顾客有犹豫，但原因还需要下一轮开铺继续确认。" : "当前没有明显劝退点，可以继续沿着成交标签补厚。");
   const hesitateDetail = blocker
-    ? `影响 ${blocker.count || 1} 位顾客 · ${failureRecovery?.learningLine || safeLedger?.mood || "账页已圈出短板"}`
-    : hesitateChain?.result || (safeLedger?.leavers > 0 ? `离店 ${safeLedger.leavers} 位` : "离店理由未集中。");
-  const fixAction = failureRecovery?.tomorrowAction
-    || failureRecovery?.action
-    || safeLedger?.nextAction
-    || journey?.nextAction
+    ? `影响 ${blocker.count || 1} 位顾客 · ${activeFailureRecovery?.learningLine || ledger?.mood || "账页已圈出短板"}`
+    : hesitateChain?.result || (ledger?.leavers > 0 ? `离店 ${ledger.leavers} 位` : "离店理由未集中。");
+  const fixAction = activeFailureRecovery?.tomorrowAction
+    || activeFailureRecovery?.action
+    || ledger?.nextAction
+    || activeJourney?.nextAction
     || "明天先修正一处最明显的货架、价签或库存短板。";
-  const fixDetail = failureRecovery?.gentleFix
-    || failureRecovery?.support
+  const fixDetail = activeFailureRecovery?.gentleFix
+    || activeFailureRecovery?.support
     || "只把下一步讲清楚，不会自动开铺、调价、补货或消耗资源。";
-  const active = Boolean(safeLedger || journey?.active || failureRecovery || rows.length);
+  const active = Boolean(ledger || activeJourney?.active || activeFailureRecovery || rows.length);
   return {
     active,
     title: "顾客买/不买三因牌",
     headline: "把成交理由、犹豫理由和明日改法压成一眼能读懂的三张牌。",
     hotTagLabel,
-    conversion: Number(safeLedger?.conversion ?? journey?.conversion ?? 0),
+    conversion: Number(ledger?.conversion ?? activeJourney?.conversion ?? 0),
     cards: [
       {
         key: "buy_reason",
@@ -1073,7 +1082,7 @@ export function shopCustomerReasonCardsSpecWorld({
         title: "先改一处最有效",
         body: fixAction,
         detail: fixDetail,
-        tone: failureRecovery || blocker ? "good" : "mid",
+        tone: activeFailureRecovery || blocker ? "good" : "mid",
       },
     ],
     safety: "只解释经营原因和建议路线，不会自动开铺、调价、补货或消耗资源。",
