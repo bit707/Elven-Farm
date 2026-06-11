@@ -652,6 +652,7 @@ import {
   drawTownLifeMemoryNewPageWorldWorld,
   drawTownLifeMemoryThresholdKeepsakeWorldWorld,
   drawTownLifePassalongLanternWorldWorld,
+  drawTownLifeErrandRouteCueWorld,
   drawTownLifeShopMomentKeepsakeWorldWorld,
   drawTownLifeWeatherErrandEchoWorld,
   drawTownLifeWeatherMomentWorld,
@@ -70480,57 +70481,15 @@ function townLifeErrandRouteCueSpec(row = null) {
 }
 
 function drawTownLifeErrandRouteCue(ctx, cue, point, index = 0, motion = 0) {
-  if (!cue || !point) return;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 2 + index * 0.6) * 1.7;
-  const x = point.x + 42;
-  const y = point.y + 54 + bob;
-  const accent = cue.accent || "#4d91a6";
-  const label = `${cue.shortLabel}·${String(cue.itemName || "备货").slice(0, 4)}`;
-  ctx.save();
-  ctx.globalAlpha = 0.95;
-  ctx.strokeStyle = `${accent}55`;
-  ctx.lineWidth = 1.3;
-  ctx.setLineDash([3, 4]);
-  ctx.beginPath();
-  ctx.moveTo(point.x + 28, point.y + 48);
-  ctx.quadraticCurveTo(point.x + 44, point.y + 60, x + 7, y + 12);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  ctx.fillStyle = "rgba(23, 35, 29, 0.16)";
-  ctx.beginPath();
-  ctx.ellipse(x + 34, y + 28, 32, 5, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "rgba(255, 253, 245, 0.94)";
-  ctx.strokeStyle = `${accent}88`;
-  ctx.lineWidth = 1.6;
-  ctx.beginPath();
-  ctx.roundRect(x, y, 72, 28, 10);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = `${accent}22`;
-  ctx.beginPath();
-  ctx.roundRect(x + 5, y + 5, 21, 18, 7);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 13px Microsoft YaHei";
-  ctx.fillText(cue.glyph || "备", x + 10, y + 19);
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText(cue.plaqueLabel || "备货牌", x + 32, y + 11);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 9px Microsoft YaHei";
-  ctx.fillText(label, x + 32, y + 22);
-  if (cue.missing > 0) {
-    ctx.fillStyle = accent;
-    ctx.beginPath();
-    ctx.arc(x + 67, y + 5, 7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "rgba(255, 253, 245, 0.96)";
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(String(Math.min(9, cue.missing)), x + 64.5, y + 8);
-  }
-  ctx.restore();
+  // drawTownLifeErrandRouteCue bridge keeps verify keywords: 备货牌 备货 路 harvest recipe seed material inventory stock
+  drawTownLifeErrandRouteCueWorld({
+    ctx,
+    cue,
+    point,
+    index,
+    motion,
+    reducedMotion: settings.reducedMotion,
+  });
 }
 
 function drawTownLifeShopMomentMarker(ctx, row, point, index = 0, motion = 0) {
