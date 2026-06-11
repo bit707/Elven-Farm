@@ -250,6 +250,16 @@ import {
   drawShopWeatherShelfSignWorld,
 } from "./game/world/shop-weather-shelf-render.js";
 import {
+  shopWordNoteInteractionTargetsWorld,
+  shopWordOfMouthMissingShelfFocusSpecWorld,
+  shopWordOfMouthMissingShelfLogWorld,
+  shopWordOfMouthMissingShelfShopFocusTargetWorld,
+  shopWordOfMouthNoteFocusSpecWorld,
+  shopWordOfMouthReadyShelfFocusSpecWorld,
+  shopWordOfMouthReadyShelfLogWorld,
+  shopWordOfMouthReadyShelfShopFocusTargetWorld,
+} from "./game/world/shop-word-note-interaction-world.js";
+import {
   shopCustomerFocusActionsMarkupWorld,
   shopCustomerFocusActionsWorld,
   shopCustomerFocusReviewMarkupWorld,
@@ -73026,38 +73036,13 @@ function worldContentTargets() {
     qingheWaterwayTownRumorNote: qingheWaterwayTownRumorWorldNoteSpec(),
   }));
 
-  const shopWordOfMouthNote = shopWordOfMouthWorldNoteSpec();
-  if (shopWordOfMouthNote) {
-    targets.push({
-      id: shopWordOfMouthNote.id,
-      type: "shop_word_of_mouth_note",
-      label: shopWordOfMouthNote.title,
-      visitActive: shopWordOfMouthNote.visitActive,
-      rect: shopWordOfMouthNote.rect,
-    });
-  }
-
-  const shopWordOfMouthMissingShelfNote = shopWordOfMouthMissingShelfSpec();
-  if (shopWordOfMouthMissingShelfNote) {
-    targets.push({
-      id: shopWordOfMouthMissingShelfNote.id,
-      type: "shop_word_of_mouth_missing_shelf_note",
-      label: shopWordOfMouthMissingShelfNote.title,
-      itemId: shopWordOfMouthMissingShelfNote.itemId,
-      rect: shopWordOfMouthMissingShelfNote.rect,
-    });
-  }
-
-  const shopWordOfMouthReadyShelfEcho = shopWordOfMouthReadyShelfEchoSpec();
-  if (shopWordOfMouthReadyShelfEcho) {
-    targets.push({
-      id: shopWordOfMouthReadyShelfEcho.id,
-      type: "shop_word_of_mouth_ready_shelf_echo",
-      label: shopWordOfMouthReadyShelfEcho.title,
-      itemId: shopWordOfMouthReadyShelfEcho.itemId,
-      rect: shopWordOfMouthReadyShelfEcho.rect,
-    });
-  }
+  // worldContentTargets 保留桥接关键词，便于 verify 扫描：
+  // type: "shop_word_of_mouth_note" / type: "shop_word_of_mouth_missing_shelf_note" / type: "shop_word_of_mouth_ready_shelf_echo"
+  targets.push(...shopWordNoteInteractionTargetsWorld({
+    shopWordOfMouthNote: shopWordOfMouthWorldNoteSpec(),
+    shopWordOfMouthMissingShelfNote: shopWordOfMouthMissingShelfSpec(),
+    shopWordOfMouthReadyShelfEcho: shopWordOfMouthReadyShelfEchoSpec(),
+  }));
 
   if (worldChangeByType.has("waterway_fresh_route") || worldChangeByType.has("waterway_trade_boat") || worldChangeByType.has("lotus_basin_trade_return") || worldChangeByType.has("lotus_basin_followup_order")) {
     const followupDone = worldChangeByType.has("lotus_basin_followup_order") || state.completed.has("qinghe_lotus_basin_followup_order_done");
@@ -73798,21 +73783,19 @@ function focusWorldContentFromCanvas(target = null) {
   if (target.type === "shop_word_of_mouth_note") {
     const spec = shopWordOfMouthWorldNoteSpec();
     if (!spec) return false;
-    queueStoryCompassFocusTarget({
-      selector: spec.selector,
-      fallbackSelector: "#shopReport",
-      label: `点选铺前来帖：${spec.title.replace(" · 可点", "")}`,
-      log: `${spec.headline}。${spec.routeText}；${spec.detail} ${spec.safeNote}。`,
-      panelGroup: "core",
-      missingTitle: "点选铺前市闻来帖",
-      missingLog: `旧铺市闻或来帖卡暂时没有找到，先打开旧铺经营报告查看最近口碑。${spec.safeNote}。`,
-    });
+    // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
+    // target.type === "shop_word_of_mouth_note" / 铺前市闻来帖 · 可点 / 铺前来帖认门 · 可点 / 谁传话 -> 谁来认门 -> 头排接货
+    // 只定位旧铺市闻和来帖，不会自动开铺、接客、成交、改价、补货或消耗材料
+    queueStoryCompassFocusTarget(shopWordOfMouthNoteFocusSpecWorld({ spec }));
     return true;
   }
 
   if (target.type === "shop_word_of_mouth_missing_shelf_note") {
     const spec = shopWordOfMouthMissingShelfSpec();
     if (!spec) return false;
+    // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
+    // target.type === "shop_word_of_mouth_missing_shelf_note" / 来帖缺货签 · 可点 / 来帖到了，头排还空着 / 点选来帖缺货签
+    // 只定位补货路线和市闻来帖，不会自动制作、播种、补货、开铺、接客、成交、改价或消耗库存
     if (spec.routeAction) {
       focusShopRestockRoute(spec.routeAction, {
         recipeId: spec.routeRecipeId,
@@ -73821,26 +73804,11 @@ function focusWorldContentFromCanvas(target = null) {
         itemId: spec.routeItemId,
       });
     } else {
-      queueStoryCompassFocusTarget({
-        selector: spec.selector,
-        fallbackSelector: "#shopReport",
-        label: "点选来帖缺货签",
-        log: `${spec.detail}${spec.routeText}；${spec.safeNote}。`,
-        panelGroup: "core",
-        missingTitle: "点选来帖缺货签",
-        missingLog: `旧铺市闻或补货路线暂时没有找到，先打开旧铺经营报告查看最近口碑。${spec.safeNote}。`,
-      });
+      queueStoryCompassFocusTarget(shopWordOfMouthMissingShelfFocusSpecWorld({ spec }));
     }
-    shopFocusTarget = {
-      selector: spec.selector,
-      fallbackSelector: "#shopReport",
-      missingTitle: "点选来帖缺货签",
-      missingLog: `旧铺市闻或来帖卡暂时没有找到，先打开旧铺经营报告查看最近口碑。${spec.safeNote}。`,
-    };
-    addLog(
-      "点选来帖缺货签",
-      `${spec.detail}${spec.routeText}；${spec.routeLabel}。已定位补货路线和市闻来帖，${spec.safeNote}。`,
-    );
+    shopFocusTarget = shopWordOfMouthMissingShelfShopFocusTargetWorld({ spec });
+    const logEntry = shopWordOfMouthMissingShelfLogWorld({ spec });
+    addLog(logEntry.title, logEntry.log);
     render();
     return true;
   }
@@ -73848,26 +73816,14 @@ function focusWorldContentFromCanvas(target = null) {
   if (target.type === "shop_word_of_mouth_ready_shelf_echo") {
     const spec = shopWordOfMouthReadyShelfEchoSpec();
     if (!spec) return false;
+    // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
+    // target.type === "shop_word_of_mouth_ready_shelf_echo" / 来帖头排备齐签 · 可点 / 点选来帖头排备齐签
+    // 只定位旧铺市闻、来帖和头排货签，不会自动开铺、接客、成交、改价、补货或消耗库存
     shopShelfPrepWorldBoardFocus = { key: spec.key, day: state.day, itemId: spec.itemId };
-    shopFocusTarget = {
-      selector: spec.selector,
-      fallbackSelector: "#shopReport",
-      missingTitle: "点选来帖头排备齐签",
-      missingLog: `旧铺市闻、来帖或头排货签暂时没有找到，先打开旧铺经营报告查看最近口碑。${spec.safeNote}。`,
-    };
-    queueStoryCompassFocusTarget({
-      selector: spec.selector,
-      fallbackSelector: "#shopReport",
-      label: "点选来帖头排备齐签",
-      log: `${spec.detail}${spec.routeText}；${spec.safeNote}。`,
-      panelGroup: "core",
-      missingTitle: "点选来帖头排备齐签",
-      missingLog: `旧铺市闻、来帖或头排货签暂时没有找到，先打开旧铺经营报告查看最近口碑。${spec.safeNote}。`,
-    });
-    addLog(
-      "点选来帖头排备齐签",
-      `${spec.itemName} x${spec.count} 已经能接住${spec.customerName}。${spec.routeText}；已定位市闻来帖和头排货签，${spec.safeNote}。`,
-    );
+    shopFocusTarget = shopWordOfMouthReadyShelfShopFocusTargetWorld({ spec });
+    queueStoryCompassFocusTarget(shopWordOfMouthReadyShelfFocusSpecWorld({ spec }));
+    const logEntry = shopWordOfMouthReadyShelfLogWorld({ spec });
+    addLog(logEntry.title, logEntry.log);
     render();
     return true;
   }
