@@ -51469,6 +51469,10 @@ function recordSeedRestockFeedback(seedId, count = 0, total = 0) {
 }
 
 function seedRestockBagWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, originX = null, originY = null, tile = null, gap = null) {
+  return seedRestockBagWorldSpecBridge(width, height, originX, originY, tile, gap);
+}
+
+function seedRestockBagWorldSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640, originX = null, originY = null, tile = null, gap = null) {
   const spec = state.seedRestockFeedback;
   if (!spec?.seedId || spec.day !== state.day) return null;
   const metrics = originX == null || originY == null || tile == null || gap == null ? gridMetrics() : { originX, originY, tile, gap };
@@ -51489,11 +51493,11 @@ function seedRestockBagWorldAtCanvasPoint(px, py) {
   return seedRestockBagWorldAtCanvasPointWorld({
     px,
     py,
-    spec: seedRestockBagWorldSpec(refs.world?.width || 960, refs.world?.height || 640),
+    spec: seedRestockBagWorldSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
   });
 }
 
-function focusSeedRestockBagWorldFromCanvas(spec = seedRestockBagWorldSpec()) {
+function focusSeedRestockBagWorldFromCanvas(spec = seedRestockBagWorldSpecBridge()) {
   if (!spec?.seedId) return false;
   seedRestockBagWorldFocus = { key: spec.key, day: state.day, seedId: spec.seedId };
   const plot = spec.plot
@@ -51516,7 +51520,7 @@ function focusSeedRestockBagWorldFromCanvas(spec = seedRestockBagWorldSpec()) {
   return true;
 }
 
-function drawSeedRestockBagWorld(ctx, spec = seedRestockBagWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
+function drawSeedRestockBagWorld(ctx, spec = seedRestockBagWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
   return drawSeedRestockBagWorldWorld({
     ctx,
     spec,
@@ -82653,7 +82657,7 @@ function drawWorld() {
   drawOrderDeliveryEchoWorld(ctx, orderDeliveryEchoWorldSpecBridge(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawOrderRewardNextUseWorld(ctx, orderRewardNextUseWorldSpecBridge(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawOrderRewardReinvestTrailWorld(ctx, orderRewardReinvestTrailWorldSpecBridge(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
-  drawSeedRestockBagWorld(ctx, seedRestockBagWorldSpec(width, height, originX, originY, tile, gap), settings.reducedMotion ? 0 : performance.now() / 1000);
+  drawSeedRestockBagWorld(ctx, seedRestockBagWorldSpecBridge(width, height, originX, originY, tile, gap), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawOrderCraftPrepWorldBoard(ctx, orderCraftPrepWorldBoardSpec(width, height));
   drawOrderSeedPrepWorldBoard(ctx, orderSeedPrepWorldBoardSpec(width, height));
   drawOrderSeedRestockWorldBoard(ctx, orderSeedRestockWorldBoardSpec(width, height));
