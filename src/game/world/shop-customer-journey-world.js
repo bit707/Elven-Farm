@@ -1182,6 +1182,319 @@ export function drawShopCustomerJourneyTraceWorld({
   return true;
 }
 
+export function shopDoorstepCustomerVignetteSpecWorld({
+  opening = null,
+  journey = null,
+  doorstep = null,
+  report = [],
+  day = 1,
+  shopWeatherCustomerReactionSpec = () => null,
+  shopSeasonalDoorstepSceneSpec = () => null,
+  shopWaterwayCustomerBrowseSpec = () => null,
+  customerDisplayName = (archetype) => archetype || "",
+} = {}) {
+  const safeJourney = journey || { active: false, rows: [] };
+  const safeDoorstep = doorstep || null;
+  const safeReport = Array.isArray(report) ? report : [];
+  const weatherReaction = shopWeatherCustomerReactionSpec({
+    opening,
+    seasonalDoorstep: shopSeasonalDoorstepSceneSpec({ opening, doorstepScene: safeDoorstep }),
+  });
+  const waterwayBrowse = shopWaterwayCustomerBrowseSpec(opening);
+  const rows = [];
+  const addRow = (row = {}) => {
+    if (!row.name && !row.customerLabel) return;
+    rows.push({
+      name: row.name || row.customerLabel || "来客",
+      label: row.label || "门口驻足",
+      bubble: row.bubble || row.resultText || row.arrivalText || row.needText || row.result || row.need || "先在门口看看",
+      detail: row.detail || row.advice || row.reason || "点开经营报告复盘这条脚步。",
+      tone: row.tone || "mid",
+      bought: Boolean(row.bought),
+      warned: Boolean(row.warned),
+      introduced: Boolean(row.introduced),
+      returning: Boolean(row.returning),
+      customerArchetype: row.customerArchetype || "",
+      weatherReaction: Boolean(row.weatherReaction),
+      accent: row.accent || "",
+    });
+  };
+
+  if (weatherReaction?.active) {
+    addRow({
+      name: weatherReaction.customerLabel,
+      label: weatherReaction.label,
+      bubble: weatherReaction.bubble,
+      detail: weatherReaction.detail,
+      tone: weatherReaction.tone,
+      warned: weatherReaction.tone === "warn",
+      weatherReaction: true,
+      accent: weatherReaction.accent,
+    });
+  }
+
+  if (safeDoorstep?.active) {
+    for (const row of safeDoorstep.rows || []) {
+      addRow({
+        ...row,
+        name: row.customerLabel,
+        label: row.sceneType === "introduced"
+          ? "熟客带新客"
+          : row.bought
+            ? "回门成交"
+            : "熟脸回门",
+        bubble: row.resultText || row.arrivalText || row.needText || row.headline,
+        tone: row.bought ? "good" : "mid",
+        bought: row.bought,
+        introduced: row.sceneType === "introduced",
+        returning: row.sceneType !== "introduced",
+      });
+    }
+  }
+
+  if (waterwayBrowse?.active) {
+    addRow({
+      name: waterwayBrowse.customerLabel,
+      label: waterwayBrowse.actionLabel,
+      bubble: waterwayBrowse.bubble,
+      detail: waterwayBrowse.detail,
+      tone: waterwayBrowse.tone,
+      bought: waterwayBrowse.bought,
+      warned: waterwayBrowse.warned,
+      customerArchetype: "waterway_broker",
+      accent: waterwayBrowse.accent,
+    });
+  }
+
+  for (const row of safeJourney.rows || []) {
+    if (rows.length >= 4) break;
+    addRow({
+      ...row,
+      label: row.bought ? "递货收钱" : row.warned ? "试价犹豫" : "门口驻足",
+      bubble: row.bought ? row.result : row.warned ? row.reason : row.need,
+      tone: row.bought ? "good" : row.warned ? "warn" : "mid",
+    });
+  }
+
+  const needBubbles = Array.isArray(opening?.needBubbles) && opening.needBubbles.length
+    ? opening.needBubbles
+    : Array.isArray(opening?.lastSession?.needBubbles)
+      ? opening.lastSession.needBubbles
+      : [];
+  for (const bubble of needBubbles) {
+    if (rows.length >= 4) break;
+    addRow({
+      name: bubble.name || customerDisplayName(bubble.customerArchetype || "") || "来客",
+      label: bubble.returningCustomer ? "回门想买" : bubble.introducedCustomer ? "新客认门" : "想法气泡",
+      bubble: bubble.text,
+      detail: bubble.detail,
+      tone: bubble.returningCustomer || bubble.introducedCustomer ? "mid" : "idle",
+      customerArchetype: bubble.customerArchetype || "",
+    });
+  }
+
+  for (const shopReportEntry of safeReport.entries()) {
+    if (rows.length >= 4) break;
+    const [, reportEntry] = shopReportEntry;
+    addRow({
+      name: reportEntry.name || "来客",
+      label: reportEntry.text?.includes("成交") || reportEntry.reason === "purchase" ? "成交回声" : reportEntry.text?.includes("离店") ? "离店回头" : "顾客短评",
+      bubble: reportEntry.text || "把反馈写进了账页",
+      detail: reportEntry.detail || "",
+      tone: reportEntry.text?.includes("离店") ? "warn" : reportEntry.text?.includes("成交") ? "good" : "mid",
+      bought: reportEntry.text?.includes("成交"),
+      warned: reportEntry.text?.includes("离店"),
+      customerArchetype: reportEntry.customerArchetype || "",
+    });
+  }
+
+  const deduped = [];
+  const seen = new Set();
+  for (const row of rows) {
+    const key = `${row.name}:${row.label}:${String(row.bubble || "").slice(0, 12)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(row);
+    if (deduped.length >= 4) break;
+  }
+
+  const buyers = deduped.filter((row) => row.bought || row.tone === "good").length;
+  const warnCount = deduped.filter((row) => row.warned || row.tone === "warn").length;
+  const returningCount = deduped.filter((row) => row.returning).length;
+  const introducedCount = deduped.filter((row) => row.introduced).length;
+  const active = deduped.length > 0 && (
+    safeJourney?.active
+    || safeDoorstep?.active
+    || safeReport.length > 0
+    || needBubbles.length > 0
+    || weatherReaction?.active
+    || waterwayBrowse?.active
+  );
+  const leadRow = deduped.find((row) => row.bought || row.tone === "good")
+    || deduped.find((row) => row.warned || row.tone === "warn")
+    || deduped[0]
+    || null;
+  const titleBase = introducedCount > 0
+    ? "旧铺门口顾客小景 · 熟客带新客"
+    : waterwayBrowse?.active
+      ? "旧铺门口顾客小景 · 水航客挑货"
+      : buyers > 0
+        ? "旧铺门口顾客小景 · 递货收钱"
+        : warnCount > 0
+          ? "旧铺门口顾客小景 · 试价犹豫"
+          : "旧铺门口顾客小景 · 门口有人驻足";
+  const reviewLine = leadRow
+    ? `门口小景回看：${leadRow.name}「${leadRow.bubble}」；结果 ${leadRow.label}；建议 ${leadRow.detail || "回到顾客旅线复盘下一步。"}`
+    : "门口小景回看：等待下一次开铺形成清楚旅线。";
+  return {
+    active,
+    key: `${day}:${buyers}:${warnCount}:${deduped.map((row) => `${row.name}:${row.label}:${String(row.bubble || "").slice(0, 12)}`).join("|")}`,
+    rows: deduped,
+    leadRow,
+    reviewLine,
+    weatherReaction,
+    buyers,
+    warnCount,
+    returningCount,
+    introducedCount,
+    waterwayBrowseActive: Boolean(waterwayBrowse?.active),
+    title: `${titleBase} · 可点回看`,
+    summary: buyers > 0
+      ? `成交 ${buyers} 条脚步，热卖线已经在门口显形。`
+      : warnCount > 0
+        ? "有人试价又回头，价格、主题或缺货需要复盘。"
+        : waterwayBrowse?.active
+          ? "水航客已经停在水鲜货架前，熟路口碑正在接受货架检验。"
+          : returningCount > 0
+            ? "熟脸回门，小铺正在长出第二天的生活感。"
+            : "门口有人驻足，下一次开铺会留下更清楚的旅线。",
+  };
+}
+
+function shopDoorstepCustomerColorWorld(row = {}, index = 0) {
+  const colors = {
+    villager: "#8f5f3f",
+    child: "#d87f8d",
+    rogue_cultivator: "#5d8b52",
+    healer: "#4d91a6",
+    crafter: "#b47d2f",
+    trader: "#e0b66d",
+    guest: "#8c7ab8",
+    faction: "#286f58",
+    pilgrim: "#7ba66c",
+    collector: "#be4f37",
+    waterway_broker: "#4d91a6",
+  };
+  if (row.weatherReaction && row.accent) return row.accent;
+  if (row.customerArchetype && colors[row.customerArchetype]) return colors[row.customerArchetype];
+  if (row.tone === "good") return "#286f58";
+  if (row.tone === "warn") return "#be4f37";
+  return ["#8f5f3f", "#b47d2f", "#4d91a6", "#d87f8d"][index % 4];
+}
+
+export function drawShopDoorstepCustomerVignetteWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  focused = false,
+  reducedMotion = false,
+  drawShopCrowdPerson = () => {},
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.active || !spec.rows?.length) return false;
+  const basePath = [
+    { x: 72, y: 306 },
+    { x: 126, y: 288 },
+    { x: 184, y: 286 },
+    { x: 246, y: 304 },
+  ];
+
+  ctx.save();
+  ctx.strokeStyle = spec.buyers > 0 ? "rgba(40, 111, 88, 0.42)" : spec.warnCount > 0 ? "rgba(190, 79, 55, 0.38)" : "rgba(180, 125, 47, 0.36)";
+  ctx.lineWidth = focused ? 4 : 3;
+  ctx.setLineDash([7, 9]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 12;
+  ctx.beginPath();
+  basePath.forEach((point, index) => {
+    if (index === 0) ctx.moveTo(point.x, point.y);
+    else ctx.quadraticCurveTo((basePath[index - 1].x + point.x) / 2, Math.min(basePath[index - 1].y, point.y) - 18, point.x, point.y);
+  });
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  spec.rows.forEach((row, index) => {
+    const point = basePath[index] || basePath[basePath.length - 1];
+    const bob = reducedMotion ? 0 : Math.sin(motion * 2.4 + index) * 2;
+    const personY = point.y - 42 + bob;
+    const accent = shopDoorstepCustomerColorWorld(row, index);
+    drawShopCrowdPerson(ctx, point.x - 14, personY, {
+      buyer: row.bought || row.tone === "good",
+      leaver: row.warned || row.tone === "warn",
+      looker: !(row.bought || row.tone === "good" || row.warned || row.tone === "warn"),
+      index,
+      color: accent,
+      accent,
+      alpha: row.tone === "warn" ? 0.86 : 0.94,
+    }, motion);
+
+    const bubbleWidth = index === 0 ? 142 : 118;
+    const bubbleX = Math.max(18, Math.min(ctx.canvas.width - bubbleWidth - 18, point.x - 34 + index * 4));
+    const bubbleY = Math.max(116, point.y - 92 - (index % 2) * 12 + bob);
+    ctx.fillStyle = row.tone === "good"
+      ? "rgba(237, 243, 223, 0.92)"
+      : row.tone === "warn"
+        ? "rgba(255, 240, 232, 0.93)"
+        : "rgba(255, 248, 232, 0.9)";
+    ctx.strokeStyle = `${accent}66`;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.roundRect(bubbleX, bubbleY, bubbleWidth, 48, 14);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = accent;
+    ctx.font = "700 11px Microsoft YaHei";
+    ctx.fillText((row.weatherReaction ? `天色 · ${row.label}` : row.label).slice(0, 9), bubbleX + 10, bubbleY + 17);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "700 11px Microsoft YaHei";
+    ctx.fillText(row.name.slice(0, 7), bubbleX + 10, bubbleY + 32);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "9px Microsoft YaHei";
+    ctx.fillText(String(row.bubble || "门口驻足").slice(0, 14), bubbleX + 10, bubbleY + 43);
+
+    ctx.strokeStyle = `${accent}55`;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(bubbleX + 18, bubbleY + 48);
+    ctx.lineTo(point.x + 2, point.y - 26 + bob);
+    ctx.stroke();
+  });
+
+  drawCanvasCard(ctx, 54, 362, 274, 48, "rgba(255, 253, 245, 0.88)");
+  if (focused) {
+    ctx.strokeStyle = spec.warnCount > 0 ? "rgba(190, 79, 55, 0.82)" : spec.buyers > 0 ? "rgba(40, 111, 88, 0.82)" : "rgba(180, 125, 47, 0.82)";
+    ctx.lineWidth = 2.6;
+    ctx.setLineDash([5, 6]);
+    ctx.lineDashOffset = reducedMotion ? 0 : -motion * 14;
+    ctx.beginPath();
+    ctx.roundRect(48, 356, 286, 60, 18);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.fillStyle = spec.warnCount > 0 ? "#be4f37" : spec.buyers > 0 ? "#286f58" : "#b47d2f";
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText(spec.title.slice(0, 20), 70, 383);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(spec.summary.slice(0, 30), 70, 401);
+  if (focused && spec.leadRow) {
+    ctx.fillStyle = "#8f5f3f";
+    ctx.font = "800 9px Microsoft YaHei";
+    ctx.fillText(`回看：${spec.leadRow.name} · ${spec.leadRow.label}`.slice(0, 28), 70, 414);
+  }
+  ctx.restore();
+  return true;
+}
+
 export function shopCustomerReasonCardsSpecWorld({
   opening = null,
   report = [],
