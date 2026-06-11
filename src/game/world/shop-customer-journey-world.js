@@ -1087,6 +1087,101 @@ export function drawShopCustomerJourneyBoardWorld({
   return true;
 }
 
+export function drawShopCustomerJourneyTraceWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  reducedMotion = false,
+  pointOnPolyline = () => ({ x: 0, y: 0 }),
+  stages = SHOP_CUSTOMER_JOURNEY_STAGES_WORLD,
+} = {}) {
+  if (!ctx || !spec?.active || !spec.rows?.length) return false;
+  const row = spec.mainRow || spec.rows[0];
+  const toneColor = row.tone === "good" ? "#286f58" : row.tone === "warn" ? "#be4f37" : "#b47d2f";
+  const path = [
+    { x: 64, y: 304 },
+    { x: 112, y: 280 },
+    { x: 168, y: 268 },
+    { x: 224, y: 288 },
+    { x: 292, y: 248 },
+  ];
+  ctx.save();
+  ctx.strokeStyle = `${toneColor}66`;
+  ctx.lineWidth = 4;
+  ctx.setLineDash([8, 10]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 18;
+  ctx.beginPath();
+  path.forEach((point, index) => {
+    if (index === 0) ctx.moveTo(point.x, point.y);
+    else ctx.quadraticCurveTo((path[index - 1].x + point.x) / 2, Math.min(path[index - 1].y, point.y) - 16, point.x, point.y);
+  });
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  const activeIndex = reducedMotion ? Math.min(3, path.length - 1) : Math.floor((motion * 1.2) % path.length);
+  path.forEach((point, index) => {
+    const stage = row.path[index] || stages[index] || { label: "旅线", text: "" };
+    const active = index === activeIndex;
+    const done = index < activeIndex || row.bought;
+    const warned = stage.state === "warn";
+    const y = point.y + (active && !reducedMotion ? Math.sin(motion * 5) * 2 : 0);
+    ctx.fillStyle = warned
+      ? "rgba(190, 79, 55, 0.9)"
+      : active
+        ? "rgba(224, 182, 109, 0.94)"
+        : done
+          ? "rgba(40, 111, 88, 0.82)"
+          : "rgba(255, 253, 245, 0.86)";
+    ctx.strokeStyle = active ? "rgba(255, 253, 245, 0.78)" : `${toneColor}55`;
+    ctx.lineWidth = active ? 3 : 1.5;
+    ctx.beginPath();
+    ctx.roundRect(point.x - 22, y - 18, 44, 28, 10);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = warned || active || done ? "#fffdf5" : "#8f5f3f";
+    ctx.font = "700 10px Microsoft YaHei";
+    ctx.fillText(stage.label.slice(0, 3), point.x - 13, y);
+  });
+
+  const runner = pointOnPolyline(path, reducedMotion ? 0.72 : (motion * 0.16) % 1);
+  const bob = reducedMotion ? 0 : Math.sin(motion * 4.4) * 3;
+  ctx.fillStyle = row.tone === "good" ? "rgba(40, 111, 88, 0.82)" : row.tone === "warn" ? "rgba(190, 79, 55, 0.78)" : "rgba(180, 125, 47, 0.78)";
+  ctx.beginPath();
+  ctx.roundRect(runner.x - 12, runner.y - 10 + bob, 24, 28, 9);
+  ctx.fill();
+  ctx.fillStyle = "#fff0d4";
+  ctx.beginPath();
+  ctx.arc(runner.x, runner.y - 18 + bob, 9, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+  ctx.beginPath();
+  ctx.roundRect(44, 328, 212, 54, 16);
+  ctx.fill();
+  ctx.strokeStyle = `${toneColor}44`;
+  ctx.stroke();
+  ctx.fillStyle = toneColor;
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText(`${spec.title} · ${row.name}`.slice(0, 18), 58, 350);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText((row.bought ? row.result : row.reason).slice(0, 24), 58, 368);
+
+  ctx.fillStyle = "rgba(255, 248, 232, 0.92)";
+  ctx.beginPath();
+  ctx.roundRect(262, 318, 144, 44, 14);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(180, 125, 47, 0.22)";
+  ctx.stroke();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "700 11px Microsoft YaHei";
+  ctx.fillText("复购建议", 276, 338);
+  ctx.fillStyle = "#286f58";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText(spec.nextAction.slice(0, 18), 276, 354);
+  ctx.restore();
+  return true;
+}
+
 export function shopCustomerReasonCardsSpecWorld({
   opening = null,
   report = [],
