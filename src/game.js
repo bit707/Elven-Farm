@@ -32218,17 +32218,16 @@ function shopCustomerLessonVerificationEchoWorldSpec(
   width = refs.world?.width || 960,
   height = refs.world?.height || 640,
 ) {
-  const morning = shopCustomerLessonMorningFollowupSpec(summary);
-  const safeOpening = normalizeShopOpeningState(opening);
-  const journey = shopCustomerJourneySpec(safeOpening, state.shopReport);
   return shopCustomerLessonVerificationEchoWorldSpecWorld({
     summary,
-    morning,
-    opening: safeOpening,
-    journey,
+    opening,
+    report: state.shopReport,
     day: state.day,
     width,
     height,
+    normalizeShopOpeningState,
+    shopCustomerLessonMorningFollowupSpec,
+    shopCustomerJourneySpec,
   });
 }
 

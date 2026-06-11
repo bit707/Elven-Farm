@@ -1726,19 +1726,27 @@ export function shopCustomerLessonVerificationEchoWorldSpecWorld({
   morning = null,
   opening = null,
   journey = null,
+  report = [],
   day = 1,
   width = 960,
   height = 640,
   safety = shopCustomerLessonVerificationEchoSafetyTextWorld(),
+  normalizeShopOpeningState = (value) => value || {},
+  shopCustomerLessonMorningFollowupSpec = () => null,
+  shopCustomerJourneySpec = () => null,
 } = {}) {
-  if (!morning) return null;
-  const session = opening?.lastSession?.day === day ? opening.lastSession : null;
-  const ledger = opening?.customerDecisionLedger || session?.customerDecisionLedger || null;
-  if ((!session && !opening?.opened) || !journey?.active) return null;
-  const todayBuyers = Number(ledger?.buyers ?? journey.buyers ?? session?.buyers ?? 0);
-  const todayVisitors = Math.max(Number(ledger?.visitors ?? journey.visitors ?? session?.visitors ?? 0), todayBuyers + Number(ledger?.leavers ?? journey.leavers ?? 0), 1);
-  const todayLeavers = Number(ledger?.leavers ?? journey.leavers ?? 0);
-  const todayConversion = Number(ledger?.conversion ?? journey.conversion ?? Math.round((todayBuyers / todayVisitors) * 100));
+  const activeMorning = morning || shopCustomerLessonMorningFollowupSpec(summary);
+  if (!activeMorning) return null;
+  const safeOpening = normalizeShopOpeningState(opening);
+  const safeReport = Array.isArray(report) ? report : [];
+  const activeJourney = journey || shopCustomerJourneySpec(safeOpening, safeReport);
+  const session = safeOpening?.lastSession?.day === day ? safeOpening.lastSession : null;
+  const ledger = safeOpening?.customerDecisionLedger || session?.customerDecisionLedger || null;
+  if ((!session && !safeOpening?.opened) || !activeJourney?.active) return null;
+  const todayBuyers = Number(ledger?.buyers ?? activeJourney.buyers ?? session?.buyers ?? 0);
+  const todayVisitors = Math.max(Number(ledger?.visitors ?? activeJourney.visitors ?? session?.visitors ?? 0), todayBuyers + Number(ledger?.leavers ?? activeJourney.leavers ?? 0), 1);
+  const todayLeavers = Number(ledger?.leavers ?? activeJourney.leavers ?? 0);
+  const todayConversion = Number(ledger?.conversion ?? activeJourney.conversion ?? Math.round((todayBuyers / todayVisitors) * 100));
   const yesterdayConversion = Number(summary?.conversion || 0);
   const delta = todayConversion - yesterdayConversion;
   const improved = delta > 0 || todayBuyers > Number(summary?.buyers || 0);
@@ -1749,21 +1757,21 @@ export function shopCustomerLessonVerificationEchoWorldSpecWorld({
     : held
       ? "今日改法稳住了旧铺脚步"
       : "今日验证还没完全接住";
-  const mainRow = journey.rows?.find((row) => row.bought) || journey.rows?.[0] || null;
+  const mainRow = activeJourney.rows?.find((row) => row.bought) || activeJourney.rows?.[0] || null;
   const resultLine = mainRow?.result || ledger?.summaryLines?.[1] || (todayBuyers > 0 ? "至少一位顾客完成买单。" : "顾客仍在犹豫，短板需要继续调整。");
-  const nextAction = ledger?.nextAction || journey.nextAction || summary?.nextAction || "继续沿着旧铺三因复盘修正一处最明显短板。";
+  const nextAction = ledger?.nextAction || activeJourney.nextAction || summary?.nextAction || "继续沿着旧铺三因复盘修正一处最明显短板。";
   const rectWidth = 304;
   const rectHeight = 122;
   const x = Math.max(250, Math.min(width - rectWidth - 34, 582));
   const y = Math.max(354, Math.min(height - rectHeight - 30, 386));
   return {
-    key: `${day}:${morning.actionType}:${todayBuyers}:${todayLeavers}:${todayConversion}:${delta}:${nextAction}`,
+    key: `${day}:${activeMorning.actionType}:${todayBuyers}:${todayLeavers}:${todayConversion}:${delta}:${nextAction}`,
     day,
     title: "旧铺改法验证回响 · 可点",
     headline,
     tone,
-    hotTagLabel: morning.hotTagLabel,
-    yesterdayAction: morning.nextAction,
+    hotTagLabel: activeMorning.hotTagLabel,
+    yesterdayAction: activeMorning.nextAction,
     todayResult: resultLine,
     nextAction,
     buyers: todayBuyers,
@@ -1782,8 +1790,8 @@ export function shopCustomerLessonVerificationEchoWorldSpecWorld({
         key: "fix",
         badge: "改",
         title: "昨夜改法",
-        text: morning.actionLabel,
-        accent: morning.actionAccent,
+        text: activeMorning.actionLabel,
+        accent: activeMorning.actionAccent,
       },
       {
         key: "open",
