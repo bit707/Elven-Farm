@@ -548,6 +548,7 @@ import {
   drawCohabCourtyardWorld,
   drawCohabLifeNoteWorld,
   drawLivingWorldSummaryWorld,
+  drawTownLifeMemoryKeepsakeWorldWorld,
   drawTownLifeRelationshipWorldBoardWorld,
   drawTownLifeRouteWorldBoardWorld,
   drawTownLifeErrandRouteWorldFocusWorld,
@@ -76573,95 +76574,20 @@ function drawTownLifeRelationshipWorldBoard(ctx, spec = townLifeRelationshipWorl
 }
 
 function drawTownLifeMemoryKeepsakeWorld(ctx, spec = townLifeMemoryKeepsakeSpec(), motion = 0) {
+  // drawTownLifeMemoryKeepsakeWorld(ctx) bridge keeps verify keywords: 镇民关系心签 / 最近记忆 / 下一段记忆 / 只翻看/定位关系册
   if (!spec?.rect || !spec.nodes?.length) return false;
-  const { rect, palette } = spec;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.55) * 1.8;
-  const activeNodeKey = townLifeMemoryKeepsakeWorldFocus?.day === state.day
-    && townLifeMemoryKeepsakeWorldFocus?.key === spec.key
-    ? townLifeMemoryKeepsakeWorldFocus.nodeKey
-    : "";
-  ctx.save();
-  if (spec.point) {
-    ctx.strokeStyle = `${palette.accent}44`;
-    ctx.lineWidth = activeNodeKey ? 2.4 : 1.4;
-    ctx.setLineDash([3, 7]);
-    ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 7;
-    ctx.beginPath();
-    ctx.moveTo(rect.x + 36, rect.y + rect.height - 8 + bob);
-    ctx.quadraticCurveTo((rect.x + spec.point.x) / 2, rect.y + rect.height + 18, spec.point.x + 16, spec.point.y + 30);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  drawCanvasCard(ctx, rect.x, rect.y + bob, rect.width, rect.height, palette.soft);
-  ctx.fillStyle = palette.glow;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 12, rect.y + 12 + bob, rect.width - 24, 44, 18);
-  ctx.fill();
-  ctx.fillStyle = palette.accent;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 18, rect.y + 18 + bob, 34, 28, 12);
-  ctx.fill();
-  ctx.fillStyle = "rgba(255, 253, 245, 0.96)";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(palette.badge || "心", rect.x + 28, rect.y + 38 + bob);
-  const portrait = npcPortraitImage(spec.npcId);
-  if (portrait) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.roundRect(rect.x + rect.width - 52, rect.y + 17 + bob, 30, 30, 10);
-    ctx.clip();
-    ctx.drawImage(portrait, rect.x + rect.width - 52, rect.y + 17 + bob, 30, 30);
-    ctx.restore();
-  }
-  ctx.fillStyle = palette.ink;
-  ctx.font = "800 14px Microsoft YaHei";
-  ctx.fillText("镇民关系心签", rect.x + 62, rect.y + 31 + bob);
-  ctx.fillStyle = palette.accent;
-  ctx.font = "700 11px Microsoft YaHei";
-  ctx.fillText(`${spec.npcName} · Lv.${spec.favorLv} · 来往 ${spec.counts.total} 次`, rect.x + 62, rect.y + 47 + bob);
-
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 15px Microsoft YaHei";
-  ctx.fillText(`最近记忆 · ${spec.shortLatest}`, rect.x + 18, rect.y + 76 + bob);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(spec.shortSummary, rect.x + 18, rect.y + 91 + bob);
-
-  for (const node of spec.nodes) {
-    const nodeRect = node.rect;
-    const active = activeNodeKey === node.key;
-    ctx.fillStyle = active ? "rgba(255, 253, 245, 0.92)" : "rgba(255, 253, 245, 0.62)";
-    ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.84)" : `${palette.accent}33`;
-    ctx.lineWidth = active ? 1.8 : 1;
-    ctx.beginPath();
-    ctx.roundRect(nodeRect.x, nodeRect.y + bob, nodeRect.width, nodeRect.height, 11);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = `${palette.accent}22`;
-    ctx.beginPath();
-    ctx.roundRect(nodeRect.x + 6, nodeRect.y + 7 + bob, 20, 18, 8);
-    ctx.fill();
-    ctx.fillStyle = palette.accent;
-    ctx.font = "900 10px Microsoft YaHei";
-    ctx.fillText(node.badge, nodeRect.x + 11, nodeRect.y + 20 + bob);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 10px Microsoft YaHei";
-    ctx.fillText(node.shortLabel, nodeRect.x + 31, nodeRect.y + 15 + bob);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "9px Microsoft YaHei";
-    ctx.fillText(node.shortTitle, nodeRect.x + 31, nodeRect.y + 27 + bob);
-  }
-
-  if (activeNodeKey) {
-    ctx.strokeStyle = "rgba(224, 182, 109, 0.78)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 4, rect.y + 4 + bob, rect.width - 8, rect.height - 8, 18);
-    ctx.stroke();
-  }
-  ctx.restore();
-  return true;
+  return drawTownLifeMemoryKeepsakeWorldWorld({
+    ctx,
+    spec,
+    motion,
+    activeNodeKey: townLifeMemoryKeepsakeWorldFocus?.day === state.day
+      && townLifeMemoryKeepsakeWorldFocus?.key === spec.key
+      ? townLifeMemoryKeepsakeWorldFocus.nodeKey
+      : "",
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+    npcPortraitImage,
+  });
 }
 
 function drawTownLifeMemoryNewPageWorld(ctx, spec = townLifeMemoryNewPageSpec(), motion = 0) {
