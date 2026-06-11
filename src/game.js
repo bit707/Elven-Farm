@@ -101,6 +101,8 @@ import {
   spiritAssistSavingsLedgerWorldAtCanvasPointWorld,
   spiritAssistSavingsLedgerWorldSpecWorld,
   drawSpiritAssistSavingsLedgerWorldWorld,
+  spiritAssistToWorkshopBridgeWorldAtCanvasPointWorld,
+  spiritAssistToWorkshopBridgeWorldSpecWorld,
   drawSpiritAssistToWorkshopBridgeWorldWorld,
   spiritAssistTrailWorldAtCanvasPointWorld,
   spiritAssistTrailWorldSpecWorld,
@@ -10502,96 +10504,50 @@ function spiritAssistToWorkshopBridgeWorldSpec(width = refs.world?.width || 960,
   const candidates = spiritAssistWorkshopBridgeRecipeCandidates();
   const top = candidates[0] || null;
   if (!top) return null;
-  const points = wateredPlots.map((plot) => ({
-    ...plot,
-    screenX: originX + plot.x * (tile + gap) + tile / 2,
-    screenY: originY + plot.y * (tile + gap) + tile / 2,
-    rect: {
-      x: originX + plot.x * (tile + gap),
-      y: originY + plot.y * (tile + gap),
-      width: tile,
-      height: tile,
-    },
-  }));
-  const bounds = points.reduce((acc, point) => ({
-    minX: Math.min(acc.minX, point.rect.x),
-    minY: Math.min(acc.minY, point.rect.y),
-    maxX: Math.max(acc.maxX, point.rect.x + point.rect.width),
-    maxY: Math.max(acc.maxY, point.rect.y + point.rect.height),
-  }), { minX: points[0].rect.x, minY: points[0].rect.y, maxX: points[0].rect.x + points[0].rect.width, maxY: points[0].rect.y + points[0].rect.height });
-  const widthCard = 326;
-  const heightCard = 118;
-  const x = Math.max(24, Math.min(width - widthCard - 24, bounds.maxX + 34));
-  const y = Math.max(210, Math.min(height - heightCard - 42, bounds.maxY + 18));
-  const orderText = top.orderMatch
-    ? top.orderMatch.ready
-      ? `这锅出完可交「${top.orderMatch.orderTitle}」`
-      : `接上「${top.orderMatch.orderTitle}」，还差 ${top.orderMatch.missingText || "余料"}`
-    : state.completed.has("craft")
-      ? "出锅后可留作旧铺备货"
-      : "第一锅会把工坊和订单线点亮";
-  const steps = [
-    {
-      key: "saved",
-      glyph: "省",
-      label: "省下体力",
-      text: `约 ${Number(feedback.staminaSaved || wateredPlots.length * 5)} 点`,
-      done: true,
-    },
-    {
-      key: "cook",
-      glyph: "锅",
-      label: "转去入锅",
-      text: top.recipeTitle,
-      done: false,
-      active: true,
-    },
-    {
-      key: top.orderMatch ? "order" : "shop",
-      glyph: top.orderMatch ? "单" : "铺",
-      label: top.orderMatch ? "订单/回款" : "旧铺备货",
-      text: top.orderMatch ? (top.orderMatch.ready ? "可交单" : "补缺口") : "先入仓",
-      done: false,
-    },
-  ];
-  const stepStartX = x + 48;
-  const stepY = y + 86;
-  steps.forEach((step, index) => {
-    const pointX = stepStartX + index * 84;
-    step.point = { x: pointX, y: stepY };
-    step.hit = { x: pointX - 26, y: stepY - 24, width: 52, height: 48 };
-  });
-  return {
-    key: `${state.day}:${feedback.spiritId}:${top.recipeId}:${feedback.wateredCount || wateredPlots.length}:assist_workshop_bridge`,
-    day: state.day,
+  const workshopBridgeCopy = {
     title: "精怪省力去向桥 · 可点",
-    headline: `${feedback.spiritName || "精怪"}省下的手工，正好转去第一锅`,
-    detail: `代浇 ${Number(feedback.wateredCount || wateredPlots.length)} 格 -> ${top.recipeTitle} -> ${orderText}`,
     routeText: "省下体力 -> 转去入锅 -> 订单/旧铺备货",
     safety: "只定位配方栏、订单板或旧铺备货说明，不会自动加工、排产、出锅、交单、开铺、入夜或消耗材料。",
-    feedback,
-    points,
-    bounds,
-    top,
-    candidates: candidates.slice(0, 3),
-    orderText,
-    steps,
-    rect: { x, y, width: widthCard, height: heightCard },
-    anchor: {
-      x: (bounds.minX + bounds.maxX) / 2,
-      y: bounds.maxY,
-    },
+    shopFallbackText: "出锅后可留作旧铺备货",
+    firstCookText: "第一锅会把工坊和订单线点亮",
+    savedGlyph: "省",
+    savedLabel: "省下体力",
+    cookGlyph: "锅",
+    cookLabel: "转去入锅",
+    orderGlyph: "单",
+    orderLabel: "订单/回款",
+    orderReadyText: "可交单",
+    orderPendingText: "补缺口",
+    shopGlyph: "铺",
+    shopLabel: "旧铺备货",
+    shopStepText: "先入仓",
+    defaultSpiritName: "精怪",
     workshopAnchor: { x: 708, y: 470 },
   };
+  return spiritAssistToWorkshopBridgeWorldSpecWorld({
+    width,
+    height,
+    originX,
+    originY,
+    tile,
+    gap,
+    feedback,
+    day: state.day,
+    dungeon: state.dungeon,
+    wateredPlots,
+    candidates,
+    top,
+    craftCompleted: state.completed.has("craft"),
+    copy: workshopBridgeCopy,
+  });
 }
 
 function spiritAssistToWorkshopBridgeWorldAtCanvasPoint(px, py) {
-  const spec = spiritAssistToWorkshopBridgeWorldSpec();
-  if (!spec?.rect) return null;
-  const step = spec.steps.find((entry) => entry.hit && px >= entry.hit.x && px <= entry.hit.x + entry.hit.width && py >= entry.hit.y && py <= entry.hit.y + entry.hit.height) || null;
-  const { rect } = spec;
-  const onCard = px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
-  return step || onCard ? { ...spec, focusStep: step || spec.steps[1] } : null;
+  return spiritAssistToWorkshopBridgeWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: spiritAssistToWorkshopBridgeWorldSpec(),
+  });
 }
 
 function focusSpiritAssistToWorkshopBridgeWorldFromCanvas(spec = spiritAssistToWorkshopBridgeWorldSpec()) {
