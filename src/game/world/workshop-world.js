@@ -1882,6 +1882,174 @@ export function workshopToShopStockBridgeWorldCopyFromRuntimeWorld({
   };
 }
 
+export function workshopLineOverviewWorldBoardSpecFromRuntimeWorld({
+  day = 1,
+  activeJob = null,
+  lastAroma = null,
+  selectedRecipe = null,
+  hasWorkshop = false,
+  recipeId = "",
+  stagePoint = { x: 618, y: 502 },
+  progress = 0,
+  queueCount = 0,
+  focus = null,
+  helperCount = 0,
+  helperNames = "暂无精怪",
+  speedText = "",
+  etaNights = 0,
+  stageLabel = "待命",
+  stages = [],
+  outputText = "待产物",
+  orderText = "",
+  title = "",
+  headline = "",
+  cta = "",
+} = {}) {
+  if (!hasWorkshop && !activeJob && !selectedRecipe) return null;
+  return {
+    active: Boolean(activeJob),
+    key: `${day}:${activeJob?.id || recipeId || "idle"}:${progress}:${queueCount}`,
+    day,
+    title: title || (activeJob ? "主世界工坊流水线总览" : "主世界工坊待排产"),
+    headline: headline || (activeJob
+      ? `${activeJob.recipeName} · ${activeJob.currentStage.label} ${progress}%`
+      : lastAroma
+        ? `上一锅 ${lastAroma.itemName || lastAroma.itemId || "成品"} 已入仓`
+        : selectedRecipe
+          ? `${selectedRecipe.recipeName || selectedRecipe.recipe_id || "当前配方"} 可排产预览`
+          : "后厂等下一锅"),
+    outputText,
+    orderText: orderText || focus?.advice || "选配方后安排入夜生产，产线会从备料亮到入仓。",
+    recipeId,
+    progress: Math.max(0, Math.min(100, Number(progress || 0))),
+    queueCount: Number(queueCount || 0),
+    helperCount: Number(helperCount || 0),
+    helperNames,
+    speedText,
+    etaNights: Number(etaNights || 0),
+    stageLabel,
+    stages,
+    rect: { x: 562, y: 548, width: 326, height: 108 },
+    anchor: { x: stagePoint.x, y: stagePoint.y },
+    cta: cta || (activeJob ? "工坊产线 · 可点" : "排产预览 · 可点"),
+  };
+}
+
+export function workshopLineOverviewWorldBoardAtCanvasPointWorld({
+  px,
+  py,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return (
+    px >= rect.x
+    && px <= rect.x + rect.width
+    && py >= rect.y
+    && py <= rect.y + rect.height
+  ) ? spec : null;
+}
+
+export function drawWorkshopLineOverviewWorldBoardWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+  defaultStages = [],
+} = {}) {
+  if (!ctx || !spec?.rect || !spec?.anchor) return false;
+  const { rect, anchor } = spec;
+  const accent = spec.active ? "#be4f37" : "#b47d2f";
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.4) * 2;
+  const cardY = rect.y + bob;
+
+  ctx.save();
+  ctx.strokeStyle = active ? `${accent}cc` : `${accent}66`;
+  ctx.lineWidth = active ? 3 : 2;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 12;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y - 44);
+  ctx.quadraticCurveTo(rect.x + 42, cardY - 26, rect.x + 44, cardY + 18);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, spec.active ? "rgba(255, 248, 232, 0.94)" : "rgba(255, 253, 245, 0.9)");
+  ctx.strokeStyle = active ? `${accent}ee` : `${accent}88`;
+  ctx.lineWidth = active ? 2.8 : 1.6;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}22`;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 15, 54, 54, 15);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 20px Microsoft YaHei";
+  ctx.fillText(spec.active ? "线" : "候", rect.x + 31, cardY + 48);
+  ctx.fillStyle = "#fffdf5";
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText(spec.active ? "五段" : "排产", rect.x + 28, cardY + 64);
+
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(`${spec.cta} · ${spec.title}`.slice(0, 28), rect.x + 84, cardY + 23);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 14px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 22), rect.x + 84, cardY + 44);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(`${spec.outputText} · 队列 ${spec.queueCount} · 帮工 ${spec.helperCount} · ${spec.speedText}`.slice(0, 38), rect.x + 84, cardY + 62);
+
+  const stageStartX = rect.x + 18;
+  const stageY = cardY + 77;
+  const stageWidth = 52;
+  const stageGap = 7;
+  const stages = (spec.stages || defaultStages || []).slice(0, 5);
+  stages.forEach((stage, index) => {
+    const sx = stageStartX + index * (stageWidth + stageGap);
+    const status = stage.status || "pending";
+    const lit = status === "active" || status === "done";
+    ctx.fillStyle = status === "done"
+      ? "rgba(237, 243, 223, 0.88)"
+      : status === "active"
+        ? "rgba(255, 240, 232, 0.92)"
+        : "rgba(255, 253, 245, 0.72)";
+    ctx.beginPath();
+    ctx.roundRect(sx, stageY, stageWidth, 20, 9);
+    ctx.fill();
+    ctx.strokeStyle = status === "done" ? "rgba(40, 111, 88, 0.36)" : status === "active" ? "rgba(190, 79, 55, 0.42)" : "rgba(180, 125, 47, 0.22)";
+    ctx.stroke();
+    ctx.fillStyle = status === "done" ? "#286f58" : status === "active" ? "#be4f37" : "#8f5f3f";
+    ctx.font = "800 9px Microsoft YaHei";
+    ctx.fillText((stage.label || defaultStages[index]?.label || "").slice(0, 2), sx + 13, stageY + 14);
+    if (lit && !reducedMotion) {
+      ctx.fillStyle = status === "active" ? "rgba(246, 240, 182, 0.72)" : "rgba(202, 235, 210, 0.58)";
+      ctx.beginPath();
+      ctx.arc(sx + stageWidth - 8, stageY + 6 + Math.sin(motion * 3 + index) * 1.2, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  ctx.fillStyle = "rgba(23, 35, 29, 0.09)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 84, cardY + 68, rect.width - 112, 7, 4);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 84, cardY + 68, Math.max(spec.active ? 10 : 0, (rect.width - 112) * Math.max(0, Math.min(1, spec.progress / 100))), 7, 4);
+  ctx.fill();
+
+  ctx.fillStyle = spec.active ? "#8f5f3f" : "#5d6f65";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText(`${spec.stageLabel} · ${spec.orderText}`.slice(0, 42), rect.x + 28, cardY + 103);
+  ctx.restore();
+  return true;
+}
+
 export function workshopToShopStockBridgeWorldAtCanvasPointWorld({
   px,
   py,

@@ -172,6 +172,9 @@ import {
   workshopAromaStoryWorldSpecFromRuntimeWorld,
   drawWorkshopIngredientReadyWorldWorld,
   workshopIngredientReadyWorldAtCanvasPointWorld,
+  drawWorkshopLineOverviewWorldBoardWorld,
+  workshopLineOverviewWorldBoardAtCanvasPointWorld,
+  workshopLineOverviewWorldBoardSpecFromRuntimeWorld,
   workshopOutputStorageRouteWorldCopyFromFeedbackWorld,
   workshopOutputStorageRouteWorldAtCanvasPointWorld,
   workshopIngredientReadyWorldSpecFromRuntimeWorld,
@@ -51698,14 +51701,9 @@ function workshopLineOverviewWorldBoardSpec(lineSpec = workshopProductionLineSpe
     || state.workshopAromaState.orderUnlocked
     || (livingState.queue || []).length > 0
     || Number(livingState.workshopSpirits || 0) > 0;
-  if (!hasWorkshop && !activeJob && !selectedRecipe) return null;
   const recipeId = activeJob?.recipeId || selectedRecipe?.recipe_id || "";
   const stageIndex = Number(activeJob?.activeStageIndex ?? -1);
   const stagePoint = (workshopWorldProductionSceneSpec(lineSpec).stageProps || [])[Math.max(0, stageIndex)] || { x: 618, y: 502 };
-  const x = 562;
-  const y = 548;
-  const width = 326;
-  const height = 108;
   const progress = Math.max(0, Math.min(100, Number(activeJob?.progress || 0)));
   const queueCount = Number((livingState.queue || state.workshopQueue || []).length || 0);
   const focus = workshopQueueFocusSpec(livingState.queue || state.workshopQueue || []);
@@ -51728,39 +51726,39 @@ function workshopLineOverviewWorldBoardSpec(lineSpec = workshopProductionLineSpe
     || focus.advice
     || (lastAroma ? "上一锅香气已写入订单/旧铺线。" : "选配方后安排入夜生产，产线会从备料亮到入仓。");
   const cta = activeJob ? "工坊产线 · 可点" : "排产预览 · 可点";
-  return {
-    active: Boolean(activeJob),
-    key: `${state.day}:${activeJob?.id || recipeId || "idle"}:${progress}:${queueCount}`,
+  return workshopLineOverviewWorldBoardSpecFromRuntimeWorld({
     day: state.day,
-    title,
-    headline,
-    outputText,
-    orderText,
+    activeJob,
+    lastAroma,
+    selectedRecipe: selectedRecipe
+      ? { ...selectedRecipe, recipeName: recipeName(selectedRecipe) }
+      : null,
+    hasWorkshop,
     recipeId,
+    stagePoint,
     progress,
     queueCount,
+    focus,
     helperCount: Number(lineSpec.helperCount || focus.helperCount || 0),
     helperNames: lineSpec.helperNames || "暂无精怪",
     speedText: activeJob?.speedText || focus.speedText || multiplierText(workshopMultiplier() * workshopSpiritBonus()),
     etaNights: Number(activeJob?.etaNights || focus.etaNights || 0),
     stageLabel: activeJob?.currentStage?.label || "待命",
     stages: lineSpec.stages || [],
-    rect: { x, y, width, height },
-    anchor: { x: stagePoint.x, y: stagePoint.y },
+    title,
+    headline,
+    outputText,
+    orderText,
     cta,
-  };
+  });
 }
 
 function workshopLineOverviewWorldBoardAtCanvasPoint(px, py) {
-  const spec = workshopLineOverviewWorldBoardSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return workshopLineOverviewWorldBoardAtCanvasPointWorld({
+    px,
+    py,
+    spec: workshopLineOverviewWorldBoardSpec(),
+  });
 }
 
 function focusWorkshopLineOverviewWorldBoardFromCanvas(spec = workshopLineOverviewWorldBoardSpec()) {
@@ -51792,96 +51790,17 @@ function focusWorkshopLineOverviewWorldBoardFromCanvas(spec = workshopLineOvervi
 
 function drawWorkshopLineOverviewWorldBoard(ctx, spec = workshopLineOverviewWorldBoardSpec(), motion = performance.now() / 1000) {
   if (!spec?.rect) return false;
-  const { rect, anchor } = spec;
   const active = workshopLineOverviewWorldFocus?.day === state.day
     && workshopLineOverviewWorldFocus?.key === spec.key;
-  const accent = spec.active ? "#be4f37" : "#b47d2f";
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.4) * 2;
-  const cardY = rect.y + bob;
-
-  ctx.save();
-  ctx.strokeStyle = active ? `${accent}cc` : `${accent}66`;
-  ctx.lineWidth = active ? 3 : 2;
-  ctx.setLineDash([7, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 12;
-  ctx.beginPath();
-  ctx.moveTo(anchor.x, anchor.y - 44);
-  ctx.quadraticCurveTo(rect.x + 42, cardY - 26, rect.x + 44, cardY + 18);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, spec.active ? "rgba(255, 248, 232, 0.94)" : "rgba(255, 253, 245, 0.9)");
-  ctx.strokeStyle = active ? `${accent}ee` : `${accent}88`;
-  ctx.lineWidth = active ? 2.8 : 1.6;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = `${accent}22`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 15, 54, 54, 15);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 20px Microsoft YaHei";
-  ctx.fillText(spec.active ? "线" : "候", rect.x + 31, cardY + 48);
-  ctx.fillStyle = "#fffdf5";
-  ctx.font = "900 9px Microsoft YaHei";
-  ctx.fillText(spec.active ? "五段" : "排产", rect.x + 28, cardY + 64);
-
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(`${spec.cta} · ${spec.title}`.slice(0, 28), rect.x + 84, cardY + 23);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 14px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 22), rect.x + 84, cardY + 44);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(`${spec.outputText} · 队列 ${spec.queueCount} · 帮工 ${spec.helperCount} · ${spec.speedText}`.slice(0, 38), rect.x + 84, cardY + 62);
-
-  const stageStartX = rect.x + 18;
-  const stageY = cardY + 77;
-  const stageWidth = 52;
-  const stageGap = 7;
-  const stages = (spec.stages || WORKSHOP_LINE_STAGE_DEFS).slice(0, 5);
-  stages.forEach((stage, index) => {
-    const sx = stageStartX + index * (stageWidth + stageGap);
-    const status = stage.status || "pending";
-    const lit = status === "active" || status === "done";
-    ctx.fillStyle = status === "done"
-      ? "rgba(237, 243, 223, 0.88)"
-      : status === "active"
-        ? "rgba(255, 240, 232, 0.92)"
-        : "rgba(255, 253, 245, 0.72)";
-    ctx.beginPath();
-    ctx.roundRect(sx, stageY, stageWidth, 20, 9);
-    ctx.fill();
-    ctx.strokeStyle = status === "done" ? "rgba(40, 111, 88, 0.36)" : status === "active" ? "rgba(190, 79, 55, 0.42)" : "rgba(180, 125, 47, 0.22)";
-    ctx.stroke();
-    ctx.fillStyle = status === "done" ? "#286f58" : status === "active" ? "#be4f37" : "#8f5f3f";
-    ctx.font = "800 9px Microsoft YaHei";
-    ctx.fillText((stage.label || WORKSHOP_LINE_STAGE_DEFS[index]?.label || "").slice(0, 2), sx + 13, stageY + 14);
-    if (lit && !settings.reducedMotion) {
-      ctx.fillStyle = status === "active" ? "rgba(246, 240, 182, 0.72)" : "rgba(202, 235, 210, 0.58)";
-      ctx.beginPath();
-      ctx.arc(sx + stageWidth - 8, stageY + 6 + Math.sin(motion * 3 + index) * 1.2, 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
+  return drawWorkshopLineOverviewWorldBoardWorld({
+    ctx,
+    spec,
+    motion,
+    active,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+    defaultStages: WORKSHOP_LINE_STAGE_DEFS,
   });
-
-  ctx.fillStyle = "rgba(23, 35, 29, 0.09)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 84, cardY + 68, rect.width - 112, 7, 4);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 84, cardY + 68, Math.max(spec.active ? 10 : 0, (rect.width - 112) * Math.max(0, Math.min(1, spec.progress / 100))), 7, 4);
-  ctx.fill();
-
-  ctx.fillStyle = spec.active ? "#8f5f3f" : "#5d6f65";
-  ctx.font = "10px Microsoft YaHei";
-  ctx.fillText(`${spec.stageLabel} · ${spec.orderText}`.slice(0, 42), rect.x + 28, cardY + 103);
-  ctx.restore();
-  return true;
 }
 
 function workshopOpeningValueWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, lineSpec = workshopProductionLineSpec()) {
