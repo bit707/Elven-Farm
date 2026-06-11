@@ -101,6 +101,7 @@ import {
   drawSpiritAssistTrailWorldWorld,
 } from "./game/world/spirit-assist-world.js";
 import {
+  automationHubWorldNoteSpecWorld,
   automationDayLedgerMarkupSafeWorld,
   automationDayLedgerReportTextSafeWorld,
   automationDayLedgerSpecSafeWorld,
@@ -53279,8 +53280,39 @@ function automationHubWorldNoteSpec(livingState = currentLivingWorldState(), lin
   };
 }
 
+function automationHubWorldNoteSpecBridge(
+  livingState = currentLivingWorldState(),
+  lineSpec = workshopProductionLineSpec(livingState.queue),
+) {
+  const spec = automationHubWorldNoteSpec(livingState, lineSpec);
+  if (!spec) return null;
+  return automationHubWorldNoteSpecWorld({
+    spiritCount: state.spirits.length,
+    lines: spec.lines,
+    primaryAction: spec.primaryAction,
+    activeCount: spec.activeCount,
+    helperCount: spec.helperCount,
+    workshopHelperCount: spec.workshopHelperCount,
+    fieldHelperCount: spec.fieldHelperCount,
+    shopHelperCount: spec.shopHelperCount,
+    patrolHelperCount: spec.patrolHelperCount,
+    expeditionHelperCount: spec.expeditionHelperCount,
+    gardenHelperCount: spec.gardenHelperCount,
+    queueCount: spec.queueCount,
+    orderId: spec.orderId,
+    orderTitle: spec.orderTitle,
+    outputItemName: spec.outputItemName,
+    activeStageLabel: spec.activeStageLabel,
+    progress: spec.progress,
+    title: spec.title,
+    headline: spec.headline,
+    detail: spec.detail,
+    routeText: spec.routeText,
+  });
+}
+
 function automationHubAtCanvasPoint(px, py) {
-  const spec = automationHubWorldNoteSpec();
+  const spec = automationHubWorldNoteSpecBridge();
   if (!spec) return null;
   const { rect } = spec;
   return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
@@ -53288,7 +53320,7 @@ function automationHubAtCanvasPoint(px, py) {
     : null;
 }
 
-function focusAutomationHubFromCanvas(spec = automationHubWorldNoteSpec()) {
+function focusAutomationHubFromCanvas(spec = automationHubWorldNoteSpecBridge()) {
   if (!spec) return false;
   if (spec.primaryAction === "order" && spec.orderId) {
     return focusPlotRouteOrder(spec.orderId);
@@ -75068,7 +75100,7 @@ function drawWorkshopAutomation(ctx, livingState) {
   ctx.restore();
 }
 
-function drawAutomationHubWorldNote(ctx, spec = automationHubWorldNoteSpec()) {
+function drawAutomationHubWorldNote(ctx, spec = automationHubWorldNoteSpecBridge()) {
   if (!spec) return false;
   const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
   return drawAutomationHubWorldNoteWorld({

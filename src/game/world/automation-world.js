@@ -134,6 +134,58 @@ export function spiritAutomationPromenadeMarkupWorld(spec = null) {
   `;
 }
 
+export function automationHubWorldNoteSpecWorld({
+  spiritCount = 0,
+  lines = [],
+  primaryAction = "spirit",
+  activeCount = 0,
+  helperCount = 0,
+  workshopHelperCount = 0,
+  fieldHelperCount = 0,
+  shopHelperCount = 0,
+  patrolHelperCount = 0,
+  expeditionHelperCount = 0,
+  gardenHelperCount = 0,
+  queueCount = 0,
+  orderId = "",
+  orderTitle = "",
+  outputItemName = "",
+  activeStageLabel = "",
+  progress = 0,
+  title = "",
+  headline = "",
+  detail = "",
+  routeText = "",
+} = {}) {
+  const safeLines = Array.isArray(lines) ? lines : [];
+  if (!spiritCount || !safeLines.length) return null;
+  return {
+    id: "automation_hub_world_note",
+    type: "automation",
+    title,
+    headline,
+    detail,
+    routeText,
+    primaryAction,
+    activeCount,
+    helperCount,
+    workshopHelperCount,
+    fieldHelperCount,
+    shopHelperCount,
+    patrolHelperCount,
+    expeditionHelperCount,
+    gardenHelperCount,
+    queueCount,
+    orderId,
+    orderTitle,
+    outputItemName,
+    activeStageLabel,
+    progress: Number(progress || 0),
+    lines: safeLines,
+    rect: { x: 442, y: 506, width: 392, height: 132 },
+  };
+}
+
 /*
 export function automationDayLedgerReportTextWorld(rows = []) {
   const safeRows = Array.isArray(rows) ? rows : [];
