@@ -175,6 +175,7 @@ import {
   workshopOpeningValueWorldSpecFromRuntimeWorld,
   drawWorkshopOpeningValueWorldWorld,
   drawWorkshopOutputRouteTriptychWorldWorld,
+  workshopOutputRouteTriptychWorldAtCanvasPointWorld,
   workshopOutputRouteTriptychWorldSpecFromRuntimeWorld,
   drawWorkshopOutputStorageRouteWorldWorld,
   workshopOutputStorageRouteWorldSpecFromRuntimeWorld,
@@ -27989,19 +27990,18 @@ function focusWorkshopAromaStoryWorldFromCanvas(spec = workshopAromaStoryWorldSp
 }
 
 function workshopOutputRouteTriptychWorldSpec(aromaSpec = workshopAromaOrderWorldSpec()) {
+  return workshopOutputRouteTriptychWorldSpecBridge(aromaSpec);
+}
+
+function workshopOutputRouteTriptychWorldCopy({
+  aromaSpec = null,
+  outputLabel = "",
+  haveCount = 0,
+  orderTitleText = "第一张订单",
+  shopTagText = "",
+  recipeLabel = "当前配方",
+} = {}) {
   if (!aromaSpec?.aroma?.orderUnlocked) return null;
-  const aroma = aromaSpec.aroma;
-  const recipe = data.recipes.find((entry) => entry.recipe_id === aroma.recipeId) || null;
-  const outputItemId = aroma.itemId || recipe?.output_item_id || aromaSpec.orderMatch?.outputItemId || "";
-  if (!outputItemId) return null;
-  const outputLabel = aromaSpec.outputLabel || aroma.itemName || itemName(outputItemId);
-  const outputCount = Number(aroma.outputCount || recipe?.output_count || aromaSpec.orderMatch?.outputCount || 1);
-  const haveCount = Number(state.inventory[outputItemId] || 0);
-  const orderTitleText = aromaSpec.orderTitle || "第一张订单";
-  const shopTags = shopTagsForItem(outputItemId, ecologyCourtyardSummary());
-  const shopTag = prioritizeShopTag(shopTags, new Map(), "food");
-  const shopTagText = shopTagLabel(shopTag);
-  const recipeLabel = recipe ? recipeName(recipe) : "当前配方";
   const orderDetail = aromaSpec.orderId
     ? aromaSpec.ready
       ? `${orderTitleText} 已备齐`
@@ -28009,27 +28009,10 @@ function workshopOutputRouteTriptychWorldSpec(aromaSpec = workshopAromaOrderWorl
     : "暂无指定订单";
   const shopDetail = `${shopTagText}货签 · 库存 ${haveCount}`;
   return {
-    key: `${state.day}:${aroma.recipeId || "recipe"}:${outputItemId}:${aromaSpec.orderId || "no_order"}:${haveCount}:${aromaSpec.ready ? 1 : 0}:triptych`,
-    day: state.day,
-    aroma,
-    recipe,
-    recipeId: recipe?.recipe_id || aroma.recipeId || "",
-    recipeLabel,
-    outputItemId,
-    outputLabel,
-    outputCount,
-    haveCount,
-    orderId: aromaSpec.orderId || "",
-    orderTitle: orderTitleText,
-    orderReady: Boolean(aromaSpec.ready),
-    shopTag,
-    shopTagText,
     title: "出锅去向三联签 · 可点",
     headline: `${outputLabel} 出锅后有三条路`,
     safety: "不会自动交单、开铺或继续加工",
     cta: "只定位去向 · 不自动执行",
-    anchor: { x: 520, y: 428 },
-    rect: { x: 286, y: 330, width: 330, height: 126 },
     nodes: [
       {
         key: "order",
@@ -28070,27 +28053,40 @@ function workshopOutputRouteTriptychWorldSpecBridge(aromaSpec = workshopAromaOrd
   if (!outputItemId) return null;
   const shopTags = shopTagsForItem(outputItemId, ecologyCourtyardSummary());
   const shopTag = prioritizeShopTag(shopTags, new Map(), "food");
+  const outputLabel = aromaSpec.outputLabel || aroma.itemName || itemName(outputItemId);
+  const outputCount = Number(aroma.outputCount || recipe?.output_count || aromaSpec.orderMatch?.outputCount || 1);
+  const haveCount = Number(state.inventory[outputItemId] || 0);
+  const shopTagText = shopTagLabel(shopTag);
+  const orderTitleText = aromaSpec.orderTitle || "第一张订单";
+  const recipeLabel = recipe ? recipeName(recipe) : "当前配方";
   return workshopOutputRouteTriptychWorldSpecFromRuntimeWorld({
     day: state.day,
     aromaSpec,
     recipe,
     outputItemId,
-    outputLabel: aromaSpec.outputLabel || aroma.itemName || itemName(outputItemId),
-    outputCount: Number(aroma.outputCount || recipe?.output_count || aromaSpec.orderMatch?.outputCount || 1),
-    haveCount: Number(state.inventory[outputItemId] || 0),
+    outputLabel,
+    outputCount,
+    haveCount,
     shopTag,
-    shopTagText: shopTagLabel(shopTag),
-    recipeLabel: recipe ? recipeName(recipe) : "Current recipe",
+    shopTagText,
+    recipeLabel,
+    copy: workshopOutputRouteTriptychWorldCopy({
+      aromaSpec,
+      outputLabel,
+      haveCount,
+      orderTitleText,
+      shopTagText,
+      recipeLabel,
+    }),
   });
 }
 
 function workshopOutputRouteTriptychWorldAtCanvasPoint(px, py) {
-  const spec = workshopOutputRouteTriptychWorldSpecBridge();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? spec
-    : null;
+  return workshopOutputRouteTriptychWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: workshopOutputRouteTriptychWorldSpecBridge(),
+  });
 }
 
 function focusWorkshopOutputRouteTriptychWorldFromCanvas(spec = workshopOutputRouteTriptychWorldSpecBridge()) {

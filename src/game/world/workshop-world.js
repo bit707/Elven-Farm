@@ -94,6 +94,7 @@ export function workshopOutputRouteTriptychWorldSpecFromRuntimeWorld({
   shopTag = "",
   shopTagText = "",
   recipeLabel = "Current recipe",
+  copy = null,
 } = {}) {
   if (!aromaSpec?.aroma?.orderUnlocked) return null;
   if (!outputItemId) return null;
@@ -104,6 +105,7 @@ export function workshopOutputRouteTriptychWorldSpecFromRuntimeWorld({
   const safeShopTag = shopTag || "food";
   const safeShopTagText = shopTagText || "Shop shelf";
   const orderTitleText = aromaSpec.orderTitle || "First order";
+  const safeCopy = copy || {};
   const orderDetail = aromaSpec.orderId
     ? aromaSpec.ready
       ? `${orderTitleText} is stocked`
@@ -127,42 +129,56 @@ export function workshopOutputRouteTriptychWorldSpecFromRuntimeWorld({
     orderReady: Boolean(aromaSpec.ready),
     shopTag: safeShopTag,
     shopTagText: safeShopTagText,
-    title: "Output route triptych - click",
-    headline: `${safeOutputLabel} has three post-pot routes`,
-    safety: "Will not auto-deliver, open shop, or continue crafting",
-    cta: "Focus route only / no auto action",
+    title: safeCopy.title || "Output route triptych - click",
+    headline: safeCopy.headline || `${safeOutputLabel} has three post-pot routes`,
+    safety: safeCopy.safety || "Will not auto-deliver, open shop, or continue crafting",
+    cta: safeCopy.cta || "Focus route only / no auto action",
     anchor: { x: 520, y: 428 },
     rect: { x: 286, y: 330, width: 330, height: 126 },
-    nodes: [
-      {
-        key: "order",
-        badge: "ORD",
-        title: "Order route",
-        detail: orderDetail,
-        accent: aromaSpec.ready ? "#286f58" : "#b47d2f",
-        soft: aromaSpec.ready ? "rgba(202, 235, 210, 0.28)" : "rgba(246, 240, 182, 0.26)",
-        target: aromaSpec.orderId ? "order" : "recipe",
-      },
-      {
-        key: "shop",
-        badge: "SHP",
-        title: "Shop route",
-        detail: shopDetail,
-        accent: "#8f5f3f",
-        soft: "rgba(255, 248, 232, 0.64)",
-        target: "shop",
-      },
-      {
-        key: "stock",
-        badge: "INV",
-        title: "Stock prep",
-        detail: `${safeRecipeLabel} / next pot`,
-        accent: "#57756a",
-        soft: "rgba(202, 235, 210, 0.2)",
-        target: "recipe",
-      },
-    ],
+    nodes: Array.isArray(safeCopy.nodes) && safeCopy.nodes.length > 0
+      ? safeCopy.nodes
+      : [
+        {
+          key: "order",
+          badge: "ORD",
+          title: "Order route",
+          detail: orderDetail,
+          accent: aromaSpec.ready ? "#286f58" : "#b47d2f",
+          soft: aromaSpec.ready ? "rgba(202, 235, 210, 0.28)" : "rgba(246, 240, 182, 0.26)",
+          target: aromaSpec.orderId ? "order" : "recipe",
+        },
+        {
+          key: "shop",
+          badge: "SHP",
+          title: "Shop route",
+          detail: shopDetail,
+          accent: "#8f5f3f",
+          soft: "rgba(255, 248, 232, 0.64)",
+          target: "shop",
+        },
+        {
+          key: "stock",
+          badge: "INV",
+          title: "Stock prep",
+          detail: `${safeRecipeLabel} / next pot`,
+          accent: "#57756a",
+          soft: "rgba(202, 235, 210, 0.2)",
+          target: "recipe",
+        },
+      ],
   };
+}
+
+export function workshopOutputRouteTriptychWorldAtCanvasPointWorld({
+  px,
+  py,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? spec
+    : null;
 }
 
 export function drawWorkshopIngredientReadyWorldWorld({
