@@ -717,6 +717,37 @@ export function shopWeatherShelfDaySummarySpecWorld({
   };
 }
 
+export function shopWeatherShelfCustomerVignetteMarkupWorld({
+  spec = null,
+  vignette = null,
+} = {}) {
+  if (!vignette?.active) return "";
+  const actionButtons = vignette.status === "missing"
+    ? `<button type="button" data-shop-weather-restock="true" data-shop-weather-restock-item="${spec?.restockPlan?.itemId || ""}" data-shop-weather-restock-tag="${spec?.restockPlan?.tag || ""}">先补天气对口货</button>`
+    : vignette.status === "attracted"
+      ? `
+        <button type="button" data-shop-weather-action="stock_mark" data-shop-weather-action-item="${spec?.topGoods?.[0]?.itemId || spec?.restockPlan?.itemId || ""}">补厚头排库存</button>
+        <button type="button" data-shop-weather-action="display_review">看陈列诊断</button>
+      `
+      : `
+        <button type="button" data-shop-weather-action="price_down">轻压价签</button>
+        <button type="button" data-shop-weather-action="display_review">看陈列诊断</button>
+      `;
+  return `
+    <div class="shop-weather-shelf-customer ${vignette.status}">
+      <strong>顾客小景复盘 · ${vignette.label}</strong>
+      <span>${vignette.customerLabel}：“${vignette.bubble}”</span>
+      <small>${vignette.detail}</small>
+      <div class="shop-weather-shelf-customer-actions">
+        <b>${vignette.weatherName}</b>
+        <b>${vignette.itemName}</b>
+        ${vignette.status === "hesitate" ? "<b>复盘价格与陈列</b>" : ""}
+        ${actionButtons}
+      </div>
+    </div>
+  `;
+}
+
 export function shopWeatherShelfActionEchoSpecWorld(feedback = null) {
   if (!feedback || feedback.source !== "weather_shelf") return { active: false };
   const profileMap = {
