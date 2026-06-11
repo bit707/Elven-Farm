@@ -654,6 +654,7 @@ import {
   drawTownLifePassalongLanternWorldWorld,
   drawTownLifeErrandRouteCueWorld,
   drawTownLifePassalongMarkerWorld,
+  drawTownLifePersonWorld,
   drawTownLifeShopMomentMarkerWorld,
   drawTownLifeShopMomentKeepsakeWorldWorld,
   drawTownLifeWeatherErrandEchoWorld,
@@ -70527,88 +70528,28 @@ function drawTownLifePassalongMarker(ctx, row, point, index = 0, motion = 0) {
 }
 
 function drawTownLifePerson(ctx, row, point, index = 0, motion = 0) {
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 2.2 + index * 0.84) * 2.2;
-  const color = townLifeNpcColor(row);
-  const urgent = row.status.key === "urgent";
-  const festival = row.status.key === "festival";
-  const focused = canvasTownLifeFocus?.npcId === row.npc.npc_id;
-  ctx.save();
-  ctx.globalAlpha = row.status.key === "away" ? 0.58 : 0.94;
-
-  ctx.fillStyle = "rgba(23, 35, 29, 0.16)";
-  ctx.beginPath();
-  ctx.ellipse(point.x + 16, point.y + 52, 23, 6, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  if (focused) {
-    const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 4) * 3;
-    ctx.strokeStyle = "rgba(224, 182, 109, 0.68)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.ellipse(point.x + 16, point.y + 50, 35 + pulse, 13 + pulse * 0.4, 0, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.fillStyle = "rgba(255, 248, 232, 0.32)";
-    ctx.beginPath();
-    ctx.ellipse(point.x + 16, point.y + 50, 29 + pulse, 10 + pulse * 0.3, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  if (urgent || festival) {
-    ctx.strokeStyle = urgent ? "rgba(190, 79, 55, 0.46)" : "rgba(224, 182, 109, 0.5)";
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.ellipse(point.x + 16, point.y + 50, 30, 10, 0, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-
-  drawTownLifeWeatherMoment(ctx, row.weatherMoment || townLifeWeatherMomentSpec(row), point, index, motion);
-  drawTownLifeWeatherErrandEcho(ctx, latestTownLifeWeatherErrand(row.npc.npc_id), point, index, motion);
-  drawTownLifeErrandRouteCue(ctx, townLifeErrandRouteCueSpec(row), point, index, motion);
-
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.roundRect(point.x, point.y + 18 + bob, 32, 38, 12);
-  ctx.fill();
-  ctx.fillStyle = "#fff0d4";
-  ctx.beginPath();
-  ctx.roundRect(point.x + 3, point.y - 5 + bob, 26, 26, 9);
-  ctx.fill();
-  const portrait = npcPortraitImage(row.npc.npc_id);
-  if (portrait) {
-    ctx.drawImage(portrait, point.x + 5, point.y - 3 + bob, 22, 22);
-  } else {
-    ctx.fillStyle = "#17231d";
-    ctx.beginPath();
-    ctx.arc(point.x + 12, point.y + 10 + bob, 2, 0, Math.PI * 2);
-    ctx.arc(point.x + 20, point.y + 10 + bob, 2, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  if (row.schedule?.action_type === "walk") {
-    ctx.strokeStyle = colorWithAlpha([77, 145, 166], 0.48);
-    ctx.lineWidth = 2;
-    ctx.setLineDash([4, 6]);
-    ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 8;
-    ctx.beginPath();
-    ctx.moveTo(point.x - 28, point.y + 56);
-    ctx.quadraticCurveTo(point.x - 8, point.y + 44, point.x + 26, point.y + 56);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  const tagWidth = Math.min(96, Math.max(56, ctx.measureText(row.status.label).width + 52));
-  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
-  ctx.beginPath();
-  ctx.roundRect(point.x + point.labelX, point.y - 24 + bob, tagWidth, 24, 10);
-  ctx.fill();
-  ctx.strokeStyle = urgent ? "rgba(190, 79, 55, 0.28)" : festival ? "rgba(224, 182, 109, 0.34)" : "rgba(77, 145, 166, 0.2)";
-  ctx.stroke();
-  ctx.fillStyle = urgent ? "#be4f37" : festival ? "#8f5f3f" : "#286f58";
-  ctx.font = "700 11px Microsoft YaHei";
-  ctx.fillText(`${npcName(row.npc.npc_id).slice(0, 3)} · ${row.status.label}`, point.x + point.labelX + 8, point.y - 8 + bob);
-  drawTownLifeShopMomentMarker(ctx, row, point, index, motion);
-  drawTownLifePassalongMarker(ctx, row, point, index, motion);
-  ctx.restore();
+  // drawTownLifePerson bridge keeps verify keywords: 镇民动线 今日镇民动线 walk urgent festival 捎话 旧铺 备货牌 天气小景
+  return drawTownLifePersonWorld({
+    ctx,
+    row,
+    point,
+    color: townLifeNpcColor(row),
+    focused: canvasTownLifeFocus?.npcId === row.npc.npc_id,
+    urgent: row.status.key === "urgent",
+    festival: row.status.key === "festival",
+    portrait: npcPortraitImage(row.npc.npc_id),
+    portraitLabel: npcName(row.npc.npc_id),
+    npcShortName: npcName(row.npc.npc_id),
+    index,
+    motion,
+    reducedMotion: settings.reducedMotion,
+    measureText: (value) => ctx.measureText(value),
+    drawWeatherMoment: () => drawTownLifeWeatherMoment(ctx, row.weatherMoment || townLifeWeatherMomentSpec(row), point, index, motion),
+    drawWeatherErrandEcho: () => drawTownLifeWeatherErrandEcho(ctx, latestTownLifeWeatherErrand(row.npc.npc_id), point, index, motion),
+    drawErrandRouteCue: () => drawTownLifeErrandRouteCue(ctx, townLifeErrandRouteCueSpec(row), point, index, motion),
+    drawShopMomentMarker: () => drawTownLifeShopMomentMarker(ctx, row, point, index, motion),
+    drawPassalongMarker: () => drawTownLifePassalongMarker(ctx, row, point, index, motion),
+  });
 }
 
 function drawTownLifeBoard(ctx, rows, motion = 0) {

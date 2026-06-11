@@ -580,6 +580,114 @@ export function drawTownLifePassalongMarkerWorld({
   return true;
 }
 
+export function drawTownLifePersonWorld({
+  ctx,
+  row = null,
+  point = null,
+  color = "#5d6f65",
+  focused = false,
+  urgent = false,
+  festival = false,
+  portrait = null,
+  portraitLabel = "",
+  npcShortName = "",
+  index = 0,
+  motion = 0,
+  reducedMotion = false,
+  measureText = (value = "") => ({ width: String(value || "").length * 11 }),
+  drawWeatherMoment = () => {},
+  drawWeatherErrandEcho = () => {},
+  drawErrandRouteCue = () => {},
+  drawShopMomentMarker = () => {},
+  drawPassalongMarker = () => {},
+} = {}) {
+  if (!ctx || !row || !point) return false;
+  const bob = reducedMotion ? 0 : Math.sin(motion * 2.2 + index * 0.84) * 2.2;
+  ctx.save();
+  ctx.globalAlpha = row.status?.key === "away" ? 0.58 : 0.94;
+
+  ctx.fillStyle = "rgba(23, 35, 29, 0.16)";
+  ctx.beginPath();
+  ctx.ellipse(point.x + 16, point.y + 52, 23, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (focused) {
+    const pulse = reducedMotion ? 0 : Math.sin(motion * 4) * 3;
+    ctx.strokeStyle = "rgba(224, 182, 109, 0.68)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(point.x + 16, point.y + 50, 35 + pulse, 13 + pulse * 0.4, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(255, 248, 232, 0.32)";
+    ctx.beginPath();
+    ctx.ellipse(point.x + 16, point.y + 50, 29 + pulse, 10 + pulse * 0.3, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  if (urgent || festival) {
+    ctx.strokeStyle = urgent ? "rgba(190, 79, 55, 0.46)" : "rgba(224, 182, 109, 0.5)";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.ellipse(point.x + 16, point.y + 50, 30, 10, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  drawWeatherMoment();
+  drawWeatherErrandEcho();
+  drawErrandRouteCue();
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.roundRect(point.x, point.y + 18 + bob, 32, 38, 12);
+  ctx.fill();
+  ctx.fillStyle = "#fff0d4";
+  ctx.beginPath();
+  ctx.roundRect(point.x + 3, point.y - 5 + bob, 26, 26, 9);
+  ctx.fill();
+  if (portrait) {
+    ctx.drawImage(portrait, point.x + 5, point.y - 3 + bob, 22, 22);
+  } else {
+    ctx.fillStyle = "#17231d";
+    ctx.beginPath();
+    ctx.arc(point.x + 12, point.y + 10 + bob, 2, 0, Math.PI * 2);
+    ctx.arc(point.x + 20, point.y + 10 + bob, 2, 0, Math.PI * 2);
+    ctx.fill();
+    if (portraitLabel) {
+      ctx.font = "700 11px Microsoft YaHei";
+      ctx.fillText(String(portraitLabel).slice(0, 1), point.x + 12, point.y + 17 + bob);
+    }
+  }
+
+  if (row.schedule?.action_type === "walk") {
+    ctx.strokeStyle = "rgba(77, 145, 166, 0.48)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 6]);
+    ctx.lineDashOffset = reducedMotion ? 0 : -motion * 8;
+    ctx.beginPath();
+    ctx.moveTo(point.x - 28, point.y + 56);
+    ctx.quadraticCurveTo(point.x - 8, point.y + 44, point.x + 26, point.y + 56);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  const statusLabel = String(row.status?.label || "");
+  const tagWidth = Math.min(96, Math.max(56, measureText(statusLabel).width + 52));
+  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
+  ctx.beginPath();
+  ctx.roundRect(point.x + point.labelX, point.y - 24 + bob, tagWidth, 24, 10);
+  ctx.fill();
+  ctx.strokeStyle = urgent ? "rgba(190, 79, 55, 0.28)" : festival ? "rgba(224, 182, 109, 0.34)" : "rgba(77, 145, 166, 0.2)";
+  ctx.stroke();
+  ctx.fillStyle = urgent ? "#be4f37" : festival ? "#8f5f3f" : "#286f58";
+  ctx.font = "700 11px Microsoft YaHei";
+  ctx.fillText(`${String(npcShortName).slice(0, 3)} · ${statusLabel}`, point.x + point.labelX + 8, point.y - 8 + bob);
+
+  drawShopMomentMarker();
+  drawPassalongMarker();
+  ctx.restore();
+  return true;
+}
+
 export function drawTownLifeRouteWorldBoardWorld({
   ctx,
   spec = null,
