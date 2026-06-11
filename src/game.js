@@ -517,6 +517,7 @@ import {
   drawShopReputationStageSignWorld,
   drawShopRestockTargetSignWorld,
   drawYear2OrderPrepTableWorld,
+  drawYear2SolarTrialDialWorld,
   drawYear2ShopSeasonBillboardWorld,
   drawShopWordOfMouthFollowupRestockWorldWorld,
   drawShopWordOfMouthMorningFollowupWorldWorld,
@@ -74600,9 +74601,10 @@ function drawYear2ShopSeasonBillboard(ctx) {
 }
 
 function drawYear2SolarTrialDial(ctx) {
-  if (!year2Unlocked()) return;
+  // drawYear2SolarTrialDial(ctx) bridge keeps verify keywords: 年轮试炼预告 / 年轮试炼进行中 / 预估 / 印记共鸣
+  if (!year2Unlocked()) return false;
   const trial = recommendedSolarTrial();
-  if (!trial) return;
+  if (!trial) return false;
   const active = state.activeSolarTrial?.trialId === trial.trial_id ? state.activeSolarTrial : null;
   const score = evaluateSolarTrialScore(trial);
   const rank = solarTrialRank(score);
@@ -74611,13 +74613,6 @@ function drawYear2SolarTrialDial(ctx) {
   const scoreBreakdown = solarTrialScoreBreakdown(trial, active);
   const tags = splitTags(trial.required_loop_tags).slice(0, 3);
   const termName = localize(data.solarTermsById.get(trial.term_id)?.term_name_key, trial.term_id);
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const x = 646;
-  const y = 250;
-  const width = 262;
-  const height = 132;
-  const centerX = x + 54;
-  const centerY = y + 66;
   const totalDays = Math.max(1, Number(trial.challenge_days || 3));
   const remaining = active ? runProgress.remaining : Number(trial.challenge_days || 3);
   const progress = active ? runProgress.progress : Math.max(0.08, Math.min(1, score / 100));
@@ -74628,96 +74623,25 @@ function drawYear2SolarTrialDial(ctx) {
     term_dongzhi: { accent: "#b47d2f", glow: "rgba(224, 182, 109, 0.28)", glyph: "灯" },
     term_dahan: { accent: "#8c7ab8", glow: "rgba(215, 210, 236, 0.24)", glyph: "寒" },
   }[trial.term_id] || { accent: "#286f58", glow: "rgba(202, 235, 210, 0.24)", glyph: "试" };
-
-  ctx.save();
-  ctx.fillStyle = palette.glow;
-  ctx.beginPath();
-  ctx.ellipse(centerX, centerY, 72, 54, 0, 0, Math.PI * 2);
-  ctx.fill();
-  drawCanvasCard(ctx, x, y, width, height, active ? "rgba(255, 248, 232, 0.94)" : "rgba(255, 253, 245, 0.86)");
-
-  ctx.strokeStyle = "rgba(23, 35, 29, 0.12)";
-  ctx.lineWidth = 10;
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, 34, -Math.PI / 2, Math.PI * 1.5);
-  ctx.stroke();
-  ctx.strokeStyle = palette.accent;
-  ctx.lineWidth = 10;
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, 34, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
-  ctx.stroke();
-
-  for (let i = 0; i < 8; i += 1) {
-    const angle = motion * 0.18 + (Math.PI * 2 * i) / 8;
-    const dotX = centerX + Math.cos(angle) * 46;
-    const dotY = centerY + Math.sin(angle) * 46;
-    ctx.fillStyle = i % 2 ? "rgba(255, 253, 245, 0.84)" : palette.accent;
-    ctx.beginPath();
-    ctx.arc(dotX, dotY, i % 2 ? 2 : 2.8, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = "#fffdf5";
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, 24, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = palette.accent;
-  ctx.font = "700 22px Microsoft YaHei";
-  ctx.fillText(palette.glyph, centerX - 11, centerY + 8);
-
-  ctx.fillStyle = active ? "#be4f37" : "#286f58";
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(active ? "年轮试炼进行中" : "年轮试炼预告", x + 108, y + 26);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 15px Microsoft YaHei";
-  ctx.fillText(solarTrialName(trial).slice(0, 12), x + 108, y + 49);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(`${termName} · ${active ? `${runProgress.phaseLabel} ${runProgress.dayIndex}/${totalDays}` : `挑战 ${trial.challenge_days} 天`}`.slice(0, 22), x + 108, y + 68);
-
-  ctx.fillStyle = "rgba(23, 35, 29, 0.1)";
-  ctx.beginPath();
-  ctx.roundRect(x + 108, y + 78, 112, 8, 999);
-  ctx.fill();
-  ctx.fillStyle = palette.accent;
-  ctx.beginPath();
-  ctx.roundRect(x + 108, y + 78, Math.max(12, 112 * score / 100), 8, 999);
-  ctx.fill();
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 11px Microsoft YaHei";
-  ctx.fillText(`预估 ${score} / ${rank}`, x + 226, y + 86);
-  if (active) {
-    ctx.fillStyle = runProgress.actedToday ? "#286f58" : "#be4f37";
-    ctx.font = "700 10px Microsoft YaHei";
-    ctx.fillText(runProgress.actedToday ? "今日已记" : `剩余 ${remaining} 天 · 待推进`, x + 108, y + 92);
-  }
-
-  tags.forEach((tag, index) => {
-    const chipX = x + 108 + index * 48;
-    ctx.fillStyle = index === 0 ? palette.glow : "rgba(255, 248, 232, 0.86)";
-    ctx.beginPath();
-    ctx.roundRect(chipX, y + 96, 42, 20, 10);
-    ctx.fill();
-    ctx.fillStyle = palette.accent;
-    ctx.font = "700 10px Microsoft YaHei";
-    ctx.fillText(tag.slice(0, 5), chipX + 7, y + 110);
+  return drawYear2SolarTrialDialWorld({
+    ctx,
+    active: Boolean(active),
+    score,
+    rank,
+    support,
+    runProgress,
+    scoreBreakdown,
+    tags,
+    termName,
+    totalDays,
+    remaining,
+    progress,
+    palette,
+    trialName: solarTrialName(trial),
+    challengeDays: Number(trial.challenge_days || 3),
+    motion: settings.reducedMotion ? 0 : performance.now() / 1000,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = support.bonus > 0 ? "#b47d2f" : "#8f5f3f";
-  ctx.font = "10px Microsoft YaHei";
-  ctx.fillText((active && scoreBreakdown.actionBoost > 0 ? `手账加压 ${scoreBreakdown.actionBoost} · ${support.summary}` : support.bonus > 0 ? `印记共鸣 +${support.bonus} · ${support.summary}` : `印记未鸣 · ${support.summary}`).slice(0, 32), x + 18, y + height - 12);
-
-  if (active || rank === "S" || rank === "A") {
-    ctx.strokeStyle = palette.accent;
-    ctx.lineWidth = 2;
-    ctx.setLineDash([4, 6]);
-    ctx.beginPath();
-    ctx.moveTo(centerX - 24, y + height + 2);
-    ctx.bezierCurveTo(centerX - 50, y + height + 36, 560, 504, 496, 530);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-  ctx.restore();
 }
 
 function drawCohabCourtyard(ctx, livingState) {

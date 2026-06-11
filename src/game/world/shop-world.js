@@ -2193,6 +2193,129 @@ export function drawYear2ShopSeasonBillboardWorld({
   return true;
 }
 
+export function drawYear2SolarTrialDialWorld({
+  ctx,
+  active = false,
+  score = 0,
+  rank = "C",
+  support = null,
+  runProgress = null,
+  scoreBreakdown = null,
+  tags = [],
+  termName = "",
+  totalDays = 1,
+  remaining = 0,
+  progress = 0,
+  palette = null,
+  trialName = "",
+  challengeDays = 3,
+  motion = 0,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !palette) return false;
+  const x = 646;
+  const y = 250;
+  const width = 262;
+  const height = 132;
+  const centerX = x + 54;
+  const centerY = y + 66;
+
+  ctx.save();
+  ctx.fillStyle = palette.glow;
+  ctx.beginPath();
+  ctx.ellipse(centerX, centerY, 72, 54, 0, 0, Math.PI * 2);
+  ctx.fill();
+  drawCanvasCard(ctx, x, y, width, height, active ? "rgba(255, 248, 232, 0.94)" : "rgba(255, 253, 245, 0.86)");
+
+  ctx.strokeStyle = "rgba(23, 35, 29, 0.12)";
+  ctx.lineWidth = 10;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 34, -Math.PI / 2, Math.PI * 1.5);
+  ctx.stroke();
+  ctx.strokeStyle = palette.accent;
+  ctx.lineWidth = 10;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 34, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
+  ctx.stroke();
+
+  for (let i = 0; i < 8; i += 1) {
+    const angle = motion * 0.18 + (Math.PI * 2 * i) / 8;
+    const dotX = centerX + Math.cos(angle) * 46;
+    const dotY = centerY + Math.sin(angle) * 46;
+    ctx.fillStyle = i % 2 ? "rgba(255, 253, 245, 0.84)" : palette.accent;
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, i % 2 ? 2 : 2.8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = "#fffdf5";
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 24, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = palette.accent;
+  ctx.font = "700 22px Microsoft YaHei";
+  ctx.fillText(palette.glyph, centerX - 11, centerY + 8);
+
+  ctx.fillStyle = active ? "#be4f37" : "#286f58";
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText(active ? "年轮试炼进行中" : "年轮试炼预告", x + 108, y + 26);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 15px Microsoft YaHei";
+  ctx.fillText(String(trialName).slice(0, 12), x + 108, y + 49);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(`${termName} · ${active ? `${runProgress.phaseLabel} ${runProgress.dayIndex}/${totalDays}` : `挑战 ${challengeDays} 天`}`.slice(0, 22), x + 108, y + 68);
+
+  ctx.fillStyle = "rgba(23, 35, 29, 0.1)";
+  ctx.beginPath();
+  ctx.roundRect(x + 108, y + 78, 112, 8, 999);
+  ctx.fill();
+  ctx.fillStyle = palette.accent;
+  ctx.beginPath();
+  ctx.roundRect(x + 108, y + 78, Math.max(12, 112 * score / 100), 8, 999);
+  ctx.fill();
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 11px Microsoft YaHei";
+  ctx.fillText(`预估 ${score} / ${rank}`, x + 226, y + 86);
+  if (active) {
+    ctx.fillStyle = runProgress.actedToday ? "#286f58" : "#be4f37";
+    ctx.font = "700 10px Microsoft YaHei";
+    ctx.fillText(runProgress.actedToday ? "今日已记" : `剩余 ${remaining} 天 · 待推进`, x + 108, y + 92);
+  }
+
+  tags.forEach((tag, index) => {
+    const chipX = x + 108 + index * 48;
+    ctx.fillStyle = index === 0 ? palette.glow : "rgba(255, 248, 232, 0.86)";
+    ctx.beginPath();
+    ctx.roundRect(chipX, y + 96, 42, 20, 10);
+    ctx.fill();
+    ctx.fillStyle = palette.accent;
+    ctx.font = "700 10px Microsoft YaHei";
+    ctx.fillText(String(tag).slice(0, 5), chipX + 7, y + 110);
+  });
+
+  ctx.fillStyle = support?.bonus > 0 ? "#b47d2f" : "#8f5f3f";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText((active && Number(scoreBreakdown?.actionBoost || 0) > 0
+    ? `手账加压 ${scoreBreakdown.actionBoost} · ${support?.summary || ""}`
+    : support?.bonus > 0
+      ? `印记共鸣 +${support.bonus} · ${support.summary || ""}`
+      : `印记未鸣 · ${support?.summary || ""}`).slice(0, 32), x + 18, y + height - 12);
+
+  if (active || rank === "S" || rank === "A") {
+    ctx.strokeStyle = palette.accent;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath();
+    ctx.moveTo(centerX - 24, y + height + 2);
+    ctx.bezierCurveTo(centerX - 50, y + height + 36, 560, 504, 496, 530);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
+  return true;
+}
+
 export function drawShopReputationStageSignWorld({
   ctx,
   spec = null,
