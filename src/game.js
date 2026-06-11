@@ -313,10 +313,12 @@ import {
 } from "./game/world/shop-weather-shelf-render.js";
 import {
   shopWordNoteInteractionTargetsWorld,
+  shopWordOfMouthMissingShelfSpecWorld,
   shopWordOfMouthMissingShelfFocusTargetWorld,
   shopWordOfMouthMissingShelfLogWorld,
   shopWordOfMouthMissingShelfShopFocusTargetWorld,
   shopWordOfMouthNoteFocusTargetWorld,
+  shopWordOfMouthReadyShelfEchoSpecWorld,
   shopWordOfMouthReadyShelfFocusTargetWorld,
   shopWordOfMouthReadyShelfLogWorld,
   shopWordOfMouthReadyShelfShopFocusTargetWorld,
@@ -30272,7 +30274,12 @@ function shopWordOfMouthShelfPrepSpec(goods = sellableInventoryGoods(), wordSpec
 
 function shopWordOfMouthMissingShelfSpec(goods = sellableInventoryGoods(), wordSpec = shopWordOfMouthDisplaySpec(), ecologyGarden = ecologyCourtyardSummary()) {
   if (!wordSpec) return null;
-  if (shopWordOfMouthShelfPrepSpec(goods, wordSpec, ecologyGarden)) return null;
+  const wordShelf = shopWordOfMouthShelfPrepSpec(goods, wordSpec, ecologyGarden);
+  if (wordShelf) return null;
+  const missingShelfRouteText = "市闻来客 -> 头排缺货 -> 先补路线";
+  const missingShelfTitle = "来帖缺货签 · 可点";
+  const missingShelfHeadline = "来帖到了，头排还空着";
+  const missingShelfSafeNote = "只定位补货路线和市闻来帖，不会自动制作、播种、补货、开铺、接客、成交、改价或消耗库存";
   const standingSupply = wordSpec.sourceType === "waterway_standing"
     ? waterwayStandingOrderSupplySpec(goods)
     : null;
@@ -30303,69 +30310,51 @@ function shopWordOfMouthMissingShelfSpec(goods = sellableInventoryGoods(), wordS
     || "来帖客";
   const sourceLabel = wordSpec.sourceLabels?.[0] || "铺前市闻";
   const have = itemId ? Number(state.inventory[itemId] || 0) : 0;
-  const routeLabel = route
-    ? `${route.label}：${route.title}`
-    : itemId
-      ? `先补 ${itemNameText}`
-      : `先补 ${hotTagLabel}`;
-  return {
-    active: true,
-    id: "shop_word_of_mouth_missing_shelf_note",
-    key: `${state.day}:${wordSpec.id || "word"}:${itemId || hotTag}:${have}:${desiredCount}`,
-    title: "来帖缺货签 · 可点",
-    headline: "来帖到了，头排还空着",
-    detail: itemId
-      ? `${customerName}会顺着${sourceLabel}来认${itemNameText}，当前只有 ${have}/${desiredCount}。`
-      : `${customerName}会顺着${sourceLabel}来认${hotTagLabel}，先找一条能补货的路线。`,
-    sourceLabel,
-    customerName,
-    itemId,
-    itemName: itemNameText,
-    have,
+  return shopWordOfMouthMissingShelfSpecWorld({
+    goods,
+    wordSpec,
+    day: state.day,
+    inventory: state.inventory,
+    standingSupply,
+    leadItemId,
+    tagCandidate,
+    desiredTags: shopWordOfMouthDesiredTags(wordSpec),
+    itemNameText,
     desiredCount,
+    route,
+    tags,
     hotTag,
     hotTagLabel,
-    routeText: "市闻来客 -> 头排缺货 -> 先补路线",
-    routeLabel,
-    routeAction: route?.action || (itemId ? "shop" : ""),
-    routeRecipeId: route?.recipeId || "",
-    routeSeedId: route?.seedId || "",
-    routeShopTag: route?.shopTag || hotTag || "",
-    routeItemId: route?.itemId || itemId || "",
+    customerName,
+    sourceLabel,
+    have,
     selector: wordSpec.preview ? ".shop-word-of-mouth" : ".shop-word-of-mouth-visit",
-    safeNote: "只定位补货路线和市闻来帖，不会自动制作、播种、补货、开铺、接客、成交、改价或消耗库存",
-    rect: { x: 386, y: 112, width: 316, height: 112 },
-    anchor: { x: 678, y: 236 },
-  };
+    safeNote: missingShelfSafeNote,
+    routeText: missingShelfRouteText,
+    title: missingShelfTitle,
+    headline: missingShelfHeadline,
+  });
 }
 
 function shopWordOfMouthReadyShelfEchoSpec(goods = sellableInventoryGoods(), wordSpec = shopWordOfMouthDisplaySpec(), ecologyGarden = ecologyCourtyardSummary()) {
   if (!wordSpec) return null;
   const wordShelf = shopWordOfMouthShelfPrepSpec(goods, wordSpec, ecologyGarden);
   if (!wordShelf?.ready) return null;
-  const customerName = wordShelf.customerName || wordSpec.preferredLabels?.[0] || "来帖客";
-  const sourceLabel = wordShelf.sourceLabel || wordSpec.sourceLabels?.[0] || "铺前市闻";
-  const count = Number(wordShelf.count || 0);
-  return {
-    active: true,
-    id: "shop_word_of_mouth_ready_shelf_echo",
-    key: `${state.day}:${wordSpec.id || "word"}:${wordShelf.itemId}:${count}:ready_shelf`,
-    title: "来帖头排备齐签 · 可点",
-    headline: "对口货已经回到头排",
-    detail: `${wordShelf.itemName} x${count} 已能接住${customerName}，先看市闻来帖，再手动开铺。`,
-    itemId: wordShelf.itemId,
-    itemName: wordShelf.itemName,
-    count,
-    customerName,
-    sourceLabel,
-    hotTagLabel: wordShelf.hotTagLabel || wordSpec.hotTagLabel || "对口货",
-    routeText: "补货入仓 -> 头排备齐 -> 手动开铺",
-    cta: "手动开铺接帖 · 可点",
-    selector: wordShelf.selector || (wordSpec.preview ? ".shop-word-of-mouth" : ".shop-word-of-mouth-visit"),
-    safeNote: "只定位旧铺市闻、来帖和头排货签，不会自动开铺、接客、成交、改价、补货或消耗库存",
-    rect: { x: 386, y: 112, width: 316, height: 112 },
-    anchor: { x: 678, y: 236 },
-  };
+  const readyShelfTitle = "来帖头排备齐签 · 可点";
+  const readyShelfHeadline = "对口货已经回到头排";
+  const readyShelfRouteText = "补货入仓 -> 头排备齐 -> 手动开铺";
+  const readyShelfCta = "手动开铺接帖 · 可点";
+  const readyShelfSafeNote = "只定位旧铺市闻、来帖和头排货签，不会自动开铺、接客、成交、改价、补货或消耗库存";
+  return shopWordOfMouthReadyShelfEchoSpecWorld({
+    wordSpec,
+    wordShelf,
+    day: state.day,
+    title: readyShelfTitle,
+    headline: readyShelfHeadline,
+    routeText: readyShelfRouteText,
+    cta: readyShelfCta,
+    safeNote: readyShelfSafeNote,
+  });
 }
 
 function shopShelfPrepWorldBoardSpec(width = 960, height = 640) {
