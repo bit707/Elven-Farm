@@ -26851,31 +26851,14 @@ function shopLeaveRecoveryRouteSteps(reason = "tag", profile = {}, feedback = {}
 
 function shopLeaveRecoveryWorldSpec(opening = normalizeShopOpeningState(state.shopOpeningState)) {
   const recovery = opening.failureRecovery || opening.lastSession?.failureRecovery || null;
-  if (!recovery) return null;
-  const routeSteps = Array.isArray(recovery.routeSteps) && recovery.routeSteps.length
-    ? recovery.routeSteps
-    : shopLeaveRecoveryRouteSteps(recovery.reason, recovery, {
-      learningLine: recovery.learningLine || recovery.detail,
-      gentleFix: recovery.gentleFix,
-      tomorrowAction: recovery.tomorrowAction || recovery.action,
-    });
   return shopLeaveRecoveryWorldSpecWorld({
     recovery,
-    routeSteps,
     day: state.day,
   });
 }
 
 function shopLeaveRecoveryMarkup(recovery = null) {
-  if (!recovery) return "";
-  const routeSteps = Array.isArray(recovery.routeSteps) && recovery.routeSteps.length
-    ? recovery.routeSteps
-    : shopLeaveRecoveryRouteSteps(recovery.reason, recovery, {
-      learningLine: recovery.learningLine || recovery.detail,
-      gentleFix: recovery.gentleFix,
-      tomorrowAction: recovery.tomorrowAction || recovery.action,
-    });
-  return shopLeaveRecoveryMarkupWorld(recovery, routeSteps);
+  return shopLeaveRecoveryMarkupWorld(recovery);
 }
 
 function shopCrowdHeatSpec(liveFocus = normalizeShopOpeningState(state.shopOpeningState).liveFocus) {
