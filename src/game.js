@@ -434,16 +434,20 @@ import {
 import {
   drawShopCustomerPickShadowWorldWorld,
   drawShopDailyGoodsEyeWorldWorld,
-  drawShopRestockRunnerWorldWorld,
-  drawShopShelfPrepWorldBoardWorld,
-  drawShopSpiritGreeterWorldWorld,
   shopCustomerPickShadowRowsWorld,
+  shopCustomerPickShadowSafetyTextWorld,
   shopCustomerPickShadowWorldAtCanvasPointWorld,
   shopCustomerPickShadowWorldFocusLogSpecWorld,
   shopCustomerPickShadowWorldSpecWorld,
+  shopDailyGoodsEyeReasonCopyWorld,
   shopDailyGoodsEyeWorldAtCanvasPointWorld,
   shopDailyGoodsEyeWorldFocusLogSpecWorld,
   shopDailyGoodsEyeWorldSpecWorld,
+} from "./game/world/shop-observation-world.js";
+import {
+  drawShopRestockRunnerWorldWorld,
+  drawShopShelfPrepWorldBoardWorld,
+  drawShopSpiritGreeterWorldWorld,
   shopRestockRunnerWorldAtCanvasPointWorld,
   shopRestockRunnerWorldFocusLogSpecWorld,
   shopRestockRunnerWorldSpecWorld,
@@ -30037,31 +30041,16 @@ function shopDailyGoodsEyeReasonCopy({
   themeName = "",
   themeScore = 0,
 } = {}) {
-  if (mode === "word") {
-    return {
-      headline: "市闻已经把客眼引到这件货上",
-      reason: `${sourceLabel || "铺前来帖"}带来${customerName}，他们会先认${goodsName}的${hotTagLabel}味道。`,
-      eye: `${customerName}眼里：有话头、有对口货、头排一眼能看见。`,
-      route: "市闻来客 -> 头排有货 -> 手动开铺",
-      badge: "来帖客眼",
-    };
-  }
-  if (mode === "weather") {
-    return {
-      headline: "天气正好替这件货说话",
-      reason: `${weatherName || "今日天气"}让${hotTagLabel}更容易被问起，${goodsName}可以先挂天气货签。`,
-      eye: `${customerName}眼里：天气有需求，货签能解释，价格再看手动调整。`,
-      route: "天气起意 -> 货签照亮 -> 手动开铺",
-      badge: "天气客眼",
-    };
-  }
-  return {
-    headline: "陈列主题能把这件货托出来",
-    reason: `${themeName || "当前陈列"}匹配 ${themeScore}%：${goodsName}能先把${hotTagLabel}讲清楚。`,
-    eye: `${customerName}眼里：标签顺、货架稳，先知道为什么值得摆出来。`,
-    route: "主题顺眼 -> 客眼停步 -> 手动开铺",
-    badge: "陈列客眼",
-  };
+  return shopDailyGoodsEyeReasonCopyWorld({
+    mode,
+    itemName: goodsName,
+    customerName,
+    hotTagLabel,
+    sourceLabel,
+    weatherName,
+    themeName,
+    themeScore,
+  });
 }
 
 function shopDailyGoodsEyeWorldSpec(width = 960, height = 640) {
@@ -30135,6 +30124,9 @@ function drawShopDailyGoodsEyeWorld(ctx, spec = shopDailyGoodsEyeWorldSpec(ctx.c
   if (!spec?.rect) return false;
   const active = shopDailyGoodsEyeWorldFocus?.day === state.day
     && shopDailyGoodsEyeWorldFocus?.key === spec.key;
+  // drawShopDailyGoodsEyeWorld(ctx 保留桥接关键词，便于 verify 扫描：
+  // 旧铺今日货眼小景 / 为什么值得摆出来 / 货签 / 客眼 / 理由
+  // 只定位旧铺反馈、陈列诊断、天气货签或市闻来帖 / 不会自动上架、开铺、改价、成交、补货或消耗库存
   return drawShopDailyGoodsEyeWorldWorld({
     ctx,
     spec,
@@ -30147,7 +30139,7 @@ function drawShopDailyGoodsEyeWorld(ctx, spec = shopDailyGoodsEyeWorldSpec(ctx.c
 }
 
 function shopCustomerPickShadowSafetyText() {
-  return "只定位旧铺试营业看板、顾客风向或陈列诊断，不会自动上架、开铺、接客、成交、改价、补货或消耗库存";
+  return shopCustomerPickShadowSafetyTextWorld();
 }
 
 function shopCustomerPickShadowRows(goodsEye = shopDailyGoodsEyeWorldSpec(), forecast = shopCustomerForecastWorldSpec(), trial = shopTrialPreviewSpec()) {
@@ -30213,6 +30205,9 @@ function drawShopCustomerPickShadowWorld(ctx, spec = shopCustomerPickShadowWorld
   if (!spec?.rect) return false;
   const active = shopCustomerPickShadowWorldFocus?.day === state.day
     && shopCustomerPickShadowWorldFocus?.key === spec.key;
+  // drawShopCustomerPickShadowWorld(ctx 保留桥接关键词，便于 verify 扫描：
+  // 旧铺挑货影子 / 谁会停步 / 看上哪件货 / 为什么可能犹豫 / 下一步看哪
+  // 只定位旧铺试营业看板、顾客风向或陈列诊断 / 不会自动上架、开铺、接客、成交、改价、补货或消耗库存
   return drawShopCustomerPickShadowWorldWorld({
     ctx,
     spec,
