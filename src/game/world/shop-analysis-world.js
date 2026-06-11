@@ -175,6 +175,115 @@ export function shopCustomerForecastCanvasTargetWorld(spec = null) {
   };
 }
 
+export function drawShopCustomerForecastWorldBoardWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+  drawShopWeatherShelfGoodIcon = () => {},
+  labels = {},
+} = {}) {
+  if (!ctx || !spec?.active || !spec.rect) return false;
+  const { x, y, width, height } = spec.rect;
+  const accent = {
+    ready: "#286f58",
+    warn: "#be4f37",
+    empty: "#8f5f3f",
+    focus: "#b47d2f",
+  }[spec.tone] || "#b47d2f";
+  const fill = spec.tone === "ready"
+    ? "rgba(237, 243, 223, 0.94)"
+    : spec.tone === "warn"
+      ? "rgba(255, 240, 232, 0.95)"
+      : "rgba(255, 248, 232, 0.95)";
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.15) * 1.8;
+  const cardY = y + pulse;
+  const good = spec.topGood || { itemName: labels.refillName || "补货", count: 0, missing: true };
+
+  ctx.save();
+  ctx.strokeStyle = `${accent}55`;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 9;
+  ctx.beginPath();
+  ctx.moveTo(x + 42, cardY + height - 8);
+  ctx.quadraticCurveTo(x - 18, cardY + height + 34, 220, 226);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = "rgba(23, 35, 29, 0.13)";
+  ctx.beginPath();
+  ctx.ellipse(x + width * 0.5, cardY + height + 7, width * 0.42, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  drawCanvasCard(ctx, x, cardY, width, height, fill);
+  ctx.strokeStyle = active ? accent : `${accent}88`;
+  ctx.lineWidth = active ? 3.2 : 2;
+  ctx.beginPath();
+  ctx.roundRect(x, cardY, width, height, 17);
+  ctx.stroke();
+
+  if (active) {
+    ctx.strokeStyle = `${accent}66`;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    ctx.lineDashOffset = reducedMotion ? 0 : -motion * 14;
+    ctx.beginPath();
+    ctx.roundRect(x - 5, cardY - 5, width + 10, height + 10, 20);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  ctx.fillStyle = `${accent}22`;
+  ctx.beginPath();
+  ctx.roundRect(x + 12, cardY + 12, 38, 38, 12);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 18px Microsoft YaHei";
+  ctx.fillText(labels.windGlyph || "风", x + 22, cardY + 37);
+
+  ctx.fillStyle = accent;
+  ctx.font = "800 11px Microsoft YaHei";
+  ctx.fillText(`${spec.title} · ${labels.clickable || "可点"}`, x + 60, cardY + 20);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 13px Microsoft YaHei";
+  ctx.fillText(`${spec.customerName} 看重 ${spec.hotTagLabel}`.slice(0, 19), x + 60, cardY + 39);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "800 10px Microsoft YaHei";
+  ctx.fillText(`${labels.featuredPrefix || "主推"} ${spec.itemText}`.slice(0, 21), x + 60, cardY + 55);
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
+  ctx.beginPath();
+  ctx.roundRect(x + 14, cardY + 64, width - 28, 18, 9);
+  ctx.fill();
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(`${spec.weatherLine} · ${spec.themeLine}`.slice(0, 35), x + 26, cardY + 76);
+
+  ctx.fillStyle = accent;
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(`${labels.openingPrefix || "开铺："}${spec.openingLine}`.slice(0, 17), x + 18, cardY + 94);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "9px Microsoft YaHei";
+  ctx.fillText(`${labels.advicePrefix || "建议："}${spec.advice}`.slice(0, 20), x + 118, cardY + 94);
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
+  ctx.strokeStyle = `${accent}55`;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(x + width - 48, cardY + 16, 34, 34, 10);
+  ctx.fill();
+  ctx.stroke();
+  drawShopWeatherShelfGoodIcon(ctx, good, x + width - 44, cardY + 19, 28, {
+    accent,
+    missing: Boolean(good.missing),
+    pulse: reducedMotion ? 0 : Math.sin(motion * 2.3) * 1.2,
+  });
+  ctx.restore();
+  return true;
+}
+
 export function shopLiveFocusSpecWorld({
   report = [],
   theme = null,
