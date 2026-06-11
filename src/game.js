@@ -32881,6 +32881,10 @@ function orderRewardReinvestTrailSafetyText() {
 }
 
 function orderRewardReinvestTrailWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
+  return orderRewardReinvestTrailWorldSpecBridge(width, height);
+}
+
+function orderRewardReinvestTrailWorldSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640) {
   return orderRewardReinvestTrailWorldSpecWorld({
     width,
     height,
@@ -32894,18 +32898,18 @@ function orderRewardReinvestTrailWorldAtCanvasPoint(px, py) {
   return orderRewardReinvestTrailWorldAtCanvasPointWorld({
     px,
     py,
-    spec: orderRewardReinvestTrailWorldSpec(refs.world?.width || 960, refs.world?.height || 640),
+    spec: orderRewardReinvestTrailWorldSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
   });
 }
 
-function focusOrderRewardReinvestTrailWorldFromCanvas(spec = orderRewardReinvestTrailWorldSpec()) {
+function focusOrderRewardReinvestTrailWorldFromCanvas(spec = orderRewardReinvestTrailWorldSpecBridge()) {
   if (!spec) return false;
   orderRewardReinvestTrailWorldFocus = { key: spec.key, day: state.day, type: spec.type };
   addLog("点选回款再投入账串", `${spec.sourceOrderTitle} 的回款路线：${spec.routeText}，建议先看「${spec.label || spec.title}」。${spec.safety}。`);
   return focusOrderRewardNextUseWorldFromCanvas(spec);
 }
 
-function drawOrderRewardReinvestTrailWorld(ctx, spec = orderRewardReinvestTrailWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
+function drawOrderRewardReinvestTrailWorld(ctx, spec = orderRewardReinvestTrailWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
   return drawOrderRewardReinvestTrailWorldWorld({
     ctx,
     spec,
@@ -82648,7 +82652,7 @@ function drawWorld() {
   drawReadyOrderSealWorld(ctx, readyOrderSealWorldSpecBridge(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawOrderDeliveryEchoWorld(ctx, orderDeliveryEchoWorldSpecBridge(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawOrderRewardNextUseWorld(ctx, orderRewardNextUseWorldSpecBridge(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
-  drawOrderRewardReinvestTrailWorld(ctx, orderRewardReinvestTrailWorldSpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
+  drawOrderRewardReinvestTrailWorld(ctx, orderRewardReinvestTrailWorldSpecBridge(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawSeedRestockBagWorld(ctx, seedRestockBagWorldSpec(width, height, originX, originY, tile, gap), settings.reducedMotion ? 0 : performance.now() / 1000);
   drawOrderCraftPrepWorldBoard(ctx, orderCraftPrepWorldBoardSpec(width, height));
   drawOrderSeedPrepWorldBoard(ctx, orderSeedPrepWorldBoardSpec(width, height));
