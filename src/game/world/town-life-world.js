@@ -467,6 +467,50 @@ export function drawTownLifeErrandRouteCueWorld({
   return true;
 }
 
+export function drawTownLifeShopMomentMarkerWorld({
+  ctx,
+  row = null,
+  point = null,
+  index = 0,
+  motion = 0,
+  reducedMotion = false,
+} = {}) {
+  const moment = row?.shopMomentBark;
+  const rect = moment && point ? { x: point.x + 30, y: point.y - 20, width: 48, height: 28 } : null;
+  if (!ctx || !rect) return false;
+  const bob = reducedMotion ? 0 : Math.sin(motion * 2.3 + index * 0.7) * 1.6;
+  const glow = reducedMotion ? 0.16 : 0.16 + Math.max(0, Math.sin(motion * 3 + index)) * 0.12;
+  ctx.save();
+  ctx.fillStyle = `rgba(224, 182, 109, ${glow})`;
+  ctx.beginPath();
+  ctx.ellipse(rect.x + 25, rect.y + 16 + bob, 28, 12, -0.08, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255, 248, 232, 0.96)";
+  ctx.strokeStyle = "rgba(180, 125, 47, 0.56)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 3, rect.y + 4 + bob, 42, 22, 9);
+  ctx.fill();
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(143, 95, 63, 0.46)";
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(rect.x + 11, rect.y + 9 + bob);
+  ctx.lineTo(rect.x + 33, rect.y + 9 + bob);
+  ctx.moveTo(rect.x + 11, rect.y + 15 + bob);
+  ctx.lineTo(rect.x + 36, rect.y + 15 + bob);
+  ctx.stroke();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText("旧铺", rect.x + 12, rect.y + 23 + bob);
+  ctx.fillStyle = "#b47d2f";
+  ctx.beginPath();
+  ctx.arc(rect.x + 39, rect.y + 7 + bob, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  return true;
+}
+
 export function drawTownLifeRouteWorldBoardWorld({
   ctx,
   spec = null,
