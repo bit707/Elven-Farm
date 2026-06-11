@@ -611,3 +611,108 @@ export function shopWeatherCustomerReactionMarkupWorld({
     </div>
   `;
 }
+
+export function shopWeatherShelfAfterglowSpecWorld({
+  report = [],
+  shelf = null,
+  weatherName = "天气",
+} = {}) {
+  const entry = (Array.isArray(report) ? report : []).find((row) => row?.reason === "weather_shelf");
+  if (!entry) return null;
+  const count = Number((String(entry.text || "").match(/促成\s+(\d+)/) || [])[1] || 0);
+  const success = count > 0;
+  return {
+    active: true,
+    success,
+    count,
+    label: success ? `成交 ${count} 单` : "待补货",
+    title: "天气货签余温",
+    text: entry.text || "",
+    detail: entry.detail || "",
+    tone: success ? "good" : "warn",
+    weatherName: shelf?.weatherName || weatherName,
+    itemName: shelf?.topGoods?.[0]?.itemName || shelf?.restockPlan?.itemName || "",
+  };
+}
+
+export function shopWeatherShelfCustomerVignetteSpecWorld({
+  shelf = null,
+  reaction = null,
+  afterglow = null,
+} = {}) {
+  if (!shelf?.active || !reaction?.active) return { active: false };
+  const hasGoods = shelf.topGoods.length > 0;
+  const topGood = shelf.topGoods[0] || null;
+  const status = afterglow?.success
+    ? "attracted"
+    : hasGoods
+      ? "hesitate"
+      : "missing";
+  const accent = status === "attracted" ? "#286f58" : status === "missing" ? "#be4f37" : (reaction.accent || "#b47d2f");
+  const label = status === "attracted"
+    ? "被天气货签吸引"
+    : status === "missing"
+      ? "空位让客人回头"
+      : "看见主推还在犹豫";
+  const bubble = status === "attracted"
+    ? `这件${topGood?.itemName || "主推货"}正合天色。`
+    : status === "missing"
+      ? `今天想找${shelf.missingTagText || "应季货"}。`
+      : `${reaction.tagHint || "应季"}货签很亮，价格再想想。`;
+  return {
+    active: true,
+    status,
+    tone: status === "attracted" ? "good" : status === "missing" ? "warn" : "mid",
+    accent,
+    label,
+    bubble,
+    weatherName: shelf.weatherName,
+    customerLabel: reaction.customerLabel || "看牌客",
+    itemName: topGood?.itemName || shelf.restockPlan?.itemName || shelf.missingTagText || "天气对口货",
+    good: topGood || { itemName: "待补", count: 0, missing: true },
+    count: afterglow?.count || 0,
+    detail: status === "attracted"
+      ? `天气货签顾客小景：${shelf.weatherName}把${topGood?.itemName || "主推货"}推到客人眼前。`
+      : status === "missing"
+        ? `天气货签顾客小景：货架空位暴露了${shelf.missingTagText || "应季货"}缺口。`
+        : "天气货签顾客小景：客人已经停下，但还需要补厚库存或给出价格理由。",
+  };
+}
+
+export function shopWeatherShelfDaySummarySpecWorld({
+  afterglow = null,
+  shelf = null,
+  vignette = null,
+} = {}) {
+  if (!afterglow?.active) return null;
+  const plan = shelf?.restockPlan || null;
+  const readyRoute = (plan?.routes || [])[0] || null;
+  const followupAction = vignette?.status === "missing" ? "restock" : "review";
+  const followupTone = vignette?.status === "attracted" ? "good" : vignette?.status === "missing" ? "warn" : "review";
+  const nextAction = vignette?.status === "attracted"
+    ? `明天继续补厚 ${afterglow.itemName || plan?.itemName || "天气主推货"}，别让头排断档。`
+    : vignette?.status === "missing"
+      ? plan?.reason || "明天先补一件天气对口货。"
+      : `明天先复盘价格、陈列和库存厚度，让${vignette?.itemName || "天气主推货"}不只被看见，也能被买走。`;
+  return {
+    ...afterglow,
+    status: vignette?.status || (afterglow.success ? "attracted" : "missing"),
+    followupAction,
+    followupTone,
+    title: afterglow.success ? "天气货签接住了客人" : vignette?.status === "hesitate" ? "天气货签留住了脚步" : "天气货签还缺一口货",
+    headline: afterglow.success
+      ? `${afterglow.weatherName}促成 ${afterglow.count} 单天气对口成交。`
+      : vignette?.status === "hesitate"
+        ? `${afterglow.weatherName}货签已经把客人留住，但还差价格理由或库存厚度。`
+        : `${afterglow.weatherName}货签已经挂出，但顾客还没被真正接住。`,
+    nextAction,
+    itemId: plan?.itemId || "",
+    tag: plan?.tag || "",
+    route: readyRoute,
+    buttonLabel: followupAction === "restock"
+      ? "补天气对口货"
+      : afterglow.success
+        ? "补厚天气主推货"
+        : "复盘天气货签",
+  };
+}
