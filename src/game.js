@@ -31737,15 +31737,18 @@ function shopDiagnosisWorldBoardAtCanvasPoint(px, py) {
 }
 
 function shopCustomerReasonCompassWorldSpec(
-  lesson = shopCustomerDayLessonSpec(),
-  journey = shopCustomerJourneySpec(),
-  diagnosis = shopDiagnosisWorldBoardSpec(),
+  lesson = null,
+  journey = null,
+  diagnosis = null,
 ) {
   return shopCustomerReasonCompassWorldSpecWorld({
     lesson,
     journey,
     diagnosis,
     day: state.day,
+    shopCustomerDayLessonSpec,
+    shopCustomerJourneySpec,
+    shopDiagnosisWorldBoardSpec,
   });
 }
 
