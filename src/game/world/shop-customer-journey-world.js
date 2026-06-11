@@ -1230,6 +1230,14 @@ export function shopCustomerDayLessonFocusSpecWorld({
   };
 }
 
+export function shopCustomerDayLessonFocusTargetWorld({
+  key = "buy_reason",
+  spec = null,
+  card = null,
+} = {}) {
+  return shopCustomerDayLessonFocusSpecWorld({ key, spec, card });
+}
+
 export function shopFirstCustomerThresholdSafetyTextWorld() {
   return "只回看旧铺报告和顾客旅线，不会自动开铺、上架、接客、成交、改价、补货、交单、扣库存或消耗资源";
 }
@@ -1717,6 +1725,10 @@ export function shopCustomerLessonMorningFollowupFocusSpecWorld(spec = null, day
   };
 }
 
+export function shopCustomerLessonMorningFollowupFocusTargetWorld(spec = null, day = 1) {
+  return shopCustomerLessonMorningFollowupFocusSpecWorld(spec, day);
+}
+
 export function shopCustomerLessonVerificationEchoSafetyTextWorld() {
   return "只回看旧铺改法验证、顾客旅线和经营报告，不会自动开铺、调价、补货、接客、成交、交单、扣库存或消耗资源";
 }
@@ -1844,6 +1856,10 @@ export function shopCustomerLessonVerificationEchoFocusSpecWorld(spec = null, da
       missingLog: "旧铺改法验证回响已经生成，但顾客旅线暂时没有找到。先回看旧铺报告和三因牌；这里不会自动开铺、调价、补货、成交或消耗库存。",
     },
   };
+}
+
+export function shopCustomerLessonVerificationEchoFocusTargetWorld(spec = null, day = 1) {
+  return shopCustomerLessonVerificationEchoFocusSpecWorld(spec, day);
 }
 
 export function shopReturningTrailWorldSpecWorld({

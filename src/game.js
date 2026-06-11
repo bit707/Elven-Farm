@@ -346,10 +346,10 @@ import {
   shopFirstSaleLessonWorldAtCanvasPointWorld,
   shopFirstSaleLessonWorldSpecWorld,
   shopFirstSaleReceiptWorldSpecWorld,
-  shopCustomerLessonMorningFollowupFocusSpecWorld,
+  shopCustomerLessonMorningFollowupFocusTargetWorld,
   shopCustomerLessonMorningFollowupSpecWorld,
   shopCustomerLessonMorningFollowupWorldAtCanvasPointWorld,
-  shopCustomerLessonVerificationEchoFocusSpecWorld,
+  shopCustomerLessonVerificationEchoFocusTargetWorld,
   shopCustomerLessonVerificationEchoWorldAtCanvasPointWorld,
   shopCustomerLessonVerificationEchoWorldSpecWorld,
   SHOP_CUSTOMER_JOURNEY_STAGES_WORLD,
@@ -359,7 +359,7 @@ import {
   shopCustomerDecisionLedgerSpecWorld,
   shopCustomerDayLessonMarkupWorld,
   shopCustomerDayLessonSpecWorld,
-  shopCustomerDayLessonFocusSpecWorld,
+  shopCustomerDayLessonFocusTargetWorld,
   shopCustomerJourneyMarkupWorld,
   shopCustomerJourneyRowsWorld,
   shopCustomerJourneySpecWorld,
@@ -26866,13 +26866,13 @@ function shopCustomerDayLessonMarkup(spec = shopCustomerDayLessonSpec()) {
 function focusDaySummaryShopCustomerLesson(key = "buy_reason") {
   const spec = state.lastDaySummary?.shopCustomerLesson || shopCustomerDayLessonSpec();
   const card = spec?.cards?.find((entry) => entry.key === key) || spec?.cards?.[0] || null;
-  const focusSpec = shopCustomerDayLessonFocusSpecWorld({ key, spec, card });
+  const focusTarget = shopCustomerDayLessonFocusTargetWorld({ key, spec, card });
   focusShopFromCanvas({
-    ...focusSpec.target,
+    ...focusTarget.target,
     journeySpec: shopCustomerJourneySpec(),
     diagnosisBoard: shopDiagnosisWorldBoardSpec(),
   });
-  addLog(focusSpec.logTitle, focusSpec.logDetail);
+  addLog(focusTarget.logTitle, focusTarget.logDetail);
   renderLogs();
   return true;
 }
@@ -31647,9 +31647,9 @@ function shopCustomerLessonMorningFollowupWorldAtCanvasPoint(px, py) {
 function focusShopCustomerLessonMorningFollowupWorldFromCanvas(target = shopCustomerLessonMorningFollowupWorldSpec()) {
   const spec = target?.shopCustomerLessonMorningFollowup || target;
   if (!spec) return false;
-  const focusSpec = shopCustomerLessonMorningFollowupFocusSpecWorld(spec, state.day);
-  shopCustomerLessonMorningFollowupWorldFocus = focusSpec.focusState;
-  return queueStoryCompassFocusTarget(focusSpec.target);
+  const focusTarget = shopCustomerLessonMorningFollowupFocusTargetWorld(spec, state.day);
+  shopCustomerLessonMorningFollowupWorldFocus = focusTarget.focusState;
+  return queueStoryCompassFocusTarget(focusTarget.target);
 }
 
 function shopCustomerLessonVerificationEchoWorldSpec(
@@ -31682,9 +31682,9 @@ function shopCustomerLessonVerificationEchoWorldAtCanvasPoint(px, py) {
 function focusShopCustomerLessonVerificationEchoWorldFromCanvas(target = shopCustomerLessonVerificationEchoWorldSpec()) {
   const spec = target?.shopCustomerLessonVerificationEcho || target;
   if (!spec) return false;
-  const focusSpec = shopCustomerLessonVerificationEchoFocusSpecWorld(spec, state.day);
-  shopCustomerLessonVerificationEchoWorldFocus = focusSpec.focusState;
-  return queueStoryCompassFocusTarget(focusSpec.target);
+  const focusTarget = shopCustomerLessonVerificationEchoFocusTargetWorld(spec, state.day);
+  shopCustomerLessonVerificationEchoWorldFocus = focusTarget.focusState;
+  return queueStoryCompassFocusTarget(focusTarget.target);
 }
 
 function shopWordOfMouthRestockedMorningWorldSpec(summary = state.lastDaySummary?.shopWordOfMouthMorningFollowup || null) {
