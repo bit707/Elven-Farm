@@ -1433,3 +1433,144 @@ export function drawOrderMarketPrepWorldBoardWorld({
   ctx.restore();
   return true;
 }
+
+export function orderBuildPrepWorldBoardSpecWorld({
+  width = 960,
+  height = 640,
+  rows = [],
+  day = 1,
+  slot = null,
+  copy = null,
+} = {}) {
+  if (!rows.length) return null;
+  const top = rows[0];
+  const cardWidth = 318;
+  const cardHeight = 110 + rows.length * 22;
+  const x = Math.max(596, Math.min(width - cardWidth - 28, 612));
+  const y = Math.max(462, Math.min(height - cardHeight - 22, 486));
+  return {
+    key: `${day}:${rows.map((row) => `${row.orderId}:${row.recipeId}:${row.buildingId}`).join("|")}`,
+    day,
+    rows,
+    top,
+    rect: { x, y, width: cardWidth, height: cardHeight },
+    anchor: slot ? { x: slot.x + 50, y: slot.y + 58 } : { x: 756, y: 444 },
+    title: copy?.title || "主世界订单缺口需建工坊",
+    headline: `${top.recipeTitle} 缺 ${top.machineLabel}`,
+    detail: `先建 ${top.buildingLabel}`,
+    cta: copy?.cta || "先建工坊 · 可点",
+  };
+}
+
+export function orderBuildPrepWorldBoardAtCanvasPointWorld({ px, py, spec = null } = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return (
+    px >= rect.x
+    && px <= rect.x + rect.width
+    && py >= rect.y
+    && py <= rect.y + rect.height
+  ) ? spec : null;
+}
+
+export function drawOrderBuildPrepWorldBoardWorld({
+  ctx,
+  spec = null,
+  reducedMotion = false,
+  motion = performance.now() / 1000,
+  day = 1,
+  focus = null,
+  drawCanvasCard,
+} = {}) {
+  if (!spec?.rect || !drawCanvasCard) return false;
+  const { rect, rows, top, anchor } = spec;
+  const safeMotion = reducedMotion ? 0 : motion;
+  const bob = reducedMotion ? 0 : Math.sin(safeMotion * 1.58) * 2;
+  const cardY = rect.y + bob;
+  const active = focus?.day === day && focus?.key === spec.key;
+  const accent = "#4f6f8f";
+
+  ctx.save();
+  ctx.strokeStyle = active ? "rgba(79, 111, 143, 0.88)" : "rgba(79, 111, 143, 0.46)";
+  ctx.lineWidth = active ? 2.8 : 1.7;
+  ctx.setLineDash([7, 7]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -safeMotion * 10;
+  ctx.beginPath();
+  ctx.moveTo(rect.x + 28, cardY + 24);
+  ctx.quadraticCurveTo(rect.x - 38, cardY - 28, anchor.x, anchor.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(235, 248, 255, 0.96)");
+  ctx.strokeStyle = active ? "rgba(79, 111, 143, 0.94)" : "rgba(79, 111, 143, 0.58)";
+  ctx.lineWidth = active ? 2.8 : 1.5;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(79, 111, 143, 0.16)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 56, 52, 16);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(79, 111, 143, 0.66)";
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, cardY + 14, 56, 52, 16);
+  ctx.stroke();
+  ctx.fillStyle = accent;
+  ctx.font = "900 22px Microsoft YaHei";
+  ctx.fillText("坊", rect.x + 31, cardY + 47);
+  ctx.strokeStyle = "rgba(143, 95, 63, 0.72)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(rect.x + 24, cardY + 58);
+  ctx.lineTo(rect.x + 60, cardY + 31);
+  ctx.moveTo(rect.x + 52, cardY + 57);
+  ctx.lineTo(rect.x + 32, cardY + 35);
+  ctx.stroke();
+  ctx.fillStyle = "#e0b66d";
+  ctx.beginPath();
+  ctx.arc(rect.x + 24, cardY + 58, 4.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = accent;
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(`${spec.cta} · ${spec.headline}`, rect.x + 84, cardY + 26);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 15px Microsoft YaHei";
+  ctx.fillText(top.orderTitle.slice(0, 18), rect.x + 84, cardY + 48);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(`${spec.detail} · ${top.buildReady ? "材料已齐" : "材料待补"}`.slice(0, 34), rect.x + 84, cardY + 66);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "800 10px Microsoft YaHei";
+  ctx.fillText(`订单缺 ${top.itemName} ${top.outputHave}/${top.outputNeed} · 原料 ${top.inputText}`.slice(0, 38), rect.x + 84, cardY + 82);
+
+  rows.slice(0, 3).forEach((row, index) => {
+    const rowY = cardY + 106 + index * 22;
+    const primary = row.recipeId === top.recipeId && row.orderId === top.orderId && row.buildingId === top.buildingId;
+    ctx.fillStyle = primary ? "rgba(79, 111, 143, 0.14)" : "rgba(255, 253, 245, 0.72)";
+    ctx.beginPath();
+    ctx.roundRect(rect.x + 16, rowY - 15, rect.width - 32, 18, 8);
+    ctx.fill();
+    ctx.fillStyle = primary ? accent : "#8f5f3f";
+    ctx.font = "900 10px Microsoft YaHei";
+    ctx.fillText(primary ? "先建" : "需建", rect.x + 28, rowY - 2);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "800 10px Microsoft YaHei";
+    ctx.fillText(row.buildingLabel.slice(0, 12), rect.x + 68, rowY - 2);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "10px Microsoft YaHei";
+    ctx.fillText(`${row.machineLabel} · ${row.buildReady ? "可建" : "缺料"}`.slice(0, 16), rect.x + 176, rowY - 2);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + rect.width - 55, cardY + 12, 40, 18, 9);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 9px Microsoft YaHei";
+  ctx.fillText("可点", rect.x + rect.width - 46, cardY + 25);
+  ctx.restore();
+  return true;
+}
