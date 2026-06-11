@@ -936,3 +936,154 @@ export function drawQingboIngredientTriadWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function drawCanalRestorationFeedbackWorld({
+  ctx,
+  width = 0,
+  height = 0,
+  feedback = null,
+  now = 0,
+  ease = 0,
+  pulse = 0,
+  reducedMotion = false,
+  tile = 0,
+  gap = 0,
+  originX = 0,
+  originY = 0,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !feedback) return false;
+  const accent = "#4d91a6";
+
+  ctx.save();
+  ctx.globalAlpha = Number(feedback.fade ?? 1);
+  const wash = ctx.createRadialGradient(width * 0.62, height * 0.42, 28, width * 0.62, height * 0.42, 360);
+  wash.addColorStop(0, "rgba(159, 209, 223, 0.28)");
+  wash.addColorStop(0.42, "rgba(202, 235, 210, 0.16)");
+  wash.addColorStop(1, "rgba(159, 209, 223, 0)");
+  ctx.fillStyle = wash;
+  ctx.beginPath();
+  ctx.arc(width * 0.62, height * 0.42, 360, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(159, 209, 223, 0.82)";
+  ctx.lineWidth = 12;
+  ctx.lineCap = "round";
+  ctx.setLineDash([28, 18]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -now / 24;
+  ctx.beginPath();
+  ctx.moveTo(792, 186);
+  ctx.bezierCurveTo(676, 264, 674, 382, 548, 438);
+  ctx.bezierCurveTo(420, 496, 304, 470, 180, 570);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.strokeStyle = "rgba(255, 253, 245, 0.7)";
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 4; i += 1) {
+    const offset = i * 0.17 + ease * 0.35;
+    const x = 786 - i * 112 - ease * 60;
+    const y = 198 + i * 92 + Math.sin(now / 360 + i) * 12;
+    ctx.beginPath();
+    ctx.ellipse(x - offset * 32, y, 26 + pulse + i * 3, 8 + i, -0.24, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  for (const [index, mark] of (feedback.plotMarks || []).entries()) {
+    const x = originX + mark.x * (tile + gap);
+    const y = originY + mark.y * (tile + gap);
+    const reveal = Math.max(0, Math.min(1, ease - index * 0.025));
+    if (reveal <= 0) continue;
+    ctx.fillStyle = `rgba(202, 235, 210, ${0.16 + 0.18 * reveal})`;
+    ctx.beginPath();
+    ctx.roundRect(x - 4, y - 4, tile + 8, tile + 8, 12);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(255, 253, 245, ${0.46 + 0.24 * Math.sin(now / 240 + index)})`;
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.roundRect(x + 5, y + 5, tile - 10, tile - 10, 10);
+    ctx.stroke();
+    ctx.fillStyle = `rgba(77, 145, 166, ${0.2 + 0.18 * reveal})`;
+    ctx.beginPath();
+    ctx.ellipse(x + tile / 2, y + tile * 0.72, tile * (0.28 + 0.08 * reveal), tile * 0.09, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const cardWidth = 548;
+  const cardHeight = 208;
+  const x = Math.round(width / 2 - cardWidth / 2);
+  const y = Math.round(78 + pulse - ease * 12);
+  const glyphX = x + 84;
+  const glyphY = y + 96;
+  drawCanvasCard(ctx, x, y, cardWidth, cardHeight, "rgba(248, 252, 247, 0.96)");
+
+  ctx.fillStyle = "rgba(159, 209, 223, 0.28)";
+  ctx.beginPath();
+  ctx.roundRect(x + 24, y + 28, 126, 126, 32);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(77, 145, 166, 0.58)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.ellipse(glyphX, glyphY + 24, 46 + pulse, 15, -0.12, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(255, 253, 245, 0.82)";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(glyphX, glyphY - 6, 32 + pulse * 0.2, 0.22, Math.PI * 1.72);
+  ctx.stroke();
+  ctx.fillStyle = accent;
+  ctx.font = "800 34px Microsoft YaHei";
+  ctx.fillText("渠", glyphX - 24, glyphY + 4);
+
+  for (let i = 0; i < 8; i += 1) {
+    const angle = now / 430 + i * 0.78;
+    const radius = 44 + (i % 3) * 9 + ease * 12;
+    ctx.fillStyle = i % 2 ? "rgba(255, 253, 245, 0.86)" : "rgba(159, 209, 223, 0.72)";
+    ctx.beginPath();
+    ctx.arc(glyphX + Math.cos(angle) * radius, glyphY + Math.sin(angle) * radius * 0.56, 3 + (i % 2), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = accent;
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(String(feedback.label || "水流恢复 · 地块扩张").slice(0, 24), x + 178, y + 38);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 24px Microsoft YaHei";
+  ctx.fillText(String(feedback.headline || "旧渠重新活了过来").slice(0, 18), x + 178, y + 72);
+  ctx.fillStyle = "#286f58";
+  ctx.font = "700 15px Microsoft YaHei";
+  ctx.fillText(String(feedback.detail || "").slice(0, 34), x + 178, y + 102);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(String(feedback.unlockText || "水系作物解锁").slice(0, 38), x + 178, y + 130);
+  ctx.fillStyle = "#4d91a6";
+  ctx.font = "800 12px Microsoft YaHei";
+  ctx.fillText(String(feedback.mapChangeText || "永久地图变化：新水田已写入地图").slice(0, 44), x + 178, y + 154);
+  ctx.fillStyle = "#286f58";
+  ctx.font = "800 12px Microsoft YaHei";
+  ctx.fillText(String(feedback.tomorrowGoalText || feedback.cta || "").slice(0, 44), x + 178, y + 174);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText(String(feedback.acceptanceLine || "录屏证据：永久改图 + 明日目标").slice(0, 46), x + 178, y + 192);
+
+  ctx.fillStyle = "rgba(255, 248, 232, 0.94)";
+  ctx.strokeStyle = "rgba(224, 182, 109, 0.42)";
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.roundRect(x + cardWidth - 138, y + 34, 102, 64, 14);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "#b47d2f";
+  ctx.font = "800 12px Microsoft YaHei";
+  ctx.fillText("露珠芹种子", x + cardWidth - 124, y + 58);
+  ctx.fillStyle = "#286f58";
+  ctx.font = "700 18px Microsoft YaHei";
+  ctx.fillText(`x${feedback.seedGiftCount || 0}`, x + cardWidth - 94, y + 84);
+
+  ctx.fillStyle = "rgba(202, 235, 210, 0.86)";
+  ctx.beginPath();
+  ctx.roundRect(x + 176, y + cardHeight - 22, Math.max(30, (cardWidth - 216) * ease), 6, 999);
+  ctx.fill();
+  ctx.restore();
+  return true;
+}
