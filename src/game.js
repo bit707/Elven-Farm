@@ -183,6 +183,7 @@ import {
   workshopReadyOrderDispatchWorldAtCanvasPointWorld,
   workshopReadyOrderDispatchWorldSpecFromRuntimeWorld,
   drawWorkshopSpiritAssistActionWorldWorld,
+  workshopSpiritAssistActionWorldAtCanvasPointWorld,
   workshopSpiritAssistActionWorldSpecFromRuntimeWorld,
   drawWorkshopToShopStockBridgeWorldWorld,
   workshopToShopStockBridgeWorldAtCanvasPointWorld,
@@ -52307,23 +52308,16 @@ function workshopSpiritAssistActionCopy(stageKey = "idle", helperName = "精怪"
   return copies[stageKey] || copies.idle;
 }
 
-function workshopSpiritAssistActionWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, livingState = currentLivingWorldState(), lineSpec = workshopProductionLineSpec(livingState?.queue || state.workshopQueue || [])) {
-  const helpers = state.spirits.filter((spirit) => spirit.job === "workshop");
-  const activeJob = lineSpec?.activeJob || null;
-  if (helpers.length === 0) return null;
-  const sceneSpec = workshopWorldProductionSceneSpec(lineSpec);
-  const stageProps = sceneSpec.stageProps || [];
-  const activeStage = activeJob
-    ? stageProps.find((prop) => prop.active) || stageProps[Math.max(0, Math.min(stageProps.length - 1, Number(activeJob.activeStageIndex || 0)))]
-    : stageProps.find((prop) => prop.key === "heat") || stageProps[2] || { key: "idle", label: "候火", x: 618, y: 502 };
-  const helper = helpers[0];
-  const helperNames = helpers.slice(0, 2).map((spirit) => spirit.name).join("、");
-  const helperText = helpers.length > 2 ? `${helperNames}等 ${helpers.length} 只` : helperNames || helper.name || "精怪";
-  const stageKey = activeJob ? activeStage?.key || "heat" : "idle";
-  const copy = workshopSpiritAssistActionCopy(stageKey, helper.name || "精怪", activeJob);
-  const orderMatch = activeJob?.orderMatch || null;
-  const speedText = activeJob?.speedText || lineSpec.speedText || multiplierText(workshopMultiplier() * workshopSpiritBonus());
-  const recipeId = activeJob?.recipeId || state.selectedRecipeId || availableRecipes()[0]?.recipe_id || "";
+function workshopSpiritAssistActionPanelCopy({
+  helper = null,
+  helperText = "",
+  activeJob = null,
+  activeStage = null,
+  copy = null,
+  orderMatch = null,
+} = {}) {
+  if (!helper || !copy) return null;
+  const helperName = helper.name || "精怪";
   const orderDetail = orderMatch?.orderId
     ? orderMatch.ready
       ? "出锅后订单可交"
@@ -52331,42 +52325,12 @@ function workshopSpiritAssistActionWorldSpec(width = refs.world?.width || 960, h
     : activeJob
       ? `${activeJob.outputItemName} 入仓后再定去向`
       : "选配方后手动排产";
-  const cardWidth = 318;
-  const cardHeight = 112;
-  const x = Math.max(24, Math.min(width - cardWidth - 24, 72));
-  const y = Math.max(360, Math.min(height - cardHeight - 24, 486));
   return {
-    key: `${state.day}:${helper.id}:${stageKey}:${activeJob?.id || "idle"}:${activeJob?.progress || 0}:${helpers.length}`,
-    day: state.day,
-    active: Boolean(activeJob),
-    helper,
-    helperId: helper.id,
-    helperName: helper.name || "精怪",
-    helperText,
-    helperCount: helpers.length,
-    stageKey,
-    stageLabel: activeJob ? activeStage?.label || activeJob.currentStage?.label || "稳火" : "候工",
-    actionTitle: copy.title,
-    actionText: copy.action,
-    detail: copy.detail,
-    summary: copy.summary,
-    recipeId,
-    orderId: orderMatch?.orderId || "",
-    orderReady: Boolean(orderMatch?.ready),
-    orderDetail,
-    speedText,
     title: "精怪帮火小动作 · 可点",
     headline: activeJob
-      ? `${helper.name || "精怪"}在${activeStage?.label || activeJob.currentStage?.label || "灶边"}帮火`
-      : `${helper.name || "精怪"}守着后厂候工`,
+      ? `${helperName}在${activeStage?.label || activeJob.currentStage?.label || "灶边"}帮火`
+      : `${helperName}守着后厂候工`,
     cta: "只定位伙伴栏/工坊队列",
-    safety: workshopSpiritAssistActionSafetyText(),
-    accent: copy.accent,
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: {
-      x: activeStage?.x || 618,
-      y: activeStage?.y || 502,
-    },
     nodes: [
       {
         key: "helper",
@@ -52385,12 +52349,16 @@ function workshopSpiritAssistActionWorldSpec(width = refs.world?.width || 960, h
       {
         key: "route",
         badge: orderMatch?.orderId ? "单" : activeJob ? "锅" : "候",
-        title: activeJob ? "下一步" : "排产口",
+        title: activeJob ? "下一步看哪" : "排产口",
         detail: orderDetail,
         accent: orderMatch?.ready ? "#286f58" : "#b47d2f",
       },
     ],
   };
+}
+
+function workshopSpiritAssistActionWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, livingState = currentLivingWorldState(), lineSpec = workshopProductionLineSpec(livingState?.queue || state.workshopQueue || [])) {
+  return workshopSpiritAssistActionWorldSpecBridge(width, height, livingState, lineSpec);
 }
 
 function workshopSpiritAssistActionWorldSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640, livingState = currentLivingWorldState(), lineSpec = workshopProductionLineSpec(livingState?.queue || state.workshopQueue || [])) {
@@ -52410,6 +52378,14 @@ function workshopSpiritAssistActionWorldSpecBridge(width = refs.world?.width || 
   const orderMatch = activeJob?.orderMatch || null;
   const speedText = activeJob?.speedText || lineSpec.speedText || multiplierText(workshopMultiplier() * workshopSpiritBonus());
   const recipeId = activeJob?.recipeId || state.selectedRecipeId || availableRecipes()[0]?.recipe_id || "";
+  const panelCopy = workshopSpiritAssistActionPanelCopy({
+    helper,
+    helperText,
+    activeJob,
+    activeStage,
+    copy,
+    orderMatch,
+  });
   return workshopSpiritAssistActionWorldSpecFromRuntimeWorld({
     width,
     height,
@@ -52425,19 +52401,16 @@ function workshopSpiritAssistActionWorldSpecBridge(width = refs.world?.width || 
     speedText,
     recipeId,
     safetyText: workshopSpiritAssistActionSafetyText(),
+    panelCopy,
   });
 }
 
 function workshopSpiritAssistActionWorldAtCanvasPoint(px, py) {
-  const spec = workshopSpiritAssistActionWorldSpecBridge();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return workshopSpiritAssistActionWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: workshopSpiritAssistActionWorldSpecBridge(),
+  });
 }
 
 function focusWorkshopSpiritAssistActionWorldFromCanvas(spec = workshopSpiritAssistActionWorldSpecBridge()) {

@@ -626,6 +626,7 @@ export function workshopSpiritAssistActionWorldSpecFromRuntimeWorld({
   speedText = "",
   recipeId = "",
   safetyText = "Focus only. No auto role change, craft, schedule, output, delivery, shop open, night change, or material spend.",
+  panelCopy = null,
 } = {}) {
   const safeHelpers = Array.isArray(helpers) ? helpers : [];
   if (safeHelpers.length === 0 || !helper || !copy) return null;
@@ -641,6 +642,7 @@ export function workshopSpiritAssistActionWorldSpecFromRuntimeWorld({
   const cardHeight = 112;
   const x = Math.max(24, Math.min(width - cardWidth - 24, 72));
   const y = Math.max(360, Math.min(height - cardHeight - 24, 486));
+  const safePanelCopy = panelCopy || {};
 
   return {
     key: `${day}:${helper.id}:${stageKey}:${activeJob?.id || "idle"}:${activeJob?.progress || 0}:${safeHelpers.length}`,
@@ -662,11 +664,11 @@ export function workshopSpiritAssistActionWorldSpecFromRuntimeWorld({
     orderReady: Boolean(orderMatch?.ready),
     orderDetail,
     speedText: speedText || "1.0x",
-    title: "Spirit assist micro-action - click",
-    headline: activeJob
+    title: safePanelCopy.title || "Spirit assist micro-action - click",
+    headline: safePanelCopy.headline || (activeJob
       ? `${helper.name || "Helper"} is assisting ${activeStage?.label || activeJob.currentStage?.label || "the line"}`
-      : `${helper.name || "Helper"} is waiting by the workshop`,
-    cta: "Focus companion panel / workshop queue",
+      : `${helper.name || "Helper"} is waiting by the workshop`),
+    cta: safePanelCopy.cta || "Focus companion panel / workshop queue",
     safety: safetyText,
     accent: copy.accent,
     rect: { x, y, width: cardWidth, height: cardHeight },
@@ -674,30 +676,47 @@ export function workshopSpiritAssistActionWorldSpecFromRuntimeWorld({
       x: activeStage?.x || 618,
       y: activeStage?.y || 502,
     },
-    nodes: [
-      {
-        key: "helper",
-        badge: "HLP",
-        title: "Who helps",
-        detail: helperText || helper.name || "Helper",
-        accent: "#8f5f3f",
-      },
-      {
-        key: "action",
-        badge: copy.badge,
-        title: copy.title,
-        detail: copy.action,
-        accent: copy.accent,
-      },
-      {
-        key: "route",
-        badge: orderMatch?.orderId ? "ORD" : activeJob ? "POT" : "IDL",
-        title: activeJob ? "Next step" : "Queue next",
-        detail: orderDetail,
-        accent: orderMatch?.ready ? "#286f58" : "#b47d2f",
-      },
-    ],
+    nodes: Array.isArray(safePanelCopy.nodes) && safePanelCopy.nodes.length > 0
+      ? safePanelCopy.nodes
+      : [
+        {
+          key: "helper",
+          badge: "HLP",
+          title: "Who helps",
+          detail: helperText || helper.name || "Helper",
+          accent: "#8f5f3f",
+        },
+        {
+          key: "action",
+          badge: copy.badge,
+          title: copy.title,
+          detail: copy.action,
+          accent: copy.accent,
+        },
+        {
+          key: "route",
+          badge: orderMatch?.orderId ? "ORD" : activeJob ? "POT" : "IDL",
+          title: activeJob ? "Next step" : "Queue next",
+          detail: orderDetail,
+          accent: orderMatch?.ready ? "#286f58" : "#b47d2f",
+        },
+      ],
   };
+}
+
+export function workshopSpiritAssistActionWorldAtCanvasPointWorld({
+  px,
+  py,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return (
+    px >= rect.x
+    && px <= rect.x + rect.width
+    && py >= rect.y
+    && py <= rect.y + rect.height
+  ) ? spec : null;
 }
 
 export function drawWorkshopSpiritAssistActionWorldWorld({
