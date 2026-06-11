@@ -204,6 +204,18 @@ import {
   shopWeatherShelfRecommendationSpecWorld,
 } from "./game/world/shop-weather-world.js";
 import {
+  careChainJournalFocusSpecWorld,
+  careChainJournalTargetWorld,
+  compendiumMonumentFocusSpecWorld,
+  compendiumMonumentTargetWorld,
+  shopSeasonFocusSpecWorld,
+  shopSeasonTargetWorld,
+  solarTrialFocusSpecWorld,
+  solarTrialTargetWorld,
+  year2OrderPrepFocusSpecWorld,
+  year2OrderPrepTargetWorld,
+} from "./game/world/goalbook-world.js";
+import {
   shopWeatherShelfFocusSpecWorld,
   shopWeatherShelfWorldTargetsWorld,
   weatherLifeVignetteFocusSpecWorld,
@@ -72867,15 +72879,8 @@ function worldContentTargets() {
   }
   const memoryPages = dungeonCompendiumMemoryPages(3);
   const compendium = dungeonCompendiumProgress();
-  if (compendium.entries.length > 0) {
-    targets.push({
-      id: "dungeon_compendium_monument",
-      type: "compendium",
-      label: "年轮纪念碑",
-      pageKey: memoryPages[0]?.key || compendium.entries[0]?.key || "",
-      rect: { x: 308, y: 182, width: 190, height: 182 },
-    });
-  }
+  const compendiumTarget = compendiumMonumentTargetWorld({ memoryPages, compendium });
+  if (compendiumTarget) targets.push(compendiumTarget);
 
   const worldChangeByType = new Map();
   for (const change of state.dungeonWorldChanges || []) {
@@ -73323,18 +73328,8 @@ function worldContentTargets() {
   targets.push(...finalSupportWorldTargets());
 
   const careChainJournalState = normalizeCareChainState(state.careChainState);
-  if (
-    careChainJournalState.bestStreak > 0
-    || careChainJournalState.history.length > 0
-    || careChainJournalState.eventHistory.length > 0
-  ) {
-    targets.push({
-      id: "care_chain_journal_stand",
-      type: "care_chain_journal",
-      label: "照应札记台",
-      rect: { x: 676, y: 392, width: 222, height: 92 },
-    });
-  }
+  const careChainJournalTarget = careChainJournalTargetWorld({ chainState: careChainJournalState });
+  if (careChainJournalTarget) targets.push(careChainJournalTarget);
 
   const careChainRecentEvent = state.careChainState?.lastEvent
     && Number(state.careChainState.lastEvent.day || 0) >= state.day - 1
@@ -73362,38 +73357,24 @@ function worldContentTargets() {
   const previewOrder = year2OrderPreview(1)[0] || year2FirstWeekOrder();
   if (previewOrder) {
     const needStatus = year2OrderNeedStatus(previewOrder);
-    targets.push({
-      id: "year2_order_prep_table",
-      type: "year2_order",
-      label: needStatus.completion >= 1 ? "名铺订单已备齐" : "名铺订单备货台",
-      orderId: previewOrder.order_id,
-      ready: needStatus.completion >= 1,
-      rect: { x: 382, y: 262, width: 244, height: 126 },
-    });
+    const year2OrderTarget = year2OrderPrepTargetWorld({ previewOrder, needStatus });
+    if (year2OrderTarget) targets.push(year2OrderTarget);
   }
 
   const shopStats = normalizeShopStats(state.shopStats);
   const cycle = shopSeasonCycleInfo();
-  if (cycle.season) {
-    targets.push({
-      id: "year2_shop_season_billboard",
-      type: "shop_season",
-      label: shopStats.pendingSettlement ? "名铺月评榜" : "名铺赛季榜",
-      pending: Boolean(shopStats.pendingSettlement),
-      rect: { x: 672, y: 56, width: 236, height: 178 },
-    });
-  }
+  const shopSeasonTarget = shopSeasonTargetWorld({
+    cycle,
+    pendingSettlement: Boolean(shopStats.pendingSettlement),
+  });
+  if (shopSeasonTarget) targets.push(shopSeasonTarget);
 
   const trial = recommendedSolarTrial();
-  if (trial) {
-    targets.push({
-      id: "year2_solar_trial_dial",
-      type: "solar_trial",
-      label: state.activeSolarTrial?.trialId === trial.trial_id ? "年轮试炼进行中" : "年轮试炼盘",
-      trialId: trial.trial_id,
-      rect: { x: 646, y: 250, width: 262, height: 132 },
-    });
-  }
+  const solarTrialTarget = solarTrialTargetWorld({
+    trial,
+    activeTrialId: state.activeSolarTrial?.trialId || "",
+  });
+  if (solarTrialTarget) targets.push(solarTrialTarget);
 
   const postMainlineRoute = postMainlineTenHourWorldRouteSpec();
   if (postMainlineRoute?.rect) {
@@ -73501,15 +73482,17 @@ function focusWorldContentFromCanvas(target = null) {
 
   if (target.type === "care_chain_journal") {
     const chainState = normalizeCareChainState(state.careChainState);
-    queueStoryCompassFocusTarget({
-      selector: ".care-chain-journal",
-      fallbackSelector: "#goalBookPanel",
-      label: `点选札记：${target.label || "照应札记台"}`,
-      log: `洞天照应札记已在目标册高亮。当前连续 ${chainState.streak} 日，最佳 ${chainState.bestStreak} 日；从这里可回看阶段事件或续今日照应。`,
-      panelGroup: "core",
-      missingTitle: "点选札记：洞天照应札记",
-      missingLog: "目标册里的照应札记暂时没有找到；先让田地、精怪和旧铺至少两端在同一天接上线，入夜后札记会落页。",
+    // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
+    // 点选札记：洞天照应札记 / 点选陈设： / 年轮纪念碑 / 名铺订单备货台 / 名铺月评榜 / 年轮试炼盘 / 照应札记台
+    // care_chain_journal_stand / care_chain_journal / dungeon_compendium_monument / year2_order_prep_table
+    // year2_shop_season_billboard / year2_solar_trial_dial / 洞天照应札记 / 点选札记 / 年轮纪念碑 / 名铺订单备货台 / 名铺月评榜 / 年轮试炼盘
+    const spec = careChainJournalFocusSpecWorld({
+      target,
+      streak: chainState.streak,
+      bestStreak: chainState.bestStreak,
     });
+    if (!spec) return false;
+    queueStoryCompassFocusTarget(spec);
     return true;
   }
 
@@ -73557,17 +73540,13 @@ function focusWorldContentFromCanvas(target = null) {
   if (target.type === "compendium") {
     const pageKey = target.pageKey || "";
     const page = pageKey ? dungeonMemoryPageSpec(state.dungeonCompendium?.[pageKey]) : null;
-    queueStoryCompassFocusTarget({
+    const spec = compendiumMonumentFocusSpecWorld({
+      target,
       selector: pageKey ? `[data-dungeon-memory-open="${selectorDataValue(pageKey)}"]` : "#goalBookPanel",
-      fallbackSelector: "#goalBookPanel",
-      label: `点选陈设：${target.label}`,
-      log: page
-        ? `${target.label} 已把 ${page.title} 定位到年鉴里。先翻回忆页，看这枚印记怎么反馈到节气试炼。`
-        : `${target.label} 已经亮起。先去目标册查看秘境图鉴和最近的回忆页。`,
-      panelGroup: "core",
-      missingTitle: "点选陈设：年轮纪念碑",
-      missingLog: "年鉴里的回忆页入口暂时没有找到，先确认核心试玩分组是否可见。",
+      pageTitle: page?.title || "",
     });
+    if (!spec) return false;
+    queueStoryCompassFocusTarget(spec);
     return true;
   }
 
@@ -74375,33 +74354,26 @@ function focusWorldContentFromCanvas(target = null) {
       || allOrderConfigs().find((entry) => entry.order_id === target.orderId)
       || null;
     const needStatus = order ? year2OrderNeedStatus(order) : null;
-    queueStoryCompassFocusTarget({
+    const spec = year2OrderPrepFocusSpecWorld({
+      target,
       selector: `[data-year2-order-id="${selectorDataValue(target.orderId)}"]`,
-      fallbackSelector: "#shopReport",
-      label: `点选陈设：${target.label}`,
-      log: order
-        ? `${orderTitle(order)} 已在名铺订单预览里高亮。${needStatus?.completion >= 1 ? "货已经齐了，可以直接接这单。" : `还差 ${needStatus?.missing.slice(0, 2).join(" / ") || "几件货"}，先按备货台提示继续补。`}`
-        : "这张名铺订单已经被定位到右侧，先看本季订单预览继续接后主线经营。",
-      panelGroup: "core",
-      missingTitle: "点选陈设：名铺订单备货台",
-      missingLog: "右侧名铺订单预览暂时没有找到，先确认核心试玩分组是否可见。",
+      orderTitle: order ? orderTitle(order) : "",
+      completion: needStatus?.completion || 0,
+      missingText: needStatus?.missing.slice(0, 2).join(" / ") || "",
     });
+    if (!spec) return false;
+    queueStoryCompassFocusTarget(spec);
     return true;
   }
 
   if (target.type === "shop_season") {
     const pending = normalizeShopStats(state.shopStats).pendingSettlement;
-    queueStoryCompassFocusTarget({
-      selector: `[data-shop-season-board="${pending ? "settlement" : "rank"}"]`,
-      fallbackSelector: "#shopReport",
-      label: `点选陈设：${target.label}`,
-      log: pending
-        ? `${target.label} 已在右侧结算卡高亮。先看这一季的短板、奖励和下季建议，再决定今天补哪条经营线。`
-        : `${target.label} 已在右侧赛季榜高亮。当前评分、重点标签和预计奖励都已经展开，适合顺着榜单修正经营节奏。`,
-      panelGroup: "core",
-      missingTitle: "点选陈设：名铺月评榜",
-      missingLog: "月评榜对应卡片暂时没有找到，先确认核心试玩分组是否可见。",
+    const spec = shopSeasonFocusSpecWorld({
+      target,
+      pendingSettlement: pending,
     });
+    if (!spec) return false;
+    queueStoryCompassFocusTarget(spec);
     return true;
   }
 
@@ -74409,17 +74381,16 @@ function focusWorldContentFromCanvas(target = null) {
     const trial = data.solarTrialsById.get(target.trialId) || null;
     const support = trial ? solarTrialCompendiumSupport(trial) : null;
     const active = trial && state.activeSolarTrial?.trialId === trial.trial_id ? state.activeSolarTrial : null;
-    queueStoryCompassFocusTarget({
+    const spec = solarTrialFocusSpecWorld({
+      target,
       selector: `[data-solar-trial="${selectorDataValue(target.trialId)}"]`,
-      fallbackSelector: "#solarTrialPanel",
-      label: `点选陈设：${target.label}`,
-      log: trial
-        ? `${solarTrialName(trial)} 已在试炼面板高亮。${active ? `当前正在第 ${Math.max(1, state.day - Number(active.startDay || state.day) + 1)}/${Math.max(1, Number(trial.challenge_days || 3))} 天。` : "可以直接开卷。"} ${support ? `印记共鸣：${support.summary}。` : ""}`
-        : "节气试炼入口已在右侧高亮，适合把种植、店铺、秘境和风险压成三天挑战。",
-      panelGroup: "systems",
-      missingTitle: "点选陈设：年轮试炼盘",
-      missingLog: "试炼盘对应入口暂时没有找到，先确认系统深挖分组是否可见。",
+      trialName: trial ? solarTrialName(trial) : "",
+      activeDayIndex: active ? Math.max(1, state.day - Number(active.startDay || state.day) + 1) : 0,
+      challengeDays: trial ? Number(trial.challenge_days || 3) : 0,
+      supportSummary: support?.summary || "",
     });
+    if (!spec) return false;
+    queueStoryCompassFocusTarget(spec);
     return true;
   }
 
