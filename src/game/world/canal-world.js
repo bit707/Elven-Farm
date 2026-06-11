@@ -1315,3 +1315,107 @@ export function drawWaterCropPlantFeedbackWorld({
   ctx.restore();
   return true;
 }
+
+export function drawWaterCropHarvestFeedbackWorld({
+  ctx,
+  width = 0,
+  height = 0,
+  feedback = null,
+  now = 0,
+  ease = 0,
+  pulse = 0,
+  reducedMotion = false,
+  tile = 0,
+  gap = 0,
+  originX = 0,
+  originY = 0,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !feedback) return false;
+  const plotX = originX + Number(feedback.plotX || 0) * (tile + gap);
+  const plotY = originY + Number(feedback.plotY || 0) * (tile + gap);
+  const centerX = plotX + tile / 2;
+  const centerY = plotY + tile / 2;
+  const accent = feedback.readyToCook ? "#286f58" : "#4d91a6";
+
+  ctx.save();
+  ctx.globalAlpha = Number(feedback.fade ?? 1);
+  const glow = ctx.createRadialGradient(centerX, centerY, 12, centerX, centerY, 150 + pulse);
+  glow.addColorStop(0, "rgba(255, 253, 245, 0.68)");
+  glow.addColorStop(0.42, feedback.readyToCook ? "rgba(202, 235, 210, 0.34)" : "rgba(159, 209, 223, 0.28)");
+  glow.addColorStop(1, "rgba(159, 209, 223, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 154 + pulse, 0, Math.PI * 2);
+  ctx.fill();
+
+  for (let i = 0; i < 7; i += 1) {
+    const angle = now / 420 + i * 0.9;
+    const radius = 28 + (i % 3) * 10 + ease * 18;
+    ctx.fillStyle = i % 2 ? "rgba(202, 235, 210, 0.78)" : "rgba(255, 253, 245, 0.88)";
+    ctx.beginPath();
+    ctx.ellipse(centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius * 0.52, 4 + (i % 2), 7, angle, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.strokeStyle = "rgba(77, 145, 166, 0.7)";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([10, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -now / 30;
+  ctx.beginPath();
+  ctx.roundRect(plotX - 7, plotY - 7, tile + 14, tile + 14, 14);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  const cardWidth = 492;
+  const cardHeight = 166;
+  const cardX = Math.max(34, Math.min(width - cardWidth - 34, plotX - 180));
+  const cardY = Math.max(72, Math.min(height - cardHeight - 34, plotY - 138 + pulse - ease * 10));
+  drawCanvasCard(ctx, cardX, cardY, cardWidth, cardHeight, "rgba(255, 253, 245, 0.96)");
+
+  ctx.fillStyle = feedback.readyToCook ? "rgba(202, 235, 210, 0.34)" : "rgba(159, 209, 223, 0.24)";
+  ctx.beginPath();
+  ctx.roundRect(cardX + 20, cardY + 24, 106, 106, 28);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "800 30px Microsoft YaHei";
+  ctx.fillText("收", cardX + 56, cardY + 64);
+  ctx.fillStyle = "#286f58";
+  ctx.font = "800 18px Microsoft YaHei";
+  ctx.fillText(`+${feedback.amount || 1}`, cardX + 58, cardY + 98);
+  if (feedback.qualityStars) {
+    ctx.fillStyle = "#b47d2f";
+    ctx.font = "700 12px Microsoft YaHei";
+    ctx.fillText(`${feedback.qualityLabel || "凡品"} ${feedback.qualityStars}`.slice(0, 12), cardX + 38, cardY + 120);
+  }
+
+  ctx.fillStyle = accent;
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(String(feedback.label || "水田初收 · 凉菜线接上").slice(0, 24), cardX + 148, cardY + 34);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 21px Microsoft YaHei";
+  ctx.fillText(String(feedback.headline || "露珠芹入仓").slice(0, 20), cardX + 148, cardY + 66);
+  ctx.fillStyle = "#286f58";
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(String(feedback.detail || "").slice(0, 38), cardX + 148, cardY + 94);
+  ctx.fillStyle = feedback.readyToCook ? "#b47d2f" : "#8f5f3f";
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(String(feedback.routeText || "").slice(0, 42), cardX + 148, cardY + 120);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "12px Microsoft YaHei";
+  ctx.fillText(String(feedback.orderText || "").slice(0, 46), cardX + 148, cardY + 144);
+
+  const barX = cardX + 24;
+  const barY = cardY + cardHeight - 20;
+  const cropRatio = Math.max(0, Math.min(1, Number(feedback.haveCrop || 0) / Math.max(1, Number(feedback.needCrop || 2))));
+  ctx.fillStyle = "rgba(23, 35, 29, 0.12)";
+  ctx.beginPath();
+  ctx.roundRect(barX, barY, cardWidth - 48, 6, 999);
+  ctx.fill();
+  ctx.fillStyle = feedback.readyToCook ? "rgba(224, 182, 109, 0.92)" : "rgba(77, 145, 166, 0.82)";
+  ctx.beginPath();
+  ctx.roundRect(barX, barY, Math.max(24, (cardWidth - 48) * cropRatio), 6, 999);
+  ctx.fill();
+  ctx.restore();
+  return true;
+}
