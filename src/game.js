@@ -97,6 +97,8 @@ import {
   spiritAssistNineGridActionWorldAtCanvasPointWorld,
   spiritAssistNineGridActionWorldSpecWorld,
   drawSpiritAssistNineGridActionWorldWorld,
+  spiritAssistRhythmWorldAtCanvasPointWorld,
+  spiritAssistRhythmWorldSpecWorld,
   drawSpiritAssistRhythmWorldWorld,
   spiritAssistSavingsLedgerWorldAtCanvasPointWorld,
   spiritAssistSavingsLedgerWorldSpecWorld,
@@ -10595,94 +10597,42 @@ function drawSpiritAssistToWorkshopBridgeWorld(ctx, spec = spiritAssistToWorksho
 }
 
 function spiritAssistRhythmWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, originX = gridMetrics().originX, originY = gridMetrics().originY, tile = gridMetrics().tile, gap = gridMetrics().gap) {
-  if (!state.spirits.length || !state.completed.has("assist") || state.dungeon && !state.dungeon.finished) return null;
-  const spirit = state.spirits.find((entry) => (entry.job || "farm") === "farm") || state.spirits[0];
-  if (!spirit) return null;
-  const cropPlots = state.plots.filter((plot) => plot.cropId);
-  if (!cropPlots.length) return null;
-  const needsWater = cropPlots.filter((plot) => !plot.watered);
-  const watered = cropPlots.filter((plot) => plot.watered);
-  const activePlots = (needsWater.length ? needsWater : watered)
-    .slice(0, 6)
-    .map((plot, index) => ({
-      ...plot,
-      runIndex: index,
-      needsWater: !plot.watered,
-      screenX: originX + plot.x * (tile + gap) + tile / 2,
-      screenY: originY + plot.y * (tile + gap) + tile / 2,
-      rect: {
-        x: originX + plot.x * (tile + gap),
-        y: originY + plot.y * (tile + gap),
-        width: tile,
-        height: tile,
-      },
-    }));
-  const mood = Math.round(Number(spirit.mood || 0));
-  const hunger = Math.round(Number(spirit.hunger || 0));
-  const stamina = Math.round(Number(spirit.stamina || 0));
-  const tired = stamina < 18 || hunger < 30 || mood < 40;
-  const ready = needsWater.length > 0 && !tired;
-  const settled = needsWater.length === 0;
-  const profile = spiritVisualProfile(spirit);
-  const rectWidth = 318;
-  const rectHeight = 126;
-  const rect = {
-    x: Math.max(24, Math.min(width - rectWidth - 24, originX + (tile + gap) * (state.plots.length > 36 ? 8 : 6) + 42)),
-    y: Math.max(154, Math.min(height - rectHeight - 28, originY + 72)),
-    width: rectWidth,
-    height: rectHeight,
-  };
-  return {
-    key: `${state.day}:${spirit.id}:${needsWater.length}:${watered.length}:${mood}:${hunger}:${stamina}:assist_rhythm`,
-    day: state.day,
+  const rhythmCopy = {
     title: "伙伴上工节奏牌 · 可点",
-    headline: tired
-      ? `${spirit.name}需要缓一口气`
-      : ready
-        ? `${spirit.name}在田埂旁待命`
-        : `${spirit.name}把水痕守住了`,
-    detail: tired
-      ? `体力 ${stamina} · 心情 ${mood} · 饱腹 ${hunger}，先照顾伙伴再派工更稳。`
-      : ready
-        ? `待浇 ${needsWater.length} 格 · 已润 ${watered.length} 格，适合再接一轮 3x3 协助。`
-        : `今日作物已润 ${watered.length} 格，自动化的省力感已经留在田里。`,
-    nextAction: tired
-      ? "先摸摸、喂食或入夜休息，让伙伴别被连续压榨。"
-      : ready
-        ? "选一块待浇地，再到伙伴栏点「让精怪协助」。"
-        : "明天有新待浇地时，再让伙伴接手最密的一片。",
+    tiredHeadlineSuffix: "需要缓一口气",
+    readyHeadlineSuffix: "在田埂旁待命",
+    settledHeadlineSuffix: "把水痕守住了",
+    tiredDetailTail: "先照顾伙伴再派工更稳。",
+    readyDetailTail: "适合再接一轮 3x3 协助。",
+    settledDetailTail: "自动化的省力感已经留在田里。",
+    tiredNextAction: "先摸摸、喂食或入夜休息，让伙伴别被连续压榨。",
+    readyNextAction: "选一块待浇地，再到伙伴栏点「让精怪协助」。",
+    settledNextAction: "明天有新待浇地时，再让伙伴接手最密的一片。",
     cta: "只定位田格和伙伴栏，不会自动触发精怪协助",
-    spirit,
-    profile,
-    activePlots,
-    needsWaterCount: needsWater.length,
-    wateredCount: watered.length,
-    stamina,
-    mood,
-    hunger,
-    tired,
-    ready,
-    settled,
-    rect,
-    anchor: activePlots.length
-      ? { x: activePlots[0].screenX, y: activePlots[0].screenY }
-      : { x: originX + tile * 2, y: originY + tile * 2 },
-    accent: tired ? "#be4f37" : ready ? profile.accent : "#286f58",
   };
+  return spiritAssistRhythmWorldSpecWorld({
+    width,
+    height,
+    originX,
+    originY,
+    tile,
+    gap,
+    day: state.day,
+    dungeon: state.dungeon,
+    spirits: state.spirits,
+    plots: state.plots,
+    assistCompleted: state.completed.has("assist"),
+    spiritVisualProfile,
+    copy: rhythmCopy,
+  });
 }
 
 function spiritAssistRhythmWorldAtCanvasPoint(px, py) {
-  const spec = spiritAssistRhythmWorldSpec();
-  if (!spec?.rect) return null;
-  const targetPlot = spec.activePlots.find((plot) =>
-    px >= plot.rect.x
-    && px <= plot.rect.x + plot.rect.width
-    && py >= plot.rect.y
-    && py <= plot.rect.y + plot.rect.height,
-  ) || null;
-  const { rect } = spec;
-  const onCard = px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
-  return onCard || targetPlot ? { ...spec, targetPlot } : null;
+  return spiritAssistRhythmWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: spiritAssistRhythmWorldSpec(),
+  });
 }
 
 function focusSpiritAssistRhythmWorldFromCanvas(spec = spiritAssistRhythmWorldSpec()) {
