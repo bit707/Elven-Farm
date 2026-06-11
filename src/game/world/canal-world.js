@@ -1652,3 +1652,95 @@ export function drawWaterCropOrderFeedbackWorld({
   ctx.restore();
   return true;
 }
+
+export function drawQinghePondEntryFeedbackWorld({
+  ctx,
+  width = 0,
+  height = 0,
+  feedback = null,
+  now = 0,
+  ease = 0,
+  ripple = 0,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !feedback) return false;
+  const x = Math.round(width / 2 - 250);
+  const y = Math.round(318 + ripple - ease * 10);
+
+  ctx.save();
+  ctx.globalAlpha = Number(feedback.fade ?? 1);
+  const glow = ctx.createRadialGradient(x + 102, y + 94, 12, x + 102, y + 94, 250);
+  glow.addColorStop(0, "rgba(159, 209, 223, 0.36)");
+  glow.addColorStop(0.44, "rgba(77, 145, 166, 0.18)");
+  glow.addColorStop(1, "rgba(77, 145, 166, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(x + 102, y + 94, 250, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawCanvasCard(ctx, x, y, 500, 188, "rgba(248, 252, 247, 0.97)");
+  ctx.fillStyle = "rgba(159, 209, 223, 0.24)";
+  ctx.beginPath();
+  ctx.roundRect(x + 24, y + 26, 128, 126, 30);
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
+  ctx.beginPath();
+  ctx.ellipse(x + 88, y + 102, 48 + ripple * 0.3, 24, -0.08, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(77, 145, 166, 0.58)";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  for (let i = 0; i < 3; i += 1) {
+    const radius = 20 + i * 16 + ease * 8;
+    ctx.strokeStyle = `rgba(77, 145, 166, ${0.32 - i * 0.07})`;
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.ellipse(x + 88, y + 102, radius, radius * 0.42, -0.08, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.fillStyle = "#4d91a6";
+  ctx.font = "800 21px Microsoft YaHei";
+  ctx.fillText("灵池", x + 64, y + 82);
+  ctx.fillStyle = "#286f58";
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText("第一尾灵鱼", x + 58, y + 132);
+
+  ctx.fillStyle = "#4d91a6";
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(String(feedback.label || "青禾一心 · 灵池支线浮现").slice(0, 24), x + 178, y + 38);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 22px Microsoft YaHei";
+  ctx.fillText(String(feedback.headline || "水路下一站是旧池塘").slice(0, 18), x + 178, y + 70);
+  ctx.fillStyle = "#286f58";
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(String(feedback.detail || "").slice(0, 42), x + 178, y + 98);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(String(`${feedback.questTitle} · ${feedback.buildingName} · ${feedback.buildCostText}`).slice(0, 42), x + 178, y + 124);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "12px Microsoft YaHei";
+  ctx.fillText(String(feedback.nextAdvice || "").slice(0, 48), x + 178, y + 150);
+
+  const stepY = y + 170;
+  const steps = [feedback.firstStepText, feedback.secondStepText, feedback.rewardText].filter(Boolean);
+  let stepX = x + 30;
+  steps.slice(0, 3).forEach((step, index) => {
+    const chipW = index === 2 ? 152 : 130;
+    ctx.fillStyle = index === 0 ? "rgba(202, 235, 210, 0.78)" : index === 1 ? "rgba(159, 209, 223, 0.42)" : "rgba(224, 182, 109, 0.22)";
+    ctx.beginPath();
+    ctx.roundRect(stepX, stepY - 17, chipW, 24, 12);
+    ctx.fill();
+    ctx.fillStyle = index === 2 ? "#8f5f3f" : "#286f58";
+    ctx.font = "700 11px Microsoft YaHei";
+    ctx.fillText(String(step).slice(0, index === 2 ? 12 : 10), stepX + 10, stepY);
+    stepX += chipW + 12;
+  });
+
+  ctx.fillStyle = "rgba(77, 145, 166, 0.78)";
+  ctx.beginPath();
+  ctx.roundRect(x + 178, y + 164, Math.max(42, 284 * ease), 6, 999);
+  ctx.fill();
+  ctx.restore();
+  return true;
+}
