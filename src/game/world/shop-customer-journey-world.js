@@ -1701,6 +1701,22 @@ export function shopCustomerLessonMorningFollowupWorldAtCanvasPointWorld({
     : null;
 }
 
+export function shopCustomerLessonMorningFollowupFocusSpecWorld(spec = null, day = 1) {
+  if (!spec) return null;
+  return {
+    focusState: { key: spec.key, day },
+    target: {
+      selector: spec.selector,
+      fallbackSelector: spec.fallbackSelector,
+      panelGroup: "core",
+      label: "点选旧铺明日改法灯",
+      log: `点选旧铺明日改法灯：${spec.routeText}。昨夜复盘：${spec.reviewLine}；短板线索：${spec.blockerLine}；今日先改：${spec.nextAction}。${spec.safety}。`,
+      missingTitle: "旧铺明日改法灯",
+      missingLog: "昨夜旧铺复盘还在主世界发亮，但右侧顾客三因牌暂时没有找到。先回到旧铺报告或日终总结查看明日改法；这里不会自动开铺、调价、补货、接客、成交或消耗库存。",
+    },
+  };
+}
+
 export function shopCustomerLessonVerificationEchoSafetyTextWorld() {
   return "只回看旧铺改法验证、顾客旅线和经营报告，不会自动开铺、调价、补货、接客、成交、交单、扣库存或消耗资源";
 }
@@ -1804,6 +1820,22 @@ export function shopCustomerLessonVerificationEchoWorldAtCanvasPointWorld({
       rect,
     }
     : null;
+}
+
+export function shopCustomerLessonVerificationEchoFocusSpecWorld(spec = null, day = 1) {
+  if (!spec) return null;
+  return {
+    focusState: { key: spec.key, day },
+    target: {
+      selector: spec.selector,
+      fallbackSelector: spec.fallbackSelector,
+      panelGroup: "core",
+      label: "点选旧铺改法验证回响",
+      log: `点选旧铺改法验证回响：${spec.routeText}。昨夜改法：${spec.yesterdayAction}；今日结果：${spec.todayResult}；成交 ${spec.buyers}/${spec.visitors}，转化 ${spec.conversion}%${spec.delta ? `（${spec.delta > 0 ? "+" : ""}${spec.delta}）` : ""}。下轮建议：${spec.nextAction}。${spec.safety}。`,
+      missingTitle: "旧铺改法验证回响",
+      missingLog: "旧铺改法验证回响已经生成，但顾客旅线暂时没有找到。先回看旧铺报告和三因牌；这里不会自动开铺、调价、补货、成交或消耗库存。",
+    },
+  };
 }
 
 export function shopReturningTrailWorldSpecWorld({

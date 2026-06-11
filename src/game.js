@@ -212,8 +212,10 @@ import {
   shopFirstSaleLessonWorldAtCanvasPointWorld,
   shopFirstSaleLessonWorldSpecWorld,
   shopFirstSaleReceiptWorldSpecWorld,
+  shopCustomerLessonMorningFollowupFocusSpecWorld,
   shopCustomerLessonMorningFollowupSpecWorld,
   shopCustomerLessonMorningFollowupWorldAtCanvasPointWorld,
+  shopCustomerLessonVerificationEchoFocusSpecWorld,
   shopCustomerLessonVerificationEchoWorldAtCanvasPointWorld,
   shopCustomerLessonVerificationEchoWorldSpecWorld,
   SHOP_CUSTOMER_JOURNEY_STAGES_WORLD,
@@ -32205,16 +32207,9 @@ function shopCustomerLessonMorningFollowupWorldAtCanvasPoint(px, py) {
 function focusShopCustomerLessonMorningFollowupWorldFromCanvas(target = shopCustomerLessonMorningFollowupWorldSpec()) {
   const spec = target?.shopCustomerLessonMorningFollowup || target;
   if (!spec) return false;
-  shopCustomerLessonMorningFollowupWorldFocus = { key: spec.key, day: state.day };
-  return queueStoryCompassFocusTarget({
-    selector: spec.selector,
-    fallbackSelector: spec.fallbackSelector,
-    panelGroup: "core",
-    label: "点选旧铺明日改法灯",
-    log: `点选旧铺明日改法灯：${spec.routeText}。昨夜复盘：${spec.reviewLine}；短板线索：${spec.blockerLine}；今日先改：${spec.nextAction}。${spec.safety}。`,
-    missingTitle: "旧铺明日改法灯",
-    missingLog: "昨夜旧铺复盘还在主世界发亮，但右侧顾客三因牌暂时没有找到。先回到旧铺报告或日终总结查看明日改法；这里不会自动开铺、调价、补货、接客、成交或消耗库存。",
-  });
+  const focusSpec = shopCustomerLessonMorningFollowupFocusSpecWorld(spec, state.day);
+  shopCustomerLessonMorningFollowupWorldFocus = focusSpec.focusState;
+  return queueStoryCompassFocusTarget(focusSpec.target);
 }
 
 function shopCustomerLessonVerificationEchoWorldSpec(
@@ -32248,16 +32243,9 @@ function shopCustomerLessonVerificationEchoWorldAtCanvasPoint(px, py) {
 function focusShopCustomerLessonVerificationEchoWorldFromCanvas(target = shopCustomerLessonVerificationEchoWorldSpec()) {
   const spec = target?.shopCustomerLessonVerificationEcho || target;
   if (!spec) return false;
-  shopCustomerLessonVerificationEchoWorldFocus = { key: spec.key, day: state.day };
-  return queueStoryCompassFocusTarget({
-    selector: spec.selector,
-    fallbackSelector: spec.fallbackSelector,
-    panelGroup: "core",
-    label: "点选旧铺改法验证回响",
-    log: `点选旧铺改法验证回响：${spec.routeText}。昨夜改法：${spec.yesterdayAction}；今日结果：${spec.todayResult}；成交 ${spec.buyers}/${spec.visitors}，转化 ${spec.conversion}%${spec.delta ? `（${spec.delta > 0 ? "+" : ""}${spec.delta}）` : ""}。下轮建议：${spec.nextAction}。${spec.safety}。`,
-    missingTitle: "旧铺改法验证回响",
-    missingLog: "旧铺改法验证回响已经生成，但顾客旅线暂时没有找到。先回看旧铺报告和三因牌；这里不会自动开铺、调价、补货、成交或消耗库存。",
-  });
+  const focusSpec = shopCustomerLessonVerificationEchoFocusSpecWorld(spec, state.day);
+  shopCustomerLessonVerificationEchoWorldFocus = focusSpec.focusState;
+  return queueStoryCompassFocusTarget(focusSpec.target);
 }
 
 function shopWordOfMouthRestockedMorningWorldSpec(summary = state.lastDaySummary?.shopWordOfMouthMorningFollowup || null) {
