@@ -511,11 +511,13 @@ import {
   drawPlantingAftercareWorldWorld,
   drawSeedRestockBagWorldWorld,
   fieldActionFeedbackSpecWorld,
+  activeMorningHarvestPlansWorld,
   colorWithAlphaWorld,
   harvestRouteWorldBoardAtCanvasPointWorld,
   harvestRouteWorldBoardSpecFromRuntimeWorld,
   harvestRouteWorldPriorityWorld,
   harvestRouteWorldRowsWorld,
+  nightGrowthRouteBadgeSpecWorld,
   harvestStorageRouteFeedbackSpecFromRuntimeWorld,
   harvestStorageRouteSafetyTextWorld,
   harvestStorageRouteWorldAtCanvasPointWorld,
@@ -47453,7 +47455,7 @@ function focusSleepPrepAction(action = "", key = "") {
 function morningActionBoardSpec() {
   syncShopOpeningState();
   syncPondState();
-  const harvestPlans = activeMorningHarvestPlans();
+  const harvestPlans = activeMorningHarvestPlansBridge();
   const maturePlots = state.plots.filter((plot) => plot.cropId && plot.mature);
   const unwateredPlots = state.plots.filter((plot) => plot.cropId && !plot.mature && !plot.watered);
   const emptyPlots = state.plots.filter((plot) => !plot.debris && !plot.cropId);
@@ -48515,7 +48517,7 @@ function focusMorningPlot(plot, kind = "work", title = "清晨行动牌") {
 
 function focusMorningAction(action = "", target = "", key = "") {
   if (action === "harvest") {
-    const plan = activeMorningHarvestPlans()[0];
+    const plan = activeMorningHarvestPlansBridge()[0];
     const plot = plan?.plot || state.plots.find((entry) => entry.cropId && entry.mature);
     if (plot) return focusDaySummaryMaturePlot(plot.x, plot.y);
   }
@@ -60031,7 +60033,7 @@ function drawHarvestFeedback(ctx, width, height, feedback = activeHarvestFeedbac
   if (!feedback || state.activeCutscene || state.activeDialogue.length > 0) return;
   const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
   const lift = settings.reducedMotion ? 0 : Math.sin(motion * 3.4) * 4;
-  const routeBadge = nightGrowthRouteBadgeSpec(feedback.route);
+  const routeBadge = nightGrowthRouteBadgeSpecBridge(feedback.route);
   const qualityAccent = Number(feedback.qualityTier || 1) >= 3 ? "#be4f37" : Number(feedback.qualityTier || 1) >= 2 ? "#b47d2f" : "#5d6f65";
   const x = Math.max(42, Math.min(width - 352, 392));
   const y = 118 + lift;
@@ -66126,7 +66128,7 @@ function matureHarvestBasketSafetyText() {
 
 function matureHarvestBasketRouteNodes(route = null) {
   const safe = harvestUseRouteSafe(route);
-  const badge = nightGrowthRouteBadgeSpec(safe);
+  const badge = nightGrowthRouteBadgeSpecBridge(safe);
   return matureHarvestBasketRouteNodesWorld({ route: safe, badge });
 }
 
@@ -66144,7 +66146,7 @@ function matureHarvestBasketWorldSpec(width = refs.world?.width || 960, height =
     metrics: gridMetrics(),
     routeForItem: harvestUseRouteSpec,
     routeSafe: harvestUseRouteSafe,
-    badgeForRoute: nightGrowthRouteBadgeSpec,
+    badgeForRoute: nightGrowthRouteBadgeSpecBridge,
   });
 }
 
@@ -66181,7 +66183,7 @@ function harvestStorageRouteFeedbackSpec(feedback = state.harvestFeedback, plot 
     day: state.day,
     routeForHarvest: harvestUseRouteSpec,
     routeSafe: harvestUseRouteSafe,
-    badgeForRoute: nightGrowthRouteBadgeSpec,
+    badgeForRoute: nightGrowthRouteBadgeSpecBridge,
     itemName,
     now: performance.now(),
   });
@@ -66208,7 +66210,7 @@ function harvestStorageRouteWorldSpec(width = refs.world?.width || 960, height =
     inventory: state.inventory,
     metrics: gridMetrics(),
     routeSafe: harvestUseRouteSafe,
-    badgeForRoute: nightGrowthRouteBadgeSpec,
+    badgeForRoute: nightGrowthRouteBadgeSpecBridge,
   });
 }
 
@@ -66282,6 +66284,10 @@ function drawNightGrowthRouteBadge(ctx, plot, cx, cy, tile, index, fade, progres
   });
 }
 
+function nightGrowthRouteBadgeSpecBridge(route = null) {
+  return nightGrowthRouteBadgeSpecWorld(harvestUseRouteSafe(route));
+}
+
 function activeMorningHarvestPlans() {
   const summary = state.lastDaySummary;
   if (!summary || Number(summary.nextDay || 0) !== state.day) return [];
@@ -66299,8 +66305,17 @@ function activeMorningHarvestPlans() {
     .slice(0, 4);
 }
 
+function activeMorningHarvestPlansBridge() {
+  return activeMorningHarvestPlansWorld({
+    summary: state.lastDaySummary,
+    day: state.day,
+    plots: state.plots,
+    routeForPlot: growingCropUseRouteSpec,
+  });
+}
+
 function drawMorningHarvestPlanFlags(ctx, originX, originY, tile, gap) {
-  const plans = activeMorningHarvestPlans();
+  const plans = activeMorningHarvestPlansBridge();
   return drawMorningHarvestPlanFlagsWorld({
     ctx,
     plans,
@@ -66311,7 +66326,7 @@ function drawMorningHarvestPlanFlags(ctx, originX, originY, tile, gap) {
     reducedMotion: settings.reducedMotion,
     motion: performance.now() / 1000,
     routeSafe: harvestUseRouteSafe,
-    badgeForRoute: nightGrowthRouteBadgeSpec,
+    badgeForRoute: nightGrowthRouteBadgeSpecBridge,
   });
 }
 
@@ -66339,7 +66354,7 @@ function morningGrowthDewWorldSpec(width = refs.world?.width || 960, height = re
     gapInput,
     summary,
     day: state.day,
-    harvestPlans: activeMorningHarvestPlans(),
+    harvestPlans: activeMorningHarvestPlansBridge(),
     growing: morningGrowthDewGrowingPlot(),
     metrics: gridMetrics(),
     routeForPlot: growingCropUseRouteSpec,

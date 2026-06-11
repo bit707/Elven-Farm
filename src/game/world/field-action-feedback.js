@@ -1391,6 +1391,26 @@ export function harvestRouteWorldPriorityWorld({ route = null, plot = null } = {
   return base + (safe?.ready ? 18 : 0) + (plot?.waterSoil ? 4 : 0);
 }
 
+/*
+export function nightGrowthRouteBadgeSpecWorld(route = null) {
+  const safe = route || null;
+  if (!safe) return { glyph: "浠?, label: "鍏堝叆浠?, fill: "rgba(255, 253, 245, 0.86)", stroke: "#9aa99d", text: "#5d6f65" };
+  if (safe.type === "order") return { glyph: "鍗?, label: safe.badge || "璁㈠崟澶囪揣", fill: "rgba(255, 248, 232, 0.92)", stroke: "#d19a4a", text: "#8f5f3f" };
+  if (safe.type === "recipe") return { glyph: "閿?, label: safe.badge || "鍙叆閿?, fill: "rgba(255, 244, 232, 0.9)", stroke: "#be4f37", text: "#8f5f3f" };
+  if (safe.type === "shop") return { glyph: "閾?, label: safe.badge || "鏃ч摵澶囪揣", fill: "rgba(248, 252, 247, 0.92)", stroke: "#4d91a6", text: "#286f58" };
+  return { glyph: "浠?, label: safe.badge || "鍏堝叆浠?, fill: "rgba(255, 253, 245, 0.86)", stroke: "#9aa99d", text: "#5d6f65" };
+}
+*/
+
+export function nightGrowthRouteBadgeSpecWorld(route = null) {
+  const safe = route || null;
+  if (!safe) return { glyph: "IN", label: "Stock First", fill: "rgba(255, 253, 245, 0.86)", stroke: "#9aa99d", text: "#5d6f65" };
+  if (safe.type === "order") return { glyph: "OD", label: safe.badge || "Order Prep", fill: "rgba(255, 248, 232, 0.92)", stroke: "#d19a4a", text: "#8f5f3f" };
+  if (safe.type === "recipe") return { glyph: "RC", label: safe.badge || "Recipe Ready", fill: "rgba(255, 244, 232, 0.9)", stroke: "#be4f37", text: "#8f5f3f" };
+  if (safe.type === "shop") return { glyph: "SH", label: safe.badge || "Shop Stock", fill: "rgba(248, 252, 247, 0.92)", stroke: "#4d91a6", text: "#286f58" };
+  return { glyph: "IN", label: safe.badge || "Stock First", fill: "rgba(255, 253, 245, 0.86)", stroke: "#9aa99d", text: "#5d6f65" };
+}
+
 export function harvestRouteWorldRowsWorld({
   limit = 4,
   plots = [],
@@ -1421,6 +1441,28 @@ export function harvestRouteWorldRowsWorld({
     })
     .sort((a, b) => b.priority - a.priority || a.y - b.y || a.x - b.x)
     .slice(0, limit);
+}
+
+export function activeMorningHarvestPlansWorld({
+  summary = null,
+  day = 1,
+  plots = [],
+  routeForPlot = () => null,
+} = {}) {
+  if (!summary || Number(summary.nextDay || 0) !== Number(day || 0)) return [];
+  const safePlots = Array.isArray(plots) ? plots : [];
+  return (summary.maturedPlotActions || [])
+    .map((entry) => {
+      const plot = safePlots.find((candidate) => candidate.x === entry.x && candidate.y === entry.y);
+      if (!plot?.cropId || !plot.mature) return null;
+      return {
+        ...entry,
+        route: entry.route || routeForPlot(plot),
+        plot,
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 4);
 }
 
 export function harvestRouteWorldBoardSpecFromRuntimeWorld({
