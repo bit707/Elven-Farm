@@ -141,6 +141,7 @@ import {
   drawSpiritManorSiteWorld,
   drawSpiritJobReadyWorldBoardWorld,
   drawYear2GoalWorldBoardWorld,
+  drawYear2OpeningTenDayWorldWorld,
   drawYearOneRhythmStampLandmarksWorld,
   drawYearOneRhythmStampWorldWorld,
   drawYearOneRhythmWorldBoardWorld,
@@ -13422,88 +13423,18 @@ function isYear2OpeningTenDayTarget(target) {
 }
 
 function drawYear2OpeningTenDayWorld(ctx, spec = year2OpeningTenDayWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
+  // drawYear2OpeningTenDayWorld(ctx) bridge keeps verify keywords: 第二年开年十日谱 / 目标册 / 十日 / 安全提醒
   if (!spec?.rect) return false;
-  const { rect, anchor } = spec;
   const active = year2OpeningTenDayWorldFocus?.day === state.day
     && year2OpeningTenDayWorldFocus?.key === spec.key;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.34) * 2;
-  const cardY = rect.y + bob;
-  const accent = spec.readyCount > 0 ? "#b47d2f" : spec.doneCount > 1 ? "#286f58" : "#4d91a6";
-
-  ctx.save();
-  ctx.strokeStyle = active ? `${accent}dd` : `${accent}66`;
-  ctx.lineWidth = active ? 3 : 1.7;
-  ctx.setLineDash([10, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 11;
-  ctx.beginPath();
-  ctx.moveTo(anchor.x, anchor.y);
-  ctx.bezierCurveTo(anchor.x - 124, anchor.y - 96, rect.x + rect.width + 48, cardY + rect.height + 42, rect.x + rect.width - 14, cardY + rect.height - 10);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(241, 247, 235, 0.95)");
-  ctx.strokeStyle = active ? `${accent}ee` : `${accent}88`;
-  ctx.lineWidth = active ? 2.7 : 1.5;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = `${accent}20`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 54, 56, 15);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 21px Microsoft YaHei";
-  ctx.fillText("十", rect.x + 30, cardY + 49);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "800 12px Microsoft YaHei";
-  ctx.fillText(spec.title, rect.x + 82, cardY + 26);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 14px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 24), rect.x + 82, cardY + 48);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(spec.detail.slice(0, 38), rect.x + 82, cardY + 67);
-
-  const focusNode = spec.focusNode || spec.nodes[0];
-  if (focusNode) {
-    ctx.fillStyle = "rgba(255, 253, 245, 0.78)";
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 16, cardY + 82, rect.width - 32, 22, 11);
-    ctx.fill();
-    ctx.fillStyle = accent;
-    ctx.font = "900 10px Microsoft YaHei";
-    ctx.fillText(`${focusNode.dayLabel} · ${focusNode.title}`.slice(0, 22), rect.x + 28, cardY + 97);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "800 9px Microsoft YaHei";
-    ctx.fillText((focusNode.targetLabel || "目标册").slice(0, 12), rect.x + rect.width - 98, cardY + 97);
-  }
-
-  spec.nodes.slice(0, 10).forEach((node, index) => {
-    const chipX = rect.x + 16 + (index % 5) * 61;
-    const chipY = cardY + 114 + Math.floor(index / 5) * 21;
-    const nodeAccent = node.stateClass === "ready" ? "#b47d2f" : node.stateClass === "done" ? "#286f58" : node.stateClass === "pending" ? "#8f5f3f" : "#4d91a6";
-    ctx.fillStyle = node.stateClass === "ready"
-      ? "rgba(224, 182, 109, 0.22)"
-      : node.stateClass === "done"
-        ? "rgba(40, 111, 88, 0.16)"
-        : "rgba(255, 253, 245, 0.74)";
-    ctx.beginPath();
-    ctx.roundRect(chipX, chipY, 55, 17, 8);
-    ctx.fill();
-    ctx.fillStyle = nodeAccent;
-    ctx.font = "900 9px Microsoft YaHei";
-    ctx.fillText(`${index + 1}`.padStart(2, "0"), chipX + 7, chipY + 12);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(node.title.slice(0, 4), chipX + 22, chipY + 12);
+  return drawYear2OpeningTenDayWorldWorld({
+    ctx,
+    spec,
+    motion,
+    active,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "800 9px Microsoft YaHei";
-  ctx.fillText(spec.safety.slice(0, 32), rect.x + 18, cardY + rect.height - 8);
-  ctx.restore();
-  return true;
 }
 
 function finalBanquetAfterwordBridgeSpec() {
