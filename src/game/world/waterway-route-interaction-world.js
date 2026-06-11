@@ -32,6 +32,44 @@ export function waterwayFreshRouteTargetWorld({
   };
 }
 
+export function waterwayFreshRouteFocusTargetWorld({
+  target = null,
+  waterOrderTitle = "",
+  followupOrderTitle = "",
+  routeReturned = false,
+  routePreviewState = null,
+  routeRun = null,
+  lotusRouteVisible = false,
+  lotusUnlockConditionLabel = "",
+  delivered = false,
+  followupDelivered = false,
+  unlocked = false,
+  followupUnlocked = false,
+  needStatus = null,
+  followupNeedStatus = null,
+} = {}) {
+  return waterwayFreshRouteFocusSpecWorld({
+    target,
+    waterOrderTitle,
+    followupOrderTitle,
+    routeReturned,
+    routePreviewReady: Boolean(routePreviewState?.ready),
+    routePreviewUnlocked: Boolean(routePreviewState?.unlocked),
+    routeFamiliarDetail: routePreviewState?.familiar?.detail || "",
+    routeRunReturnDay: routeRun?.returnDay || 0,
+    lotusRouteVisible,
+    lotusUnlockConditionLabel,
+    delivered,
+    followupDelivered,
+    unlocked,
+    followupUnlocked,
+    needReady: Boolean(needStatus?.completion >= 1),
+    followupNeedReady: Boolean(followupNeedStatus?.completion >= 1),
+    missingText: needStatus?.missing.slice(0, 2).join(" / ") || "水航莲实 / 荷露糖水",
+    followupMissingText: followupNeedStatus?.missing.slice(0, 2).join(" / ") || "荷露糖水 / 灵池三鲜羹",
+  });
+}
+
 export function waterwayFreshRouteFocusSpecWorld({
   target = null,
   waterOrderTitle = "",

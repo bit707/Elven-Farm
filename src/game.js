@@ -290,7 +290,7 @@ import {
   waterPreludeInteractionTargetsWorld,
 } from "./game/world/water-prelude-interaction-world.js";
 import {
-  waterwayFreshRouteFocusSpecWorld,
+  waterwayFreshRouteFocusTargetWorld,
   waterwayFreshRouteTargetWorld,
 } from "./game/world/waterway-route-interaction-world.js";
 import {
@@ -73657,29 +73657,23 @@ function focusWorldContentFromCanvas(target = null) {
     const followupUnlocked = routeReturned && Boolean(followupOrder && year2OrderUnlocked(followupOrder) && !followupDelivered);
     const needStatus = unlocked ? year2OrderNeedStatus(waterOrder) : null;
     const followupNeedStatus = followupUnlocked ? year2OrderNeedStatus(followupOrder) : null;
-    const missingText = needStatus?.missing.slice(0, 2).join(" / ") || "水航莲实 / 荷露糖水";
-    const followupMissingText = followupNeedStatus?.missing.slice(0, 2).join(" / ") || "荷露糖水 / 灵池三鲜羹";
     // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
     // target.type === "waterway_fresh_route" / 点选水航 / 水航鲜货路标 / 莲泽水航商船 / 莲泽水航返货 / 莲泽熟路长单
-    queueStoryCompassFocusTarget(waterwayFreshRouteFocusSpecWorld({
+    queueStoryCompassFocusTarget(waterwayFreshRouteFocusTargetWorld({
       target,
       waterOrderTitle: waterOrder ? orderTitle(waterOrder) : "灵池水航鲜货单",
       followupOrderTitle: followupOrder ? orderTitle(followupOrder) : "莲泽熟路续订单",
       routeReturned,
-      routePreviewReady: Boolean(routePreviewState?.ready),
-      routePreviewUnlocked: Boolean(routePreviewState?.unlocked),
-      routeFamiliarDetail: routePreviewState?.familiar?.detail || "",
-      routeRunReturnDay: routeRun?.returnDay || 0,
+      routePreviewState,
+      routeRun,
       lotusRouteVisible: Boolean(lotusRoute),
       lotusUnlockConditionLabel: lotusRoute ? conditionLabel(lotusRoute.unlock_condition_group) : "",
       delivered,
       followupDelivered,
       unlocked,
       followupUnlocked,
-      needReady: Boolean(needStatus?.completion >= 1),
-      followupNeedReady: Boolean(followupNeedStatus?.completion >= 1),
-      missingText,
-      followupMissingText,
+      needStatus,
+      followupNeedStatus,
     }));
     return true;
   }
