@@ -997,6 +997,96 @@ export function shopCustomerJourneyMarkupWorld(spec = null) {
   `;
 }
 
+export function drawShopCustomerJourneyBoardWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.active || !spec.rows?.length) return false;
+  const rows = spec.rows.slice(0, 3);
+  const x = 386;
+  const y = 344;
+  const width = 252;
+  const height = 142;
+  const accent = spec.buyers > 0 ? "#286f58" : spec.leavers > 0 ? "#be4f37" : "#b47d2f";
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.1) * 2;
+
+  ctx.save();
+  drawCanvasCard(ctx, x, y + pulse, width, height, spec.buyers > 0 ? "rgba(237, 243, 223, 0.92)" : spec.leavers > 0 ? "rgba(255, 240, 232, 0.92)" : "rgba(255, 248, 232, 0.92)");
+  ctx.strokeStyle = `${accent}77`;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(x, y + pulse, width, height, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}22`;
+  ctx.beginPath();
+  ctx.roundRect(x + 14, y + 14 + pulse, 48, 44, 14);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "900 18px Microsoft YaHei";
+  ctx.fillText("客", x + 29, y + 43 + pulse);
+
+  ctx.fillStyle = accent;
+  ctx.font = "800 11px Microsoft YaHei";
+  ctx.fillText("旧铺旅线总览 · 可点", x + 74, y + 25 + pulse);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 14px Microsoft YaHei";
+  ctx.fillText(`${spec.hotTagLabel} · ${spec.mainCustomer}`.slice(0, 15), x + 74, y + 46 + pulse);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "10px Microsoft YaHei";
+  ctx.fillText(`成交率 ${spec.conversion}% · ${spec.buyers}/${spec.visitors} 成交 · 短板 ${spec.blockerText}`.slice(0, 32), x + 74, y + 60 + pulse);
+
+  rows.forEach((row, rowIndex) => {
+    const laneY = y + 76 + rowIndex * 22 + pulse;
+    const laneX = x + 18;
+    const laneW = width - 36;
+    const toneColor = row.tone === "good" ? "#286f58" : row.tone === "warn" ? "#be4f37" : "#b47d2f";
+    const stages = row.path.slice(0, 5);
+    ctx.strokeStyle = `${toneColor}44`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(laneX + 44, laneY + 8);
+    ctx.lineTo(laneX + laneW - 8, laneY + 8);
+    ctx.stroke();
+
+    ctx.fillStyle = toneColor;
+    ctx.font = "800 9px Microsoft YaHei";
+    ctx.fillText(row.name.slice(0, 4), laneX, laneY + 12);
+
+    stages.forEach((stage, stageIndex) => {
+      const dotX = laneX + 52 + stageIndex * 36;
+      const active = stage.state === "done" || stage.state === "good" || (row.bought && stageIndex <= 3);
+      const warned = stage.state === "warn" || (row.warned && stageIndex >= 2);
+      ctx.fillStyle = warned ? "rgba(190, 79, 55, 0.9)" : active ? `${toneColor}dd` : "rgba(255, 253, 245, 0.9)";
+      ctx.strokeStyle = active || warned ? `${toneColor}88` : "rgba(143, 95, 63, 0.22)";
+      ctx.lineWidth = stageIndex === 3 && (row.bought || row.warned) ? 2.2 : 1;
+      ctx.beginPath();
+      ctx.arc(dotX, laneY + 8, stageIndex === 3 ? 6 : 4.8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      if (stageIndex === 3) {
+        ctx.fillStyle = warned ? "#be4f37" : row.bought ? "#286f58" : "#8f5f3f";
+        ctx.font = "800 8px Microsoft YaHei";
+        ctx.fillText(row.bought ? "买" : row.warned ? "走" : "看", dotX - 5, laneY + 11);
+      }
+    });
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
+  ctx.beginPath();
+  ctx.roundRect(x + 16, y + height - 22 + pulse, width - 32, 16, 8);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(`明日建议：${spec.nextAction}`.slice(0, 32), x + 28, y + height - 10 + pulse);
+
+  ctx.restore();
+  return true;
+}
+
 export function shopCustomerReasonCardsSpecWorld({
   opening = null,
   report = [],
