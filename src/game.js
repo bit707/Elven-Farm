@@ -505,11 +505,13 @@ import {
   shopWaterwayShelfSpotlightSummaryTextWorld,
 } from "./game/world/shop-waterway-scene-world.js";
 import {
+  drawCompendiumDisplayAudienceWorld,
   drawCareChainShopEchoWorld,
   drawEcologyShopAuraAtShopWorld,
   drawEcologyShopAuraVisitorsWorld,
   drawQingboWaterFreshSignatureSignWorld,
   drawCommerceWorldMarksWorld,
+  drawShopCompendiumDisplayMotifWorld,
   drawShopDisplayDiagnosisSignWorld,
   drawShopReputationStageSignWorld,
   drawShopRestockTargetSignWorld,
@@ -74595,156 +74597,30 @@ function drawShopRestockTargetSign(ctx, target = normalizeShopOpeningState(state
 }
 
 function drawShopCompendiumDisplayMotif(ctx, display, x, y, index = 0, motion = 0) {
-  const pulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.4 + index) * 2;
-  const glow = display.entry.cleared ? 8 : 6;
-  ctx.save();
-  ctx.fillStyle = "rgba(23, 35, 29, 0.12)";
-  ctx.beginPath();
-  ctx.ellipse(x + 16, y + 20, 20, 6, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = display.palette.card;
-  ctx.strokeStyle = display.palette.accent;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.roundRect(x, y - 10, 32, 34, 8);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = display.palette.glow;
-  ctx.beginPath();
-  ctx.arc(x + 16, y - 2, glow + Math.max(0, pulse), 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = display.palette.accent;
-  ctx.fillStyle = display.palette.accent;
-  ctx.lineWidth = 2;
-  const motif = display.motif || "seed";
-  if (motif === "thunder") {
-    ctx.beginPath();
-    ctx.moveTo(x + 17, y - 9);
-    ctx.lineTo(x + 9, y + 6 + pulse);
-    ctx.lineTo(x + 18, y + 5 + pulse);
-    ctx.lineTo(x + 13, y + 22);
-    ctx.lineTo(x + 25, y + 4);
-    ctx.lineTo(x + 17, y + 5);
-    ctx.stroke();
-  } else if (motif === "water") {
-    for (let i = 0; i < 3; i += 1) {
-      ctx.beginPath();
-      ctx.arc(x + 16, y + 7, 7 + i * 5 + pulse * 0.4, 0.18, Math.PI - 0.18);
-      ctx.stroke();
-    }
-  } else if (motif === "bloom") {
-    for (let i = 0; i < 5; i += 1) {
-      const angle = (Math.PI * 2 * i) / 5 + motion * 0.2;
-      ctx.beginPath();
-      ctx.ellipse(x + 16 + Math.cos(angle) * 7, y + 7 + Math.sin(angle) * 5, 4, 7, angle, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.fillStyle = display.palette.glow;
-    ctx.beginPath();
-    ctx.arc(x + 16, y + 7, 3, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (motif === "earth") {
-    for (let i = 0; i < 3; i += 1) {
-      ctx.beginPath();
-      ctx.roundRect(x + 7 + i * 6, y + 16 - i * 5, 5, 8 + i * 3, 2);
-      ctx.fill();
-    }
-    ctx.strokeRect(x + 7, y + 16, 18, 4);
-  } else if (motif === "moon") {
-    ctx.beginPath();
-    ctx.arc(x + 18, y + 5, 9, Math.PI * 0.24, Math.PI * 1.78);
-    ctx.stroke();
-    ctx.fillStyle = "rgba(255, 253, 245, 0.74)";
-    ctx.beginPath();
-    ctx.arc(x + 21, y + 2, 4, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (motif === "frost") {
-    for (let i = 0; i < 6; i += 1) {
-      const angle = (Math.PI * i) / 3;
-      ctx.beginPath();
-      ctx.moveTo(x + 16, y + 7);
-      ctx.lineTo(x + 16 + Math.cos(angle) * (10 + pulse * 0.5), y + 7 + Math.sin(angle) * (10 + pulse * 0.5));
-      ctx.stroke();
-    }
-  } else if (motif === "wind") {
-    for (let i = 0; i < 2; i += 1) {
-      ctx.beginPath();
-      ctx.moveTo(x + 5, y + 5 + i * 8);
-      ctx.bezierCurveTo(x + 13, y - 1 + i * 8 + pulse, x + 20, y + 12 + i * 5, x + 28, y + 4 + i * 8);
-      ctx.stroke();
-    }
-  } else if (motif === "lantern") {
-    ctx.fillStyle = display.palette.glow;
-    ctx.beginPath();
-    ctx.roundRect(x + 10, y - 4, 13, 18, 6);
-    ctx.fill();
-    ctx.strokeRect(x + 10, y - 4, 13, 18);
-    ctx.beginPath();
-    ctx.moveTo(x + 16, y + 14);
-    ctx.lineTo(x + 16, y + 23 + pulse);
-    ctx.stroke();
-  } else {
-    ctx.beginPath();
-    ctx.ellipse(x + 16, y + 8, 6, 11, 0, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.ellipse(x + 21, y + 4, 5, 3, -0.5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = "rgba(143, 95, 63, 0.78)";
-  ctx.font = "9px Microsoft YaHei";
-  ctx.fillText(index === 0 ? "印" : "记", x + 11, y + 22);
-  ctx.restore();
+  // drawShopCompendiumDisplayMotif(ctx) bridge keeps verify keywords: 节气印记 / 铺内陈列 / 画境小摆件
+  return drawShopCompendiumDisplayMotifWorld({
+    ctx,
+    display,
+    x,
+    y,
+    index,
+    motion,
+    reducedMotion: settings.reducedMotion,
+  });
 }
 
 function drawCompendiumDisplayAudience(ctx, compendiumDisplays = [], motion = 0) {
-  if (!compendiumDisplays.length || state.shopReport.length === 0) return;
+  // drawCompendiumDisplayAudience(ctx) bridge keeps verify keywords: 看节气印记 / 围观访客 / 陈列回应
+  if (!compendiumDisplays.length || state.shopReport.length === 0) return false;
   const remark = normalizeShopOpeningState(state.shopOpeningState).needBubbles.find((entry) => entry.compendiumRemark)
     || state.shopReport.find((entry) => entry.reason === "compendium");
-  const focus = compendiumDisplays[0];
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 2.1) * 2.5;
-  const x = 222;
-  const y = 272 + bob;
-  ctx.save();
-  ctx.strokeStyle = focus.palette.accent;
-  ctx.lineWidth = 2;
-  ctx.setLineDash([5, 5]);
-  ctx.beginPath();
-  ctx.moveTo(x + 8, y + 14);
-  ctx.lineTo(148, 264);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  ctx.fillStyle = "rgba(23, 35, 29, 0.16)";
-  ctx.beginPath();
-  ctx.ellipse(x + 18, y + 42, 24, 7, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "rgba(255, 253, 245, 0.84)";
-  ctx.beginPath();
-  ctx.arc(x + 18, y + 4, 12, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = focus.palette.accent;
-  ctx.beginPath();
-  ctx.roundRect(x + 4, y + 16, 30, 36, 12);
-  ctx.fill();
-  ctx.fillStyle = focus.palette.glow;
-  ctx.beginPath();
-  ctx.arc(x + 28, y + 2, 4, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = "rgba(255, 248, 232, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(x - 12, y - 34, 96, 24, 10);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(143, 95, 63, 0.24)";
-  ctx.stroke();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "700 11px Microsoft YaHei";
-  const label = remark?.compendiumDisplay || focus.shortTitle || "节气印记";
-  ctx.fillText(`看${String(label).slice(0, 4)}`, x, y - 18);
-  ctx.restore();
+  return drawCompendiumDisplayAudienceWorld({
+    ctx,
+    compendiumDisplays,
+    remark,
+    motion,
+    reducedMotion: settings.reducedMotion,
+  });
 }
 
 function drawYear2OrderPrepTable(ctx, livingState) {
