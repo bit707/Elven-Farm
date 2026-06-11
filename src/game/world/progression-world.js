@@ -9,6 +9,92 @@ export function spiritJobReadyWorldAccentWorld(job = "") {
   }[job] || "#b47d2f";
 }
 
+export function drawGoalClaimFeedbackWorld({
+  ctx,
+  width = 960,
+  feedback = null,
+  age = 0,
+  ease = 0,
+  pulse = 0,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !feedback) return false;
+  const x = Math.round(width / 2 - 256);
+  const y = 56 + pulse - ease * 10;
+  const pageX = x + 24 + ease * 18;
+  const pageY = y + 28;
+  const rewardX = x + 398 - ease * 20;
+  const rewardY = y + 76 - Math.sin(ease * Math.PI) * 12;
+
+  ctx.save();
+  ctx.globalAlpha = Number(feedback.fade ?? 1);
+  const glow = ctx.createRadialGradient(x + 116, y + 72, 16, x + 116, y + 72, 228);
+  glow.addColorStop(0, feedback.soft);
+  glow.addColorStop(0.55, "rgba(255, 253, 245, 0.14)");
+  glow.addColorStop(1, "rgba(255, 253, 245, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(x + 116, y + 72, 228, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawCanvasCard(ctx, x, y, 512, 142, "rgba(255, 253, 245, 0.95)");
+  ctx.fillStyle = feedback.soft;
+  ctx.beginPath();
+  ctx.roundRect(x + 18, y + 18, 476, 44, 18);
+  ctx.fill();
+  ctx.fillStyle = feedback.accent;
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(`${feedback.title} · ${feedback.sourceLabel}`.slice(0, 28), x + 36, y + 45);
+
+  ctx.fillStyle = "rgba(255, 248, 232, 0.96)";
+  ctx.beginPath();
+  ctx.roundRect(pageX, pageY + 44, 84, 62, 14);
+  ctx.fill();
+  ctx.strokeStyle = `${feedback.accent}66`;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = feedback.accent;
+  ctx.font = "700 28px Microsoft YaHei";
+  ctx.fillText(String(feedback.glyph || "鉴").slice(0, 1), pageX + 28, pageY + 84);
+  ctx.strokeStyle = "rgba(143, 95, 63, 0.22)";
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < 3; i += 1) {
+    ctx.beginPath();
+    ctx.moveTo(pageX + 16, pageY + 58 + i * 12);
+    ctx.lineTo(pageX + 68, pageY + 58 + i * 12);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 21px Microsoft YaHei";
+  ctx.fillText(feedback.headline.slice(0, 18), x + 126, y + 84);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "13px Microsoft YaHei";
+  ctx.fillText(feedback.detail.slice(0, 40), x + 126, y + 108);
+  ctx.fillStyle = feedback.accent;
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(`${feedback.verb} · ${feedback.rewardText}`.slice(0, 38), x + 126, y + 130);
+
+  ctx.fillStyle = feedback.accent;
+  ctx.beginPath();
+  ctx.arc(rewardX, rewardY, 18, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255, 253, 245, 0.94)";
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText("奖", rewardX - 7, rewardY + 5);
+
+  for (let i = 0; i < 8; i += 1) {
+    const angle = i * 0.78 + age / 520;
+    const radius = 30 + (i % 3) * 9 + ease * 10;
+    ctx.fillStyle = i % 2 ? feedback.soft : "rgba(246, 240, 182, 0.56)";
+    ctx.beginPath();
+    ctx.arc(rewardX + Math.cos(angle) * radius, rewardY + Math.sin(angle) * radius * 0.66, 3 + (i % 2), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+  return true;
+}
+
 export function drawSpiritJobReadyWorldBoardWorld({
   ctx,
   spec = null,
