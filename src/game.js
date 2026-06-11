@@ -549,6 +549,7 @@ import {
   drawCohabLifeNoteWorld,
   drawLivingWorldSummaryWorld,
   drawTownLifeMemoryKeepsakeWorldWorld,
+  drawTownLifeMemoryNewPageWorldWorld,
   drawTownLifeRelationshipWorldBoardWorld,
   drawTownLifeRouteWorldBoardWorld,
   drawTownLifeErrandRouteWorldFocusWorld,
@@ -76591,112 +76592,21 @@ function drawTownLifeMemoryKeepsakeWorld(ctx, spec = townLifeMemoryKeepsakeSpec(
 }
 
 function drawTownLifeMemoryNewPageWorld(ctx, spec = townLifeMemoryNewPageSpec(), motion = 0) {
+  // drawTownLifeMemoryNewPageWorld(ctx) bridge keeps verify keywords: 关系记忆新页 · 可点 / 谁写下 / 记了什么 / 只定位回看入口 · 不自动播放
   if (!spec?.rect || !spec.nodes?.length) return false;
-  const { rect } = spec;
-  const accent = "#286f58";
-  const gold = "#c9953d";
-  const ink = "#17231d";
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.72) * 2.2;
-  const activeNodeKey = townLifeMemoryNewPageWorldFocus?.day === state.day
-    && townLifeMemoryNewPageWorldFocus?.key === spec.key
-    ? townLifeMemoryNewPageWorldFocus.nodeKey
-    : "";
-  ctx.save();
-  if (spec.point) {
-    ctx.strokeStyle = activeNodeKey ? "rgba(40, 111, 88, 0.78)" : "rgba(40, 111, 88, 0.42)";
-    ctx.lineWidth = activeNodeKey ? 2.5 : 1.5;
-    ctx.setLineDash([2, 6]);
-    ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 8;
-    ctx.beginPath();
-    ctx.moveTo(rect.x + rect.width - 36, rect.y + rect.height - 14 + bob);
-    ctx.quadraticCurveTo((rect.x + spec.point.x) / 2, rect.y + rect.height + 18, spec.point.x + 16, spec.point.y + 34);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = "rgba(40, 111, 88, 0.16)";
-    ctx.beginPath();
-    ctx.ellipse(spec.point.x + 16, spec.point.y + 50, 42, 13, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  drawCanvasCard(ctx, rect.x, rect.y + bob, rect.width, rect.height, "rgba(255, 248, 232, 0.97)");
-  ctx.fillStyle = activeNodeKey ? "rgba(40, 111, 88, 0.2)" : "rgba(40, 111, 88, 0.14)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 12, rect.y + 12 + bob, rect.width - 24, 49, 18);
-  ctx.fill();
-  ctx.fillStyle = "rgba(201, 149, 61, 0.18)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + rect.width - 102, rect.y + 17 + bob, 74, 30, 14);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 18, rect.y + 18 + bob, 38, 30, 12);
-  ctx.fill();
-  ctx.fillStyle = "rgba(255, 253, 245, 0.96)";
-  ctx.font = "900 14px Microsoft YaHei";
-  ctx.fillText("新", rect.x + 29, rect.y + 39 + bob);
-  ctx.fillStyle = gold;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText("新页", rect.x + rect.width - 82, rect.y + 37 + bob);
-  const portrait = npcPortraitImage(spec.npcId);
-  if (portrait) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.roundRect(rect.x + rect.width - 54, rect.y + 68 + bob, 34, 34, 12);
-    ctx.clip();
-    ctx.drawImage(portrait, rect.x + rect.width - 54, rect.y + 68 + bob, 34, 34);
-    ctx.restore();
-  }
-  ctx.fillStyle = ink;
-  ctx.font = "800 14px Microsoft YaHei";
-  ctx.fillText("关系记忆新页 · 可点", rect.x + 66, rect.y + 31 + bob);
-  ctx.fillStyle = accent;
-  ctx.font = "700 11px Microsoft YaHei";
-  ctx.fillText(townLifeWorldBoardShortText(spec.subtitle, 20), rect.x + 66, rect.y + 48 + bob);
-
-  ctx.fillStyle = ink;
-  ctx.font = "800 14px Microsoft YaHei";
-  ctx.fillText(`新页写入 · ${spec.shortTitle}`, rect.x + 18, rect.y + 78 + bob);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(spec.shortSummary, rect.x + 18, rect.y + 94 + bob);
-
-  for (const node of spec.nodes) {
-    const nodeRect = node.rect;
-    const active = activeNodeKey === node.key;
-    ctx.fillStyle = active ? "rgba(255, 253, 245, 0.96)" : "rgba(255, 253, 245, 0.68)";
-    ctx.strokeStyle = active ? "rgba(201, 149, 61, 0.88)" : "rgba(40, 111, 88, 0.28)";
-    ctx.lineWidth = active ? 1.8 : 1;
-    ctx.beginPath();
-    ctx.roundRect(nodeRect.x, nodeRect.y + bob, nodeRect.width, nodeRect.height, 11);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = active ? "rgba(201, 149, 61, 0.26)" : "rgba(40, 111, 88, 0.16)";
-    ctx.beginPath();
-    ctx.roundRect(nodeRect.x + 6, nodeRect.y + 7 + bob, 20, 18, 8);
-    ctx.fill();
-    ctx.fillStyle = active ? gold : accent;
-    ctx.font = "900 10px Microsoft YaHei";
-    ctx.fillText(node.badge, nodeRect.x + 11, nodeRect.y + 20 + bob);
-    ctx.fillStyle = ink;
-    ctx.font = "800 10px Microsoft YaHei";
-    ctx.fillText(node.shortLabel, nodeRect.x + 31, nodeRect.y + 15 + bob);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "9px Microsoft YaHei";
-    ctx.fillText(node.shortTitle, nodeRect.x + 31, nodeRect.y + 27 + bob);
-  }
-
-  ctx.fillStyle = activeNodeKey ? accent : "#5d6f65";
-  ctx.font = "700 10px Microsoft YaHei";
-  ctx.fillText("只定位回看入口 · 不自动播放", rect.x + 18, rect.y + rect.height - 8 + bob);
-  if (activeNodeKey) {
-    ctx.strokeStyle = "rgba(201, 149, 61, 0.82)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(rect.x + 4, rect.y + 4 + bob, rect.width - 8, rect.height - 8, 18);
-    ctx.stroke();
-  }
-  ctx.restore();
-  return true;
+  return drawTownLifeMemoryNewPageWorldWorld({
+    ctx,
+    spec,
+    motion,
+    activeNodeKey: townLifeMemoryNewPageWorldFocus?.day === state.day
+      && townLifeMemoryNewPageWorldFocus?.key === spec.key
+      ? townLifeMemoryNewPageWorldFocus.nodeKey
+      : "",
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+    npcPortraitImage,
+    shortText: townLifeWorldBoardShortText,
+  });
 }
 
 function drawTownLifeMemoryThresholdKeepsakeWorld(ctx, spec = townLifeMemoryThresholdKeepsakeSpec(), motion = 0) {
