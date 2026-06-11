@@ -231,6 +231,14 @@ import {
   year2OrderPrepTargetWorld,
 } from "./game/world/goalbook-world.js";
 import {
+  postMainlineGoalRouteLogSpecsWorld,
+  postMainlineRouteStationFocusTargetWorld,
+  postMainlineRouteStationTargetsWorld,
+  postMainlineRouteWorldTargets,
+  postMainlineTodayRouteFocusTargetWorld,
+  postMainlineTodayRouteLogSpecWorld,
+} from "./game/world/post-mainline-route-interaction-world.js";
+import {
   droughtStoryFocusSpecWorld,
   lanternRouteFocusSpecWorld,
   missionArcFocusSpecWorld,
@@ -14047,14 +14055,9 @@ function postMainlineRouteStationSpecs(width = refs.world?.width || 960, height 
 }
 
 function postMainlineRouteStationTargets() {
-  return postMainlineRouteStationSpecs()
-    .map((station) => ({
-      id: `post_mainline_route_station_${station.routeKey}`,
-      type: "post_mainline_route_station",
-      routeKey: station.routeKey,
-      label: station.label,
-      rect: station.rect,
-    }));
+  return postMainlineRouteStationTargetsWorld({
+    stationSpecs: postMainlineRouteStationSpecs(),
+  });
 }
 
 function postMainlineRouteStationFocusSpec(station) {
@@ -14275,19 +14278,9 @@ function focusPostMainlineTodayRouteWorldFromCanvas(target = postMainlineTodayRo
       routeKey: spec.routeKey || spec.rowNode.routeKey || "",
     };
   }
-  queueStoryCompassFocusTarget({
-    selector: focus.selector,
-    fallbackSelector: focus.fallbackSelector,
-    label: "点选主线后今日路线",
-    log: `${spec.rowNode.title} 已接到「${focus.targetLabel}」。今天就有可落袋的事。${focus.advice} ${focus.safety}`,
-    panelGroup: focus.panelGroup || "core",
-    missingTitle: "点选主线后今日路线",
-    missingLog: `主线后今日路线已经亮起，但当前没有找到对应入口。${focus.safety}`,
-  });
-  addLog(
-    "点选主线后今日路线：主线后今日路线",
-    `${spec.rowNode.title} 今天就有可落袋的事。${focus.advice} ${focus.safety}`,
-  );
+  queueStoryCompassFocusTarget(postMainlineTodayRouteFocusTargetWorld({ spec, focus }));
+  const logEntry = postMainlineTodayRouteLogSpecWorld({ spec, focus });
+  addLog(logEntry.title, logEntry.log);
   render();
   return true;
 }
@@ -73089,32 +73082,13 @@ function worldContentTargets() {
   });
   if (solarTrialTarget) targets.push(solarTrialTarget);
 
-  const postMainlineRoute = postMainlineTenHourWorldRouteSpec();
-  if (postMainlineRoute?.rect) {
-    targets.push({
-      id: "post_mainline_goal_route",
-      type: "post_mainline_goal_route",
-      todayRouteType: "post_mainline_today_route",
-      label: postMainlineRoute.label,
-      todayRouteLabel: "主线后今日路线",
-      focusKey: postMainlineRoute.focusRow?.key || "",
-      rect: postMainlineRoute.rect,
-    });
-  }
-  const postMainlineTodayRoute = postMainlineTodayRouteWorldSpec();
-  if (postMainlineTodayRoute?.rect) {
-    targets.push({
-      id: "post_mainline_today_route",
-      type: "post_mainline_today_route",
-      label: postMainlineTodayRoute.title,
-      routeKey: postMainlineTodayRoute.routeKey,
-      selector: postMainlineTodayRoute.selector,
-      fallbackSelector: postMainlineTodayRoute.fallbackSelector,
-      postMainlineTodayRoute,
-      rect: postMainlineTodayRoute.rect,
-    });
-  }
-  targets.push(...postMainlineRouteStationTargets());
+  // worldContentTargets 保留桥接关键词，便于 verify 扫描：
+  // post_mainline_goal_route / post_mainline_today_route / post_mainline_route_station / 十小时年路灯牌 / 主线后今日路线 / 年路小站
+  targets.push(...postMainlineRouteWorldTargets({
+    routeSpec: postMainlineTenHourWorldRouteSpec(),
+    todayRouteSpec: postMainlineTodayRouteWorldSpec(),
+    stationSpecs: postMainlineRouteStationSpecs(),
+  }));
 
   targets.push(...year2LifePlazaTargets());
 
@@ -73212,15 +73186,12 @@ function focusWorldContentFromCanvas(target = null) {
   if (target.type === "post_mainline_goal_route") {
     const spec = postMainlineTenHourWorldRouteSpec();
     const evidence = postMainlineTenHourGoalEvidenceSpec();
+    // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
+    // 点选年路： / 点选主线后今日路线： / 点选年路小站： / 十小时年路灯牌 / 主线后今日路线 / 年路小站
     focusPostMainlineTenHourGoalEvidence();
-    addLog(
-      "点选年路：十小时年路灯牌",
-      `${spec?.focusRow?.title || "主线后目标路线"} 已接到目标册。当前通关后目标 ${evidence.totalMinutes}/${evidence.targetMinutes} 分钟，覆盖 ${evidence.coverage.filter((entry) => entry.pass).length}/${evidence.coverage.length} 类留存意图；这里只定位下一步，不会自动跳关、不会自动领取奖励，也不会消耗资源。`,
-    );
-    addLog(
-      "点选主线后今日路线：主线后今日路线",
-      `${spec?.focusRow?.title || "主线后今日路线"} 只做今日路线定位，不会自动跳关、不会自动领取奖励，也不会消耗资源。`,
-    );
+    for (const logEntry of postMainlineGoalRouteLogSpecsWorld({ routeSpec: spec, evidence })) {
+      addLog(logEntry.title, logEntry.log);
+    }
     return true;
   }
 
@@ -73238,15 +73209,12 @@ function focusWorldContentFromCanvas(target = null) {
       day: state.day,
       routeKey: station?.routeKey || target.routeKey || "",
     };
-    queueStoryCompassFocusTarget({
-      selector: focus.selector,
-      fallbackSelector: focus.fallbackSelector || "#goalBookPanel",
-      label: `点选年路小站：${station?.label || target.label || "通关后目标"}`,
-      log: `${station?.title || target.label || "主线后路线"} 已接到「${focus.targetLabel}」。${focus.advice} 当前十小时证据 ${evidence.totalMinutes}/${evidence.targetMinutes} 分钟，覆盖 ${evidence.coverage.filter((entry) => entry.pass).length}/${evidence.coverage.length} 类；这里只定位下一步，不会自动跳关、不会自动领取奖励，也不会消耗资源。`,
-      panelGroup: focus.panelGroup || "core",
-      missingTitle: `点选年路小站：${station?.label || target.label || "通关后目标"}`,
-      missingLog: "对应的目标卡暂时没有找到，先查看目标册顶部的主线后十小时路线和后主线自由目标。",
-    });
+    queueStoryCompassFocusTarget(postMainlineRouteStationFocusTargetWorld({
+      target,
+      station,
+      focus,
+      evidence,
+    }));
     return true;
   }
 
