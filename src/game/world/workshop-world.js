@@ -1961,6 +1961,37 @@ export function workshopReadyOrderDispatchWorldSpecFromRuntimeWorld({
   };
 }
 
+export function workshopReadyOrderDispatchRewardTextWorld(
+  order = null,
+  fallbackText = "Order reward",
+) {
+  if (!order) return fallbackText;
+  return [
+    Number(order.reward_gold || 0) ? `${Number(order.reward_gold || 0)} 灵石` : "",
+    Number(order.reward_fame || 0) ? `声望 +${Number(order.reward_fame || 0)}` : "",
+  ].filter(Boolean).join(" / ") || fallbackText;
+}
+
+export function workshopReadyOrderDispatchWorldCopyFromRuntimeWorld({
+  aromaSpec = null,
+  rewardText = "Order reward",
+  copy = null,
+} = {}) {
+  if (!aromaSpec?.ready || !aromaSpec.orderId) return null;
+  const safeCopy = copy || {};
+  return {
+    title: safeCopy.title || "World output ready for order",
+    headline: safeCopy.headline || "Delivery cart is loaded",
+    detail: safeCopy.detail || `${aromaSpec.outputLabel} -> ${aromaSpec.orderTitle}`,
+    routeLabel: safeCopy.routeLabel || "Delivery route",
+    boardLabel: safeCopy.boardLabel || "Order board cashier",
+    manualLabel: safeCopy.manualLabel || "Confirm, then deliver manually",
+    safety: safeCopy.safety || "Will not auto-deliver or consume stock",
+    cta: safeCopy.cta || "Output order - click",
+    rewardText,
+  };
+}
+
 export function workshopReadyOrderDispatchWorldAtCanvasPointWorld({
   px,
   py,

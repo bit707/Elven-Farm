@@ -186,8 +186,10 @@ import {
   drawWorkshopOrderQueueWorldBoardWorld,
   workshopOrderQueueWorldBoardAtCanvasPointWorld,
   workshopOrderQueueWorldBoardSpecFromRuntimeWorld,
+  workshopReadyOrderDispatchRewardTextWorld,
   drawWorkshopReadyOrderDispatchWorldWorld,
   workshopReadyOrderDispatchWorldAtCanvasPointWorld,
+  workshopReadyOrderDispatchWorldCopyFromRuntimeWorld,
   workshopReadyOrderDispatchWorldSpecFromRuntimeWorld,
   drawWorkshopSpiritAssistActionWorldWorld,
   workshopSpiritAssistActionWorldAtCanvasPointWorld,
@@ -28532,18 +28534,20 @@ function workshopReadyOrderDispatchWorldSpec() {
 }
 
 function workshopReadyOrderDispatchWorldCopy(aromaSpec, rewardText = "订单奖励") {
-  if (!aromaSpec?.ready || !aromaSpec.orderId) return null;
-  return {
-    title: "主世界出锅可交单",
-    headline: "出锅交单车已装好",
-    detail: `${aromaSpec.outputLabel} -> ${aromaSpec.orderTitle}`,
-    routeLabel: "交单路线",
-    boardLabel: "订单板收款口",
-    manualLabel: "确认后手动点交付",
-    safety: "不会自动交单或消耗库存",
-    cta: "出锅交单 · 可点",
+  return workshopReadyOrderDispatchWorldCopyFromRuntimeWorld({
+    aromaSpec,
     rewardText,
-  };
+    copy: {
+      title: "主世界出锅可交单",
+      headline: "出锅交单车已装好",
+      detail: aromaSpec ? `${aromaSpec.outputLabel} -> ${aromaSpec.orderTitle}` : "",
+      routeLabel: "交单路线",
+      boardLabel: "订单板收款口",
+      manualLabel: "确认后手动点交付",
+      safety: "不会自动交单或消耗库存",
+      cta: "出锅交单 · 可点",
+    },
+  });
 }
 
 function workshopReadyOrderDispatchWorldSpecBridge() {
@@ -28554,12 +28558,7 @@ function workshopReadyOrderDispatchWorldSpecBridge() {
   const orderMatch = aromaSpec
     ? aromaSpec.orderMatch || workshopOutputOrderMatchSpec(aromaSpec.aroma?.itemId || "", aromaSpec.aroma?.outputCount || 1)
     : null;
-  const rewardText = order
-    ? [
-      Number(order.reward_gold || 0) ? `${Number(order.reward_gold || 0)} 灵石` : "",
-      Number(order.reward_fame || 0) ? `声望 +${Number(order.reward_fame || 0)}` : "",
-    ].filter(Boolean).join(" / ") || "订单奖励"
-    : "订单奖励";
+  const rewardText = workshopReadyOrderDispatchRewardTextWorld(order, "订单奖励");
   return workshopReadyOrderDispatchWorldSpecFromRuntimeWorld({
     day: state.day,
     aromaSpec,
