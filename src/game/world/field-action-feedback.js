@@ -1385,6 +1385,38 @@ export function drawMatureHarvestBasketWorldWorld({
   return true;
 }
 
+export function harvestRouteWorldBoardSpecFromRuntimeWorld({
+  width = 960,
+  height = 640,
+  originXInput = null,
+  originYInput = null,
+  tileInput = null,
+  gapInput = null,
+  rows = [],
+  day = 1,
+  metrics = null,
+  routeForItem = () => null,
+} = {}) {
+  const safeRows = Array.isArray(rows) ? rows : [];
+  const top = safeRows[0] || null;
+  if (!top || !metrics) return null;
+  const route = top.route || routeForItem(top.itemId, 1);
+  const { tile, gap, originX, originY } = metrics;
+  return harvestRouteWorldBoardSpecWorld({
+    width,
+    height,
+    rows: safeRows,
+    day,
+    metrics: {
+      originX: Number(originXInput ?? originX),
+      originY: Number(originYInput ?? originY),
+      tile: Number(tileInput ?? tile),
+      gap: Number(gapInput ?? gap),
+    },
+    route,
+  });
+}
+
 export function harvestRouteWorldBoardSpecWorld({
   width = 960,
   height = 640,

@@ -513,7 +513,7 @@ import {
   fieldActionFeedbackSpecWorld,
   colorWithAlphaWorld,
   harvestRouteWorldBoardAtCanvasPointWorld,
-  harvestRouteWorldBoardSpecWorld,
+  harvestRouteWorldBoardSpecFromRuntimeWorld,
   harvestStorageRouteFeedbackSpecFromRuntimeWorld,
   harvestStorageRouteSafetyTextWorld,
   harvestStorageRouteWorldAtCanvasPointWorld,
@@ -66096,22 +66096,17 @@ function harvestRouteWorldRows(limit = 4) {
 
 function harvestRouteWorldBoardSpec(width = 960, height = 640, originXInput = null, originYInput = null, tileInput = null, gapInput = null) {
   const rows = harvestRouteWorldRows(4);
-  if (!rows.length) return null;
-  const { tile, gap, originX, originY } = gridMetrics();
-  const top = rows[0];
-  const route = top.route || harvestUseRouteSpec(top.itemId, 1);
-  return harvestRouteWorldBoardSpecWorld({
+  return harvestRouteWorldBoardSpecFromRuntimeWorld({
     width,
     height,
+    originXInput,
+    originYInput,
+    tileInput,
+    gapInput,
     day: state.day,
     rows,
-    route,
-    metrics: {
-      originX: Number(originXInput ?? originX),
-      originY: Number(originYInput ?? originY),
-      tile: Number(tileInput ?? tile),
-      gap: Number(gapInput ?? gap),
-    },
+    metrics: gridMetrics(),
+    routeForItem: harvestUseRouteSpec,
   });
 }
 
