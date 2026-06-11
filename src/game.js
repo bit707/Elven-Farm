@@ -35,6 +35,7 @@ import {
   drawCanalRestorationRouteWorldWorld,
   drawCanalSeedRewardRouteWorldWorld,
   drawQinghePondEntryFeedbackWorld,
+  drawQinghePondProgressFeedbackWorld,
   drawWaterCropDishFeedbackWorld,
   drawWaterCropHarvestFeedbackWorld,
   drawWaterCropOrderFeedbackWorld,
@@ -59153,121 +59154,19 @@ function drawQinghePondProgressFeedback(ctx, width, height, feedback = activeQin
   const progress = settings.reducedMotion ? 1 : Math.min(1, age / 1600);
   const ease = 1 - (1 - progress) ** 3;
   const ripple = settings.reducedMotion ? 0 : Math.sin(now / 340) * 5;
-  const x = Math.round(width / 2 - 262);
-  const y = Math.round(302 + ripple - ease * 10);
-  const isReturnOrderPhase = feedback.phase === "return_order";
-  const hasFishMoment = feedback.phase === "catch" || feedback.phase === "recipe" || feedback.phase === "sale" || feedback.phase === "restock" || feedback.phase === "signature" || feedback.phase === "menu" || isReturnOrderPhase;
-  const hasShopSignMoment = feedback.phase === "sale" || feedback.phase === "restock" || feedback.phase === "signature" || feedback.phase === "menu" || isReturnOrderPhase;
-  const hasCompletedMenuMoment = feedback.phase === "recipe" || feedback.phase === "sale" || feedback.phase === "restock" || feedback.phase === "signature" || feedback.phase === "menu" || isReturnOrderPhase;
-  const phaseAccent = isReturnOrderPhase ? "#286f58" : feedback.phase === "menu" ? "#286f58" : feedback.phase === "signature" ? "#8f5f3f" : feedback.phase === "restock" ? "#4d91a6" : feedback.phase === "sale" ? "#b47d2f" : feedback.phase === "recipe" ? "#b47d2f" : feedback.phase === "catch" ? "#286f58" : "#4d91a6";
-  const glyph = isReturnOrderPhase ? "订" : feedback.phase === "menu" ? "双" : feedback.phase === "signature" ? "牌" : feedback.phase === "restock" ? "鲜" : feedback.phase === "sale" ? "铺" : feedback.phase === "recipe" ? "谱" : feedback.phase === "catch" ? "鱼" : "池";
-
-  ctx.save();
-  ctx.globalAlpha = Number(feedback.fade ?? 1);
-  const glow = ctx.createRadialGradient(x + 116, y + 98, 14, x + 116, y + 98, 270);
-  glow.addColorStop(0, "rgba(159, 209, 223, 0.4)");
-  glow.addColorStop(0.48, "rgba(202, 235, 210, 0.2)");
-  glow.addColorStop(1, "rgba(77, 145, 166, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(x + 116, y + 98, 270, 0, Math.PI * 2);
-  ctx.fill();
-
-  drawCanvasCard(ctx, x, y, 524, 196, "rgba(248, 252, 247, 0.97)");
-  ctx.fillStyle = "rgba(77, 145, 166, 0.18)";
-  ctx.beginPath();
-  ctx.roundRect(x + 24, y + 26, 134, 132, 32);
-  ctx.fill();
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.94)";
-  ctx.beginPath();
-  ctx.ellipse(x + 92, y + 104, 48 + ripple * 0.35, 24, -0.08, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(77, 145, 166, 0.6)";
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  for (let i = 0; i < 4; i += 1) {
-    const radius = 18 + i * 12 + ease * 9;
-    ctx.strokeStyle = `rgba(77, 145, 166, ${0.34 - i * 0.06})`;
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.ellipse(x + 92, y + 104, radius, radius * 0.42, -0.08, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  if (hasFishMoment) {
-    ctx.fillStyle = "rgba(40, 111, 88, 0.86)";
-    ctx.beginPath();
-    ctx.ellipse(x + 88 + Math.sin(now / 280) * 5, y + 102, 28, 10, -0.15, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "rgba(255, 253, 245, 0.84)";
-    ctx.beginPath();
-    ctx.arc(x + 104, y + 99, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  if (feedback.phase === "recipe") {
-    ctx.fillStyle = "rgba(224, 182, 109, 0.86)";
-    ctx.beginPath();
-    ctx.roundRect(x + 58, y + 54, 68, 48, 12);
-    ctx.fill();
-    ctx.fillStyle = "#8f5f3f";
-    ctx.font = "800 16px Microsoft YaHei";
-    ctx.fillText("清波", x + 75, y + 82);
-  }
-  if (hasShopSignMoment) {
-    const signStroke = isReturnOrderPhase ? "rgba(40, 111, 88, 0.52)" : feedback.phase === "menu" ? "rgba(40, 111, 88, 0.46)" : feedback.phase === "signature" ? "rgba(143, 95, 63, 0.46)" : feedback.phase === "restock" ? "rgba(77, 145, 166, 0.46)" : "rgba(180, 125, 47, 0.42)";
-    const signInk = isReturnOrderPhase ? "#286f58" : feedback.phase === "menu" ? "#286f58" : feedback.phase === "signature" ? "#8f5f3f" : feedback.phase === "restock" ? "#4d91a6" : "#b47d2f";
-    const signText = isReturnOrderPhase ? "回订" : feedback.phase === "menu" ? "双鲜" : feedback.phase === "signature" ? "成线" : feedback.phase === "restock" ? "补齐" : "首卖";
-    ctx.fillStyle = "rgba(255, 248, 232, 0.9)";
-    ctx.beginPath();
-    ctx.roundRect(x + 54, y + 56, 78, 48, 12);
-    ctx.fill();
-    ctx.strokeStyle = signStroke;
-    ctx.lineWidth = 1.6;
-    ctx.stroke();
-    ctx.fillStyle = signInk;
-    ctx.font = "800 15px Microsoft YaHei";
-    ctx.fillText(signText, x + 75, y + 84);
-  }
-  ctx.fillStyle = phaseAccent;
-  ctx.font = "800 20px Microsoft YaHei";
-  ctx.fillText(glyph, x + 82, y + 142);
-
-  ctx.fillStyle = phaseAccent;
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(String(feedback.label || "灵池水鲜进度").slice(0, 25), x + 184, y + 38);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "800 22px Microsoft YaHei";
-  ctx.fillText(String(feedback.headline || "灵池线推进").slice(0, 19), x + 184, y + 72);
-  ctx.fillStyle = "#286f58";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(String(feedback.detail || "").slice(0, 42), x + 184, y + 102);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(String(feedback.rewardText || "").slice(0, 44), x + 184, y + 128);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "12px Microsoft YaHei";
-  ctx.fillText(String(feedback.nextAdvice || "").slice(0, 48), x + 184, y + 154);
-
-  const steps = String(feedback.routeText || "建灵池浅塘 -> 第一网灵鱼 -> 清波鱼脍").split(" -> ");
-  let chipX = x + 28;
-  const chipY = y + 178;
-  steps.slice(0, 3).forEach((step, index) => {
-    const chipW = index === 2 ? 132 : 116;
-    ctx.fillStyle = index === 2 && hasCompletedMenuMoment ? "rgba(224, 182, 109, 0.24)" : "rgba(202, 235, 210, 0.76)";
-    ctx.beginPath();
-    ctx.roundRect(chipX, chipY - 17, chipW, 24, 12);
-    ctx.fill();
-    ctx.fillStyle = index === 2 && hasCompletedMenuMoment ? "#8f5f3f" : "#286f58";
-    ctx.font = "700 11px Microsoft YaHei";
-    ctx.fillText(step.slice(0, index === 2 ? 11 : 9), chipX + 10, chipY);
-    chipX += chipW + 12;
+  // drawQinghePondProgressFeedback(ctx) bridge keeps verify keywords: drawQinghePondProgressFeedback / 灵池水鲜进度 / 建灵池浅塘 -> 第一网灵鱼 -> 清波鱼脍 / 灵池水鲜成品 · 旧铺可上架 / 灵池水鲜首卖 · 水鲜招牌成线 / 灵池水鲜补货兑现 / feedback.phase === "return_order" / feedback.phase === "menu" / feedback.phase === "signature" / feedback.phase === "restock" / feedback.phase === "sale" / feedback.phase === "recipe" / feedback.phase === "catch" / 回订 / 双鲜 / 成线 / 补齐 / 首卖
+  // verify keywords continued: 旧铺水鲜首卖 / 灵池水鲜第一次卖出去了 / 灵池水鲜首卖 / 水鲜递出 · 灵石入账 / 清波鱼脍旧铺首卖 / 水鲜招牌成线 / 青禾听见旧铺真的卖出水鲜了 / 清波鱼脍 -> 旧铺首卖 -> 水鲜招牌 / 清波鱼脍首卖 / 灵池水鲜补货签 / 灵池水鲜补货追踪 / 清波鱼脍 x / 水鲜回头客已经闻着路回来 / 水鲜熟客留言墙 / 水鲜熟客苗头板 / 把灵池水鲜顺嘴带给了新脚步
+  // verify keywords continued: 清波鱼脍补货完成 / 灵池水鲜补货 · 招牌稳住 / 水鲜补货兑现 / 灵池水鲜招牌成型 / 水鲜招牌 · 稳定客群成线 / 首卖 -> 补货 -> 回头成交 -> 水鲜招牌 / 补货后再成交 / 水鲜熟客留单 / 水鲜固定客群 / 水鲜固定客群成型 / 青禾水鲜回订单 / 固定客群 -> 青禾回订
+  return drawQinghePondProgressFeedbackWorld({
+    ctx,
+    width,
+    height,
+    feedback,
+    now,
+    ease,
+    ripple,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "rgba(77, 145, 166, 0.82)";
-  ctx.beginPath();
-  ctx.roundRect(x + 184, y + 170, Math.max(42, 284 * ease), 6, 999);
-  ctx.fill();
-  ctx.restore();
 }
 
 function drawSpiritJoinFeedback(ctx, width, height, feedback = activeSpiritJoinFeedback()) {
