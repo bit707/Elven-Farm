@@ -537,6 +537,8 @@ import {
   shopWordOfMouthSaleReasonWorldSpecWorld,
 } from "./game/world/shop-world.js";
 import {
+  drawCohabCourtyardWorld,
+  drawCohabLifeNoteWorld,
   drawLivingWorldSummaryWorld,
   drawTownLifeErrandRouteWorldFocusWorld,
 } from "./game/world/town-life-world.js";
@@ -74444,259 +74446,42 @@ function drawYear2SolarTrialDial(ctx) {
 }
 
 function drawCohabCourtyard(ctx, livingState) {
-  if (livingState.cohabRoutes.length === 0) return;
+  // drawCohabCourtyard(ctx) bridge keeps verify keywords: 同住安家 / 后日谈共桌 / 余韵 / 在家
+  if (livingState.cohabRoutes.length === 0) return false;
   const buffRouteIds = new Set(livingState.activeBuffs.map((entry) => entry.routeId));
   const hasRoute = (epilogueId) => livingState.cohabRoutes.some((entry) => entry.epilogue_id === epilogueId);
-  const routeGlow = (epilogueId, color, x, y, radiusX, radiusY) => {
-    if (!buffRouteIds.has(epilogueId)) return;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.ellipse(x, y, radiusX, radiusY, 0, 0, Math.PI * 2);
-    ctx.fill();
-  };
-
-  ctx.save();
-  if (hasRoute("cohab_baizhi_01")) {
-    routeGlow("cohab_baizhi_01", "rgba(202, 235, 210, 0.28)", 222, 266, 54, 18);
-    ctx.strokeStyle = "#8f5f3f";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(188, 220);
-    ctx.lineTo(188, 280);
-    ctx.lineTo(246, 280);
-    ctx.lineTo(246, 220);
-    ctx.stroke();
-    ["#5d8b52", "#9fd1df", "#e0b66d"].forEach((color, index) => {
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.ellipse(200 + index * 18, 238 + (index % 2) * 10, 8, 14, index * 0.3, 0, Math.PI * 2);
-      ctx.fill();
-    });
-    ctx.fillStyle = "#caebd2";
-    ctx.beginPath();
-    ctx.roundRect(256, 258, 16, 18, 4);
-    ctx.fill();
-  }
-
-  if (hasRoute("cohab_hu_01")) {
-    routeGlow("cohab_hu_01", "rgba(230, 198, 94, 0.24)", 306, 334, 64, 20);
-    ctx.fillStyle = "#8f5f3f";
-    ctx.beginPath();
-    ctx.roundRect(272, 290, 36, 26, 6);
-    ctx.roundRect(314, 300, 34, 22, 6);
-    ctx.fill();
-    ctx.strokeStyle = "#b47d2f";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(332, 258);
-    ctx.lineTo(332, 302);
-    ctx.stroke();
-    ctx.fillStyle = "#e6c65e";
-    ctx.beginPath();
-    ctx.moveTo(332, 258);
-    ctx.lineTo(362, 268);
-    ctx.lineTo(332, 282);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  if (hasRoute("cohab_atan_01")) {
-    routeGlow("cohab_atan_01", "rgba(242, 210, 139, 0.2)", 250, 198, 54, 18);
-    ctx.fillStyle = "#8f5f3f";
-    ctx.fillRect(218, 176, 52, 10);
-    ctx.fillRect(224, 186, 8, 28);
-    ctx.fillRect(256, 186, 8, 28);
-    ctx.strokeStyle = "#e0b66d";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(272, 166);
-    ctx.lineTo(294, 146);
-    ctx.lineTo(316, 176);
-    ctx.stroke();
-  }
-
-  if (hasRoute("cohab_qinghe_01")) {
-    routeGlow("cohab_qinghe_01", "rgba(159, 209, 223, 0.24)", 674, 548, 78, 24);
-    ctx.fillStyle = "rgba(77, 145, 166, 0.34)";
-    ctx.beginPath();
-    ctx.ellipse(664, 550, 64, 20, -0.1, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "#5d8b52";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.arc(718, 524, 18, 0, Math.PI * 2);
-    ctx.moveTo(718, 506);
-    ctx.lineTo(718, 542);
-    ctx.moveTo(700, 524);
-    ctx.lineTo(736, 524);
-    ctx.stroke();
-    ctx.fillStyle = "#fffdf5";
-    ctx.beginPath();
-    ctx.arc(640, 540, 8, 0, Math.PI * 2);
-    ctx.arc(682, 556, 6, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  if (hasRoute("cohab_shen_01")) {
-    routeGlow("cohab_shen_01", "rgba(246, 240, 182, 0.24)", 560, 302, 64, 22);
-    ctx.fillStyle = "#5b3328";
-    ctx.fillRect(540, 260, 8, 48);
-    ctx.fillRect(584, 268, 8, 42);
-    ctx.fillStyle = "rgba(246, 240, 182, 0.68)";
-    ctx.beginPath();
-    ctx.arc(544, 274, 10, 0, Math.PI * 2);
-    ctx.arc(588, 282, 9, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#be4f37";
-    ctx.beginPath();
-    ctx.moveTo(564, 296);
-    ctx.lineTo(582, 330);
-    ctx.lineTo(544, 330);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  if (livingState.cohabRoutes.length >= 2) {
-    const steamBob = settings.reducedMotion ? 0 : Math.sin(performance.now() / 320) * 2;
-    ctx.fillStyle = "#8f5f3f";
-    ctx.beginPath();
-    ctx.roundRect(154, 316, 92, 18, 8);
-    ctx.fill();
-    ctx.fillRect(166, 334, 8, 18);
-    ctx.fillRect(226, 334, 8, 18);
-    ctx.fillStyle = "#fffdf5";
-    [174, 194, 214, 234].forEach((x) => {
-      ctx.beginPath();
-      ctx.arc(x, 312, 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "rgba(23, 35, 29, 0.18)";
-      ctx.stroke();
-    });
-    ctx.fillStyle = "rgba(255, 253, 245, 0.46)";
-    [182, 218].forEach((x, index) => {
-      ctx.beginPath();
-      ctx.arc(x, 300 - index * 6 + steamBob, 5, 0, Math.PI * 2);
-      ctx.fill();
-    });
-  }
-  ctx.restore();
+  return drawCohabCourtyardWorld({
+    ctx,
+    routeFlags: {
+      baizhi: hasRoute("cohab_baizhi_01"),
+      hu: hasRoute("cohab_hu_01"),
+      atan: hasRoute("cohab_atan_01"),
+      qinghe: hasRoute("cohab_qinghe_01"),
+      shen: hasRoute("cohab_shen_01"),
+    },
+    activeBuffRouteIds: [...buffRouteIds],
+    routeCount: livingState.cohabRoutes.length,
+    motion: settings.reducedMotion ? 0 : performance.now() / 1000,
+    reducedMotion: settings.reducedMotion,
+  });
 }
 
 function drawCohabLifeNote(ctx, livingState) {
+  // drawCohabLifeNote(ctx) bridge keeps verify keywords: 同住后日谈窗灯 / 余韵 / 下一件小事 / 在家
   const spec = cohabAfterglowWindowSpec(livingState, ctx.canvas.width, ctx.canvas.height);
-  if (!spec?.rect) return;
-  const { life, rect, palette } = spec;
-  const latest = life.latest;
-  const buff = life.activeBuff;
+  if (!spec?.rect) return false;
   const activeNodeKey = cohabAfterglowWindowWorldFocus?.day === state.day
     && cohabAfterglowWindowWorldFocus?.key === spec.key
     ? cohabAfterglowWindowWorldFocus.nodeKey
     : "";
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const x = rect.x;
-  const y = rect.y;
-  const width = rect.width;
-  const height = rect.height;
-  const accent = palette.accent;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.4) * 1.5;
-
-  ctx.save();
-  ctx.fillStyle = "rgba(23, 35, 29, 0.13)";
-  ctx.beginPath();
-  ctx.ellipse(x + width / 2, y + height + 10 + bob, width * 0.43, 13, 0, 0, Math.PI * 2);
-  ctx.fill();
-  drawCanvasCard(ctx, x, y + bob, width, height, palette.soft);
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(x + 14, y + 14 + bob, 54, 70, 16);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(143, 95, 63, 0.22)";
-  ctx.stroke();
-  const homeX = x + 24;
-  const homeY = y + 46 + bob;
-  ctx.fillStyle = accent;
-  ctx.beginPath();
-  ctx.moveTo(homeX, homeY);
-  ctx.lineTo(homeX + 17, homeY - 18);
-  ctx.lineTo(homeX + 34, homeY);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.beginPath();
-  ctx.roundRect(homeX + 5, homeY, 24, 24, 5);
-  ctx.fill();
-  ctx.fillStyle = "#fffdf5";
-  ctx.fillRect(homeX + 14, homeY + 10, 6, 14);
-  if (life.routeCount >= 2) {
-    ctx.fillStyle = "rgba(224, 182, 109, 0.78)";
-    ctx.beginPath();
-    ctx.arc(homeX + 33 + Math.sin(motion * 2) * 2, homeY - 16, 4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = accent;
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(`同住后日谈窗灯 · ${life.routeCount} 线`, x + 82, y + 28 + bob);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 14px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 18), x + 82, y + 50 + bob);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(spec.detail.slice(0, 26), x + 82, y + 68 + bob);
-
-  ctx.fillStyle = palette.glow;
-  ctx.beginPath();
-  ctx.roundRect(x + 82, y + 78 + bob, width - 100, 20, 10);
-  ctx.fill();
-  ctx.fillStyle = buff ? "#b47d2f" : "#8f5f3f";
-  ctx.font = "700 10px Microsoft YaHei";
-  const buffText = buff
-    ? `余韵 ${buff.label} 至第 ${buff.expiresDay} 天`
-    : spec.nextEvent
-      ? `下一件小事：${spec.nextRoute?.route_name || "同住"} · ${spec.nextEvent.event_name || spec.nextEvent.scene_key || "日常"}`
-      : "下一件小事：等下一次日夜流转";
-  ctx.fillText(buffText.slice(0, 28), x + 92, y + 92 + bob);
-
-  for (const node of spec.nodes) {
-    const nodeRect = node.rect;
-    const active = activeNodeKey === node.key;
-    ctx.fillStyle = active ? "rgba(255, 253, 245, 0.94)" : "rgba(255, 253, 245, 0.64)";
-    ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.86)" : `${accent}33`;
-    ctx.lineWidth = active ? 1.8 : 1;
-    ctx.beginPath();
-    ctx.roundRect(nodeRect.x, nodeRect.y + bob, nodeRect.width, nodeRect.height, 10);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = `${accent}22`;
-    ctx.beginPath();
-    ctx.roundRect(nodeRect.x + 5, nodeRect.y + 6 + bob, 19, 16, 7);
-    ctx.fill();
-    ctx.fillStyle = accent;
-    ctx.font = "900 9px Microsoft YaHei";
-    ctx.fillText(node.badge, nodeRect.x + 10, nodeRect.y + 18 + bob);
-    ctx.fillStyle = "#17231d";
-    ctx.font = "800 9px Microsoft YaHei";
-    ctx.fillText(node.shortLabel, nodeRect.x + 29, nodeRect.y + 14 + bob);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "8px Microsoft YaHei";
-    ctx.fillText(node.shortTitle, nodeRect.x + 29, nodeRect.y + 24 + bob);
-  }
-
-  for (let i = 0; i < Math.min(5, life.routeCount); i += 1) {
-    ctx.fillStyle = i % 2 ? "rgba(202, 235, 210, 0.78)" : "rgba(224, 182, 109, 0.72)";
-    ctx.beginPath();
-    ctx.arc(x + 22 + i * 9, y + height - 8 + bob + Math.sin(motion * 1.8 + i) * 1.5, 3, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  if (activeNodeKey) {
-    ctx.strokeStyle = "rgba(224, 182, 109, 0.78)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(x + 4, y + 4 + bob, width - 8, height - 8, 18);
-    ctx.stroke();
-  }
-  ctx.restore();
+  return drawCohabLifeNoteWorld({
+    ctx,
+    spec,
+    activeNodeKey,
+    motion: settings.reducedMotion ? 0 : performance.now() / 1000,
+    reducedMotion: settings.reducedMotion,
+    drawCanvasCard,
+  });
 }
 
 function drawEcologyComboMotif(ctx, comboId, x, y, index = 0, motion = 0) {
