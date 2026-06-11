@@ -107,8 +107,10 @@ import {
   automationDayLedgerSpecSafeWorld,
   drawAutomationHubWorldNoteWorld,
   spiritAutomationBenefitBoardSpecWorld,
+  spiritAutomationGroundTraceSpecWorld,
   spiritAutomationPromenadeMarkupWorld,
   spiritAutomationPromenadeSpecWorld,
+  spiritAutomationRelaySpecWorld,
   drawSpiritAutomationBenefitBoardWorld,
   drawSpiritAutomationGroundTraceWorld,
   drawSpiritAutomationRelayWorldWorld,
@@ -53644,8 +53646,22 @@ function spiritAutomationGroundTraceSpec(width = refs.world?.width || 960, heigh
   };
 }
 
+function spiritAutomationGroundTraceSpecBridge(
+  width = refs.world?.width || 960,
+  height = refs.world?.height || 640,
+  benefitSpec = spiritAutomationBenefitBoardSpecBridge(width, height),
+) {
+  const spec = spiritAutomationGroundTraceSpec(width, height, benefitSpec);
+  if (!spec) return null;
+  return spiritAutomationGroundTraceSpecWorld({
+    day: state.day,
+    traces: spec.traces,
+    benefitKey: spec.benefitKey,
+  });
+}
+
 function spiritAutomationGroundTraceAtCanvasPoint(px, py) {
-  const spec = spiritAutomationGroundTraceSpec();
+  const spec = spiritAutomationGroundTraceSpecBridge();
   if (!spec?.traces?.length) return null;
   return spec.traces
     .slice()
@@ -53752,8 +53768,30 @@ function spiritAutomationRelaySpec(width = refs.world?.width || 960, height = re
   };
 }
 
+function spiritAutomationRelaySpecBridge(
+  width = refs.world?.width || 960,
+  height = refs.world?.height || 640,
+  traceSpec = spiritAutomationGroundTraceSpecBridge(width, height),
+) {
+  const spec = spiritAutomationRelaySpec(width, height, traceSpec);
+  if (!spec) return null;
+  return spiritAutomationRelaySpecWorld({
+    day: state.day,
+    traceKey: traceSpec?.key || "",
+    routeJobs: ["farm", "workshop", "shop", "patrol", "expedition", "garden"],
+    nodes: spec.nodes,
+    activeCount: spec.activeCount,
+    previewRoute: spec.previewRoute,
+    activeRoute: spec.activeRoute,
+    headline: spec.headline,
+    detail: spec.detail,
+    width,
+    height,
+  });
+}
+
 function spiritAutomationRelayAtCanvasPoint(px, py) {
-  const spec = spiritAutomationRelaySpec();
+  const spec = spiritAutomationRelaySpecBridge();
   if (!spec?.nodes?.length) return null;
   const node = spec.nodes
     .slice()
@@ -53773,7 +53811,7 @@ function spiritAutomationRelayAtCanvasPoint(px, py) {
 }
 
 function focusSpiritAutomationRelayFromCanvas(hit = spiritAutomationRelayAtCanvasPoint(0, 0)) {
-  const spec = hit?.spec || spiritAutomationRelaySpec();
+  const spec = hit?.spec || spiritAutomationRelaySpecBridge();
   const node = hit?.node || spec?.nodes?.find((entry) => entry.active) || spec?.nodes?.[0] || null;
   if (!spec || !node) return false;
   spiritAutomationRelayWorldFocus = {
@@ -53794,7 +53832,7 @@ function focusSpiritAutomationRelayFromCanvas(hit = spiritAutomationRelayAtCanva
   return true;
 }
 
-function drawSpiritAutomationRelayWorld(ctx, spec = spiritAutomationRelaySpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
+function drawSpiritAutomationRelayWorld(ctx, spec = spiritAutomationRelaySpecBridge(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
   if (!spec?.nodes?.length) return false;
   const active = spiritAutomationRelayWorldFocus?.day === state.day
     && spiritAutomationRelayWorldFocus?.key === spec.key;
@@ -53812,7 +53850,7 @@ function drawSpiritAutomationRelayWorld(ctx, spec = spiritAutomationRelaySpec(ct
   });
 }
 
-function drawSpiritAutomationGroundTrace(ctx, spec = spiritAutomationGroundTraceSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
+function drawSpiritAutomationGroundTrace(ctx, spec = spiritAutomationGroundTraceSpecBridge(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
   return drawSpiritAutomationGroundTraceWorld({
     ctx,
     spec,
@@ -82364,8 +82402,8 @@ function drawWorld() {
   drawYear2OpeningTenDayWorld(ctx, year2OpeningTenDayWorldSpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
 
   if (state.spirits.length > 0) {
-    drawSpiritAutomationGroundTrace(ctx, spiritAutomationGroundTraceSpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
-    drawSpiritAutomationRelayWorld(ctx, spiritAutomationRelaySpec(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
+    drawSpiritAutomationGroundTrace(ctx, spiritAutomationGroundTraceSpecBridge(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
+    drawSpiritAutomationRelayWorld(ctx, spiritAutomationRelaySpecBridge(width, height), settings.reducedMotion ? 0 : performance.now() / 1000);
     drawSpiritColony(ctx);
     drawFirstTwoSpiritDuoWorld(ctx, firstTwoSpiritDuoWorldSpec(width, height, livingState), settings.reducedMotion ? 0 : performance.now() / 1000);
     drawCareChainSpiritEcho(ctx, livingState);

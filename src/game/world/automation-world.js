@@ -186,6 +186,61 @@ export function automationHubWorldNoteSpecWorld({
   };
 }
 
+export function spiritAutomationGroundTraceSpecWorld({
+  day = 1,
+  traces = [],
+  benefitKey = "",
+} = {}) {
+  const safeTraces = Array.isArray(traces) ? traces : [];
+  const activeTraces = safeTraces.filter((trace) => trace?.active);
+  if (!safeTraces.length) return null;
+  return {
+    key: `${day}:${activeTraces.map((trace) => trace.job).join("|")}:${benefitKey || "no-benefit"}`,
+    title: "\u81ea\u52a8\u5316\u6536\u76ca\u7559\u75d5",
+    headline: activeTraces.length
+      ? `\u4eca\u65e5 ${activeTraces.length}/6 \u6761\u5c97\u4f4d\u5728\u573a\u666f\u91cc\u7559\u4e0b\u52a8\u4f5c`
+      : "\u7cbe\u602a\u5b9a\u5c97\u540e\uff0c\u573a\u666f\u4f1a\u7559\u4e0b\u81ea\u52a8\u5316\u52a8\u4f5c\u75d5\u8ff9\u3002",
+    detail: "\u628a\u540e\u53f0\u7701\u5de5\u7ffb\u8bd1\u6210\u7530\u6c34\u3001\u7076\u706b\u3001\u8d27\u7b7e\u3001\u5de1\u706f\u3001\u65d7\u8def\u548c\u5ead\u9662\u82b1\u606f\u3002",
+    activeCount: activeTraces.length,
+    traces: safeTraces,
+    benefitKey: benefitKey || "",
+    safetyText: "\u70b9\u51fb\u7559\u75d5\u53ea\u5b9a\u4f4d\u5bf9\u5e94\u7cfb\u7edf\uff0c\u4e0d\u4f1a\u81ea\u52a8\u5207\u5c97\u3001\u6d3e\u5de5\u3001\u6392\u4ea7\u3001\u5f00\u94fa\u3001\u53d1\u5546\u961f\u3001\u5904\u7406\u98ce\u9669\u3001\u5165\u591c\u6216\u6d88\u8017\u8d44\u6e90\u3002",
+  };
+}
+
+export function spiritAutomationRelaySpecWorld({
+  day = 1,
+  traceKey = "",
+  routeJobs = [],
+  nodes = [],
+  activeCount = 0,
+  previewRoute = "",
+  activeRoute = "",
+  headline = "",
+  detail = "",
+  width = 960,
+  height = 640,
+} = {}) {
+  const safeNodes = Array.isArray(nodes) ? nodes : [];
+  if (!safeNodes.length) return null;
+  const safeBannerX = Math.max(18, Math.min(width - 314, 614));
+  const safeBannerY = Math.max(92, Math.min(height - 90, 116));
+  return {
+    key: `${day}:${safeNodes.map((node) => `${node.job}:${node.active ? 1 : 0}`).join("|")}:${traceKey}`,
+    title: "\u7cbe\u602a\u63a5\u529b\u7ebf",
+    headline,
+    detail,
+    routeText: "\u7530\u57c2 -> \u540e\u5382 -> \u65e7\u94fa -> \u5de1\u706f -> \u8fdc\u5f81 -> \u5ead\u9662",
+    previewRoute,
+    activeRoute: activeRoute || previewRoute,
+    activeCount,
+    totalCount: Array.isArray(routeJobs) ? routeJobs.length : 0,
+    nodes: safeNodes,
+    rect: { x: safeBannerX, y: safeBannerY, width: 300, height: 78 },
+    safetyText: "\u70b9\u9009\u7cbe\u602a\u63a5\u529b\u7ebf\u53ea\u5b9a\u4f4d\u63a5\u529b\u8282\u70b9\u548c\u5c97\u4f4d\u8bf4\u660e\uff0c\u4e0d\u4f1a\u81ea\u52a8\u5207\u5c97\u3001\u6d3e\u5de5\u3001\u6392\u4ea7\u3001\u5f00\u94fa\u3001\u53d1\u5546\u961f\u3001\u5904\u7406\u98ce\u9669\u3001\u5165\u591c\u6216\u6d88\u8017\u8d44\u6e90\u3002",
+  };
+}
+
 /*
 export function automationDayLedgerReportTextWorld(rows = []) {
   const safeRows = Array.isArray(rows) ? rows : [];
