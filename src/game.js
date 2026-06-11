@@ -219,15 +219,10 @@ import {
   shopWeatherShelfRecommendationSpecWorld,
 } from "./game/world/shop-weather-world.js";
 import {
-  careChainJournalFocusSpecWorld,
   careChainJournalTargetWorld,
-  compendiumMonumentFocusSpecWorld,
   compendiumMonumentTargetWorld,
-  shopSeasonFocusSpecWorld,
   shopSeasonTargetWorld,
-  solarTrialFocusSpecWorld,
   solarTrialTargetWorld,
-  year2OrderPrepFocusSpecWorld,
   year2OrderPrepTargetWorld,
 } from "./game/world/goalbook-world.js";
 import {
@@ -247,11 +242,6 @@ import {
   postMainlineTodayRouteLogSpecWorld,
 } from "./game/world/post-mainline-route-interaction-world.js";
 import {
-  droughtStoryFocusSpecWorld,
-  lanternRouteFocusSpecWorld,
-  missionArcFocusSpecWorld,
-  shopSpecialFocusSpecWorld,
-  tradeRouteFocusSpecWorld,
   worldChangeTargetsWorld,
 } from "./game/world/world-change-interaction-world.js";
 import {
