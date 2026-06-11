@@ -187,6 +187,7 @@ import {
   workshopOutputRouteTriptychWorldSpecFromRuntimeWorld,
   drawWorkshopOutputStorageRouteWorldWorld,
   workshopOutputStorageRouteWorldSpecFromRuntimeWorld,
+  workshopOrderQueueWorldBoardCopyFromRuntimeWorld,
   drawWorkshopOrderQueueWorldBoardWorld,
   workshopOrderQueueWorldBoardAtCanvasPointWorld,
   workshopOrderQueueWorldBoardSpecFromRuntimeWorld,
@@ -52300,13 +52301,18 @@ function workshopOrderQueueWorldBoardSpec(lineSpec = workshopProductionLineSpec(
 }
 
 function workshopOrderQueueWorldBoardCopy(activeJob, orderMatch) {
-  if (!activeJob || !orderMatch?.orderId) return null;
-  return {
-    title: "主世界订单锅排产",
-    headline: orderMatch.ready ? "这锅出完可交单" : "这锅正接订单",
-    detail: `${activeJob.outputItemName} ${orderMatch.haveOutput}/${orderMatch.neededCount} +${activeJob.outputCount}`,
-    cta: "订单锅在烧 · 可点",
-  };
+  return workshopOrderQueueWorldBoardCopyFromRuntimeWorld({
+    activeJob,
+    orderMatch,
+    copy: {
+      title: "主世界订单锅排产",
+      headline: orderMatch?.ready ? "这锅出完可交单" : "这锅正接订单",
+      detail: activeJob && orderMatch
+        ? `${activeJob.outputItemName} ${orderMatch.haveOutput}/${orderMatch.neededCount} +${activeJob.outputCount}`
+        : "",
+      cta: "订单锅在烧 · 可点",
+    },
+  });
 }
 
 function workshopOrderQueueWorldBoardSpecBridge(lineSpec = workshopProductionLineSpec()) {

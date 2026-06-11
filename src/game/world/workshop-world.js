@@ -1141,6 +1141,21 @@ export function workshopOrderQueueWorldBoardSpecFromRuntimeWorld({
   };
 }
 
+export function workshopOrderQueueWorldBoardCopyFromRuntimeWorld({
+  activeJob = null,
+  orderMatch = null,
+  copy = null,
+} = {}) {
+  if (!activeJob || !orderMatch?.orderId) return null;
+  const safeCopy = copy || {};
+  return {
+    title: safeCopy.title || "World order pot queue",
+    headline: safeCopy.headline || (orderMatch.ready ? "This pot completes a delivery" : "This pot is connecting an order"),
+    detail: safeCopy.detail || `${activeJob.outputItemName} ${orderMatch.haveOutput}/${orderMatch.neededCount} +${activeJob.outputCount}`,
+    cta: safeCopy.cta || "Order pot is heating - click",
+  };
+}
+
 export function workshopOrderQueueWorldBoardAtCanvasPointWorld({
   px,
   py,
