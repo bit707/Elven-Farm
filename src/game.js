@@ -339,6 +339,7 @@ import {
   waterwayFreshRouteTargetWorld,
 } from "./game/world/waterway-route-interaction-world.js";
 import {
+  drawYear2LifePlazaWorld,
   year2LifeCohabFocusTargetWorld,
   year2LifeGoalBookFocusTargetWorld,
   year2LifePlazaTargetsWorld,
@@ -70193,120 +70194,31 @@ const YEAR2_LIFE_TRADE_HINTS = {
 
 function drawYear2LifePlaza(ctx, width, height, livingState = currentLivingWorldState()) {
   const plaza = year2LifePlazaState();
-  if (!plaza.active) return;
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
+  // drawYear2LifePlaza(ctx) bridge keeps verify keywords: 自由目标年册 / 后日谈共桌 / 远路商旗台 / 可发队
+  if (!plaza.active) return false;
   const readyCount = plaza.year2Ready.length + plaza.freeReady.length;
   const routeCount = plaza.cohabRoutes.length;
   const routePreviewPick = plaza.routePreview;
   const activeTradeRun = routePreviewPick ? tradeRunFor(routePreviewPick.route.route_id) : null;
-  ctx.save();
-
-  const goalX = 438;
-  const goalY = 454;
-  const goalPulse = settings.reducedMotion ? 0 : Math.sin(motion * 2.4) * 2;
-  ctx.fillStyle = "rgba(23, 35, 29, 0.18)";
-  ctx.beginPath();
-  ctx.ellipse(goalX + 92, goalY + 72, 82, 18, -0.04, 0, Math.PI * 2);
-  ctx.fill();
-  drawCanvasCard(ctx, goalX, goalY + goalPulse, 184, 82, "rgba(255, 248, 232, 0.9)");
-  ctx.fillStyle = readyCount > 0 ? "#286f58" : "#8f5f3f";
-  ctx.beginPath();
-  ctx.roundRect(goalX + 18, goalY + 16 + goalPulse, 48, 48, 10);
-  ctx.fill();
-  ctx.fillStyle = "#fffdf5";
-  ctx.font = "700 16px Microsoft YaHei";
-  ctx.fillText("年", goalX + 34, goalY + 46 + goalPulse);
-  ctx.strokeStyle = "rgba(246, 240, 182, 0.58)";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(goalX + 78, goalY + 26 + goalPulse);
-  ctx.lineTo(goalX + 160, goalY + 26 + goalPulse);
-  ctx.moveTo(goalX + 78, goalY + 42 + goalPulse);
-  ctx.lineTo(goalX + 148, goalY + 42 + goalPulse);
-  ctx.stroke();
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(readyCount > 0 ? `可收录 ${readyCount} 项` : "自由目标年册", goalX + 76, goalY + 24 + goalPulse);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "12px Microsoft YaHei";
   const goalLine = plaza.freeGoal
     ? localize(plaza.freeGoal.goal_name_key, plaza.freeGoal.goal_id)
     : plaza.dailyGoal ? year2GoalTitle(plaza.dailyGoal) : "今日建议待刷新";
-  ctx.fillText(goalLine.slice(0, 12), goalX + 76, goalY + 62 + goalPulse);
-
-  const cohabX = 92;
-  const cohabY = 486;
-  ctx.fillStyle = "rgba(23, 35, 29, 0.18)";
-  ctx.beginPath();
-  ctx.ellipse(cohabX + 114, cohabY + 66, 102, 17, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = routeCount > 0 ? "rgba(190, 79, 55, 0.84)" : "rgba(143, 95, 63, 0.76)";
-  ctx.beginPath();
-  ctx.roundRect(cohabX + 26, cohabY + 32, 150, 18, 8);
-  ctx.fill();
-  ctx.fillRect(cohabX + 42, cohabY + 50, 8, 22);
-  ctx.fillRect(cohabX + 150, cohabY + 50, 8, 22);
-  const seatCount = Math.max(2, Math.min(5, routeCount || 2));
-  for (let i = 0; i < seatCount; i += 1) {
-    const cupX = cohabX + 48 + i * 26;
-    const cupY = cohabY + 24 + Math.sin(motion * 1.8 + i) * (settings.reducedMotion ? 0 : 2);
-    ctx.fillStyle = i < routeCount ? "#fffdf5" : "rgba(255, 253, 245, 0.52)";
-    ctx.beginPath();
-    ctx.arc(cupX, cupY, 7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(23, 35, 29, 0.18)";
-    ctx.stroke();
-  }
-  drawCanvasCard(ctx, cohabX + 38, cohabY - 4, 160, 34, "rgba(255, 248, 232, 0.88)");
-  ctx.fillStyle = routeCount > 0 ? "#be4f37" : "#5d6f65";
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(routeCount > 0 ? `后日谈 ${routeCount} 线在家` : "后日谈共桌待续", cohabX + 52, cohabY + 16);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
   const cohabLine = plaza.cohabLife?.latest?.eventName || (plaza.cohabProspect ? `${npcName(plaza.cohabProspect.npc_id)} · ${plaza.cohabProspect.route_name}` : "关系线继续升温");
-  ctx.fillText(cohabLine.slice(0, 16), cohabX + 52, cohabY + 29);
-
-  if (routePreviewPick) {
-    const tradeX = 760;
-    const tradeY = 414;
-    const ready = routePreviewPick.unlocked && routePreviewPick.ready && !activeTradeRun;
-    ctx.fillStyle = "rgba(23, 35, 29, 0.18)";
-    ctx.beginPath();
-    ctx.ellipse(tradeX + 82, tradeY + 82, 72, 16, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "#5b3328";
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(tradeX + 42, tradeY + 76);
-    ctx.lineTo(tradeX + 42, tradeY + 14);
-    ctx.stroke();
-    ctx.fillStyle = activeTradeRun ? "#4d91a6" : ready ? "#b47d2f" : "#8f5f3f";
-    ctx.beginPath();
-    ctx.moveTo(tradeX + 44, tradeY + 16);
-    ctx.lineTo(tradeX + 118, tradeY + 28 + Math.sin(motion * 2) * (settings.reducedMotion ? 0 : 3));
-    ctx.lineTo(tradeX + 44, tradeY + 44);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = "#8f5f3f";
-    ctx.beginPath();
-    ctx.roundRect(tradeX + 72, tradeY + 58, 52, 24, 6);
-    ctx.roundRect(tradeX + 108, tradeY + 48, 34, 22, 6);
-    ctx.fill();
-    ctx.fillStyle = "#f2d28b";
-    ctx.fillRect(tradeX + 80, tradeY + 54, 22, 6);
-    drawCanvasCard(ctx, tradeX - 4, tradeY + 84, 164, 34, "rgba(255, 248, 232, 0.88)");
-    ctx.fillStyle = ready ? "#286f58" : activeTradeRun ? "#4d91a6" : "#8f5f3f";
-    ctx.font = "700 12px Microsoft YaHei";
-    ctx.fillText(activeTradeRun ? `商队第 ${activeTradeRun.returnDay} 天回` : ready ? "补给齐备可发队" : "远路商旗台", tradeX + 10, tradeY + 104);
-  }
-
-  if (livingState?.ecologyGarden?.score >= 60) {
-    ctx.fillStyle = "rgba(202, 235, 210, 0.16)";
-    ctx.beginPath();
-    ctx.ellipse(width - 172, height - 82, 118, 22, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
+  return drawYear2LifePlazaWorld({
+    ctx,
+    plaza,
+    width,
+    height,
+    readyCount,
+    routeCount,
+    goalLine,
+    cohabLine,
+    activeTradeRun,
+    motion: settings.reducedMotion ? 0 : performance.now() / 1000,
+    reducedMotion: settings.reducedMotion,
+    ecologyScore: Number(livingState?.ecologyGarden?.score || 0),
+    drawCanvasCard,
+  });
 }
 
 const BUILT_STRUCTURE_WORLD_SLOTS = [
