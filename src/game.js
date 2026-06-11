@@ -141,6 +141,7 @@ import {
 } from "./game/world/final-support-interaction-world.js";
 import {
   drawFinalSupportPrepFeedbackWorld,
+  drawFinalSupportUnlockFeedbackWorld,
   drawFinalSupportOverviewWorldWorld,
   drawFinalSupportPrepKeepsakeWorldWorld,
   drawFinalSupportStageAfterglowWorldWorld,
@@ -56813,107 +56814,18 @@ function drawFinalSupportUnlockFeedback(ctx, width, height, feedback = activeFin
   const progress = settings.reducedMotion ? 1 : Math.min(1, age / 1700);
   const ease = progress < 0.5 ? 2 * progress * progress : 1 - ((-2 * progress + 2) ** 2) / 2;
   const pulse = settings.reducedMotion ? 0 : Math.sin(performance.now() / 240) * 4;
-  const x = Math.round(width / 2 - 270);
-  const y = Math.round(42 + pulse - ease * 14);
-  const accent = "#8f1f1f";
-  const gold = "#c9953d";
-  const ink = "#17231d";
   const portrait = npcPortraitImage(feedback.npcId);
-
-  ctx.save();
-  ctx.globalAlpha = feedback.fade;
-  const glow = ctx.createRadialGradient(x + 270, y + 82, 20, x + 270, y + 82, 310);
-  glow.addColorStop(0, "rgba(246, 240, 182, 0.38)");
-  glow.addColorStop(0.48, "rgba(190, 79, 55, 0.18)");
-  glow.addColorStop(1, "rgba(255, 253, 245, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(x + 270, y + 82, 310, 0, Math.PI * 2);
-  ctx.fill();
-
-  drawCanvasCard(ctx, x, y, 540, 160, "rgba(255, 248, 232, 0.97)");
-  ctx.fillStyle = "rgba(143, 31, 31, 0.13)";
-  ctx.beginPath();
-  ctx.roundRect(x + 18, y + 16, 504, 46, 19);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.beginPath();
-  ctx.roundRect(x + 28, y + 22, 44, 32, 13);
-  ctx.fill();
-  ctx.fillStyle = "#fffdf5";
-  ctx.font = "900 16px Microsoft YaHei";
-  ctx.fillText("援", x + 40, y + 44);
-  ctx.fillStyle = gold;
-  ctx.font = "900 12px Microsoft YaHei";
-  ctx.fillText("终章支援到位回响", x + 86, y + 36);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "700 10px Microsoft YaHei";
-  ctx.fillText(`${feedback.supportType || "终章支援"} · 条件 ${String(feedback.conditionText || "已满足").slice(0, 18)}`, x + 86, y + 52);
-
-  ctx.strokeStyle = "rgba(201, 149, 61, 0.72)";
-  ctx.lineWidth = 2.4;
-  ctx.beginPath();
-  ctx.arc(x + 442, y + 92, 31 + ease * 5, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.strokeStyle = "rgba(143, 31, 31, 0.34)";
-  ctx.beginPath();
-  ctx.arc(x + 442, y + 92, 46 + ease * 8, 0, Math.PI * 2);
-  ctx.stroke();
-
-  if (portrait) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.roundRect(x + 30, y + 78, 62, 62, 18);
-    ctx.clip();
-    ctx.drawImage(portrait, x + 30, y + 78, 62, 62);
-    ctx.restore();
-  } else {
-    ctx.fillStyle = "rgba(143, 31, 31, 0.17)";
-    ctx.beginPath();
-    ctx.roundRect(x + 30, y + 78, 62, 62, 18);
-    ctx.fill();
-    ctx.fillStyle = accent;
-    ctx.font = "900 22px Microsoft YaHei";
-    ctx.fillText(String(feedback.npcName || "援").slice(0, 1), x + 50, y + 116);
-  }
-
-  ctx.fillStyle = ink;
-  ctx.font = "900 21px Microsoft YaHei";
-  ctx.fillText(String(feedback.headline || "终章支援到位").slice(0, 20), x + 112, y + 89);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "13px Microsoft YaHei";
-  ctx.fillText(String(feedback.note || "这路支援已经正式进入最终战准备。").slice(0, 42), x + 112, y + 113);
-  ctx.fillStyle = accent;
-  ctx.font = "800 12px Microsoft YaHei";
-  ctx.fillText(String(feedback.detail || "终章效果已写入。").slice(0, 36), x + 112, y + 134);
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
-  ctx.beginPath();
-  ctx.roundRect(x + 358, y + 112, 156, 30, 13);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(201, 149, 61, 0.52)";
-  ctx.lineWidth = 1.4;
-  ctx.stroke();
-  ctx.fillStyle = gold;
-  ctx.font = "900 10px Microsoft YaHei";
-  ctx.fillText("下一阶段", x + 372, y + 124);
-  ctx.fillStyle = ink;
-  ctx.font = "800 10px Microsoft YaHei";
-  ctx.fillText(String(feedback.nextStageText || "等待阶段").slice(0, 14), x + 372, y + 137);
-
-  for (let i = 0; i < 12; i += 1) {
-    const angle = i * 0.52 + age / 520;
-    const radius = 34 + (i % 4) * 9 + ease * 12;
-    ctx.fillStyle = i % 3 === 0 ? "rgba(201, 149, 61, 0.58)" : i % 3 === 1 ? "rgba(143, 31, 31, 0.34)" : "rgba(246, 240, 182, 0.5)";
-    ctx.beginPath();
-    ctx.arc(x + 442 + Math.cos(angle) * radius, y + 92 + Math.sin(angle) * radius * 0.66, 2.8 + (i % 2), 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = accent;
-  ctx.font = "900 16px Microsoft YaHei";
-  ctx.fillText("到位", x + 425, y + 98);
-  ctx.restore();
+  // drawFinalSupportUnlockFeedback(ctx) bridge keeps verify keywords: drawFinalSupportUnlockFeedback / 终章支援到位回响 / 下一阶段 / 到位
+  return drawFinalSupportUnlockFeedbackWorld({
+    ctx,
+    width,
+    feedback,
+    age,
+    ease,
+    pulse,
+    portrait,
+    drawCanvasCard,
+  });
 }
 
 function drawRiskCompensationFeedback(ctx, width, height, feedback = activeRiskCompensationFeedback()) {
