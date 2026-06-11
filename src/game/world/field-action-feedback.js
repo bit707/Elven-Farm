@@ -292,6 +292,140 @@ export function drawFieldActionFeedbackWorld({
   return true;
 }
 
+export function drawNightGrowthFeedbackWorld({
+  ctx,
+  width = 960,
+  height = 640,
+  originX = 0,
+  originY = 0,
+  tile = 72,
+  gap = 6,
+  feedback = null,
+  now = performance.now(),
+  careChainState = null,
+  drawCanvasCard = null,
+  drawNightGrowthRouteBadge = () => false,
+} = {}) {
+  if (!ctx || !feedback || !drawCanvasCard) return false;
+  const elapsed = now - Number(feedback.start || now);
+  const duration = Math.max(1, Number(feedback.duration || 1800));
+  if (elapsed >= duration) return false;
+  const progress = Math.max(0, Math.min(1, elapsed / duration));
+  const fade = Math.sin(progress * Math.PI);
+  const reveal = Math.min(1, progress * 1.8);
+
+  ctx.save();
+  ctx.fillStyle = `rgba(16, 27, 32, ${0.16 * fade})`;
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.fillStyle = `rgba(246, 240, 182, ${0.22 * fade})`;
+  for (let i = 0; i < 18; i += 1) {
+    const x = (i * 73 + feedback.day * 19) % width;
+    const y = 42 + ((i * 41 + feedback.day * 11) % 230);
+    const radius = 1.4 + ((i + feedback.day) % 3) * 0.7 + Math.sin(progress * Math.PI * 2 + i) * 0.5;
+    ctx.beginPath();
+    ctx.arc(x, y, Math.max(0.8, radius), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const matured = feedback.maturedPlots || [];
+  const cared = feedback.caredPlots || [];
+  for (const [index, plot] of matured.entries()) {
+    const cx = originX + plot.x * (tile + gap) + tile / 2;
+    const cy = originY + plot.y * (tile + gap) + tile / 2;
+    const pulse = Math.sin(progress * Math.PI + index * 0.4);
+    ctx.strokeStyle = `rgba(246, 240, 182, ${0.74 * fade})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, tile * (0.3 + 0.18 * pulse), 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = `rgba(246, 240, 182, ${0.28 * fade})`;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + tile * 0.18, tile * 0.34, tile * 0.12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    drawNightGrowthRouteBadge(ctx, plot, cx, cy, tile, index, fade, progress);
+  }
+
+  for (const [index, plot] of cared.entries()) {
+    const cx = originX + plot.x * (tile + gap) + tile / 2;
+    const cy = originY + plot.y * (tile + gap) + tile / 2;
+    ctx.strokeStyle = `rgba(122, 195, 213, ${0.45 * fade})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + 10 + index % 2 * 4, tile * (0.2 + reveal * 0.16), tile * 0.06, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  const label = matured.length > 0
+    ? `今夜新熟 ${matured.length} 块灵田`
+    : Number(feedback.grownCount || 0) > 0
+      ? `今夜 ${feedback.grownCount} 块灵田继续生长`
+      : "今夜洞天静养";
+  const detail = `${feedback.weatherName || "天气已结算"}${feedback.termChanged ? ` · 节气转入 ${feedback.termName}` : ""}`;
+  drawCanvasCard(ctx, width - 330, 44, 286, 74, `rgba(255, 248, 232, ${0.72 + 0.18 * fade})`);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 16px Microsoft YaHei";
+  ctx.fillText(label, width - 308, 74);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "13px Microsoft YaHei";
+  ctx.fillText(detail, width - 308, 98);
+
+  if (feedback.careChain?.active) {
+    const chain = feedback.careChain;
+    const chainStage = careChainState || { streak: 0, stageName: "" };
+    const cardY = 126;
+    drawCanvasCard(ctx, width - 354, cardY, 310, 128, `rgba(255, 253, 245, ${0.7 + 0.2 * fade})`);
+    ctx.fillStyle = chain.complete ? "#286f58" : "#8f5f3f";
+    ctx.font = "700 15px Microsoft YaHei";
+    ctx.fillText(chain.title.slice(0, 16), width - 332, cardY + 28);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "12px Microsoft YaHei";
+    ctx.fillText(chain.headline.slice(0, 28), width - 332, cardY + 50);
+    if (chainStage.streak > 0) {
+      ctx.fillStyle = "#286f58";
+      ctx.font = "700 11px Microsoft YaHei";
+      ctx.fillText(`连续照应 ${chainStage.streak} 日 · ${chainStage.stageName}`, width - 332, cardY + 68);
+    }
+    (chain.chips || []).slice(0, 3).forEach((chip, index) => {
+      const chipX = width - 332 + index * 94;
+      const chipY = cardY + 82;
+      ctx.fillStyle = chip.active ? "rgba(237, 243, 223, 0.88)" : "rgba(255, 253, 245, 0.58)";
+      ctx.strokeStyle = chip.active ? "rgba(40, 111, 88, 0.32)" : "rgba(143, 95, 63, 0.14)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(chipX, chipY, 84, 22, 10);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = chip.active ? "#286f58" : "#8f5f3f";
+      ctx.font = "700 10px Microsoft YaHei";
+      ctx.fillText(chip.label.slice(0, 6), chipX + 8, chipY + 15);
+    });
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "11px Microsoft YaHei";
+    ctx.fillText((chain.summary || "").slice(0, 36), width - 332, cardY + 116);
+  }
+
+  if (feedback.careChainEvent) {
+    const event = feedback.careChainEvent;
+    const eventY = feedback.careChain?.active ? 270 : 126;
+    drawCanvasCard(ctx, width - 374, eventY, 330, 118, `rgba(255, 248, 232, ${0.78 + 0.16 * fade})`);
+    ctx.fillStyle = "#be4f37";
+    ctx.font = "700 13px Microsoft YaHei";
+    ctx.fillText("照应阶段事件", width - 352, eventY + 24);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "700 16px Microsoft YaHei";
+    ctx.fillText(String(event.title || "洞天照应事件").slice(0, 16), width - 352, eventY + 48);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "12px Microsoft YaHei";
+    ctx.fillText(String(event.detail || "这条照应线被洞天记住了。").slice(0, 34), width - 352, eventY + 70);
+    ctx.fillStyle = "#286f58";
+    ctx.font = "700 12px Microsoft YaHei";
+    ctx.fillText(`奖励入账：${String(event.rewardText || "洞天记忆").slice(0, 24)}`, width - 352, eventY + 94);
+  }
+  ctx.restore();
+  return true;
+}
+
 export function seedRestockBagSafetyTextWorld() {
   return "只定位种子栏、空田和播种按钮，不会自动播种、买种、浇水、入夜、扣除种子、扣除体力或消耗资源";
 }
