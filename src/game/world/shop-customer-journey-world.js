@@ -1111,28 +1111,46 @@ export function shopCustomerReasonCardsMarkupWorld(spec = null) {
 }
 
 export function shopCustomerDayLessonSpecWorld({
+  opening = null,
+  report = [],
+  options = {},
   safeOpening = null,
-  day = 0,
+  day = null,
   session = null,
   firstSale = null,
   ledger = null,
-  sessionDay = 0,
+  sessionDay = null,
   journey = null,
   failureRecovery = null,
   reasonSpec = null,
   reflection = null,
   stateDay = 1,
+  normalizeShopOpeningState = (value) => value || {},
+  shopCustomerJourneySpec = () => null,
+  shopCustomerReasonCardsSpec = () => null,
+  shopSaleReflectionSpec = () => null,
   customerDisplayName = (archetype) => archetype || "",
 } = {}) {
-  if (day && sessionDay && sessionDay !== day) return null;
-  if (day && !sessionDay && !(safeOpening?.opened || safeOpening?.summaryUnlocked)) return null;
-  if (!reasonSpec?.active) return null;
-  const visitors = Number(ledger?.visitors ?? journey?.visitors ?? session?.visitors ?? 0);
-  const buyers = Number(ledger?.buyers ?? journey?.buyers ?? session?.buyers ?? 0);
-  const leavers = Number(ledger?.leavers ?? journey?.leavers ?? 0);
-  const conversion = Number(ledger?.conversion ?? journey?.conversion ?? reasonSpec.conversion ?? 0);
-  const hotTagLabel = reasonSpec.hotTagLabel || ledger?.hotTagLabel || journey?.hotTagLabel || safeOpening?.hotTagLabel || "今日客需";
-  const cards = reasonSpec.cards.map((card) => ({
+  const activeOpening = safeOpening || normalizeShopOpeningState(opening);
+  const safeReport = Array.isArray(report) ? report : [];
+  const activeDay = Number(day ?? options?.day ?? 0);
+  const activeSession = session || activeOpening?.lastSession || null;
+  const activeFirstSale = firstSale || activeOpening?.firstSale || null;
+  const activeLedger = ledger || activeOpening?.customerDecisionLedger || activeSession?.customerDecisionLedger || null;
+  const activeSessionDay = Number(sessionDay ?? activeSession?.day ?? activeLedger?.day ?? activeFirstSale?.day ?? 0);
+  const activeJourney = journey || shopCustomerJourneySpec(activeOpening, safeReport);
+  const activeFailureRecovery = failureRecovery || activeOpening?.failureRecovery || activeSession?.failureRecovery || null;
+  const activeReasonSpec = reasonSpec || shopCustomerReasonCardsSpec(activeOpening, safeReport, activeLedger, activeJourney, activeFailureRecovery);
+  const activeReflection = reflection || shopSaleReflectionSpec(activeOpening);
+  if (activeDay && activeSessionDay && activeSessionDay !== activeDay) return null;
+  if (activeDay && !activeSessionDay && !(activeOpening?.opened || activeOpening?.summaryUnlocked)) return null;
+  if (!activeReasonSpec?.active) return null;
+  const visitors = Number(activeLedger?.visitors ?? activeJourney?.visitors ?? activeSession?.visitors ?? 0);
+  const buyers = Number(activeLedger?.buyers ?? activeJourney?.buyers ?? activeSession?.buyers ?? 0);
+  const leavers = Number(activeLedger?.leavers ?? activeJourney?.leavers ?? 0);
+  const conversion = Number(activeLedger?.conversion ?? activeJourney?.conversion ?? activeReasonSpec.conversion ?? 0);
+  const hotTagLabel = activeReasonSpec.hotTagLabel || activeLedger?.hotTagLabel || activeJourney?.hotTagLabel || activeOpening?.hotTagLabel || "今日客需";
+  const cards = activeReasonSpec.cards.map((card) => ({
     key: card.key,
     label: card.label,
     title: card.title,
@@ -1145,19 +1163,19 @@ export function shopCustomerDayLessonSpecWorld({
     active: true,
     title: "旧铺顾客三因复盘",
     headline: buyers > 0
-      ? `${customerDisplayName(ledger?.mainCustomerArchetype || "") || ledger?.mainCustomer || journey?.mainCustomer || "今日主客"}为什么买，已经能说清。`
+      ? `${customerDisplayName(activeLedger?.mainCustomerArchetype || "") || activeLedger?.mainCustomer || activeJourney?.mainCustomer || "今日主客"}为什么买，已经能说清。`
       : leavers > 0
         ? "今天没白亏，离店原因已经写成明日改法。"
         : "旧铺开始留下顾客脚印，下一次开张会更容易读懂。",
-    day: day || sessionDay || stateDay,
+    day: activeDay || activeSessionDay || stateDay,
     hotTagLabel,
     visitors,
     buyers,
     leavers,
     conversion,
-    evidence: ledger?.evidence || reflection?.scoreLine || `${hotTagLabel} · 来客 ${visitors} · 成交 ${buyers}`,
-    reviewQuote: reflection?.reviewQuote || firstSale?.reviewQuote || session?.reviewQuote || "",
-    nextAction: ledger?.nextAction || journey?.nextAction || reasonSpec.cards.find((card) => card.key === "tomorrow_fix")?.body || "明天先修正一处最明显的货架、价签或库存短板。",
+    evidence: activeLedger?.evidence || activeReflection?.scoreLine || `${hotTagLabel} · 来客 ${visitors} · 成交 ${buyers}`,
+    reviewQuote: activeReflection?.reviewQuote || activeFirstSale?.reviewQuote || activeSession?.reviewQuote || "",
+    nextAction: activeLedger?.nextAction || activeJourney?.nextAction || activeReasonSpec.cards.find((card) => card.key === "tomorrow_fix")?.body || "明天先修正一处最明显的货架、价签或库存短板。",
     cards,
     safety: "只回看旧铺账页和顾客旅线，不会自动开铺、调价、补货、交单或消耗资源。",
   };

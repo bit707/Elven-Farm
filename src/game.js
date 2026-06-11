@@ -27401,28 +27401,15 @@ function shopCustomerReasonCardsMarkup(spec = shopCustomerReasonCardsSpec()) {
 }
 
 function shopCustomerDayLessonSpec(opening = syncShopOpeningState(), report = state.shopReport, options = {}) {
-  const safeOpening = normalizeShopOpeningState(opening);
-  const day = Number(options.day || 0);
-  const session = safeOpening.lastSession || null;
-  const firstSale = safeOpening.firstSale || null;
-  const ledger = safeOpening.customerDecisionLedger || session?.customerDecisionLedger || null;
-  const sessionDay = Number(session?.day || ledger?.day || firstSale?.day || 0);
-  const journey = shopCustomerJourneySpec(safeOpening, report);
-  const failureRecovery = safeOpening.failureRecovery || session?.failureRecovery || null;
-  const reasonSpec = shopCustomerReasonCardsSpec(safeOpening, report, ledger, journey, failureRecovery);
-  const reflection = shopSaleReflectionSpec(safeOpening);
   return shopCustomerDayLessonSpecWorld({
-    safeOpening,
-    day,
-    session,
-    firstSale,
-    ledger,
-    sessionDay,
-    journey,
-    failureRecovery,
-    reasonSpec,
-    reflection,
+    opening,
+    report,
+    options,
     stateDay: state.day,
+    normalizeShopOpeningState,
+    shopCustomerJourneySpec,
+    shopCustomerReasonCardsSpec,
+    shopSaleReflectionSpec,
     customerDisplayName,
   });
 }
