@@ -115,6 +115,10 @@ export function qingboWaterFreshRestockFocusSpecWorld({ spec = null } = {}) {
   };
 }
 
+export function qingboWaterFreshRestockFocusTargetWorld({ spec = null } = {}) {
+  return qingboWaterFreshRestockFocusSpecWorld({ spec });
+}
+
 export function lingchiWaterFreshMenuFocusSpecWorld({ spec = null } = {}) {
   if (!spec) return null;
   const title = noteTitle(spec.title);
@@ -133,6 +137,10 @@ export function lingchiWaterFreshMenuFocusSpecWorld({ spec = null } = {}) {
     missingTitle: "点选水鲜：灵池三鲜羹",
     missingLog: "三鲜羹配方或旧铺面板暂时没有找到，先确认核心试玩和系统深挖分组是否可见。",
   };
+}
+
+export function lingchiWaterFreshMenuFocusTargetWorld({ spec = null } = {}) {
+  return lingchiWaterFreshMenuFocusSpecWorld({ spec });
 }
 
 export function waterFreshRegularPledgeFocusSpecWorld({ spec = null } = {}) {
@@ -158,6 +166,10 @@ export function waterFreshRegularPledgeFocusSpecWorld({ spec = null } = {}) {
   };
 }
 
+export function waterFreshRegularPledgeFocusTargetWorld({ spec = null } = {}) {
+  return waterFreshRegularPledgeFocusSpecWorld({ spec });
+}
+
 export function qingheWaterFreshReturnOrderFocusSpecWorld({ spec = null } = {}) {
   if (!spec) return null;
   return {
@@ -173,6 +185,10 @@ export function qingheWaterFreshReturnOrderFocusSpecWorld({ spec = null } = {}) 
     missingTitle: "点选回订单：青禾水鲜",
     missingLog: "青禾水鲜回订单卡暂时没有找到，先确认核心试玩分组和订单板是否可见。",
   };
+}
+
+export function qingheWaterFreshReturnOrderFocusTargetWorld({ spec = null } = {}) {
+  return qingheWaterFreshReturnOrderFocusSpecWorld({ spec });
 }
 
 export function qingheWaterwayPreludeFocusSpecWorld({ spec = null } = {}) {
@@ -197,6 +213,10 @@ export function qingheWaterwayPreludeFocusSpecWorld({ spec = null } = {}) {
     missingTitle: "点选水航牌：灵池水航",
     missingLog: "对应的订单、青禾关系卡或终章支援面板暂时没有找到，先确认核心试玩和剧情分组是否可见。",
   };
+}
+
+export function qingheWaterwayPreludeFocusTargetWorld({ spec = null } = {}) {
+  return qingheWaterwayPreludeFocusSpecWorld({ spec });
 }
 
 export function qingheLotusBasinTradeDispatchFocusSpecWorld({
@@ -225,6 +245,16 @@ export function qingheLotusBasinTradeDispatchFocusSpecWorld({
   };
 }
 
+export function qingheLotusBasinTradeDispatchFocusTargetWorld({
+  spec = null,
+  unlockConditionLabel = "",
+} = {}) {
+  return qingheLotusBasinTradeDispatchFocusSpecWorld({
+    spec,
+    unlockConditionLabel,
+  });
+}
+
 export function qingheLotusBasinFollowupOrderFocusSpecWorld({ spec = null } = {}) {
   if (!spec) return null;
   return {
@@ -240,6 +270,10 @@ export function qingheLotusBasinFollowupOrderFocusSpecWorld({ spec = null } = {}
     missingTitle: "点选续订单：莲泽熟路",
     missingLog: "莲泽熟路续订单卡暂时没有找到，先确认核心试玩分组和订单板是否可见。",
   };
+}
+
+export function qingheLotusBasinFollowupOrderFocusTargetWorld({ spec = null } = {}) {
+  return qingheLotusBasinFollowupOrderFocusSpecWorld({ spec });
 }
 
 export function qingheLotusBasinLongOrderFocusSpecWorld({ spec = null } = {}) {
@@ -276,6 +310,10 @@ export function qingheLotusBasinLongOrderFocusSpecWorld({ spec = null } = {}) {
   };
 }
 
+export function qingheLotusBasinLongOrderFocusTargetWorld({ spec = null } = {}) {
+  return qingheLotusBasinLongOrderFocusSpecWorld({ spec });
+}
+
 export function qingheLotusBasinStandingOrderFocusSpecWorld({ spec = null } = {}) {
   if (!spec) return null;
   return {
@@ -293,6 +331,10 @@ export function qingheLotusBasinStandingOrderFocusSpecWorld({ spec = null } = {}
   };
 }
 
+export function qingheLotusBasinStandingOrderFocusTargetWorld({ spec = null } = {}) {
+  return qingheLotusBasinStandingOrderFocusSpecWorld({ spec });
+}
+
 export function qingheWaterwayAfterwordFocusSpecWorld({ spec = null } = {}) {
   if (!spec) return null;
   return {
@@ -306,6 +348,10 @@ export function qingheWaterwayAfterwordFocusSpecWorld({ spec = null } = {}) {
   };
 }
 
+export function qingheWaterwayAfterwordFocusTargetWorld({ spec = null } = {}) {
+  return qingheWaterwayAfterwordFocusSpecWorld({ spec });
+}
+
 export function qingheWaterwayTownRumorFocusSpecWorld({ spec = null } = {}) {
   if (!spec) return null;
   return {
@@ -317,4 +363,8 @@ export function qingheWaterwayTownRumorFocusSpecWorld({ spec = null } = {}) {
     missingTitle: "点选传话灯：莲泽常单",
     missingLog: `莲泽常单后话或旧铺常单板暂时没有找到，先回看青禾关系册或旧铺经营面板。${spec.safeNote}。`,
   };
+}
+
+export function qingheWaterwayTownRumorFocusTargetWorld({ spec = null } = {}) {
+  return qingheWaterwayTownRumorFocusSpecWorld({ spec });
 }

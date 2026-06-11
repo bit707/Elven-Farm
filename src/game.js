@@ -259,17 +259,17 @@ import {
   weatherLifeVignetteTargetsWorld,
 } from "./game/world/weather-interaction-world.js";
 import {
-  lingchiWaterFreshMenuFocusSpecWorld,
-  qingboWaterFreshRestockFocusSpecWorld,
-  qingheLotusBasinFollowupOrderFocusSpecWorld,
-  qingheLotusBasinLongOrderFocusSpecWorld,
-  qingheLotusBasinStandingOrderFocusSpecWorld,
-  qingheLotusBasinTradeDispatchFocusSpecWorld,
-  qingheWaterFreshReturnOrderFocusSpecWorld,
-  qingheWaterwayAfterwordFocusSpecWorld,
-  qingheWaterwayPreludeFocusSpecWorld,
-  qingheWaterwayTownRumorFocusSpecWorld,
-  waterFreshRegularPledgeFocusSpecWorld,
+  lingchiWaterFreshMenuFocusTargetWorld,
+  qingboWaterFreshRestockFocusTargetWorld,
+  qingheLotusBasinFollowupOrderFocusTargetWorld,
+  qingheLotusBasinLongOrderFocusTargetWorld,
+  qingheLotusBasinStandingOrderFocusTargetWorld,
+  qingheLotusBasinTradeDispatchFocusTargetWorld,
+  qingheWaterFreshReturnOrderFocusTargetWorld,
+  qingheWaterwayAfterwordFocusTargetWorld,
+  qingheWaterwayPreludeFocusTargetWorld,
+  qingheWaterwayTownRumorFocusTargetWorld,
+  waterFreshRegularPledgeFocusTargetWorld,
   waterNoteInteractionTargetsWorld,
 } from "./game/world/water-note-interaction-world.js";
 import {
@@ -73469,7 +73469,7 @@ function focusWorldContentFromCanvas(target = null) {
   if (target.type === "qingbo_water_fresh_restock_note") {
     const spec = qingboWaterFreshRestockWorldNoteSpec();
     if (!spec) return false;
-    queueStoryCompassFocusTarget(qingboWaterFreshRestockFocusSpecWorld({ spec }));
+    queueStoryCompassFocusTarget(qingboWaterFreshRestockFocusTargetWorld({ spec }));
     return true;
   }
 
@@ -73477,7 +73477,7 @@ function focusWorldContentFromCanvas(target = null) {
     const spec = lingchiWaterFreshMenuWorldNoteSpec();
     if (!spec) return false;
     if (spec.phase === "craft" && spec.recipeReady) state.selectedRecipeId = spec.recipeId;
-    queueStoryCompassFocusTarget(lingchiWaterFreshMenuFocusSpecWorld({ spec }));
+    queueStoryCompassFocusTarget(lingchiWaterFreshMenuFocusTargetWorld({ spec }));
     return true;
   }
 
@@ -73486,7 +73486,7 @@ function focusWorldContentFromCanvas(target = null) {
     if (!spec) return false;
     if (spec.routeAction === "recipe" && spec.routeRecipeId) state.selectedRecipeId = spec.routeRecipeId;
     if (spec.routeAction === "seed" && spec.routeSeedId) state.selectedSeedId = spec.routeSeedId;
-    queueStoryCompassFocusTarget(waterFreshRegularPledgeFocusSpecWorld({ spec }));
+    queueStoryCompassFocusTarget(waterFreshRegularPledgeFocusTargetWorld({ spec }));
     return true;
   }
 
@@ -73499,14 +73499,14 @@ function focusWorldContentFromCanvas(target = null) {
   if (target.type === "qinghe_water_fresh_return_order_note") {
     const spec = qingheWaterFreshReturnOrderWorldNoteSpec();
     if (!spec) return false;
-    queueStoryCompassFocusTarget(qingheWaterFreshReturnOrderFocusSpecWorld({ spec }));
+    queueStoryCompassFocusTarget(qingheWaterFreshReturnOrderFocusTargetWorld({ spec }));
     return true;
   }
 
   if (target.type === "qinghe_waterway_prelude_note") {
     const spec = qingheWaterwayPreludeWorldNoteSpec();
     if (!spec) return false;
-    queueStoryCompassFocusTarget(qingheWaterwayPreludeFocusSpecWorld({ spec }));
+    queueStoryCompassFocusTarget(qingheWaterwayPreludeFocusTargetWorld({ spec }));
     return true;
   }
 
@@ -73519,7 +73519,7 @@ function focusWorldContentFromCanvas(target = null) {
   if (target.type === "qinghe_lotus_basin_trade_dispatch_note") {
     const spec = qingheLotusBasinTradeDispatchWorldNoteSpec();
     if (!spec) return false;
-    queueStoryCompassFocusTarget(qingheLotusBasinTradeDispatchFocusSpecWorld({
+    queueStoryCompassFocusTarget(qingheLotusBasinTradeDispatchFocusTargetWorld({
       spec,
       unlockConditionLabel: conditionLabel("qinghe_lotus_basin_route_ready"),
     }));
@@ -73529,7 +73529,7 @@ function focusWorldContentFromCanvas(target = null) {
   if (target.type === "qinghe_lotus_basin_followup_order_note") {
     const spec = qingheLotusBasinFollowupOrderWorldNoteSpec();
     if (!spec) return false;
-    queueStoryCompassFocusTarget(qingheLotusBasinFollowupOrderFocusSpecWorld({ spec }));
+    queueStoryCompassFocusTarget(qingheLotusBasinFollowupOrderFocusTargetWorld({ spec }));
     return true;
   }
 
@@ -73542,14 +73542,14 @@ function focusWorldContentFromCanvas(target = null) {
   if (target.type === "qinghe_lotus_basin_long_order_note") {
     const spec = qingheLotusBasinLongOrderWorldNoteSpec();
     if (!spec) return false;
-    queueStoryCompassFocusTarget(qingheLotusBasinLongOrderFocusSpecWorld({ spec }));
+    queueStoryCompassFocusTarget(qingheLotusBasinLongOrderFocusTargetWorld({ spec }));
     return true;
   }
 
   if (target.type === "qinghe_lotus_basin_standing_order_note") {
     const spec = qingheLotusBasinStandingOrderWorldNoteSpec();
     if (!spec) return false;
-    queueStoryCompassFocusTarget(qingheLotusBasinStandingOrderFocusSpecWorld({ spec }));
+    queueStoryCompassFocusTarget(qingheLotusBasinStandingOrderFocusTargetWorld({ spec }));
     return true;
   }
 
@@ -73563,7 +73563,7 @@ function focusWorldContentFromCanvas(target = null) {
     if (spec.momentId) {
       return focusTownLifeShopMomentFromCanvas({ npcId: spec.npcId, momentId: spec.momentId }, { source: "waterway" });
     }
-    queueStoryCompassFocusTarget(qingheWaterwayAfterwordFocusSpecWorld({ spec }));
+    queueStoryCompassFocusTarget(qingheWaterwayAfterwordFocusTargetWorld({ spec }));
     return true;
   }
 
@@ -73577,7 +73577,7 @@ function focusWorldContentFromCanvas(target = null) {
     if (spec.momentId) {
       return focusTownLifeShopMomentFromCanvas({ npcId: spec.npcId, momentId: spec.momentId }, { source: "waterway", nodeKey: "replay" });
     }
-    queueStoryCompassFocusTarget(qingheWaterwayTownRumorFocusSpecWorld({ spec }));
+    queueStoryCompassFocusTarget(qingheWaterwayTownRumorFocusTargetWorld({ spec }));
     return true;
   }
 
