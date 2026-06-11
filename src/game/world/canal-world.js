@@ -453,3 +453,486 @@ export function drawPondOvernightWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function drawCanalSeedRewardRouteWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.anchor) return false;
+  const { rect, anchor } = spec;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.25) * 2.6;
+  const colors = {
+    seed: "#b47d2f",
+    field: "#4d91a6",
+    dish: "#286f58",
+  };
+
+  ctx.save();
+  ctx.strokeStyle = active ? "rgba(180, 125, 47, 0.86)" : "rgba(77, 145, 166, 0.52)";
+  ctx.lineWidth = active ? 3.2 : 2.2;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 14;
+  ctx.beginPath();
+  ctx.moveTo(rect.x + rect.width - 28, rect.y + rect.height * 0.5 + pulse);
+  ctx.quadraticCurveTo(rect.x + rect.width + 36, rect.y + rect.height + 18, anchor.x, anchor.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = "rgba(159, 209, 223, 0.22)";
+  ctx.beginPath();
+  ctx.ellipse(anchor.x, anchor.y + 10, 44 + Math.abs(pulse), 12, -0.12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 253, 245, 0.64)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(anchor.x, anchor.y + 6, 24, 7, -0.08, 0, Math.PI * 2);
+  ctx.stroke();
+
+  drawCanvasCard(ctx, rect.x, rect.y + pulse, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
+  ctx.strokeStyle = active ? "rgba(180, 125, 47, 0.92)" : "rgba(180, 125, 47, 0.58)";
+  ctx.lineWidth = active ? 2.8 : 1.6;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, rect.y + 1 + pulse, rect.width - 2, rect.height - 2, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(224, 182, 109, 0.2)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, rect.y + 14 + pulse, 50, 48, 15);
+  ctx.fill();
+  ctx.fillStyle = "#b47d2f";
+  ctx.font = "900 20px Microsoft YaHei";
+  ctx.fillText("种", rect.x + 28, rect.y + 44 + pulse);
+  ctx.fillStyle = "#b47d2f";
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title.slice(0, 18), rect.x + 78, rect.y + 22 + pulse);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 14px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 18), rect.x + 78, rect.y + 43 + pulse);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(`${spec.detail}`.slice(0, 34), rect.x + 78, rect.y + 59 + pulse);
+
+  spec.steps.forEach((step, index) => {
+    const x = rect.x + 18 + index * 94;
+    const y = rect.y + 74 + pulse;
+    const color = colors[step.tone] || "#8f5f3f";
+    ctx.fillStyle = `${color}18`;
+    ctx.strokeStyle = `${color}44`;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(x, y, 84, 23, 10);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = color;
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(step.label.slice(0, 5), x + 8, y + 10);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(String(step.value || "").slice(0, 8), x + 8, y + 20);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.86)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, rect.y + rect.height - 18 + pulse, rect.width - 32, 14, 7);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText(`${spec.routeText} · ${spec.safeNote}`.slice(0, 44), rect.x + 24, rect.y + rect.height - 8 + pulse);
+  ctx.restore();
+  return true;
+}
+
+export function drawLuzhuQinHarvestRouteWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  activeAction = "",
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.anchor) return false;
+  const { rect, anchor } = spec;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.08) * 2.4;
+  const colors = {
+    stock: "#4d91a6",
+    recipe: "#286f58",
+    market: "#b47d2f",
+  };
+
+  ctx.save();
+  ctx.strokeStyle = active ? "rgba(77, 145, 166, 0.88)" : "rgba(77, 145, 166, 0.52)";
+  ctx.lineWidth = active ? 3.2 : 2;
+  ctx.setLineDash([8, 7]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 13;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y);
+  ctx.quadraticCurveTo(rect.x + 40, rect.y - 18, rect.x + 74, rect.y + 26 + pulse);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = "rgba(159, 209, 223, 0.24)";
+  ctx.beginPath();
+  ctx.ellipse(anchor.x, anchor.y + 10, 42 + Math.abs(pulse), 12, -0.12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255, 253, 245, 0.72)";
+  ctx.beginPath();
+  ctx.arc(anchor.x + 12, anchor.y - 4, 4 + Math.abs(pulse) * 0.25, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawCanvasCard(ctx, rect.x, rect.y + pulse, rect.width, rect.height, "rgba(236, 248, 243, 0.96)");
+  ctx.strokeStyle = active ? "rgba(77, 145, 166, 0.92)" : "rgba(77, 145, 166, 0.58)";
+  ctx.lineWidth = active ? 2.8 : 1.6;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, rect.y + 1 + pulse, rect.width - 2, rect.height - 2, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(77, 145, 166, 0.18)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, rect.y + 14 + pulse, 50, 48, 15);
+  ctx.fill();
+  ctx.fillStyle = "#4d91a6";
+  ctx.font = "900 20px Microsoft YaHei";
+  ctx.fillText("芹", rect.x + 28, rect.y + 44 + pulse);
+  ctx.fillStyle = "#286f58";
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title.slice(0, 18), rect.x + 78, rect.y + 22 + pulse);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 17), rect.x + 78, rect.y + 44 + pulse);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(String(spec.detail || "").slice(0, 38), rect.x + 78, rect.y + 60 + pulse);
+
+  spec.steps.forEach((step, index) => {
+    const stepRect = step.rect;
+    const color = colors[step.tone] || "#8f5f3f";
+    const selected = activeAction === step.key;
+    const x = stepRect.x;
+    const y = stepRect.y + pulse;
+    ctx.fillStyle = selected ? `${color}2f` : "rgba(255, 253, 245, 0.78)";
+    ctx.strokeStyle = selected ? `${color}cc` : `${color}55`;
+    ctx.lineWidth = selected ? 2 : 1.2;
+    ctx.beginPath();
+    ctx.roundRect(x, y, stepRect.width, stepRect.height, 11);
+    ctx.fill();
+    ctx.stroke();
+    if (index > 0) {
+      ctx.strokeStyle = "rgba(77, 145, 166, 0.36)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(x - 10, y + stepRect.height * 0.5);
+      ctx.lineTo(x - 2, y + stepRect.height * 0.5);
+      ctx.stroke();
+    }
+    ctx.fillStyle = color;
+    ctx.font = "900 9px Microsoft YaHei";
+    ctx.fillText(step.label.slice(0, 6), x + 9, y + 12);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(String(step.value || "").slice(0, 9), x + 9, y + 23);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.88)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, rect.y + rect.height - 18 + pulse, rect.width - 32, 14, 7);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText(`${spec.routeText} · ${spec.safeNote}`.slice(0, 52), rect.x + 24, rect.y + rect.height - 8 + pulse);
+  ctx.restore();
+  return true;
+}
+
+export function drawLingqinDishRouteWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  activeAction = "",
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.anchor) return false;
+  const { rect, anchor } = spec;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.18) * 2.6;
+  const colors = {
+    stock: "#4d91a6",
+    order: spec.orderReady ? "#286f58" : "#b47d2f",
+    shop: "#8f5f3f",
+  };
+
+  ctx.save();
+  ctx.strokeStyle = active ? "rgba(40, 111, 88, 0.88)" : "rgba(180, 125, 47, 0.48)";
+  ctx.lineWidth = active ? 3 : 2;
+  ctx.setLineDash([9, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 15;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y);
+  ctx.quadraticCurveTo(rect.x + rect.width - 30, rect.y + rect.height + 40, rect.x + rect.width - 42, rect.y + rect.height - 22 + pulse);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = "rgba(255, 248, 232, 0.24)";
+  ctx.beginPath();
+  ctx.ellipse(anchor.x, anchor.y + 7, 54 + Math.abs(pulse), 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(202, 235, 210, 0.7)";
+  ctx.beginPath();
+  ctx.roundRect(anchor.x - 22, anchor.y - 14, 44, 18, 8);
+  ctx.fill();
+
+  drawCanvasCard(ctx, rect.x, rect.y + pulse, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
+  ctx.strokeStyle = active ? "rgba(40, 111, 88, 0.9)" : "rgba(180, 125, 47, 0.58)";
+  ctx.lineWidth = active ? 2.8 : 1.6;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, rect.y + 1 + pulse, rect.width - 2, rect.height - 2, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = spec.orderReady ? "rgba(202, 235, 210, 0.28)" : "rgba(224, 182, 109, 0.2)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, rect.y + 14 + pulse, 52, 50, 15);
+  ctx.fill();
+  ctx.fillStyle = spec.orderReady ? "#286f58" : "#b47d2f";
+  ctx.font = "900 20px Microsoft YaHei";
+  ctx.fillText("菜", rect.x + 29, rect.y + 45 + pulse);
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title.slice(0, 19), rect.x + 80, rect.y + 22 + pulse);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 18), rect.x + 80, rect.y + 45 + pulse);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(String(spec.detail || "").slice(0, 40), rect.x + 80, rect.y + 62 + pulse);
+
+  spec.steps.forEach((step, index) => {
+    const stepRect = step.rect;
+    const color = colors[step.tone] || "#8f5f3f";
+    const selected = activeAction === step.key;
+    const x = stepRect.x;
+    const y = stepRect.y + pulse;
+    ctx.fillStyle = selected ? `${color}30` : "rgba(255, 253, 245, 0.82)";
+    ctx.strokeStyle = selected ? `${color}cc` : `${color}55`;
+    ctx.lineWidth = selected ? 2 : 1.2;
+    ctx.beginPath();
+    ctx.roundRect(x, y, stepRect.width, stepRect.height, 11);
+    ctx.fill();
+    ctx.stroke();
+    if (index > 0) {
+      ctx.strokeStyle = "rgba(180, 125, 47, 0.34)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(x - 10, y + stepRect.height * 0.5);
+      ctx.lineTo(x - 2, y + stepRect.height * 0.5);
+      ctx.stroke();
+    }
+    ctx.fillStyle = color;
+    ctx.font = "900 9px Microsoft YaHei";
+    ctx.fillText(step.label.slice(0, 6), x + 9, y + 12);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(String(step.value || "").slice(0, 10), x + 9, y + 24);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, rect.y + rect.height - 18 + pulse, rect.width - 32, 14, 7);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText(`${spec.routeText} · ${spec.safeNote}`.slice(0, 54), rect.x + 24, rect.y + rect.height - 8 + pulse);
+  ctx.restore();
+  return true;
+}
+
+export function drawQinghePondBridgeWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.anchor) return false;
+  const { rect, anchor } = spec;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.12) * 3;
+  const colors = {
+    taste: "#b47d2f",
+    qinghe: "#286f58",
+    pond: "#4d91a6",
+  };
+
+  ctx.save();
+  ctx.strokeStyle = active ? "rgba(77, 145, 166, 0.9)" : "rgba(77, 145, 166, 0.54)";
+  ctx.lineWidth = active ? 3.2 : 2.1;
+  ctx.setLineDash([8, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 14;
+  ctx.beginPath();
+  ctx.moveTo(rect.x + rect.width - 26, rect.y + rect.height - 18 + pulse);
+  ctx.quadraticCurveTo(rect.x + rect.width + 42, rect.y + rect.height + 62, anchor.x, anchor.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = "rgba(159, 209, 223, 0.24)";
+  ctx.beginPath();
+  ctx.ellipse(anchor.x, anchor.y + 8, 70 + Math.abs(pulse), 22, -0.08, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 253, 245, 0.55)";
+  ctx.lineWidth = 1.8;
+  for (let i = 0; i < 3; i += 1) {
+    ctx.beginPath();
+    ctx.ellipse(anchor.x, anchor.y + 8, 24 + i * 18 + Math.abs(pulse), 8 + i * 5, -0.08, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  drawCanvasCard(ctx, rect.x, rect.y + pulse, rect.width, rect.height, "rgba(248, 252, 247, 0.95)");
+  ctx.strokeStyle = active ? "rgba(77, 145, 166, 0.92)" : "rgba(77, 145, 166, 0.62)";
+  ctx.lineWidth = active ? 2.8 : 1.6;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 1, rect.y + 1 + pulse, rect.width - 2, rect.height - 2, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(159, 209, 223, 0.24)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, rect.y + 13 + pulse, 50, 48, 15);
+  ctx.fill();
+  ctx.fillStyle = "#4d91a6";
+  ctx.font = "900 20px Microsoft YaHei";
+  ctx.fillText("池", rect.x + 28, rect.y + 44 + pulse);
+  ctx.fillStyle = "#286f58";
+  ctx.font = "900 11px Microsoft YaHei";
+  ctx.fillText(spec.title.slice(0, 18), rect.x + 78, rect.y + 22 + pulse);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 18), rect.x + 78, rect.y + 44 + pulse);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(String(spec.detail || "").slice(0, 38), rect.x + 78, rect.y + 60 + pulse);
+
+  spec.steps.forEach((step, index) => {
+    const x = rect.x + 18 + index * 98;
+    const y = rect.y + 74 + pulse;
+    const color = colors[step.tone] || "#8f5f3f";
+    ctx.fillStyle = index === 1 && spec.accepted ? `${color}2d` : "rgba(255, 253, 245, 0.8)";
+    ctx.strokeStyle = `${color}${index === 1 && spec.accepted ? "bb" : "55"}`;
+    ctx.lineWidth = index === 1 && spec.accepted ? 2 : 1.2;
+    ctx.beginPath();
+    ctx.roundRect(x, y, 88, 24, 10);
+    ctx.fill();
+    ctx.stroke();
+    if (index > 0) {
+      ctx.strokeStyle = "rgba(77, 145, 166, 0.36)";
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.moveTo(x - 10, y + 12);
+      ctx.lineTo(x - 2, y + 12);
+      ctx.stroke();
+    }
+    ctx.fillStyle = color;
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(step.label.slice(0, 6), x + 8, y + 10);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(String(step.value || "").slice(0, 9), x + 8, y + 20);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, rect.y + rect.height - 17 + pulse, rect.width - 32, 13, 7);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText(`${spec.routeText} · ${spec.safeNote}`.slice(0, 50), rect.x + 24, rect.y + rect.height - 8 + pulse);
+  ctx.restore();
+  return true;
+}
+
+export function drawQingboIngredientTriadWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  active = false,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.anchor) return false;
+  const { rect, anchor } = spec;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.16) * 2.8;
+  const tones = ["#4d91a6", "#286f58", "#b47d2f"];
+
+  ctx.save();
+  ctx.strokeStyle = active ? "rgba(77, 145, 166, 0.88)" : "rgba(77, 145, 166, 0.5)";
+  ctx.lineWidth = active ? 3 : 2;
+  ctx.setLineDash([7, 8]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 12;
+  ctx.beginPath();
+  ctx.moveTo(anchor.x, anchor.y);
+  ctx.quadraticCurveTo(rect.x + rect.width + 20, rect.y + 10, rect.x + rect.width - 24, rect.y + 50 + pulse);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawCanvasCard(ctx, rect.x, rect.y + pulse, rect.width, rect.height, "rgba(248, 252, 247, 0.96)");
+  ctx.strokeStyle = active ? "rgba(77, 145, 166, 0.9)" : "rgba(77, 145, 166, 0.62)";
+  ctx.lineWidth = active ? 2.6 : 1.6;
+  ctx.beginPath();
+  ctx.roundRect(rect.x, rect.y + pulse, rect.width, rect.height, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = spec.readyToCraft ? "rgba(202, 235, 210, 0.3)" : "rgba(159, 209, 223, 0.2)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 14, rect.y + 14 + pulse, 50, 48, 15);
+  ctx.fill();
+  ctx.fillStyle = spec.readyToCraft ? "#286f58" : "#4d91a6";
+  ctx.font = "900 19px Microsoft YaHei";
+  ctx.fillText("三", rect.x + 29, rect.y + 44 + pulse);
+  ctx.fillStyle = spec.readyToCraft ? "#286f58" : "#4d91a6";
+  ctx.font = "900 12px Microsoft YaHei";
+  ctx.fillText(spec.title.slice(0, 16), rect.x + 78, rect.y + 23 + pulse);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillText(spec.headline.slice(0, 17), rect.x + 78, rect.y + 45 + pulse);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "800 9px Microsoft YaHei";
+  ctx.fillText(spec.detail.slice(0, 38), rect.x + 78, rect.y + 62 + pulse);
+
+  spec.inputs.forEach((entry, index) => {
+    const x = rect.x + 18 + index * 98;
+    const y = rect.y + 76 + pulse;
+    const color = tones[index] || "#8f5f3f";
+    ctx.fillStyle = entry.ready ? `${color}24` : "rgba(255, 248, 232, 0.84)";
+    ctx.strokeStyle = entry.ready ? `${color}aa` : "rgba(190, 79, 55, 0.5)";
+    ctx.lineWidth = entry.ready ? 1.7 : 1.4;
+    ctx.beginPath();
+    ctx.roundRect(x, y, 88, 24, 10);
+    ctx.fill();
+    ctx.stroke();
+    if (index > 0) {
+      ctx.strokeStyle = "rgba(77, 145, 166, 0.34)";
+      ctx.beginPath();
+      ctx.moveTo(x - 10, y + 12);
+      ctx.lineTo(x - 2, y + 12);
+      ctx.stroke();
+    }
+    ctx.fillStyle = entry.ready ? color : "#be4f37";
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(entry.itemName.slice(0, 5), x + 8, y + 10);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "900 8px Microsoft YaHei";
+    ctx.fillText(`${entry.have}/${entry.count}${entry.ready ? " 齐" : " 缺"}`.slice(0, 9), x + 8, y + 20);
+  });
+
+  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 16, rect.y + rect.height - 17 + pulse, rect.width - 32, 13, 7);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 8px Microsoft YaHei";
+  ctx.fillText(`${spec.routeText} · ${spec.safeNote}`.slice(0, 50), rect.x + 24, rect.y + rect.height - 8 + pulse);
+  ctx.restore();
+  return true;
+}
