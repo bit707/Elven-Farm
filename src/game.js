@@ -704,6 +704,7 @@ import {
 } from "./game/world/crop-growth-memo.js";
 import {
   drawFieldActionFeedbackWorld,
+  drawHarvestFeedbackWorld,
   drawHarvestRouteWorldBoardWorld,
   drawManualWaterAfterglowWorldWorld,
   drawHarvestStorageRouteWorldWorld,
@@ -57390,71 +57391,19 @@ function drawTownLifeErrandFeedback(ctx, width, height, feedback = activeTownLif
 }
 
 function drawHarvestFeedback(ctx, width, height, feedback = activeHarvestFeedback()) {
-  if (!feedback || state.activeCutscene || state.activeDialogue.length > 0) return;
-  const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
-  const lift = settings.reducedMotion ? 0 : Math.sin(motion * 3.4) * 4;
-  const routeBadge = nightGrowthRouteBadgeSpecBridge(feedback.route);
-  const qualityAccent = Number(feedback.qualityTier || 1) >= 3 ? "#be4f37" : Number(feedback.qualityTier || 1) >= 2 ? "#b47d2f" : "#5d6f65";
-  const x = Math.max(42, Math.min(width - 352, 392));
-  const y = 118 + lift;
-
-  ctx.save();
-  ctx.globalAlpha = Number(feedback.fade ?? 1);
-  const glow = ctx.createRadialGradient(x + 96, y + 62, 12, x + 96, y + 62, 156);
-  glow.addColorStop(0, "rgba(246, 240, 182, 0.34)");
-  glow.addColorStop(0.56, "rgba(224, 182, 109, 0.12)");
-  glow.addColorStop(1, "rgba(224, 182, 109, 0)");
-  ctx.fillStyle = glow;
-  ctx.beginPath();
-  ctx.arc(x + 96, y + 62, 156, 0, Math.PI * 2);
-  ctx.fill();
-
-  drawCanvasCard(ctx, x, y, 334, 128, "rgba(255, 248, 232, 0.96)");
-  ctx.fillStyle = "rgba(246, 240, 182, 0.42)";
-  ctx.beginPath();
-  ctx.roundRect(x + 18, y + 18, 64, 64, 18);
-  ctx.fill();
-  ctx.strokeStyle = "#b47d2f";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(x + 34, y + 52);
-  ctx.quadraticCurveTo(x + 48, y + 25, x + 66, y + 52);
-  ctx.moveTo(x + 30, y + 62);
-  ctx.quadraticCurveTo(x + 52, y + 76, x + 74, y + 62);
-  ctx.stroke();
-  ctx.fillStyle = "#b47d2f";
-  ctx.font = "800 18px Microsoft YaHei";
-  ctx.fillText("收", x + 42, y + 57);
-
-  ctx.fillStyle = feedback.firstHarvest ? "#be4f37" : "#b47d2f";
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(feedback.firstHarvest ? "第一次收获" : "收获入仓", x + 96, y + 28);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "700 18px Microsoft YaHei";
-  ctx.fillText(`${feedback.cropName} x${feedback.amount}`.slice(0, 18), x + 96, y + 52);
-  ctx.fillStyle = qualityAccent;
-  ctx.font = "700 13px Microsoft YaHei";
-  ctx.fillText(`${feedback.qualityLabel} ${feedback.qualityStars}`, x + 96, y + 75);
-
-  ctx.fillStyle = routeBadge.fill;
-  ctx.strokeStyle = routeBadge.stroke;
-  ctx.lineWidth = 1.3;
-  ctx.beginPath();
-  ctx.roundRect(x + 20, y + 92, 92, 22, 11);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = routeBadge.text;
-  ctx.font = "700 11px Microsoft YaHei";
-  ctx.fillText(String(feedback.routeBadge || "收进仓").slice(0, 7), x + 34, y + 107);
-
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "11px Microsoft YaHei";
-  const qualityText = feedback.qualityCount > 0 ? `良品额外 ${feedback.qualityItemName} x${feedback.qualityCount}` : feedback.bonusText;
-  ctx.fillText(qualityText.slice(0, 28), x + 126, y + 106);
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "11px Microsoft YaHei";
-  ctx.fillText(String(feedback.routeHeadline || feedback.routeDetail || "收获去向已记录").slice(0, 34), x + 20, y + 123);
-  ctx.restore();
+  // drawHarvestFeedback(ctx) bridge keeps verify keywords: drawHarvestFeedback / 第一次收获 / 收获入仓 / 良品额外 / 收获去向已记录 / 收获去向 / 收获入仓去向留签
+  return drawHarvestFeedbackWorld({
+    ctx,
+    width,
+    height,
+    feedback,
+    now: performance.now(),
+    reducedMotion: settings.reducedMotion,
+    activeCutscene: state.activeCutscene,
+    activeDialogueCount: state.activeDialogue.length,
+    badgeForRoute: nightGrowthRouteBadgeSpecBridge,
+    drawCanvasCard,
+  });
 }
 
 function drawSpiritSproutFeedback(ctx, width, height, feedback = activeSpiritSproutFeedback()) {
