@@ -385,6 +385,173 @@ export function spiritAssistNineGridActionWorldAtCanvasPointWorld({
     : null;
 }
 
+export function spiritAssistSavingsLedgerWorldSpecWorld({
+  width = 960,
+  height = 640,
+  originX = 0,
+  originY = 0,
+  tile = 56,
+  gap = 0,
+  feedback = null,
+  day = 1,
+  dungeon = null,
+  spirits = [],
+  plots = [],
+  spiritVisualProfile = (spirit) => spirit,
+  copy = {},
+} = {}) {
+  if (!feedback || feedback.day !== day || (dungeon && !dungeon.finished)) return null;
+  const wateredPlots = Array.isArray(feedback.wateredPlots) ? feedback.wateredPlots.slice(0, 9) : [];
+  if (!wateredPlots.length) return null;
+  const fallbackSpirit = {
+    id: feedback.spiritId || "spirit_luobo_01",
+    lineId: feedback.lineId || "spirit_line_luobo",
+    name: feedback.spiritName || copy.defaultSpiritName || "精怪",
+    job: "farm",
+  };
+  const spirit = (spirits || []).find((entry) => entry.id === feedback.spiritId)
+    || spirits[0]
+    || fallbackSpirit;
+  const profile = spiritVisualProfile(spirit || fallbackSpirit);
+  const points = wateredPlots.map((plot) => ({
+    ...plot,
+    screenX: originX + plot.x * (tile + gap) + tile / 2,
+    screenY: originY + plot.y * (tile + gap) + tile / 2,
+    rect: {
+      x: originX + plot.x * (tile + gap),
+      y: originY + plot.y * (tile + gap),
+      width: tile,
+      height: tile,
+    },
+  }));
+  const bounds = points.reduce((acc, point) => ({
+    minX: Math.min(acc.minX, point.rect.x),
+    minY: Math.min(acc.minY, point.rect.y),
+    maxX: Math.max(acc.maxX, point.rect.x + point.rect.width),
+    maxY: Math.max(acc.maxY, point.rect.y + point.rect.height),
+  }), {
+    minX: points[0].rect.x,
+    minY: points[0].rect.y,
+    maxX: points[0].rect.x + points[0].rect.width,
+    maxY: points[0].rect.y + points[0].rect.height,
+  });
+  const center = feedback.center || { x: points[0].x, y: points[0].y };
+  const remainingPlots = (plots || [])
+    .filter((plot) => plot.cropId && !plot.watered)
+    .map((plot) => ({
+      ...plot,
+      distance: Math.abs(plot.x - Number(center.x || 0)) + Math.abs(plot.y - Number(center.y || 0)),
+      screenX: originX + plot.x * (tile + gap) + tile / 2,
+      screenY: originY + plot.y * (tile + gap) + tile / 2,
+      rect: {
+        x: originX + plot.x * (tile + gap),
+        y: originY + plot.y * (tile + gap),
+        width: tile,
+        height: tile,
+      },
+    }))
+    .sort((a, b) => a.distance - b.distance || a.y - b.y || a.x - b.x);
+  const nextPlot = remainingPlots[0] || null;
+  const cardWidth = 316;
+  const cardHeight = 118;
+  const x = Math.max(24, Math.min(width - cardWidth - 24, bounds.minX + (bounds.maxX - bounds.minX - cardWidth) / 2));
+  const belowY = bounds.maxY + 18;
+  const aboveY = bounds.minY - cardHeight - 22;
+  const y = belowY + cardHeight < height - 28
+    ? belowY
+    : Math.max(76, Math.min(height - cardHeight - 28, aboveY));
+  const wateredCount = Number(feedback.wateredCount || points.length);
+  const staminaSaved = Number(feedback.staminaSaved || points.length * 5);
+  const rows = [
+    {
+      key: "watered",
+      label: copy.wateredLabel || "水痕",
+      value: `${wateredCount} 格`,
+      detail: copy.wateredDetail || "刚由精怪跑完",
+      color: "#4d91a6",
+    },
+    {
+      key: "stamina",
+      label: copy.staminaLabel || "省力",
+      value: `${staminaSaved} 体力`,
+      detail: copy.staminaDetail || "少做同等手浇",
+      color: "#b47d2f",
+    },
+    {
+      key: "next",
+      label: copy.nextLabel || "下一片",
+      value: nextPlot ? `${remainingPlots.length} 格待浇` : (copy.nextDoneValue || "今日已润"),
+      detail: nextPlot ? `可接 (${nextPlot.x + 1},${nextPlot.y + 1})` : (copy.nextDoneDetail || "明日再接水线"),
+      color: nextPlot ? "#be4f37" : "#286f58",
+    },
+  ];
+  rows.forEach((row, index) => {
+    row.rect = {
+      x: x + 16 + index * 94,
+      y: y + 72,
+      width: 84,
+      height: 30,
+    };
+  });
+  return {
+    key: `${feedback.day}:${feedback.spiritId}:${points.map((point) => `${point.x},${point.y}`).join("|")}:savings`,
+    day: feedback.day,
+    title: feedback.firstAssist ? (copy.firstTitle || "第一次省力账留签 · 可点") : (copy.title || "精怪省力账留签 · 可点"),
+    headline: `${feedback.spiritName || spirit?.name || copy.defaultSpiritName || "精怪"}把手浇变成一趟水线`,
+    detail: `浇水 ${wateredCount} 格 · 省下约 ${staminaSaved} 点体力`,
+    nextText: nextPlot
+      ? `还有 ${remainingPlots.length} 格待浇，下一轮可从 (${nextPlot.x + 1},${nextPlot.y + 1}) 接手。`
+      : (copy.nextTextDone || "今日作物水分已经稳住，省下的体力可以转去加工、旧铺或摸摸伙伴。"),
+    safety: copy.safety || "只定位省力账、伙伴栏和田格，不会再次触发精怪协助、不会自动浇水或消耗体力。",
+    spirit,
+    profile,
+    points,
+    bounds,
+    nextPlot,
+    remainingCount: remainingPlots.length,
+    rows,
+    rect: { x, y, width: cardWidth, height: cardHeight },
+    anchor: { x: (bounds.minX + bounds.maxX) / 2, y: bounds.maxY },
+    wateredCount,
+    staminaSaved,
+  };
+}
+
+export function spiritAssistSavingsLedgerWorldAtCanvasPointWorld({
+  px,
+  py,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const row = spec.rows.find((entry) => {
+    const rect = entry.rect;
+    return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
+  }) || null;
+  const wateredPlot = spec.points.find((point) => (
+    px >= point.rect.x
+    && px <= point.rect.x + point.rect.width
+    && py >= point.rect.y
+    && py <= point.rect.y + point.rect.height
+  )) || null;
+  const nextPlot = spec.nextPlot
+    && px >= spec.nextPlot.rect.x
+    && px <= spec.nextPlot.rect.x + spec.nextPlot.rect.width
+    && py >= spec.nextPlot.rect.y
+    && py <= spec.nextPlot.rect.y + spec.nextPlot.rect.height
+    ? spec.nextPlot
+    : null;
+  const { rect } = spec;
+  const onCard = px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
+  return row || wateredPlot || nextPlot || onCard
+    ? {
+      ...spec,
+      activeRow: row || spec.rows[0],
+      targetPlot: wateredPlot || nextPlot || null,
+      targetKind: nextPlot ? "next" : wateredPlot ? "watered" : "card",
+    }
+    : null;
+}
+
 export function drawSpiritAssistTrailWorldWorld({
   ctx,
   spec = null,
