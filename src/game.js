@@ -550,6 +550,7 @@ import {
   drawEarlyNpcWorldRoadsignWorld,
   drawLivingWorldSummaryWorld,
   drawTownLifeErrandDeliveryKeepsakeWorldWorld,
+  drawTownLifeFeaturedBubbleWorld,
   drawTownLifeGreetingKeepsakeWorldWorld,
   drawTownLifeGiftKeepsakeWorldWorld,
   drawTownLifeMemoryKeepsakeWorldWorld,
@@ -76776,47 +76777,15 @@ function drawTownLifeVisitors(ctx) {
   drawTownLifeGiftKeepsakeWorld(ctx, rows, motion);
   drawTownLifePassalongLanternWorld(ctx, rows, motion);
   const bubble = townLifeFeaturedBubbleSpec(rows);
+  // townLifeFeaturedBubbleSpec(rows) / townLifeShopMomentBubbleAtCanvasPoint / ctx.fillText("可翻") / focusTownLifeShopMomentFromCanvas(townLifeShopMomentBubble) / 点选旧铺后话留签
   if (!bubble) return ctx.restore();
-  const { featured, point: featurePoint, rect, shortBark, recentGreeting, weatherErrandForFeatured, shopMomentBark, careChainBark, reputationBark } = bubble;
-  ctx.fillStyle = weatherErrandForFeatured
-    ? "rgba(255, 248, 232, 0.97)"
-    : shopMomentBark
-    ? "rgba(255, 248, 232, 0.97)"
-    : careChainBark
-    ? "rgba(237, 243, 223, 0.96)"
-    : reputationBark
-    ? "rgba(255, 248, 232, 0.96)"
-    : featured.status.key === "urgent" ? "rgba(255, 248, 232, 0.96)" : "rgba(255, 253, 245, 0.92)";
-  ctx.strokeStyle = weatherErrandForFeatured
-    ? "rgba(224, 182, 109, 0.48)"
-    : shopMomentBark
-    ? "rgba(180, 125, 47, 0.46)"
-    : careChainBark
-    ? "rgba(40, 111, 88, 0.42)"
-    : reputationBark
-    ? "rgba(180, 125, 47, 0.42)"
-    : featured.status.key === "urgent" ? "rgba(190, 79, 55, 0.32)" : "rgba(77, 145, 166, 0.24)";
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.roundRect(rect.x, rect.y, rect.width, rect.height, 14);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = weatherErrandForFeatured ? "#8f5f3f" : shopMomentBark ? "#8f5f3f" : careChainBark ? "#286f58" : reputationBark ? "#8f5f3f" : featured.status.key === "urgent" ? "#be4f37" : "#286f58";
-  ctx.font = "700 12px Microsoft YaHei";
-  ctx.fillText(weatherErrandForFeatured ? `天气托付 · ${npcName(featured.npc.npc_id)}：` : shopMomentBark ? `旧铺后话 · ${npcName(featured.npc.npc_id)}：` : careChainBark ? `生机传话 · ${npcName(featured.npc.npc_id)}：` : reputationBark ? `旧铺传话 · ${npcName(featured.npc.npc_id)}：` : `${npcName(featured.npc.npc_id)}：`, featurePoint.x + 56, featurePoint.y + 26);
-  if (shopMomentBark) {
-    const glow = settings.reducedMotion ? 0 : Math.sin(motion * 2.4) * 0.08 + 0.12;
-    ctx.fillStyle = `rgba(224, 182, 109, ${0.22 + glow})`;
-    ctx.beginPath();
-    ctx.roundRect(rect.x + rect.width - 44, rect.y + 8, 32, 18, 8);
-    ctx.fill();
-    ctx.fillStyle = "#8f5f3f";
-    ctx.font = "800 10px Microsoft YaHei";
-    ctx.fillText("可翻", rect.x + rect.width - 38, rect.y + 21);
-  }
-  ctx.fillStyle = "#17231d";
-  ctx.font = "12px Microsoft YaHei";
-  ctx.fillText(shortBark, featurePoint.x + 56, featurePoint.y + 43);
+  drawTownLifeFeaturedBubbleWorld({
+    ctx,
+    bubble,
+    motion,
+    reducedMotion: settings.reducedMotion,
+    npcName,
+  });
   ctx.restore();
 }
 
