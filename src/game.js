@@ -294,6 +294,7 @@ import {
   shopSpiritGreeterWorldSpecWorld,
 } from "./game/world/shop-prep-world.js";
 import {
+  drawCommerceWorldMarksWorld,
   drawShopWordOfMouthFollowupRestockWorldWorld,
   drawShopWordOfMouthMorningFollowupWorldWorld,
   drawShopWordOfMouthRestockCaughtWorldWorld,
@@ -70095,231 +70096,23 @@ function drawCommerceWorldMarks(ctx, originX, originY, tile, gap) {
   const orderDone = firstOrderDeliveryDone();
   const shopOpenDone = opening.opened || state.completed.has("first_shop_opening") || state.completed.has("shop");
   const firstSaleDone = opening.summaryUnlocked || state.completed.has("first_shop_sale_summary") || state.completed.has("shop");
-  if (!(craftDone || orderDone || shopOpenDone || firstSaleDone)) return;
-
-  const pulse = settings.reducedMotion ? 0 : Math.sin(performance.now() / 460) * 3;
-  const shopX = originX - 174;
-  const shopY = originY - 22;
-  const aromaX = originX + tile * 5.2 + gap * 4;
-  const aromaY = originY - 54;
-  const slipX = originX + tile * 5.72 + gap * 4;
-  const slipY = originY + tile * 1.9;
-  const saleX = originX - 88;
-  const saleY = originY + 164;
-
-  ctx.save();
-
-  const drawLabel = (text, x, y, tone = "#8f5f3f") => {
-    const width = Math.max(68, text.length * 13 + 18);
-    ctx.fillStyle = "rgba(255, 248, 232, 0.88)";
-    ctx.beginPath();
-    ctx.roundRect(x - 8, y - 14, width, 20, 9);
-    ctx.fill();
-    ctx.fillStyle = tone;
-    ctx.font = "700 12px Microsoft YaHei";
-    ctx.fillText(text, x, y);
-  };
-
-  if (craftDone) {
-    ctx.fillStyle = "rgba(143, 95, 63, 0.94)";
-    ctx.beginPath();
-    ctx.roundRect(aromaX - 16, aromaY, 42, 16, 7);
-    ctx.fill();
-    ctx.fillStyle = "#f0a54e";
-    ctx.fillRect(aromaX - 10, aromaY + 4, 8, 8);
-    ctx.fillRect(aromaX + 1, aromaY + 5, 9, 7);
-    ctx.fillRect(aromaX + 13, aromaY + 4, 7, 8);
-    ctx.strokeStyle = `rgba(40, 111, 88, ${0.42 + pulse / 18})`;
-    ctx.lineWidth = 2;
-    for (const offset of [0, 10, 20]) {
-      ctx.beginPath();
-      ctx.moveTo(aromaX - 4 + offset, aromaY - 1);
-      ctx.bezierCurveTo(aromaX - 8 + offset, aromaY - 16 - pulse, aromaX + 5 + offset, aromaY - 20 + pulse, aromaX + offset, aromaY - 32);
-      ctx.stroke();
-    }
-    drawLabel("后厂起香", aromaX - 18, aromaY - 40, "#286f58");
-  }
-
-  if (orderDone) {
-    ctx.fillStyle = "rgba(255, 253, 245, 0.94)";
-    ctx.beginPath();
-    ctx.roundRect(slipX - 10, slipY - 18, 34, 42, 8);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(190, 79, 55, 0.66)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(slipX - 5, slipY - 12, 24, 28);
-    ctx.fillStyle = "#be4f37";
-    ctx.fillRect(slipX - 2, slipY - 24, 8, 8);
-    ctx.strokeStyle = "rgba(143, 95, 63, 0.54)";
-    ctx.beginPath();
-    ctx.moveTo(slipX + 3, slipY - 16);
-    ctx.lineTo(slipX + 3, slipY - 28);
-    ctx.stroke();
-    ctx.fillStyle = "#8f5f3f";
-    ctx.fillRect(slipX, slipY - 5, 12, 2);
-    ctx.fillRect(slipX, slipY + 2, 10, 2);
-    ctx.fillRect(slipX, slipY + 9, 8, 2);
-    drawLabel("第一张委托", slipX - 22, slipY - 34, "#be4f37");
-  }
-
-  if (shopOpenDone) {
-    const flagY = shopY + pulse;
-    ctx.strokeStyle = "#5b3328";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(shopX, flagY - 8);
-    ctx.lineTo(shopX, flagY + 48);
-    ctx.stroke();
-    ctx.fillStyle = "#f0a54e";
-    ctx.beginPath();
-    ctx.moveTo(shopX + 3, flagY - 4);
-    ctx.lineTo(shopX + 44, flagY + 8);
-    ctx.lineTo(shopX + 3, flagY + 22);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = "#fffdf5";
-    ctx.font = "700 11px Microsoft YaHei";
-    ctx.fillText("开张", shopX + 8, flagY + 11);
-    drawLabel("旧铺开张", shopX - 18, flagY - 18, "#8f5f3f");
-    if (seasonalDoorstep?.active) {
-      const sceneX = shopX + 4;
-      const sceneY = flagY + 54;
-      const toneColor = seasonalDoorstep.tone.includes("rain") ? "#4d91a6"
-        : seasonalDoorstep.tone.includes("heat") ? "#be4f37"
-        : seasonalDoorstep.tone.includes("mist") ? "#5d6f65"
-        : seasonalDoorstep.tone.includes("cold") ? "#8f5f3f"
-        : "#b47d2f";
-      ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-      ctx.beginPath();
-      ctx.roundRect(sceneX - 6, sceneY - 14, 78, 34, 12);
-      ctx.fill();
-      ctx.strokeStyle = `${toneColor}66`;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      if (seasonalDoorstep.tone.includes("rain")) {
-        ctx.strokeStyle = toneColor;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(sceneX + 20, sceneY + 2, 20, Math.PI, Math.PI * 2);
-        ctx.stroke();
-        ctx.strokeStyle = "rgba(77, 145, 166, 0.4)";
-        for (let i = 0; i < 3; i += 1) {
-          ctx.beginPath();
-          ctx.moveTo(sceneX + 4 + i * 18, sceneY + 7);
-          ctx.lineTo(sceneX + 1 + i * 18, sceneY + 16);
-          ctx.stroke();
-        }
-      } else if (seasonalDoorstep.tone.includes("heat")) {
-        ctx.strokeStyle = "#b47d2f";
-        ctx.lineWidth = 2;
-        for (let i = 0; i < 4; i += 1) {
-          ctx.beginPath();
-          ctx.moveTo(sceneX + 5 + i * 8, sceneY - 8);
-          ctx.lineTo(sceneX + 2 + i * 8, sceneY + 10);
-          ctx.stroke();
-        }
-        ctx.fillStyle = "rgba(77, 145, 166, 0.76)";
-        ctx.beginPath();
-        ctx.ellipse(sceneX + 50, sceneY + 10, 12, 5, 0, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (seasonalDoorstep.tone.includes("mist")) {
-        ctx.fillStyle = "rgba(224, 182, 109, 0.9)";
-        ctx.beginPath();
-        ctx.arc(sceneX + 24, sceneY + 4, 9, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "rgba(93, 111, 101, 0.5)";
-        ctx.setLineDash([5, 6]);
-        ctx.beginPath();
-        ctx.moveTo(sceneX + 38, sceneY + 2);
-        ctx.lineTo(sceneX + 66, sceneY - 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      } else if (seasonalDoorstep.tone.includes("cold")) {
-        ctx.fillStyle = "rgba(143, 95, 63, 0.88)";
-        ctx.beginPath();
-        ctx.roundRect(sceneX + 12, sceneY + 2, 28, 14, 6);
-        ctx.fill();
-        ctx.strokeStyle = "rgba(224, 182, 109, 0.8)";
-        for (let i = 0; i < 3; i += 1) {
-          ctx.beginPath();
-          ctx.moveTo(sceneX + 18 + i * 6, sceneY - 2);
-          ctx.quadraticCurveTo(sceneX + 14 + i * 6, sceneY - 9 - pulse, sceneX + 20 + i * 6, sceneY - 14);
-          ctx.stroke();
-        }
-      } else {
-        ctx.fillStyle = "rgba(255, 248, 232, 0.94)";
-        ctx.fillRect(sceneX + 12, sceneY - 8, 28, 18);
-        ctx.strokeStyle = toneColor;
-        ctx.strokeRect(sceneX + 12, sceneY - 8, 28, 18);
-        ctx.fillStyle = toneColor;
-        ctx.font = "700 10px Microsoft YaHei";
-        ctx.fillText("节气", sceneX + 15, sceneY + 5);
-      }
-      drawLabel(`节气门口 · ${seasonalDoorstep.bubble}`, sceneX - 6, sceneY + 36, toneColor);
-    }
-    if (doorstepScene?.active) {
-      const badgeX = shopX + 48;
-      const badgeY = flagY + 10;
-      ctx.fillStyle = "rgba(241, 249, 251, 0.94)";
-      ctx.beginPath();
-      ctx.roundRect(badgeX, badgeY - 12, 44, 24, 10);
-      ctx.fill();
-      ctx.strokeStyle = "rgba(77, 145, 166, 0.42)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(badgeX + 13, badgeY - 1, 5, 0, Math.PI * 2);
-      ctx.arc(badgeX + 26, badgeY - 2, 4, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(badgeX + 11, badgeY + 5);
-      ctx.lineTo(badgeX + 15, badgeY + 9);
-      ctx.moveTo(badgeX + 24, badgeY + 4);
-      ctx.lineTo(badgeX + 28, badgeY + 8);
-      ctx.stroke();
-      drawLabel(doorstepScene.introducedCount > 0 ? "熟脸带新脚步" : doorstepScene.crowdBoost >= 2 ? "熟脸带热门口" : "熟脸回门", badgeX - 10, badgeY - 20, "#4d91a6");
-    }
-    if (shopWordOfMouth) {
-      const noteX = shopX + 54;
-      const noteY = flagY + 36;
-      ctx.fillStyle = "rgba(255, 248, 232, 0.94)";
-      ctx.beginPath();
-      ctx.roundRect(noteX, noteY - 10, 40, 22, 8);
-      ctx.fill();
-      ctx.strokeStyle = "rgba(180, 125, 47, 0.42)";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(noteX + 7, noteY - 5, 16, 12);
-      ctx.beginPath();
-      ctx.moveTo(noteX + 27, noteY - 1);
-      ctx.lineTo(noteX + 33, noteY - 5);
-      ctx.moveTo(noteX + 27, noteY + 5);
-      ctx.lineTo(noteX + 33, noteY + 1);
-      ctx.stroke();
-      drawLabel(shopWordOfMouth.preview ? "口碑起风" : "铺前市闻", noteX - 12, noteY + 28, "#b47d2f");
-    }
-  }
-
-  if (firstSaleDone) {
-    ctx.fillStyle = "rgba(255, 253, 245, 0.94)";
-    ctx.beginPath();
-    ctx.roundRect(saleX, saleY - 16, 44, 30, 9);
-    ctx.fill();
-    ctx.strokeStyle = `rgba(224, 182, 109, ${0.52 + pulse / 20})`;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(saleX + 5, saleY - 10, 18, 18);
-    ctx.beginPath();
-    ctx.arc(saleX + 31, saleY - 1, 8 + pulse / 5, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.fillStyle = "#be4f37";
-    ctx.fillRect(saleX + 9, saleY - 4, 10, 2);
-    ctx.fillRect(saleX + 9, saleY + 2, 8, 2);
-    ctx.fillStyle = "#f0a54e";
-    ctx.beginPath();
-    ctx.arc(saleX + 31, saleY - 1, 5, 0, Math.PI * 2);
-    ctx.fill();
-    drawLabel("第一笔钱签", saleX - 8, saleY - 24, "#be4f37");
-  }
-
-  ctx.restore();
+  // drawCommerceWorldMarks：前三小时正反馈里的后厂起香 / 第一张委托 / 旧铺开张 / 第一笔钱签。
+  return drawCommerceWorldMarksWorld({
+    ctx,
+    originX,
+    originY,
+    tile,
+    gap,
+    reducedMotion: settings.reducedMotion,
+    motion: performance.now(),
+    craftDone,
+    orderDone,
+    shopOpenDone,
+    firstSaleDone,
+    seasonalDoorstep,
+    doorstepScene,
+    shopWordOfMouth,
+  });
 }
 
 function drawBuiltStructureIcon(ctx, buildingId, x, y, color, accent, options = {}) {
