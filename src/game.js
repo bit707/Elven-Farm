@@ -230,6 +230,7 @@ import {
   year2OrderPrepFocusSpecWorld,
   year2OrderPrepTargetWorld,
 } from "./game/world/goalbook-world.js";
+import { goalbookInteractionTargetsWorld } from "./game/world/goalbook-interaction-world.js";
 import {
   postMainlineGoalRouteLogSpecsWorld,
   postMainlineRouteStationFocusTargetWorld,
@@ -72914,7 +72915,6 @@ function worldContentTargets() {
   const memoryPages = dungeonCompendiumMemoryPages(3);
   const compendium = dungeonCompendiumProgress();
   const compendiumTarget = compendiumMonumentTargetWorld({ memoryPages, compendium });
-  if (compendiumTarget) targets.push(compendiumTarget);
 
   const worldChangeByType = new Map();
   for (const change of state.dungeonWorldChanges || []) {
@@ -73035,21 +73035,11 @@ function worldContentTargets() {
 
   const careChainJournalState = normalizeCareChainState(state.careChainState);
   const careChainJournalTarget = careChainJournalTargetWorld({ chainState: careChainJournalState });
-  if (careChainJournalTarget) targets.push(careChainJournalTarget);
 
   const careChainRecentEvent = state.careChainState?.lastEvent
     && Number(state.careChainState.lastEvent.day || 0) >= state.day - 1
     ? state.careChainState.lastEvent
     : null;
-  if (careChainRecentEvent) {
-    targets.push({
-      id: "care_chain_recent_event",
-      type: "care_chain_recent_event",
-      label: "照应阶段余温",
-      eventId: careChainRecentEvent.eventId || "",
-      rect: { x: 678, y: 304, width: 224, height: 82 },
-    });
-  }
 
   const shopWeatherShelf = shopWeatherShelfRecommendationSpec();
   const weatherShelfCustomer = shopWeatherShelfCustomerVignetteSpec(shopWeatherShelf);
@@ -73061,11 +73051,10 @@ function worldContentTargets() {
   if (!year2Unlocked()) return targets;
 
   const previewOrder = year2OrderPreview(1)[0] || year2FirstWeekOrder();
-  if (previewOrder) {
-    const needStatus = year2OrderNeedStatus(previewOrder);
-    const year2OrderTarget = year2OrderPrepTargetWorld({ previewOrder, needStatus });
-    if (year2OrderTarget) targets.push(year2OrderTarget);
-  }
+  const previewOrderNeedStatus = previewOrder ? year2OrderNeedStatus(previewOrder) : null;
+  const year2OrderTarget = previewOrder
+    ? year2OrderPrepTargetWorld({ previewOrder, needStatus: previewOrderNeedStatus })
+    : null;
 
   const shopStats = normalizeShopStats(state.shopStats);
   const cycle = shopSeasonCycleInfo();
@@ -73073,14 +73062,23 @@ function worldContentTargets() {
     cycle,
     pendingSettlement: Boolean(shopStats.pendingSettlement),
   });
-  if (shopSeasonTarget) targets.push(shopSeasonTarget);
 
   const trial = recommendedSolarTrial();
   const solarTrialTarget = solarTrialTargetWorld({
     trial,
     activeTrialId: state.activeSolarTrial?.trialId || "",
   });
-  if (solarTrialTarget) targets.push(solarTrialTarget);
+  // worldContentTargets 保留桥接关键词，便于 verify 扫描：
+  // dungeon_compendium_monument / care_chain_journal_stand / care_chain_recent_event / year2_order_prep_table
+  // year2_shop_season_billboard / year2_solar_trial_dial / 年轮纪念碑 / 洞天照应札记 / 照应阶段余温 / 名铺订单备货台 / 名铺月评榜 / 年轮试炼盘
+  targets.push(...goalbookInteractionTargetsWorld({
+    compendiumTarget,
+    careChainJournalTarget,
+    careChainRecentEvent,
+    year2OrderTarget,
+    shopSeasonTarget,
+    solarTrialTarget,
+  }));
 
   // worldContentTargets 保留桥接关键词，便于 verify 扫描：
   // post_mainline_goal_route / post_mainline_today_route / post_mainline_route_station / 十小时年路灯牌 / 主线后今日路线 / 年路小站
