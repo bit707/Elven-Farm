@@ -106,6 +106,8 @@ import {
   automationDayLedgerSpecSafeWorld,
   drawAutomationHubWorldNoteWorld,
   spiritAutomationBenefitBoardSpecWorld,
+  spiritAutomationPromenadeMarkupWorld,
+  spiritAutomationPromenadeSpecWorld,
   drawSpiritAutomationBenefitBoardWorld,
   drawSpiritAutomationGroundTraceWorld,
   drawSpiritAutomationRelayWorldWorld,
@@ -6682,6 +6684,13 @@ function spiritAutomationPromenadeSpec(rows = spiritAutomationPromenadeRows()) {
   };
 }
 
+function spiritAutomationPromenadeSpecBridge(rows = spiritAutomationPromenadeRows()) {
+  return spiritAutomationPromenadeSpecWorld({
+    spiritCount: state.spirits.length,
+    rows,
+  });
+}
+
 function spiritAutomationPromenadeMarkup(spec = spiritAutomationPromenadeSpec()) {
   if (!spec?.active) return "";
   return `
@@ -6703,6 +6712,10 @@ function spiritAutomationPromenadeMarkup(spec = spiritAutomationPromenadeSpec())
       <small class="spirit-automation-safety">${spec.safety}</small>
     </div>
   `;
+}
+
+function spiritAutomationPromenadeMarkupBridge(spec = spiritAutomationPromenadeSpecBridge()) {
+  return spiritAutomationPromenadeMarkupWorld(spec);
 }
 
 function focusAutomationJobLine(job = "farm") {
@@ -83977,7 +83990,7 @@ function renderSpirits() {
     firstSpiritPromiseMarkup,
     canvasSpiritCareFocusMarkup,
     spiritJobSynergyNetworkMarkup,
-    spiritAutomationPromenadeMarkup,
+    spiritAutomationPromenadeMarkupBridge,
     ensureSpiritJobs,
     syncRareSpiritLifeState,
     spiritVisualProfile,

@@ -93,6 +93,47 @@ export function spiritAutomationBenefitBoardSpecWorld({
   };
 }
 
+export function spiritAutomationPromenadeSpecWorld({
+  spiritCount = 0,
+  rows = [],
+} = {}) {
+  if (!spiritCount) return null;
+  const safeRows = Array.isArray(rows) ? rows : [];
+  const activeRows = safeRows.filter((row) => row?.active);
+  const workshopRow = safeRows.find((row) => row?.job === "workshop") || null;
+  return {
+    active: true,
+    title: "\u7cbe\u602a\u81ea\u52a8\u5316\u5de1\u6f14\u724c",
+    headline: `\u516d\u7ebf\u5c97\u4f4d ${activeRows.length}/6 \u5df2\u63a5\u7ebf / ${workshopRow?.metric || "\u540e\u5382\u5f85\u547d"}`,
+    detail: "\u628a\u519c\u7530\u3001\u5de5\u574a\u3001\u65e7\u94fa\u3001\u5de1\u903b\u3001\u8fdc\u5f81\u548c\u5ead\u9662\u7684\u540e\u53f0\u6548\u7387\u7ffb\u8bd1\u6210\u53ef\u89c1\u52a8\u4f5c\u3001\u6536\u76ca\u548c\u7f3a\u53e3\u3002",
+    safety: "\u5b9a\u4f4d\u53ea\u8f85\u52a9\u67e5\u770b\uff0c\u4e0d\u4f1a\u81ea\u52a8\u5207\u5c97\u3001\u6d3e\u5de5\u3001\u6392\u4ea7\u3001\u5f00\u94fa\u3001\u53d1\u5546\u961f\u3001\u5904\u7406\u98ce\u9669\u3001\u5165\u591c\u6216\u6d88\u8017\u8d44\u6e90\u3002",
+    rows: safeRows,
+  };
+}
+
+export function spiritAutomationPromenadeMarkupWorld(spec = null) {
+  if (!spec?.active) return "";
+  return `
+    <div class="spirit-automation-promenade">
+      <strong>${spec.title} / ${spec.headline}</strong>
+      <span>${spec.detail}</span>
+      <div class="spirit-automation-grid">
+        ${(spec.rows || []).map((row) => `
+          <div class="spirit-automation-card ${row.tone} ${row.active ? "active" : "idle"}" data-automation-line="${row.job}">
+            <b>${row.glyph} ${row.label} / ${row.helperText}</b>
+            <em>${row.action}</em>
+            <small>${row.focus} / ${row.metric}</small>
+            <small>${row.impact}</small>
+            <small>${row.detail}</small>
+            <button type="button" data-automation-job-line="${row.job}">${row.cta}</button>
+          </div>
+        `).join("")}
+      </div>
+      <small class="spirit-automation-safety">${spec.safety}</small>
+    </div>
+  `;
+}
+
 /*
 export function automationDayLedgerReportTextWorld(rows = []) {
   const safeRows = Array.isArray(rows) ? rows : [];
