@@ -94,6 +94,8 @@ import {
 } from "./game/world/final-support-interaction-world.js";
 import {
   drawFirstSpiritAssistPrimerWorldWorld,
+  spiritAssistNineGridActionWorldAtCanvasPointWorld,
+  spiritAssistNineGridActionWorldSpecWorld,
   drawSpiritAssistNineGridActionWorldWorld,
   drawSpiritAssistRhythmWorldWorld,
   drawSpiritAssistSavingsLedgerWorldWorld,
@@ -10280,109 +10282,41 @@ function focusSpiritAssistTrailWorldFromCanvas(spec = spiritAssistTrailWorldSpec
 }
 
 function spiritAssistNineGridActionWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, originX = gridMetrics().originX, originY = gridMetrics().originY, tile = gridMetrics().tile, gap = gridMetrics().gap) {
-  const feedback = state.spiritAssistTrailFeedback;
-  if (!feedback || feedback.day !== state.day || state.dungeon && !state.dungeon.finished) return null;
-  const plots = Array.isArray(feedback.wateredPlots) ? feedback.wateredPlots.slice(0, 9) : [];
-  if (!plots.length) return null;
-  const spirit = state.spirits.find((entry) => entry.id === feedback.spiritId)
-    || state.spirits[0]
-    || { id: feedback.spiritId || "spirit_luobo_01", lineId: feedback.lineId || "spirit_line_luobo", name: feedback.spiritName || "萝卜精", job: "farm" };
-  const profile = spiritVisualProfile(spirit);
-  const points = plots.map((plot) => ({
-    ...plot,
-    screenX: originX + plot.x * (tile + gap) + tile / 2,
-    screenY: originY + plot.y * (tile + gap) + tile / 2,
-    rect: {
-      x: originX + plot.x * (tile + gap),
-      y: originY + plot.y * (tile + gap),
-      width: tile,
-      height: tile,
-    },
-  }));
-  const bounds = points.reduce((acc, point) => ({
-    minX: Math.min(acc.minX, point.rect.x),
-    minY: Math.min(acc.minY, point.rect.y),
-    maxX: Math.max(acc.maxX, point.rect.x + point.rect.width),
-    maxY: Math.max(acc.maxY, point.rect.y + point.rect.height),
-  }), { minX: points[0].rect.x, minY: points[0].rect.y, maxX: points[0].rect.x + points[0].rect.width, maxY: points[0].rect.y + points[0].rect.height });
-  const cardWidth = 340;
-  const cardHeight = 142;
-  const centerX = (bounds.minX + bounds.maxX) / 2;
-  const preferAbove = bounds.minY - cardHeight - 24 > 68;
-  const x = Math.max(24, Math.min(width - cardWidth - 24, centerX - cardWidth / 2));
-  const y = preferAbove
-    ? bounds.minY - cardHeight - 24
-    : Math.max(76, Math.min(height - cardHeight - 28, bounds.maxY + 24));
-  const wateredCount = Number(feedback.wateredCount || points.length);
-  const staminaSaved = Number(feedback.staminaSaved || points.length * 5);
-  const steps = [
-    {
-      key: "start",
-      label: "起步",
-      value: points[0] ? `从 (${points[0].x + 1},${points[0].y + 1}) 抬桶` : "从选中田起步",
-      detail: `${feedback.spiritName || spirit?.name || "精怪"}接手重复手浇`,
-      color: profile.accent || "#286f58",
-    },
-    {
-      key: "waterline",
-      label: "九格走水",
-      value: `${wateredCount} 格连成水路`,
-      detail: "按 1-9 顺序跑完水痕",
-      color: "#4d91a6",
-    },
-    {
-      key: "ledger",
-      label: "省力入账",
-      value: `省下约 ${staminaSaved} 体力`,
-      detail: "体力可转去加工或旧铺",
-      color: "#b47d2f",
-    },
-  ];
-  steps.forEach((step, index) => {
-    step.rect = {
-      x: x + 18 + index * 101,
-      y: y + 82,
-      width: 94,
-      height: 42,
-    };
-  });
-  return {
-    key: `${feedback.day}:${feedback.spiritId}:${points.map((point) => `${point.x},${point.y}`).join("|")}:nine-grid-action`,
-    day: feedback.day,
-    title: feedback.firstAssist ? "第一次九宫格动作签 · 可点" : "精怪代浇九宫格动作签 · 可点",
-    headline: `${feedback.spiritName || spirit?.name || "精怪"}不是瞬移，是跑完 1-9 格`,
-    detail: `起步 -> 九格走水 -> 省力入账 · 浇水 ${wateredCount} 格，省下约 ${staminaSaved} 体力`,
+  const nineGridCopy = {
+    firstTitle: "第一次九宫格动作签 · 可点",
+    title: "精怪代浇九宫格动作签 · 可点",
+    routeText: "起步 -> 九格走水 -> 省力入账",
     safety: "只定位九宫格动作、水痕和伙伴栏，不会再次触发精怪协助、不会自动浇水或消耗体力。",
-    spirit,
-    profile,
-    points,
-    bounds,
-    steps,
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: centerX, y: preferAbove ? bounds.minY : bounds.maxY },
-    wateredCount,
-    staminaSaved,
+    startLabel: "起步",
+    startFallback: "从选中田起步",
+    waterlineLabel: "九格走水",
+    waterlineDetail: "按 1-9 顺序跑完水痕",
+    ledgerLabel: "省力入账",
+    ledgerDetail: "体力可转去加工或旧铺",
+    defaultSpiritName: "精怪",
   };
+  return spiritAssistNineGridActionWorldSpecWorld({
+    width,
+    height,
+    originX,
+    originY,
+    tile,
+    gap,
+    feedback: state.spiritAssistTrailFeedback,
+    day: state.day,
+    dungeon: state.dungeon,
+    spirits: state.spirits,
+    spiritVisualProfile,
+    copy: nineGridCopy,
+  });
 }
 
 function spiritAssistNineGridActionWorldAtCanvasPoint(px, py) {
-  const spec = spiritAssistNineGridActionWorldSpec();
-  if (!spec?.rect) return null;
-  const targetPlot = spec.points.find((point) =>
-    px >= point.rect.x
-    && px <= point.rect.x + point.rect.width
-    && py >= point.rect.y
-    && py <= point.rect.y + point.rect.height,
-  ) || null;
-  const step = spec.steps.find((entry) => {
-    const rect = entry.rect;
-    return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
-  }) || null;
-  const { rect } = spec;
-  const onCard = px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
-  return targetPlot || step || onCard
-    ? { ...spec, targetPlot, activeStep: step || spec.steps[1] }
-    : null;
+  return spiritAssistNineGridActionWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: spiritAssistNineGridActionWorldSpec(),
+  });
 }
 
 function focusSpiritAssistNineGridActionWorldFromCanvas(spec = spiritAssistNineGridActionWorldSpec()) {
