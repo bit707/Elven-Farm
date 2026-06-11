@@ -164,6 +164,7 @@ import {
   drawWorkshopOutputStorageRouteWorldWorld,
   workshopOutputStorageRouteWorldSpecFromRuntimeWorld,
   drawWorkshopOrderQueueWorldBoardWorld,
+  workshopOrderQueueWorldBoardSpecFromRuntimeWorld,
   drawWorkshopReadyOrderDispatchWorldWorld,
   workshopReadyOrderDispatchWorldSpecFromRuntimeWorld,
   drawWorkshopSpiritAssistActionWorldWorld,
@@ -53342,8 +53343,21 @@ function workshopOrderQueueWorldBoardSpec(lineSpec = workshopProductionLineSpec(
   };
 }
 
+function workshopOrderQueueWorldBoardSpecBridge(lineSpec = workshopProductionLineSpec()) {
+  const activeJob = lineSpec?.activeJob || null;
+  const orderMatch = activeJob?.orderMatch || null;
+  const stagePoint = (workshopWorldProductionSceneSpec(lineSpec).stageProps || []).find((prop) => prop.active)
+    || { x: 618, y: 502 };
+  return workshopOrderQueueWorldBoardSpecFromRuntimeWorld({
+    day: state.day,
+    activeJob,
+    orderMatch,
+    stagePoint,
+  });
+}
+
 function workshopOrderQueueWorldBoardAtCanvasPoint(px, py) {
-  const spec = workshopOrderQueueWorldBoardSpec();
+  const spec = workshopOrderQueueWorldBoardSpecBridge();
   if (!spec?.rect) return null;
   const { rect } = spec;
   return (
@@ -53354,7 +53368,7 @@ function workshopOrderQueueWorldBoardAtCanvasPoint(px, py) {
   ) ? spec : null;
 }
 
-function focusWorkshopOrderQueueWorldBoardFromCanvas(spec = workshopOrderQueueWorldBoardSpec()) {
+function focusWorkshopOrderQueueWorldBoardFromCanvas(spec = workshopOrderQueueWorldBoardSpecBridge()) {
   if (!spec?.orderMatch?.orderId) return false;
   workshopOrderQueueWorldBoardFocus = {
     key: spec.key,
@@ -53370,7 +53384,7 @@ function focusWorkshopOrderQueueWorldBoardFromCanvas(spec = workshopOrderQueueWo
   return true;
 }
 
-function drawWorkshopOrderQueueWorldBoard(ctx, spec = workshopOrderQueueWorldBoardSpec()) {
+function drawWorkshopOrderQueueWorldBoard(ctx, spec = workshopOrderQueueWorldBoardSpecBridge()) {
   if (!spec?.rect) return false;
   const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
   const active = workshopOrderQueueWorldBoardFocus?.day === state.day
@@ -75342,7 +75356,7 @@ function drawWorkshopAutomation(ctx, livingState) {
     ctx.font = "11px Microsoft YaHei";
     ctx.fillText(`${top.action} · ${top.missingText}`.slice(0, 20), x + 62, y + 62);
   }
-  drawWorkshopOrderQueueWorldBoard(ctx, workshopOrderQueueWorldBoardSpec(lineSpec));
+  drawWorkshopOrderQueueWorldBoard(ctx, workshopOrderQueueWorldBoardSpecBridge(lineSpec));
   ctx.restore();
 }
 

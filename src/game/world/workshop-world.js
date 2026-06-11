@@ -715,6 +715,32 @@ export function drawWorkshopSpiritAssistActionWorldWorld({
   return true;
 }
 
+export function workshopOrderQueueWorldBoardSpecFromRuntimeWorld({
+  day = 1,
+  activeJob = null,
+  orderMatch = null,
+  stagePoint = null,
+} = {}) {
+  if (!activeJob || !orderMatch?.orderId) return null;
+
+  const safeStagePoint = stagePoint || { x: 618, y: 502 };
+  const cardWidth = 318;
+  const cardHeight = 78;
+  return {
+    key: `${day}:${activeJob.id}:${orderMatch.orderId}:${activeJob.progress}`,
+    day,
+    activeJob,
+    orderMatch,
+    rect: { x: 570, y: 492, width: cardWidth, height: cardHeight },
+    anchor: { x: safeStagePoint.x, y: safeStagePoint.y },
+    boardAnchor: { x: 790, y: 374 },
+    title: "World order pot queue",
+    headline: orderMatch.ready ? "This pot completes a delivery" : "This pot is connecting an order",
+    detail: `${activeJob.outputItemName} ${orderMatch.haveOutput}/${orderMatch.neededCount} +${activeJob.outputCount}`,
+    cta: "Order pot is heating - click",
+  };
+}
+
 export function drawWorkshopOrderQueueWorldBoardWorld({
   ctx,
   spec = null,
