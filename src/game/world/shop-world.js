@@ -1565,6 +1565,113 @@ export function drawQingboWaterFreshSignatureSignWorld({
   return true;
 }
 
+export function drawShopDisplayDiagnosisSignWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  reducedMotion = false,
+} = {}) {
+  if (!ctx || !spec?.active) return false;
+  const x = 56;
+  const y = 186;
+  const w = 158;
+  const h = 66;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.1) * 2;
+  const accent = spec.tone === "warn" ? "#be4f37" : spec.tone === "good" ? "#286f58" : "#b47d2f";
+  const feature = spec.featuredGoods?.[0] || null;
+
+  ctx.save();
+  ctx.fillStyle = "rgba(255, 248, 232, 0.92)";
+  ctx.strokeStyle = spec.tone === "warn" ? "rgba(190, 79, 55, 0.58)" : "rgba(40, 111, 88, 0.36)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(x, y + pulse, w, h, 14);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = accent;
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText("货架陈列", x + 14, y + 20 + pulse);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText(`主题 ${spec.themeScore}% · ${spec.hotTagLabel}`.slice(0, 15), x + 14, y + 39 + pulse);
+  ctx.fillStyle = accent;
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(`主推 ${feature ? feature.itemName : "可卖货"}`.slice(0, 16), x + 14, y + 56 + pulse);
+  ctx.fillStyle = spec.tone === "warn" ? "rgba(190, 79, 55, 0.14)" : "rgba(224, 182, 109, 0.2)";
+  ctx.beginPath();
+  ctx.arc(x + w - 22, y + 22 + pulse, 13, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "700 11px Microsoft YaHei";
+  ctx.fillText(spec.tone === "warn" ? "调" : "推", x + w - 28, y + 26 + pulse);
+  ctx.restore();
+  return true;
+}
+
+export function drawShopRestockTargetSignWorld({
+  ctx,
+  target = null,
+  have = 0,
+  ready = false,
+  overdue = false,
+  waterFresh = false,
+  waterwayReorder = false,
+  motion = 0,
+  reducedMotion = false,
+} = {}) {
+  if (!ctx || !target || target.status !== "active") return false;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.2) * 2;
+  const x = 220;
+  const y = 278;
+  const w = 168;
+  const h = 76;
+
+  ctx.save();
+  ctx.fillStyle = waterFresh
+    ? ready
+      ? "rgba(226, 244, 238, 0.95)"
+      : "rgba(226, 241, 247, 0.94)"
+    : ready
+      ? "rgba(237, 243, 223, 0.94)"
+      : overdue
+        ? "rgba(255, 240, 232, 0.94)"
+        : "rgba(255, 248, 232, 0.94)";
+  ctx.strokeStyle = waterFresh
+    ? "rgba(77, 145, 166, 0.62)"
+    : ready
+      ? "rgba(40, 111, 88, 0.58)"
+      : overdue
+        ? "rgba(190, 79, 55, 0.58)"
+        : "rgba(180, 125, 47, 0.5)";
+  ctx.lineWidth = ready ? 3 : 2;
+  ctx.beginPath();
+  ctx.roundRect(x, y + pulse, w, h, 14);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = waterFresh ? "#4d91a6" : ready ? "#286f58" : overdue ? "#be4f37" : "#8f5f3f";
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText(
+    ready ? "补货可完成" : overdue ? "补货逾期" : waterwayReorder ? "水航回订" : waterFresh ? "水鲜补货" : "补货追踪",
+    x + 14,
+    y + 20 + pulse,
+  );
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(String(target.itemName || "").slice(0, 8), x + 14, y + 40 + pulse);
+  ctx.fillStyle = waterFresh ? "#4d91a6" : ready ? "#286f58" : overdue ? "#be4f37" : "#8f5f3f";
+  ctx.font = "12px Microsoft YaHei";
+  ctx.fillText(`${have}/${target.desiredCount} · 第${target.dueDay}天`, x + 14, y + 60 + pulse);
+  ctx.fillStyle = waterFresh ? "rgba(77, 145, 166, 0.18)" : ready ? "rgba(40, 111, 88, 0.18)" : "rgba(180, 125, 47, 0.16)";
+  ctx.beginPath();
+  ctx.arc(x + w - 22, y + 22 + pulse, ready ? 13 : 10, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = waterFresh ? "#4d91a6" : ready ? "#286f58" : "#8f5f3f";
+  ctx.font = "700 11px Microsoft YaHei";
+  ctx.fillText(ready ? "成" : waterwayReorder ? "航" : waterFresh ? "鲜" : "货", x + w - 28, y + 26 + pulse);
+  ctx.restore();
+  return true;
+}
+
 export function drawShopReputationStageSignWorld({
   ctx,
   spec = null,
