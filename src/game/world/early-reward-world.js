@@ -192,3 +192,96 @@ export function drawEarlyRewardWorldRoadsignWorldWorld({
   ctx.restore();
   return true;
 }
+
+export function drawEarlyRewardRhythmStripWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  focused = false,
+  focusedNodeId = "",
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.nodes?.length) return false;
+  const { rect, nodes, activeNode } = spec;
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.3) * 1.6;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 4.2) * 1.8;
+
+  ctx.save();
+  drawCanvasCard(ctx, rect.x, rect.y + bob, rect.width, rect.height, "rgba(255, 253, 245, 0.84)");
+  ctx.fillStyle = "rgba(224, 182, 109, 0.18)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 12, rect.y + 10 + bob, 142, 22, 11);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "900 13px Microsoft YaHei";
+  ctx.fillText(spec.title, rect.x + 22, rect.y + 26 + bob);
+  ctx.fillStyle = "#286f58";
+  ctx.font = "800 12px Microsoft YaHei";
+  ctx.fillText(`${spec.cadence} · ${spec.progress}`, rect.x + 164, rect.y + 26 + bob);
+
+  const lineY = rect.y + 44 + bob;
+  ctx.strokeStyle = "rgba(141, 164, 98, 0.42)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  nodes.forEach((node, index) => {
+    const x = node.point.x;
+    if (index === 0) ctx.moveTo(x, lineY);
+    else ctx.lineTo(x, lineY);
+  });
+  ctx.stroke();
+
+  nodes.forEach((node) => {
+    const x = node.point.x;
+    const y = node.point.y + bob;
+    const active = node.id === activeNode?.id;
+    const nodeFocused = focused && focusedNodeId === node.id;
+    const radius = active || node.live ? 14 + Math.max(0, pulse) : 12;
+    ctx.fillStyle = node.done ? "rgba(141, 164, 98, 0.2)"
+      : node.live ? "rgba(190, 79, 55, 0.2)"
+        : node.current ? "rgba(224, 182, 109, 0.22)"
+          : "rgba(23, 35, 29, 0.1)";
+    ctx.beginPath();
+    ctx.arc(x, y, radius + 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = node.color;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fffdf5";
+    ctx.font = "900 12px Microsoft YaHei";
+    ctx.textAlign = "center";
+    ctx.fillText(node.glyph, x, y + 4);
+    ctx.fillStyle = active ? "#17231d" : "#5d6f65";
+    ctx.font = active ? "800 11px Microsoft YaHei" : "700 10px Microsoft YaHei";
+    ctx.fillText(node.title.slice(0, 6), x, rect.y + 72 + bob);
+    ctx.fillStyle = node.done ? "#8da462" : node.current || node.live ? "#b47d2f" : "#8d9a91";
+    ctx.font = "700 9px Microsoft YaHei";
+    ctx.fillText(`${node.timeMin}m`, x, rect.y + 84 + bob);
+    if (nodeFocused) {
+      ctx.strokeStyle = "rgba(224, 182, 109, 0.8)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, radius + 12, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  });
+  ctx.textAlign = "left";
+
+  ctx.fillStyle = "rgba(255, 248, 232, 0.92)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + rect.width - 278, rect.y + 58 + bob, 260, 20, 10);
+  ctx.fill();
+  ctx.fillStyle = "#8f5f3f";
+  ctx.font = "800 11px Microsoft YaHei";
+  ctx.fillText(`${spec.summary} · 点击只定位`.slice(0, 32), rect.x + rect.width - 266, rect.y + 72 + bob);
+  if (focused) {
+    ctx.strokeStyle = "rgba(224, 182, 109, 0.72)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(rect.x + 4, rect.y + 4 + bob, rect.width - 8, rect.height - 8, 18);
+    ctx.stroke();
+  }
+  ctx.restore();
+  return true;
+}
