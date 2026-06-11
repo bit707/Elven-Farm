@@ -168,6 +168,7 @@ import {
 } from "./game/world/waterway-world.js";
 import {
   drawWorkshopIngredientReadyWorldWorld,
+  workshopOutputStorageRouteWorldAtCanvasPointWorld,
   workshopIngredientReadyWorldSpecFromRuntimeWorld,
   workshopOpeningValueWorldSpecFromRuntimeWorld,
   drawWorkshopOpeningValueWorldWorld,
@@ -3261,6 +3262,45 @@ function workshopOutputStorageRouteSafetyText() {
   return "只定位订单板、旧铺货签、配方栏或背包，不会自动交单、开铺、上架、售卖、继续加工、排产、扣库存、发奖励、入夜或消耗资源";
 }
 
+function workshopOutputStorageRouteCopy(feedback, stock = 0, orderVisible = false) {
+  if (!feedback?.outputItemId) return null;
+  const queuedOutput = feedback.source === "queued";
+  const routeText = queuedOutput
+    ? orderVisible
+      ? feedback.orderReady
+        ? "夜间排产 -> 成品入仓 -> 订单可交"
+        : "夜间排产 -> 成品入仓 -> 订单接线"
+      : `夜间排产 -> 成品入仓 -> ${feedback.shopTagText}货签`
+    : orderVisible
+      ? feedback.orderReady
+        ? "手动加工 -> 成品入仓 -> 订单可交"
+        : "手动加工 -> 成品入仓 -> 订单接线"
+      : `手动加工 -> 成品入仓 -> ${feedback.shopTagText}货签`;
+  const headline = orderVisible
+    ? feedback.orderReady
+      ? `${feedback.outputItemName} 已让订单可交`
+      : `${feedback.outputItemName} 接上订单线`
+    : `${feedback.outputItemName} 适合摆旧铺`;
+  const detail = orderVisible
+    ? feedback.orderReady
+      ? `${feedback.orderTitle} 库存已够，去订单板手动交付。`
+      : `${feedback.orderTitle} 已接到这锅，还差 ${feedback.orderMissingText || "余料"}。`
+    : `当前库存 ${stock}，可按 ${feedback.shopTagText} 留作旧铺头排或继续备货。`;
+  return {
+    title: "成品入仓去向签 · 可点",
+    routeText,
+    headline,
+    detail,
+    nodes: [
+      { key: "pot", badge: "锅", title: "出锅", detail: `${feedback.outputItemName}x${feedback.outputCount}`, accent: "#be4f37" },
+      { key: "stock", badge: "仓", title: "入仓", detail: `库存 ${stock}`, accent: "#b47d2f" },
+      orderVisible
+        ? { key: "order", badge: "单", title: feedback.orderReady ? "可交" : "接线", detail: feedback.orderTitle || "订单板", accent: feedback.orderReady ? "#286f58" : "#8f5f3f" }
+        : { key: "shop", badge: "铺", title: "旧铺", detail: feedback.shopTagText || "货签", accent: "#4d91a6" },
+    ],
+  };
+}
+
 function workshopOutputStorageRouteFeedbackSpec(feedback = state.workshopCraftFeedback, recipe = null) {
   if (!feedback?.outputItemId) return null;
   const safeMatch = workshopOrderMatchSafe(feedback.orderMatch || workshopOutputOrderMatchSpec(feedback.outputItemId, feedback.outputCount));
@@ -3283,6 +3323,7 @@ function workshopOutputStorageRouteFeedbackSpec(feedback = state.workshopCraftFe
     shopTag,
     shopTagText: shopTagLabel(shopTag),
     currentStock: Number(state.inventory[outputItemId] || 0),
+    source: feedback.source === "queued" ? "queued" : "manual",
     safety: workshopOutputStorageRouteSafetyText(),
     createdAt: performance.now(),
   };
@@ -28293,57 +28334,7 @@ function drawWorkshopValueLedgerWorld(ctx, spec = workshopValueLedgerWorldSpecBr
 }
 
 function workshopOutputStorageRouteWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
-  const feedback = state.workshopOutputStorageRouteFeedback;
-  if (!feedback?.outputItemId || Number(feedback.day || 0) !== Number(state.day || 0)) return null;
-  const stock = Number(state.inventory[feedback.outputItemId] || 0);
-  if (stock <= 0) return null;
-  const orderVisible = feedback.orderId && visibleOrders().some((order) => order.order_id === feedback.orderId);
-  const queuedOutput = feedback.source === "queued";
-  const routeText = queuedOutput
-    ? orderVisible
-      ? feedback.orderReady
-        ? "夜间排产 -> 成品入仓 -> 订单可交"
-        : "夜间排产 -> 成品入仓 -> 订单接线"
-      : `夜间排产 -> 成品入仓 -> ${feedback.shopTagText}货签`
-    : orderVisible
-      ? feedback.orderReady
-        ? "手动加工 -> 成品入仓 -> 订单可交"
-        : "手动加工 -> 成品入仓 -> 订单接线"
-      : `手动加工 -> 成品入仓 -> ${feedback.shopTagText}货签`;
-  const headline = orderVisible
-    ? feedback.orderReady
-      ? `${feedback.outputItemName} 已让订单可交`
-      : `${feedback.outputItemName} 接上订单线`
-    : `${feedback.outputItemName} 适合摆旧铺`;
-  const detail = orderVisible
-    ? feedback.orderReady
-      ? `${feedback.orderTitle} 库存已够，去订单板手动交付。`
-      : `${feedback.orderTitle} 已接到这锅，还差 ${feedback.orderMissingText || "余料"}。`
-    : `当前库存 ${stock}，可按 ${feedback.shopTagText} 留作旧铺头排或继续备货。`;
-  const cardWidth = 334;
-  const cardHeight = 128;
-  const x = Math.max(32, Math.min(width - cardWidth - 32, 318));
-  const y = Math.max(250, Math.min(height - cardHeight - 32, 468));
-  const nodes = [
-    { key: "pot", badge: "锅", title: "出锅", detail: `${feedback.outputItemName}x${feedback.outputCount}`, accent: "#be4f37" },
-    { key: "stock", badge: "仓", title: "入仓", detail: `库存 ${stock}`, accent: "#b47d2f" },
-    orderVisible
-      ? { key: "order", badge: "单", title: feedback.orderReady ? "可交" : "接线", detail: feedback.orderTitle || "订单板", accent: feedback.orderReady ? "#286f58" : "#8f5f3f" }
-      : { key: "shop", badge: "铺", title: "旧铺", detail: feedback.shopTagText || "货签", accent: "#4d91a6" },
-  ];
-  return {
-    ...feedback,
-    key: `${feedback.key}:${stock}:${orderVisible ? "order" : "shop"}:${feedback.orderReady ? 1 : 0}`,
-    title: "成品入仓去向签 · 可点",
-    headline,
-    detail,
-    routeText,
-    orderVisible,
-    stock,
-    nodes,
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: 404, y: 470 },
-  };
+  return workshopOutputStorageRouteWorldSpecBridge(width, height);
 }
 
 function workshopOutputStorageRouteWorldSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640) {
@@ -28357,19 +28348,17 @@ function workshopOutputStorageRouteWorldSpecBridge(width = refs.world?.width || 
     feedback,
     stock,
     orderVisible,
+    copy: workshopOutputStorageRouteCopy(feedback, stock, orderVisible),
+    safetyText: workshopOutputStorageRouteSafetyText(),
   });
 }
 
 function workshopOutputStorageRouteWorldAtCanvasPoint(px, py) {
-  const spec = workshopOutputStorageRouteWorldSpecBridge(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return workshopOutputStorageRouteWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: workshopOutputStorageRouteWorldSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
+  });
 }
 
 function focusWorkshopOutputStorageRouteWorldFromCanvas(spec = workshopOutputStorageRouteWorldSpecBridge()) {
