@@ -156,6 +156,7 @@ import {
 } from "./game/world/waterway-world.js";
 import {
   drawWorkshopIngredientReadyWorldWorld,
+  workshopIngredientReadyWorldSpecFromRuntimeWorld,
   workshopOpeningValueWorldSpecFromRuntimeWorld,
   drawWorkshopOpeningValueWorldWorld,
   drawWorkshopOutputRouteTriptychWorldWorld,
@@ -52831,8 +52832,30 @@ function workshopIngredientReadyWorldSpec(width = refs.world?.width || 960, heig
   };
 }
 
+function workshopIngredientReadyWorldSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640) {
+  return workshopIngredientReadyWorldSpecFromRuntimeWorld({
+    width,
+    height,
+    day: state.day,
+    activeCutscene: state.activeCutscene,
+    activeDialogueLength: state.activeDialogue.length,
+    workshopQueueLength: state.workshopQueue?.length || 0,
+    craftCompleted: state.completed.has("craft"),
+    candidate: workshopIngredientReadyCandidate(),
+    stateInventory: state.inventory,
+    itemName,
+    shopTagsForItem,
+    ecologySummary: ecologyCourtyardSummary(),
+    prioritizeShopTag,
+    shopTagLabel,
+    recipeInputs,
+    orderMatchSafe: workshopOrderMatchSafe,
+    safetyText: workshopIngredientReadySafetyText(),
+  });
+}
+
 function workshopIngredientReadyWorldAtCanvasPoint(px, py) {
-  const spec = workshopIngredientReadyWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
+  const spec = workshopIngredientReadyWorldSpecBridge(refs.world?.width || 960, refs.world?.height || 640);
   if (!spec?.rect) return null;
   const { rect } = spec;
   return (
@@ -52843,7 +52866,7 @@ function workshopIngredientReadyWorldAtCanvasPoint(px, py) {
   ) ? spec : null;
 }
 
-function focusWorkshopIngredientReadyWorldFromCanvas(spec = workshopIngredientReadyWorldSpec()) {
+function focusWorkshopIngredientReadyWorldFromCanvas(spec = workshopIngredientReadyWorldSpecBridge()) {
   if (!spec?.recipeId) return false;
   workshopIngredientReadyWorldFocus = { key: spec.key, day: state.day, recipeId: spec.recipeId };
   state.selectedRecipeId = spec.recipeId;
@@ -52860,7 +52883,7 @@ function focusWorkshopIngredientReadyWorldFromCanvas(spec = workshopIngredientRe
   return true;
 }
 
-function drawWorkshopIngredientReadyWorld(ctx, spec = workshopIngredientReadyWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
+function drawWorkshopIngredientReadyWorld(ctx, spec = workshopIngredientReadyWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
   if (!spec?.rect) return false;
   const active = workshopIngredientReadyWorldFocus?.day === state.day
     && workshopIngredientReadyWorldFocus?.key === spec.key;
@@ -75150,7 +75173,7 @@ function drawWorkshopAutomation(ctx, livingState) {
   }
   drawWorkshopLineOverviewWorldBoard(ctx, workshopLineOverviewWorldBoardSpec(lineSpec, livingState), motion);
   drawWorkshopOpeningValueWorld(ctx, workshopOpeningValueWorldSpecBridge(ctx.canvas.width, ctx.canvas.height, lineSpec), motion);
-  drawWorkshopIngredientReadyWorld(ctx, workshopIngredientReadyWorldSpec(ctx.canvas.width, ctx.canvas.height), motion);
+  drawWorkshopIngredientReadyWorld(ctx, workshopIngredientReadyWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion);
   drawWorkshopSpiritAssistActionWorld(ctx, workshopSpiritAssistActionWorldSpec(ctx.canvas.width, ctx.canvas.height, livingState, lineSpec), motion);
 
   const orderBoard = workshopOrderBoardSpec(visibleOrders(), 1);

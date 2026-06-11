@@ -202,6 +202,97 @@ export function drawWorkshopIngredientReadyWorldWorld({
   return true;
 }
 
+export function workshopIngredientReadyWorldSpecFromRuntimeWorld({
+  width = 960,
+  height = 640,
+  day = 1,
+  activeCutscene = false,
+  activeDialogueLength = 0,
+  workshopQueueLength = 0,
+  craftCompleted = false,
+  candidate = null,
+  stateInventory = {},
+  itemName = (itemId) => itemId,
+  shopTagsForItem = () => [],
+  ecologySummary = null,
+  prioritizeShopTag = () => "",
+  shopTagLabel = (tag) => tag || "",
+  recipeInputs = () => [],
+  orderMatchSafe = (match) => match,
+  safetyText = "Focus only. No automatic craft, schedule, sell, deliver, shop open, night change, or resource spend.",
+} = {}) {
+  if (activeCutscene || Number(activeDialogueLength || 0) > 0) return null;
+  if (Number(workshopQueueLength || 0) > 0 && !craftCompleted) return null;
+  if (!candidate?.preview?.craftable) return null;
+
+  const { recipe, preview } = candidate;
+  if (!recipe || !preview) return null;
+
+  const inventory = stateInventory && typeof stateInventory === "object" ? stateInventory : {};
+  const orderMatch = orderMatchSafe(preview.orderMatch);
+  const shopTags = shopTagsForItem(preview.outputItemId, ecologySummary);
+  const shopTag = prioritizeShopTag(shopTags, new Map(), "food") || "food";
+  const shopTagText = shopTagLabel(shopTag) || "Shop shelf";
+  const routeText = orderMatch
+    ? orderMatch.ready
+      ? "Materials ready -> Manual craft -> Deliver order"
+      : "Materials ready -> Manual craft -> Connect order"
+    : `Materials ready -> Manual craft -> ${shopTagText}`;
+  const headline = preview.firstAroma
+    ? "First aroma ingredients ready"
+    : orderMatch?.ready
+      ? `${preview.outputName} can finish an order`
+      : `${preview.recipeName} is ready to cook`;
+  const detail = orderMatch
+    ? orderMatch.ready
+      ? `${orderMatch.orderTitle || "Order"} waits for this pot; reward ${Number(orderMatch.rewardGold || 0)} spirit stones.`
+      : `${orderMatch.orderTitle || "Order"} will connect after cooking; missing ${orderMatch.missingText || "materials"}.`
+    : preview.firstAroma
+      ? "The first aroma will pin an order to the old shop board."
+      : `${preview.outputName} can move to ${shopTagText} stock.`;
+  const cardWidth = 326;
+  const cardHeight = 120;
+  const x = Math.max(366, Math.min(width - cardWidth - 28, 492));
+  const y = Math.max(326, Math.min(height - cardHeight - 28, 344));
+  const inputItems = recipeInputs(recipe).slice(0, 3).map(({ itemId, count }) => ({
+    itemId,
+    name: itemName(itemId),
+    count: Number(count || 1),
+    have: Number(inventory[itemId] || 0),
+  }));
+
+  return {
+    key: `${day}:${recipe.recipe_id}:${preview.outputItemId}:${orderMatch?.orderId || shopTag}:${preview.valueGain}:${inputItems.map((entry) => `${entry.itemId}:${entry.have}`).join("|")}`,
+    day,
+    recipeId: recipe.recipe_id,
+    recipeName: preview.recipeName,
+    outputItemId: preview.outputItemId,
+    outputName: preview.outputName,
+    outputCount: preview.outputCount,
+    firstAroma: Boolean(preview.firstAroma),
+    orderId: orderMatch?.orderId || "",
+    orderTitle: orderMatch?.orderTitle || "",
+    orderReady: Boolean(orderMatch?.ready),
+    shopTag,
+    shopTagText,
+    rawValue: Number(preview.rawValue || 0),
+    outputValue: Number(preview.outputValue || 0),
+    orderReward: Number(preview.orderReward || 0),
+    valueGain: Number(preview.valueGain || 0),
+    inputText: preview.inputText,
+    machineText: preview.machineText,
+    headline,
+    detail,
+    routeText,
+    title: "Ingredient-ready tag - click",
+    safety: safetyText,
+    rect: { x, y, width: cardWidth, height: cardHeight },
+    anchor: { x: 620, y: 484 },
+    potPoint: { x: 640, y: 424 },
+    inputItems,
+  };
+}
+
 export function drawWorkshopOpeningValueWorldWorld({
   ctx,
   spec = null,
