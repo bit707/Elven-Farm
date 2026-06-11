@@ -1244,6 +1244,28 @@ export function workshopValueLedgerWorldAtCanvasPointWorld({
     : null;
 }
 
+export function workshopFirstOrderProfitWorldSpecFromLedgerWorld({
+  spec = null,
+  copy = null,
+} = {}) {
+  if (!spec) return null;
+  const safeCopy = copy || {};
+  return {
+    ...spec,
+    key: spec.key?.endsWith(":first_order_profit") ? spec.key : `${spec.key}:first_order_profit`,
+    title: safeCopy.title || spec.title || "First order profit comparison - click",
+    legacyTitle: safeCopy.legacyTitle || spec.legacyTitle || "First pot value ledger - click",
+  };
+}
+
+export function workshopFirstOrderProfitWorldAtCanvasPointWorld({
+  px,
+  py,
+  spec = null,
+} = {}) {
+  return workshopValueLedgerWorldAtCanvasPointWorld({ px, py, spec });
+}
+
 export function drawWorkshopOutputStorageRouteWorldWorld({
   ctx,
   spec = null,

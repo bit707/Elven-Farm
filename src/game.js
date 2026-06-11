@@ -191,6 +191,8 @@ import {
   drawWorkshopToShopStockBridgeWorldWorld,
   workshopToShopStockBridgeWorldAtCanvasPointWorld,
   workshopToShopStockBridgeWorldSpecFromRuntimeWorld,
+  workshopFirstOrderProfitWorldAtCanvasPointWorld,
+  workshopFirstOrderProfitWorldSpecFromLedgerWorld,
   drawWorkshopValueLedgerWorldWorld,
   workshopValueLedgerWorldAtCanvasPointWorld,
   workshopValueLedgerWorldSpecFromRuntimeWorld,
@@ -28223,28 +28225,32 @@ function workshopValueLedgerWorldSpecBridge(aromaSpec = workshopAromaOrderWorldS
 }
 
 function workshopFirstOrderProfitWorldSpec(aromaSpec = workshopAromaOrderWorldSpec()) {
-  const spec = workshopValueLedgerWorldSpec(aromaSpec);
-  return spec
-    ? {
-      ...spec,
-      key: `${spec.key}:first_order_profit`,
-      title: "第一单利润对照签 · 可点",
-      legacyTitle: spec.legacyTitle || "第一锅增值账签 · 可点",
-    }
-    : null;
+  return workshopFirstOrderProfitWorldSpecFromLedgerWorld({
+    spec: workshopValueLedgerWorldSpec(aromaSpec),
+    copy: workshopFirstOrderProfitWorldCopy(),
+  });
+}
+
+function workshopFirstOrderProfitWorldCopy() {
+  return {
+    title: "第一单利润对照签 · 可点",
+    legacyTitle: "第一锅增值账签 · 可点",
+  };
 }
 
 function workshopFirstOrderProfitWorldSpecBridge(aromaSpec = workshopAromaOrderWorldSpec()) {
-  return workshopValueLedgerWorldSpecBridge(aromaSpec, true);
+  return workshopFirstOrderProfitWorldSpecFromLedgerWorld({
+    spec: workshopValueLedgerWorldSpecBridge(aromaSpec, true),
+    copy: workshopFirstOrderProfitWorldCopy(),
+  });
 }
 
 function workshopFirstOrderProfitWorldAtCanvasPoint(px, py) {
-  const spec = workshopFirstOrderProfitWorldSpecBridge();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? spec
-    : null;
+  return workshopFirstOrderProfitWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: workshopFirstOrderProfitWorldSpecBridge(),
+  });
 }
 
 function focusWorkshopFirstOrderProfitWorldFromCanvas(spec = workshopFirstOrderProfitWorldSpecBridge()) {
