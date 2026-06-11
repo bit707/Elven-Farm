@@ -952,6 +952,68 @@ export function drawWorkshopOutputStorageRouteWorldWorld({
   return true;
 }
 
+export function workshopOutputStorageRouteWorldSpecFromRuntimeWorld({
+  width = 960,
+  height = 640,
+  day = 1,
+  feedback = null,
+  stock = 0,
+  orderVisible = false,
+} = {}) {
+  if (!feedback?.outputItemId || Number(feedback.day || 0) !== Number(day || 0)) return null;
+  const currentStock = Number(stock || 0);
+  if (currentStock <= 0) return null;
+
+  const hasVisibleOrder = Boolean(feedback.orderId && orderVisible);
+  const queuedOutput = feedback.source === "queued";
+  const routeText = queuedOutput
+    ? hasVisibleOrder
+      ? feedback.orderReady
+        ? "Queued craft -> Stock in -> Deliver order"
+        : "Queued craft -> Stock in -> Connect order"
+      : `Queued craft -> Stock in -> ${feedback.shopTagText || "shop shelf"}`
+    : hasVisibleOrder
+      ? feedback.orderReady
+        ? "Manual craft -> Stock in -> Deliver order"
+        : "Manual craft -> Stock in -> Connect order"
+      : `Manual craft -> Stock in -> ${feedback.shopTagText || "shop shelf"}`;
+  const headline = hasVisibleOrder
+    ? feedback.orderReady
+      ? `${feedback.outputItemName} makes an order ready`
+      : `${feedback.outputItemName} connects to an order`
+    : `${feedback.outputItemName} is ready for shop stock`;
+  const detail = hasVisibleOrder
+    ? feedback.orderReady
+      ? `${feedback.orderTitle || "Order"} has enough stock; deliver manually from the order board.`
+      : `${feedback.orderTitle || "Order"} is linked to this pot; missing ${feedback.orderMissingText || "materials"}.`
+    : `Current stock ${currentStock}; keep it for ${feedback.shopTagText || "shop shelf"} or continue prep.`;
+  const cardWidth = 334;
+  const cardHeight = 128;
+  const x = Math.max(32, Math.min(width - cardWidth - 32, 318));
+  const y = Math.max(250, Math.min(height - cardHeight - 32, 468));
+  const nodes = [
+    { key: "pot", badge: "POT", title: "Output", detail: `${feedback.outputItemName}x${feedback.outputCount}`, accent: "#be4f37" },
+    { key: "stock", badge: "INV", title: "Stock", detail: `Stock ${currentStock}`, accent: "#b47d2f" },
+    hasVisibleOrder
+      ? { key: "order", badge: "ORD", title: feedback.orderReady ? "Ready" : "Linked", detail: feedback.orderTitle || "Order board", accent: feedback.orderReady ? "#286f58" : "#8f5f3f" }
+      : { key: "shop", badge: "SHP", title: "Shop", detail: feedback.shopTagText || "Shelf", accent: "#4d91a6" },
+  ];
+
+  return {
+    ...feedback,
+    key: `${feedback.key}:${currentStock}:${hasVisibleOrder ? "order" : "shop"}:${feedback.orderReady ? 1 : 0}`,
+    title: "Output storage route - click",
+    headline,
+    detail,
+    routeText,
+    orderVisible: hasVisibleOrder,
+    stock: currentStock,
+    nodes,
+    rect: { x, y, width: cardWidth, height: cardHeight },
+    anchor: { x: 404, y: 470 },
+  };
+}
+
 export function drawWorkshopToShopStockBridgeWorldWorld({
   ctx,
   spec = null,

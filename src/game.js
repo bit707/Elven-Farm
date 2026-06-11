@@ -161,6 +161,7 @@ import {
   drawWorkshopOpeningValueWorldWorld,
   drawWorkshopOutputRouteTriptychWorldWorld,
   drawWorkshopOutputStorageRouteWorldWorld,
+  workshopOutputStorageRouteWorldSpecFromRuntimeWorld,
   drawWorkshopOrderQueueWorldBoardWorld,
   drawWorkshopReadyOrderDispatchWorldWorld,
   drawWorkshopSpiritAssistActionWorldWorld,
@@ -28565,8 +28566,22 @@ function workshopOutputStorageRouteWorldSpec(width = refs.world?.width || 960, h
   };
 }
 
+function workshopOutputStorageRouteWorldSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640) {
+  const feedback = state.workshopOutputStorageRouteFeedback;
+  const stock = feedback?.outputItemId ? Number(state.inventory[feedback.outputItemId] || 0) : 0;
+  const orderVisible = Boolean(feedback?.orderId && visibleOrders().some((order) => order.order_id === feedback.orderId));
+  return workshopOutputStorageRouteWorldSpecFromRuntimeWorld({
+    width,
+    height,
+    day: state.day,
+    feedback,
+    stock,
+    orderVisible,
+  });
+}
+
 function workshopOutputStorageRouteWorldAtCanvasPoint(px, py) {
-  const spec = workshopOutputStorageRouteWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
+  const spec = workshopOutputStorageRouteWorldSpecBridge(refs.world?.width || 960, refs.world?.height || 640);
   if (!spec?.rect) return null;
   const { rect } = spec;
   return (
@@ -28577,7 +28592,7 @@ function workshopOutputStorageRouteWorldAtCanvasPoint(px, py) {
   ) ? spec : null;
 }
 
-function focusWorkshopOutputStorageRouteWorldFromCanvas(spec = workshopOutputStorageRouteWorldSpec()) {
+function focusWorkshopOutputStorageRouteWorldFromCanvas(spec = workshopOutputStorageRouteWorldSpecBridge()) {
   if (!spec?.outputItemId) return false;
   workshopOutputStorageRouteWorldFocus = { key: spec.key, day: state.day, outputItemId: spec.outputItemId };
   addLog(
@@ -28599,7 +28614,7 @@ function focusWorkshopOutputStorageRouteWorldFromCanvas(spec = workshopOutputSto
   return true;
 }
 
-function drawWorkshopOutputStorageRouteWorld(ctx, spec = workshopOutputStorageRouteWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
+function drawWorkshopOutputStorageRouteWorld(ctx, spec = workshopOutputStorageRouteWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
   if (!spec?.rect) return false;
   const active = workshopOutputStorageRouteWorldFocus?.day === state.day
     && workshopOutputStorageRouteWorldFocus?.key === spec.key;
@@ -28618,7 +28633,7 @@ function workshopToShopStockBridgeSafetyText() {
 }
 
 function workshopToShopStockBridgeWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
-  const outputRoute = workshopOutputStorageRouteWorldSpec(width, height);
+  const outputRoute = workshopOutputStorageRouteWorldSpecBridge(width, height);
   const feedback = outputRoute || state.workshopOutputStorageRouteFeedback;
   if (!feedback?.outputItemId || Number(feedback.day || 0) !== Number(state.day || 0)) return null;
   const item = data.itemsById.get(feedback.outputItemId);
@@ -75085,7 +75100,7 @@ function drawWorkshopAutomation(ctx, livingState) {
     }
     drawWorkshopAromaStoryWorld(ctx, workshopAromaStoryWorldSpec(aromaSpec), motion);
     drawWorkshopOutputRouteTriptychWorld(ctx, workshopOutputRouteTriptychWorldSpec(aromaSpec), motion);
-    drawWorkshopOutputStorageRouteWorld(ctx, workshopOutputStorageRouteWorldSpec(ctx.canvas.width, ctx.canvas.height), motion);
+    drawWorkshopOutputStorageRouteWorld(ctx, workshopOutputStorageRouteWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion);
     drawWorkshopToShopStockBridgeWorld(ctx, workshopToShopStockBridgeWorldSpec(ctx.canvas.width, ctx.canvas.height), motion);
     drawWorkshopFirstOrderProfitWorld(ctx, workshopFirstOrderProfitWorldSpec(aromaSpec), motion);
     drawWorkshopReadyOrderDispatchWorld(ctx, workshopReadyOrderDispatchWorldSpec());
