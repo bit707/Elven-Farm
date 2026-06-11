@@ -708,6 +708,113 @@ export function drawTownLifeMemoryThresholdKeepsakeWorldWorld({
   return true;
 }
 
+export function drawTownLifeShopMomentKeepsakeWorldWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  activeNodeKey = "",
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+  npcPortraitImage = () => null,
+  shortText = (text) => String(text || ""),
+} = {}) {
+  if (!ctx || !spec?.rect || !spec.nodes?.length) return false;
+  const { rect } = spec;
+  const accent = "#8f5f3f";
+  const gold = "#b47d2f";
+  const bob = reducedMotion ? 0 : Math.sin(motion * 1.7) * 1.8;
+
+  ctx.save();
+  if (spec.point) {
+    ctx.strokeStyle = "rgba(180, 125, 47, 0.54)";
+    ctx.lineWidth = activeNodeKey ? 2.4 : 1.4;
+    ctx.setLineDash([5, 6]);
+    ctx.lineDashOffset = reducedMotion ? 0 : -motion * 8;
+    ctx.beginPath();
+    ctx.moveTo(rect.x + (spec.point.x > rect.x ? 22 : rect.width - 22), rect.y + rect.height - 10 + bob);
+    ctx.quadraticCurveTo((rect.x + spec.point.x) / 2, rect.y + rect.height + 22, spec.point.x + 16, spec.point.y + 24);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(224, 182, 109, 0.22)";
+    ctx.beginPath();
+    ctx.ellipse(spec.point.x + 16, spec.point.y + 52, 38, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawCanvasCard(ctx, rect.x, rect.y + bob, rect.width, rect.height, "rgba(255, 248, 232, 0.96)");
+  ctx.fillStyle = "rgba(224, 182, 109, 0.22)";
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 12, rect.y + 12 + bob, rect.width - 24, 46, 18);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.beginPath();
+  ctx.roundRect(rect.x + 18, rect.y + 18 + bob, 36, 28, 12);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255, 253, 245, 0.96)";
+  ctx.font = "900 14px Microsoft YaHei";
+  ctx.fillText("铺", rect.x + 30, rect.y + 38 + bob);
+  const portrait = npcPortraitImage(spec.npcId);
+  if (portrait) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(rect.x + rect.width - 52, rect.y + 17 + bob, 30, 30, 10);
+    ctx.clip();
+    ctx.drawImage(portrait, rect.x + rect.width - 52, rect.y + 17 + bob, 30, 30);
+    ctx.restore();
+  }
+  ctx.fillStyle = "#5b3928";
+  ctx.font = "800 14px Microsoft YaHei";
+  ctx.fillText("旧铺后话留签 · 可点", rect.x + 64, rect.y + 31 + bob);
+  ctx.fillStyle = gold;
+  ctx.font = "700 11px Microsoft YaHei";
+  ctx.fillText(shortText(spec.subtitle, 18), rect.x + 64, rect.y + 47 + bob);
+
+  ctx.fillStyle = "#17231d";
+  ctx.font = "800 13px Microsoft YaHei";
+  ctx.fillText(spec.shortSummary, rect.x + 18, rect.y + 78 + bob);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(spec.tradeLine, rect.x + 18, rect.y + 93 + bob);
+
+  for (const node of spec.nodes) {
+    const nodeRect = node.rect;
+    const active = activeNodeKey === node.key;
+    ctx.fillStyle = active ? "rgba(255, 253, 245, 0.94)" : "rgba(255, 253, 245, 0.66)";
+    ctx.strokeStyle = active ? "rgba(224, 182, 109, 0.84)" : "rgba(143, 95, 63, 0.26)";
+    ctx.lineWidth = active ? 1.8 : 1;
+    ctx.beginPath();
+    ctx.roundRect(nodeRect.x, nodeRect.y + bob, nodeRect.width, nodeRect.height, 11);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = active ? "rgba(224, 182, 109, 0.28)" : "rgba(143, 95, 63, 0.12)";
+    ctx.beginPath();
+    ctx.roundRect(nodeRect.x + 6, nodeRect.y + 7 + bob, 20, 18, 8);
+    ctx.fill();
+    ctx.fillStyle = active ? gold : accent;
+    ctx.font = "900 10px Microsoft YaHei";
+    ctx.fillText(node.badge, nodeRect.x + 11, nodeRect.y + 20 + bob);
+    ctx.fillStyle = "#17231d";
+    ctx.font = "800 10px Microsoft YaHei";
+    ctx.fillText(node.shortLabel, nodeRect.x + 31, nodeRect.y + 15 + bob);
+    ctx.fillStyle = "#5d6f65";
+    ctx.font = "9px Microsoft YaHei";
+    ctx.fillText(node.shortTitle, nodeRect.x + 31, nodeRect.y + 27 + bob);
+  }
+
+  ctx.fillStyle = activeNodeKey ? accent : "#5d6f65";
+  ctx.font = "700 10px Microsoft YaHei";
+  ctx.fillText(spec.safety, rect.x + 18, rect.y + rect.height - 8 + bob);
+  if (activeNodeKey) {
+    ctx.strokeStyle = "rgba(224, 182, 109, 0.78)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(rect.x + 4, rect.y + 4 + bob, rect.width - 8, rect.height - 8, 18);
+    ctx.stroke();
+  }
+  ctx.restore();
+  return true;
+}
+
 export function drawCohabCourtyardWorld({
   ctx,
   routeFlags = null,
