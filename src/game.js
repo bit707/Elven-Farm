@@ -601,6 +601,9 @@ import {
   drawOrderSeedRestockWorldBoardWorld,
   orderSeedRestockWorldBoardAtCanvasPointWorld,
   orderSeedRestockWorldBoardSpecWorld,
+  drawOrderGapSupplyRouteWorldWorld,
+  orderGapSupplyRouteWorldAtCanvasPointWorld,
+  orderGapSupplyRouteWorldSpecWorld,
   drawOrderMarketPrepWorldBoardWorld,
   orderMarketPrepWorldBoardAtCanvasPointWorld,
   orderMarketPrepWorldBoardSpecWorld,
@@ -29782,6 +29785,16 @@ function orderGapSupplyRouteActionCopy(candidate = null) {
 }
 
 function orderGapSupplyRouteWorldSpec(width = 960, height = 640) {
+  return orderGapSupplyRouteWorldSpecBridge(width, height);
+}
+
+const ORDER_GAP_SUPPLY_ROUTE_WORLD_COPY = {
+  title: "订单缺口补料路线 · 可点",
+  gapTitle: "订单缺口",
+  returnTitle: "回板确认",
+};
+
+function orderGapSupplyRouteWorldSpecBridge(width = 960, height = 640) {
   const orders = visibleOrders().filter((order) => !canDeliverOrder(order));
   if (!orders.length) return null;
   const candidates = orders
@@ -29791,65 +29804,26 @@ function orderGapSupplyRouteWorldSpec(width = 960, height = 640) {
   const top = candidates[0] || null;
   if (!top) return null;
   const action = orderGapSupplyRouteActionCopy(top);
-  const cardWidth = 340;
-  const cardHeight = 122;
-  const x = Math.max(324, Math.min(width - cardWidth - 26, 336));
-  const y = Math.max(374, Math.min(height - cardHeight - 26, 396));
-  return {
-    key: `${state.day}:${top.orderId}:${top.itemId}:${top.kind}:${top.recipeId || top.seedId || "source"}:${top.have}:${top.count}`,
+  return orderGapSupplyRouteWorldSpecWorld({
+    width,
+    height,
     day: state.day,
-    title: "订单缺口补料路线 · 可点",
-    headline: `${top.orderTitle} 还差 ${top.itemName} ${top.have}/${top.count}`,
     top,
     action,
-    kind: top.kind,
-    orderId: top.orderId,
-    itemId: top.itemId,
-    recipeId: top.recipeId,
-    seedId: top.seedId,
-    routeText: `${top.itemName}缺口 -> ${action.detail} -> 回订单板确认`,
     safeNote: orderGapSupplyRouteSafetyText(),
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: { x: 708, y: 430 },
-    nodes: [
-      {
-        key: "gap",
-        badge: "缺",
-        title: "订单缺口",
-        detail: `${top.itemName} ${top.have}/${top.count}`,
-        accent: "#be4f37",
-      },
-      {
-        key: "supply",
-        badge: action.badge,
-        title: action.title,
-        detail: action.detail,
-        accent: action.accent,
-      },
-      {
-        key: "return",
-        badge: "单",
-        title: "回板确认",
-        detail: top.orderTitle,
-        accent: "#286f58",
-      },
-    ],
-  };
+    copy: ORDER_GAP_SUPPLY_ROUTE_WORLD_COPY,
+  });
 }
 
 function orderGapSupplyRouteWorldAtCanvasPoint(px, py) {
-  const spec = orderGapSupplyRouteWorldSpec(refs.world?.width || 960, refs.world?.height || 640);
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return orderGapSupplyRouteWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: orderGapSupplyRouteWorldSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
+  });
 }
 
-function focusOrderGapSupplyRouteWorldFromCanvas(spec = orderGapSupplyRouteWorldSpec()) {
+function focusOrderGapSupplyRouteWorldFromCanvas(spec = orderGapSupplyRouteWorldSpecBridge()) {
   if (!spec?.top?.orderId) return false;
   const { top, action } = spec;
   orderGapSupplyRouteWorldFocus = {
@@ -29880,92 +29854,16 @@ function focusOrderGapSupplyRouteWorldFromCanvas(spec = orderGapSupplyRouteWorld
   return true;
 }
 
-function drawOrderGapSupplyRouteWorld(ctx, spec = orderGapSupplyRouteWorldSpec(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
-  if (!spec?.rect) return false;
-  const { rect, anchor, top, action } = spec;
-  const focused = orderGapSupplyRouteWorldFocus?.day === state.day
-    && orderGapSupplyRouteWorldFocus?.key === spec.key;
-  const accent = action.accent || "#b47d2f";
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.5) * 2.2;
-  const cardY = rect.y + bob;
-
-  ctx.save();
-  ctx.strokeStyle = focused ? `${accent}dd` : `${accent}66`;
-  ctx.lineWidth = focused ? 3 : 1.8;
-  ctx.setLineDash([7, 8]);
-  ctx.lineDashOffset = settings.reducedMotion ? 0 : -motion * 12;
-  ctx.beginPath();
-  ctx.moveTo(anchor.x, anchor.y);
-  ctx.quadraticCurveTo(rect.x + rect.width - 22, cardY - 32, rect.x + rect.width - 38, cardY + 26);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  drawCanvasCard(ctx, rect.x, cardY, rect.width, rect.height, "rgba(255, 253, 245, 0.96)");
-  ctx.strokeStyle = focused ? `${accent}ee` : `${accent}88`;
-  ctx.lineWidth = focused ? 2.8 : 1.7;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 1.5, cardY + 1.5, rect.width - 3, rect.height - 3, 18);
-  ctx.stroke();
-
-  ctx.fillStyle = `${accent}20`;
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 14, cardY + 14, 58, 58, 16);
-  ctx.fill();
-  ctx.fillStyle = accent;
-  ctx.font = "900 22px Microsoft YaHei";
-  ctx.fillText("缺", rect.x + 32, cardY + 50);
-  ctx.fillStyle = "rgba(255, 253, 245, 0.92)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 24, cardY + 61, 40, 16, 8);
-  ctx.fill();
-  ctx.fillStyle = "#be4f37";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText(`${top.have}/${top.count}`, rect.x + 31, cardY + 72);
-
-  ctx.fillStyle = accent;
-  ctx.font = "900 11px Microsoft YaHei";
-  ctx.fillText(spec.title.slice(0, 18), rect.x + 86, cardY + 24);
-  ctx.fillStyle = "#17231d";
-  ctx.font = "900 15px Microsoft YaHei";
-  ctx.fillText(spec.headline.slice(0, 22), rect.x + 86, cardY + 47);
-  ctx.fillStyle = "#5d6f65";
-  ctx.font = "10px Microsoft YaHei";
-  ctx.fillText(spec.routeText.slice(0, 38), rect.x + 86, cardY + 64);
-
-  const nodeY = cardY + 86;
-  spec.nodes.forEach((node, index) => {
-    const nodeX = rect.x + 18 + index * 106;
-    ctx.fillStyle = index === 1 ? `${node.accent}18` : "rgba(255, 253, 245, 0.76)";
-    ctx.strokeStyle = `${node.accent}55`;
-    ctx.lineWidth = focused && index === 1 ? 1.8 : 1.1;
-    ctx.beginPath();
-    ctx.roundRect(nodeX, nodeY - 13, 94, 32, 12);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = node.accent;
-    ctx.beginPath();
-    ctx.arc(nodeX + 16, nodeY + 3, 11, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#fffdf5";
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(node.badge.slice(0, 1), nodeX + 12, nodeY + 6);
-    ctx.fillStyle = node.accent;
-    ctx.font = "900 8px Microsoft YaHei";
-    ctx.fillText(node.title.slice(0, 5), nodeX + 32, nodeY - 2);
-    ctx.fillStyle = "#5d6f65";
-    ctx.font = "800 8px Microsoft YaHei";
-    ctx.fillText(String(node.detail || "").slice(0, 9), nodeX + 32, nodeY + 12);
+function drawOrderGapSupplyRouteWorld(ctx, spec = orderGapSupplyRouteWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion = performance.now() / 1000) {
+  return drawOrderGapSupplyRouteWorldWorld({
+    ctx,
+    spec,
+    reducedMotion: settings.reducedMotion,
+    motion,
+    day: state.day,
+    focus: orderGapSupplyRouteWorldFocus,
+    drawCanvasCard,
   });
-
-  ctx.fillStyle = "rgba(255, 253, 245, 0.9)";
-  ctx.beginPath();
-  ctx.roundRect(rect.x + 18, cardY + rect.height - 18, rect.width - 36, 14, 7);
-  ctx.fill();
-  ctx.fillStyle = "#8f5f3f";
-  ctx.font = "900 8px Microsoft YaHei";
-  ctx.fillText(`${spec.safeNote}`.slice(0, 45), rect.x + 26, cardY + rect.height - 8);
-  ctx.restore();
-  return true;
 }
 
 function workshopOrderBoardMarkup(spec = workshopOrderBoardSpec()) {
