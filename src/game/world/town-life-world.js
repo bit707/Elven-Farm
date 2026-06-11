@@ -71,3 +71,66 @@ export function drawTownLifeErrandRouteWorldFocusWorld({
   ctx.restore();
   return true;
 }
+
+export function drawLivingWorldSummaryWorld({
+  ctx,
+  livingState = null,
+  lineLimit = 7,
+  builtStructureSlotCount = 0,
+  shopReportCount = 0,
+  careChainStage = null,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !livingState) return false;
+  const lines = [];
+  if (livingState.farmSpirits > 0 || livingState.wateredPlots > 0 || livingState.maturePlots > 0) {
+    lines.push(`灵田 ${livingState.farmSpirits} 岗 · 已润 ${livingState.wateredPlots} 格 · 成熟 ${livingState.maturePlots} 格`);
+  }
+  if (livingState.visibleBuildings > 1) {
+    const parts = [`建筑 ${livingState.visibleBuildings}/${builtStructureSlotCount}`];
+    if (livingState.workshopBuildings > 0) parts.push(`工坊 ${livingState.workshopBuildings}`);
+    if (livingState.shopBuildings > 0) parts.push(`铺面 ${livingState.shopBuildings}`);
+    lines.push(parts.join(" · "));
+  }
+  if (livingState.queue.length > 0 || livingState.workshopSpirits > 0) {
+    lines.push(`工坊 ${livingState.workshopSpirits} 岗 · 排产 ${livingState.queue.length} 条`);
+  }
+  if (livingState.shopSpirits > 0 || shopReportCount > 0) {
+    lines.push(`旧铺 ${livingState.shopSpirits} 岗 · 主题 ${livingState.shopTheme?.note || livingState.shopTheme?.theme_tag || "陈列中"}`);
+  }
+  if (livingState.tradeRuns.length > 0 || livingState.returnedRuns.length > 0) {
+    lines.push(`商路 在途 ${livingState.tradeRuns.length} 支 · 今日返航 ${livingState.returnedRuns.length} 支`);
+  }
+  if (livingState.cohabRoutes.length > 0) {
+    const buffText = livingState.activeBuffs[0] ? ` · 余韵 ${livingState.activeBuffs[0].label}` : "";
+    lines.push(`同住 ${livingState.cohabRoutes.length} 线安家${buffText}`);
+  }
+  if (livingState.ecologyGarden && (livingState.ecologyGarden.activeCount > 0 || livingState.ecologyGarden.claimedGoalCount > 0)) {
+    const garden = livingState.ecologyGarden;
+    lines.push(`庭院 ${garden.tier?.shortLabel || "初成"} ${garden.score} 分 · 已收 ${garden.claimedGoalCount}/${garden.totalCombos} · ${garden.topCombo?.name || garden.nextCombo?.name || "待起势"}`);
+  }
+  if (livingState.pondBuilt) {
+    lines.push(`灵池 ${livingState.pondWaterLabel} · 夜护 ${livingState.pondNightWaterCropCareDays} 夜 · ${livingState.pondMoonPondActive ? "月池静养" : livingState.pondLotusText}`);
+  }
+  if (livingState.spiritManorReady) {
+    lines.push(livingState.spiritManorBuilt ? "百怪大院已成 · 宿舍与岗位总览可用" : "百怪大院待建 · 精怪们仍挤在旧院角");
+  }
+  const safeCareChainStage = careChainStage || livingState.careChainStage || { streak: 0 };
+  if (safeCareChainStage.streak > 0) {
+    const nextText = safeCareChainStage.nextAt ? ` · 距下阶 ${safeCareChainStage.nextAt - safeCareChainStage.streak} 日` : " · 已传到镇上";
+    lines.unshift(`连续照应 ${safeCareChainStage.streak} 日 · ${safeCareChainStage.stageName}${nextText}`);
+  }
+  if (lines.length === 0) return false;
+  const shownLines = lines.slice(0, Math.max(1, Number(lineLimit || 7)));
+
+  drawCanvasCard(ctx, 388, 42, 286, 34 + shownLines.length * 20);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 16px Microsoft YaHei";
+  ctx.fillText("洞天运转", 408, 66);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "12px Microsoft YaHei";
+  shownLines.forEach((line, index) => {
+    ctx.fillText(line, 408, 88 + index * 18);
+  });
+  return true;
+}
