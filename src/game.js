@@ -262,9 +262,9 @@ import {
   tradeRouteFocusTargetWorld,
 } from "./game/world/world-story-interaction-world.js";
 import {
-  shopWeatherShelfFocusSpecWorld,
+  shopWeatherShelfFocusTargetWorld,
   shopWeatherShelfWorldTargetsWorld,
-  weatherLifeVignetteFocusSpecWorld,
+  weatherLifeVignetteFocusTargetWorld,
   weatherLifeVignetteNeedsFieldPlotWorld,
   weatherLifeVignetteTargetsWorld,
 } from "./game/world/weather-interaction-world.js";
@@ -73148,10 +73148,12 @@ function focusWorldContentFromCanvas(target = null) {
     // 点选天气小景： / 点选旧铺：天气主推货签 / 点选旧铺：天气货签顾客小景 / 天气主推货签 / 天气缺货牌
     // 天气货签顾客小景 / 被天气货签吸引 / 空位让客人回头 / 看见主推还在犹豫
     // 先补天气对口货，别让空位把客人劝走 / 继续补厚头排库存
-    const spec = weatherLifeVignetteFocusSpecWorld({
+    const spec = weatherLifeVignetteFocusTargetWorld({
       target,
-      weatherSummaryText: `${moodSpec.weatherName}：水分 ${signedPercent(moodSpec.waterBonus)}，成长 ${multiplierText(moodSpec.growthModifier)}${moodSpec.warning ? `，灾害 ${moodSpec.disaster}` : ""}`,
+      moodSpec,
       hasFieldPlot: Boolean(fieldPlot),
+      signedPercentFor: signedPercent,
+      multiplierTextFor: multiplierText,
     });
     if (!spec) return false;
     queueStoryCompassFocusTarget(spec);
@@ -73160,7 +73162,7 @@ function focusWorldContentFromCanvas(target = null) {
 
   if (target.type === "shop_weather_shelf") {
     const shelf = shopWeatherShelfRecommendationSpec();
-    const spec = shopWeatherShelfFocusSpecWorld({ target, shelf });
+    const spec = shopWeatherShelfFocusTargetWorld({ target, shelf });
     if (!spec) return false;
     queueStoryCompassFocusTarget(spec);
     return true;
@@ -73169,7 +73171,7 @@ function focusWorldContentFromCanvas(target = null) {
   if (target.type === "shop_weather_shelf_customer") {
     const shelf = shopWeatherShelfRecommendationSpec();
     const vignette = shopWeatherShelfCustomerVignetteSpec(shelf);
-    const spec = shopWeatherShelfFocusSpecWorld({ target, shelf, vignette });
+    const spec = shopWeatherShelfFocusTargetWorld({ target, shelf, vignette });
     if (!spec) return false;
     queueStoryCompassFocusTarget(spec);
     return true;

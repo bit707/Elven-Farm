@@ -78,6 +78,25 @@ export function weatherLifeVignetteFocusSpecWorld({
   };
 }
 
+export function weatherLifeVignetteFocusTargetWorld({
+  target = null,
+  moodSpec = null,
+  hasFieldPlot = false,
+  signedPercentFor = null,
+  multiplierTextFor = null,
+} = {}) {
+  const signedPercent = typeof signedPercentFor === "function" ? signedPercentFor : (value) => String(value ?? 0);
+  const multiplierText = typeof multiplierTextFor === "function" ? multiplierTextFor : (value) => String(value ?? 0);
+  const weatherSummaryText = moodSpec
+    ? `${moodSpec.weatherName}：水分 ${signedPercent(moodSpec.waterBonus)}，成长 ${multiplierText(moodSpec.growthModifier)}${moodSpec.warning ? `，灾害 ${moodSpec.disaster}` : ""}`
+    : "";
+  return weatherLifeVignetteFocusSpecWorld({
+    target,
+    weatherSummaryText,
+    hasFieldPlot,
+  });
+}
+
 export function shopWeatherShelfWorldTargetsWorld({
   shelf = null,
   vignette = null,
@@ -137,4 +156,16 @@ export function shopWeatherShelfFocusSpecWorld({
   }
 
   return null;
+}
+
+export function shopWeatherShelfFocusTargetWorld({
+  target = null,
+  shelf = null,
+  vignette = null,
+} = {}) {
+  return shopWeatherShelfFocusSpecWorld({
+    target,
+    shelf,
+    vignette,
+  });
 }
