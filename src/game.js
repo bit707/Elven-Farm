@@ -164,6 +164,7 @@ import {
   workshopOutputStorageRouteWorldSpecFromRuntimeWorld,
   drawWorkshopOrderQueueWorldBoardWorld,
   drawWorkshopReadyOrderDispatchWorldWorld,
+  workshopReadyOrderDispatchWorldSpecFromRuntimeWorld,
   drawWorkshopSpiritAssistActionWorldWorld,
   drawWorkshopToShopStockBridgeWorldWorld,
   workshopToShopStockBridgeWorldSpecFromRuntimeWorld,
@@ -28839,8 +28840,32 @@ function workshopReadyOrderDispatchWorldSpec() {
   };
 }
 
+function workshopReadyOrderDispatchWorldSpecBridge() {
+  const aromaSpec = workshopAromaOrderWorldSpec();
+  const order = aromaSpec?.orderId
+    ? visibleOrders().find((entry) => entry.order_id === aromaSpec.orderId)
+    : null;
+  const orderMatch = aromaSpec
+    ? aromaSpec.orderMatch || workshopOutputOrderMatchSpec(aromaSpec.aroma?.itemId || "", aromaSpec.aroma?.outputCount || 1)
+    : null;
+  const rewardText = order
+    ? [
+      Number(order.reward_gold || 0) ? `${Number(order.reward_gold || 0)} spirit stones` : "",
+      Number(order.reward_fame || 0) ? `Fame +${Number(order.reward_fame || 0)}` : "",
+    ].filter(Boolean).join(" / ") || "Order reward"
+    : "Order reward";
+  return workshopReadyOrderDispatchWorldSpecFromRuntimeWorld({
+    day: state.day,
+    aromaSpec,
+    order,
+    deliverable: order ? canDeliverOrder(order) : false,
+    orderMatch,
+    rewardText,
+  });
+}
+
 function workshopReadyOrderDispatchWorldAtCanvasPoint(px, py) {
-  const spec = workshopReadyOrderDispatchWorldSpec();
+  const spec = workshopReadyOrderDispatchWorldSpecBridge();
   if (!spec?.rect) return null;
   const { rect } = spec;
   return (
@@ -28851,7 +28876,7 @@ function workshopReadyOrderDispatchWorldAtCanvasPoint(px, py) {
   ) ? spec : null;
 }
 
-function focusWorkshopReadyOrderDispatchWorldFromCanvas(spec = workshopReadyOrderDispatchWorldSpec()) {
+function focusWorkshopReadyOrderDispatchWorldFromCanvas(spec = workshopReadyOrderDispatchWorldSpecBridge()) {
   if (!spec?.orderId) return false;
   workshopReadyOrderDispatchWorldFocus = { key: spec.key, day: state.day, orderId: spec.orderId };
   addLog("点选出锅交单车", `${spec.outputLabel} 已装上交单车，「${spec.orderTitle}」库存已齐。交单路线已定位到订单板收款口，确认后手动点交付即可收取 ${spec.rewardText}；这里只定位，不会自动交单或消耗库存。`);
@@ -28859,7 +28884,7 @@ function focusWorkshopReadyOrderDispatchWorldFromCanvas(spec = workshopReadyOrde
   return true;
 }
 
-function drawWorkshopReadyOrderDispatchWorld(ctx, spec = workshopReadyOrderDispatchWorldSpec()) {
+function drawWorkshopReadyOrderDispatchWorld(ctx, spec = workshopReadyOrderDispatchWorldSpecBridge()) {
   if (!spec?.rect) return false;
   const motion = settings.reducedMotion ? 0 : performance.now() / 1000;
   const active = workshopReadyOrderDispatchWorldFocus?.day === state.day
@@ -75136,7 +75161,7 @@ function drawWorkshopAutomation(ctx, livingState) {
     drawWorkshopOutputStorageRouteWorld(ctx, workshopOutputStorageRouteWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion);
     drawWorkshopToShopStockBridgeWorld(ctx, workshopToShopStockBridgeWorldSpecBridge(ctx.canvas.width, ctx.canvas.height), motion);
     drawWorkshopFirstOrderProfitWorld(ctx, workshopFirstOrderProfitWorldSpec(aromaSpec), motion);
-    drawWorkshopReadyOrderDispatchWorld(ctx, workshopReadyOrderDispatchWorldSpec());
+    drawWorkshopReadyOrderDispatchWorld(ctx, workshopReadyOrderDispatchWorldSpecBridge());
   }
 
   const carriers = Math.max(livingState.queue.length, Math.min(3, livingState.workshopSpirits || 0));

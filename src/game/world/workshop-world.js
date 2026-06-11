@@ -1238,6 +1238,39 @@ export function drawWorkshopToShopStockBridgeWorldWorld({
   return true;
 }
 
+export function workshopReadyOrderDispatchWorldSpecFromRuntimeWorld({
+  day = 1,
+  aromaSpec = null,
+  order = null,
+  deliverable = false,
+  orderMatch = null,
+  rewardText = "Order reward",
+} = {}) {
+  if (!aromaSpec?.ready || !aromaSpec.orderId) return null;
+  if (!order || !deliverable) return null;
+
+  return {
+    key: `${day}:${aromaSpec.orderId}:${aromaSpec.outputLabel}`,
+    day,
+    order,
+    orderId: aromaSpec.orderId,
+    orderTitle: aromaSpec.orderTitle,
+    outputLabel: aromaSpec.outputLabel,
+    outputCount: Number(orderMatch?.outputCount || aromaSpec.aroma?.outputCount || 1),
+    rewardText,
+    path: aromaSpec.path,
+    rect: { x: 522, y: 314, width: 250, height: 92 },
+    title: "World output ready for order",
+    headline: "Delivery cart is loaded",
+    detail: `${aromaSpec.outputLabel} -> ${aromaSpec.orderTitle}`,
+    routeLabel: "Delivery route",
+    boardLabel: "Order board cashier",
+    manualLabel: "Confirm, then deliver manually",
+    safety: "Will not auto-deliver or consume stock",
+    cta: "Output order - click",
+  };
+}
+
 export function drawWorkshopReadyOrderDispatchWorldWorld({
   ctx,
   spec = null,
