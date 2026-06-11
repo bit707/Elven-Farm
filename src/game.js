@@ -653,6 +653,7 @@ import {
   drawTownLifeMemoryThresholdKeepsakeWorldWorld,
   drawTownLifePassalongLanternWorldWorld,
   drawTownLifeShopMomentKeepsakeWorldWorld,
+  drawTownLifeWeatherMomentWorld,
   drawTownLifeRelationshipWorldBoardWorld,
   drawTownLifeRouteWorldBoardWorld,
   drawTownLifeErrandRouteWorldFocusWorld,
@@ -70423,118 +70424,15 @@ function townLifeNpcColor(row) {
 }
 
 function drawTownLifeWeatherMoment(ctx, moment, point, index = 0, motion = 0) {
-  if (!moment || !point) return;
-  const bob = settings.reducedMotion ? 0 : Math.sin(motion * 1.8 + index * 0.72) * 1.8;
-  const x = point.x + 48;
-  const y = point.y + 12 + bob;
-  const accent = moment.accent || "#4d91a6";
-  ctx.save();
-  ctx.globalAlpha = 0.9;
-  ctx.fillStyle = "rgba(255, 253, 245, 0.82)";
-  ctx.strokeStyle = `${accent}66`;
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.roundRect(x - 9, y - 9, 38, 34, 12);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = `${accent}22`;
-  ctx.beginPath();
-  ctx.ellipse(x + 10, y + 30, 24, 5, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  if (moment.key === "rain_eaves" || moment.key === "storm_eaves") {
-    ctx.fillStyle = accent;
-    ctx.beginPath();
-    ctx.moveTo(x - 5, y + 2);
-    ctx.quadraticCurveTo(x + 10, y - 16, x + 27, y + 2);
-    ctx.lineTo(x + 20, y + 7);
-    ctx.quadraticCurveTo(x + 10, y + 1, x + 1, y + 7);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = "rgba(77, 145, 166, 0.58)";
-    ctx.beginPath();
-    ctx.moveTo(x + 10, y + 4);
-    ctx.lineTo(x + 10, y + 22);
-    ctx.quadraticCurveTo(x + 15, y + 25, x + 18, y + 19);
-    ctx.stroke();
-    ctx.fillStyle = "rgba(77, 145, 166, 0.36)";
-    for (let i = 0; i < 3; i += 1) {
-      ctx.fillRect(x - 4 + i * 11, y + 10 + i % 2 * 3, 2, 8);
-    }
-  } else if (moment.key === "hot_well" || moment.key === "drought_well") {
-    ctx.fillStyle = "#8f5f3f";
-    ctx.beginPath();
-    ctx.roundRect(x + 1, y + 1, 20, 24, 7);
-    ctx.fill();
-    ctx.fillStyle = "rgba(159, 209, 223, 0.78)";
-    ctx.fillRect(x + 5, y + 8, 12, 4);
-    ctx.strokeStyle = "#5b3928";
-    ctx.beginPath();
-    ctx.moveTo(x - 4, y + 2);
-    ctx.quadraticCurveTo(x + 7, y - 8, x + 18, y + 1);
-    ctx.stroke();
-  } else if (moment.key === "mist_lamp") {
-    ctx.strokeStyle = "#5b3928";
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    ctx.moveTo(x + 10, y - 8);
-    ctx.lineTo(x + 10, y + 26);
-    ctx.stroke();
-    ctx.fillStyle = "rgba(246, 240, 182, 0.86)";
-    ctx.beginPath();
-    ctx.arc(x + 10, y + 3, 11 + (settings.reducedMotion ? 0 : Math.sin(motion + index) * 1.5), 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "rgba(255, 253, 245, 0.32)";
-    ctx.fillRect(x - 8, y + 10, 36, 6);
-  } else if (moment.key === "frost_brazier" || moment.key === "snow_brazier") {
-    ctx.fillStyle = "#5b3928";
-    ctx.beginPath();
-    ctx.ellipse(x + 10, y + 18, 17, 7, 0, 0, Math.PI * 2);
-    ctx.fill();
-    for (let i = 0; i < 4; i += 1) {
-      ctx.fillStyle = i % 2 ? "rgba(246, 240, 182, 0.82)" : "rgba(190, 79, 55, 0.82)";
-      ctx.beginPath();
-      ctx.moveTo(x - 2 + i * 7, y + 16);
-      ctx.quadraticCurveTo(x + 2 + i * 6, y + 1 - Math.max(0, Math.sin(motion + i)) * 5, x + 7 + i * 5, y + 16);
-      ctx.closePath();
-      ctx.fill();
-    }
-  } else if (moment.key === "dew_greeting") {
-    ctx.fillStyle = "#286f58";
-    ctx.beginPath();
-    ctx.ellipse(x + 10, y + 14, 22, 9, -0.18, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "rgba(255, 253, 245, 0.82)";
-    for (let i = 0; i < 3; i += 1) {
-      ctx.beginPath();
-      ctx.arc(x + 2 + i * 8, y + 7 - i % 2 * 2, 2.5, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  } else if (moment.key === "cloud_slow") {
-    ctx.fillStyle = "rgba(255, 253, 245, 0.62)";
-    ctx.beginPath();
-    ctx.ellipse(x + 4, y + 1, 18, 6, 0, 0, Math.PI * 2);
-    ctx.ellipse(x + 20, y + 3, 16, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "#5d6f65";
-    ctx.beginPath();
-    ctx.moveTo(x - 2, y + 20);
-    ctx.quadraticCurveTo(x + 9, y + 12, x + 24, y + 20);
-    ctx.stroke();
-  } else {
-    ctx.fillStyle = "#8f5f3f";
-    ctx.fillRect(x - 2, y + 9, 26, 5);
-    ctx.fillRect(x + 1, y + 17, 20, 4);
-    ctx.fillStyle = "rgba(246, 240, 182, 0.78)";
-    ctx.beginPath();
-    ctx.arc(x + 24, y - 1, 6, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = accent;
-  ctx.font = "800 10px Microsoft YaHei";
-  ctx.fillText((moment.glyph || "天").slice(0, 1), x + 1, y - 14);
-  ctx.restore();
+  // drawTownLifeWeatherMoment bridge keeps verify keywords: 天气小景 雨檐 水缸 灯下认路 火盆暖手 晨露问候 云影慢行 露水叶碗 旱纹 rain_eaves storm_eaves hot_well drought_well mist_lamp frost_brazier snow_brazier dew_greeting cloud_slow
+  drawTownLifeWeatherMomentWorld({
+    ctx,
+    moment,
+    point,
+    index,
+    motion,
+    reducedMotion: settings.reducedMotion,
+  });
 }
 
 function drawTownLifeWeatherErrandEcho(ctx, echo, point, index = 0, motion = 0) {
