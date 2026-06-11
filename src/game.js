@@ -28,9 +28,9 @@ import {
   drawLayeredHillsWorld,
 } from "./game/world/background-world.js";
 import {
-  finalBanquetAftermathFocusSpecWorld,
+  finalBanquetAftermathFocusTargetWorld,
   finalBanquetTargetWorld,
-  finalBanquetVigilFocusSpecWorld,
+  finalBanquetVigilFocusTargetWorld,
 } from "./game/world/banquet-interaction-world.js";
 import {
   drawSpiritAuraWorld,
@@ -73298,9 +73298,6 @@ function focusWorldContentFromCanvas(target = null) {
       const pantaoQuest = data.quests.find((entry) => entry.quest_id === CHAPTER_4_PANTAO_QUEST_ID) || { quest_id: CHAPTER_4_PANTAO_QUEST_ID };
       const pantaoPlot = state.plots.find((plot) => plot.cropId === CHAPTER_4_PANTAO_CROP_ID) || null;
       const growingRoute = pantaoPlot ? growingCropUseRouteSpec(pantaoPlot) : null;
-      const routeText = growingRoute
-        ? `${pantaoPlot?.mature ? "收后去向" : "长成去向"}：${growingRoute.badge}。`
-        : "";
       if (pantaoPlot) {
         state.selected = { x: pantaoPlot.x, y: pantaoPlot.y };
         pulseAtPlot(pantaoPlot, pantaoPlot.mature ? "harvest" : pantaoPlot.watered ? "work" : "water", {
@@ -73309,15 +73306,12 @@ function focusWorldContentFromCanvas(target = null) {
       }
       // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
       // target.type === "banquet_story" / 点选异象：阵心守夜 / 万年蟠桃 / 阵心对应的灵田卡
-      queueStoryCompassFocusTarget(finalBanquetVigilFocusSpecWorld({
+      queueStoryCompassFocusTarget(finalBanquetVigilFocusTargetWorld({
         target,
         pantaoQuestId: CHAPTER_4_PANTAO_QUEST_ID,
         pantaoQuestTitle: questTitle(pantaoQuest),
-        hasPantaoPlot: Boolean(pantaoPlot),
-        pantaoMature: Boolean(pantaoPlot?.mature),
-        pantaoWatered: Boolean(pantaoPlot?.watered),
-        remainingDays: growingRoute?.remainingDays ?? 0,
-        routeText,
+        pantaoPlot,
+        growingRoute,
       }));
       return true;
     }
@@ -73327,18 +73321,16 @@ function focusWorldContentFromCanvas(target = null) {
     const needStatus = previewOrder ? year2OrderNeedStatus(previewOrder) : null;
     const cycle = shopSeasonCycleInfo();
     const firstWeekDone = state.completed.has("year2_first_week_order_complete");
-    const missingText = needStatus?.missing.slice(0, 2).join(" / ") || "几件体面货";
     // focusWorldContentFromCanvas 保留桥接关键词，便于 verify 扫描：
     // 点选异象：蟠桃大宴 / 宴后对应的订单、月评或目标入口
-    queueStoryCompassFocusTarget(finalBanquetAftermathFocusSpecWorld({
+    queueStoryCompassFocusTarget(finalBanquetAftermathFocusTargetWorld({
       target,
       pendingSettlement: pending,
-      previewOrderId: previewOrder?.order_id || "",
+      previewOrder,
       previewOrderTitle: previewOrder ? orderTitle(previewOrder) : "",
+      needStatus,
       firstWeekDone,
-      seasonActive: Boolean(cycle.season),
-      needReady: Boolean(needStatus?.completion >= 1),
-      missingText,
+      cycle,
     }));
     return true;
   }

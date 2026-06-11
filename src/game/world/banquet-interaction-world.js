@@ -29,6 +29,49 @@ export function finalBanquetTargetWorld({
   };
 }
 
+export function finalBanquetVigilFocusTargetWorld({
+  target = null,
+  pantaoQuestId = "",
+  pantaoQuestTitle = "",
+  pantaoPlot = null,
+  growingRoute = null,
+} = {}) {
+  const routeText = growingRoute
+    ? `${pantaoPlot?.mature ? "收后去向" : "长成去向"}：${growingRoute.badge}。`
+    : "";
+  return finalBanquetVigilFocusSpecWorld({
+    target,
+    pantaoQuestId,
+    pantaoQuestTitle,
+    hasPantaoPlot: Boolean(pantaoPlot),
+    pantaoMature: Boolean(pantaoPlot?.mature),
+    pantaoWatered: Boolean(pantaoPlot?.watered),
+    remainingDays: growingRoute?.remainingDays ?? 0,
+    routeText,
+  });
+}
+
+export function finalBanquetAftermathFocusTargetWorld({
+  target = null,
+  pendingSettlement = null,
+  previewOrder = null,
+  previewOrderTitle = "",
+  needStatus = null,
+  cycle = null,
+  firstWeekDone = false,
+} = {}) {
+  return finalBanquetAftermathFocusSpecWorld({
+    target,
+    pendingSettlement,
+    previewOrderId: previewOrder?.order_id || "",
+    previewOrderTitle,
+    firstWeekDone,
+    seasonActive: Boolean(cycle?.season),
+    needReady: Boolean(needStatus?.completion >= 1),
+    missingText: needStatus?.missing.slice(0, 2).join(" / ") || "几件体面货",
+  });
+}
+
 export function finalBanquetVigilFocusSpecWorld({
   target = null,
   pantaoQuestId = "",
