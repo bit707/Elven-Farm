@@ -59,6 +59,43 @@ export function shopWordOfMouthNoteFocusTargetWorld({ spec = null } = {}) {
   return shopWordOfMouthNoteFocusSpecWorld({ spec });
 }
 
+export function shopWordOfMouthWorldNoteSpecWorld({
+  wordSpec = null,
+  leadSpec = null,
+  visitActive = false,
+  appeared = false,
+  bought = false,
+  sourceLabel = "门口熟客",
+  customerLabel = "来客",
+  leadItemName = "头排货",
+  title = "铺前市闻来帖 · 可点",
+  detail = "这股铺前市闻正在往旧铺门口聚。",
+  routeText = "谁传话 -> 谁来认门 -> 头排接货",
+  safeNote = "只定位旧铺市闻和来帖，不会自动开铺、接客、成交、改价、补货或消耗材料",
+} = {}) {
+  if (!wordSpec && !leadSpec) return null;
+  return {
+    id: "shop_word_of_mouth_note",
+    title,
+    headline: leadSpec?.headline || wordSpec?.headline || `${customerLabel}会顺着市闻来认门`,
+    detail,
+    sourceLabel,
+    customerLabel,
+    leadItemName,
+    statusLabel: bought ? "已成交" : appeared ? "已认门" : visitActive ? "今日来认门" : wordSpec?.statusLabel || "明日会传开",
+    routeText,
+    safeNote,
+    visitActive,
+    appeared,
+    bought,
+    preview: Boolean(leadSpec?.preview || wordSpec?.preview),
+    tone: leadSpec?.tone || wordSpec?.tone || "mid",
+    selector: visitActive ? ".shop-word-of-mouth-visit" : ".shop-word-of-mouth",
+    rect: { x: 38, y: 246, width: 332, height: 104 },
+    anchor: { x: 146, y: 176 },
+  };
+}
+
 export function shopWordOfMouthMissingShelfSpecWorld({
   wordSpec = null,
   day = 1,
