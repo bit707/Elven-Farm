@@ -1455,6 +1455,74 @@ export function drawSpiritInteractionFeedbackWorld({
   return true;
 }
 
+export function drawSpiritJoinFeedbackWorld({
+  ctx,
+  width = 960,
+  height = 640,
+  feedback = null,
+  spirit = null,
+  profile = null,
+  now = performance.now(),
+  pulse = 0,
+  jobLabel = "",
+  drawCanvasCard = () => {},
+  drawSpiritSprite = () => false,
+} = {}) {
+  if (!ctx || !feedback || !spirit || !profile) return false;
+  const x = Math.round(width / 2 - 246);
+  const y = Math.round(height / 2 - 126 + pulse);
+
+  ctx.save();
+  ctx.globalAlpha = Number(feedback.fade ?? 1);
+
+  const glow = ctx.createRadialGradient(x + 112, y + 106, 12, x + 112, y + 106, 210);
+  glow.addColorStop(0, profile.glow);
+  glow.addColorStop(0.48, "rgba(246, 240, 182, 0.18)");
+  glow.addColorStop(1, "rgba(246, 240, 182, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(x + 112, y + 106, 210, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawCanvasCard(ctx, x, y, 492, 196, "rgba(255, 253, 245, 0.94)");
+  ctx.fillStyle = "rgba(237, 243, 223, 0.84)";
+  ctx.beginPath();
+  ctx.roundRect(x + 22, y + 28, 138, 138, 28);
+  ctx.fill();
+  ctx.strokeStyle = profile.accent;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(x + 30, y + 36, 122, 122, 24);
+  ctx.stroke();
+  drawSpiritSprite(ctx, spirit, x + 42, y + 40, 104);
+
+  ctx.fillStyle = profile.accent;
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(`${feedback.source === "first_join" ? "伙伴栏开放" : "新伙伴响应"} · ${feedback.visualLabel}`, x + 184, y + 44);
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 24px Microsoft YaHei";
+  ctx.fillText(String(feedback.label || "第一只精怪入队").slice(0, 14), x + 184, y + 80);
+  ctx.fillStyle = "#286f58";
+  ctx.font = "700 18px Microsoft YaHei";
+  ctx.fillText(String(feedback.spiritName || spirit.name || "").slice(0, 16), x + 184, y + 112);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "13px Microsoft YaHei";
+  ctx.fillText(String(feedback.detail || "").slice(0, 28), x + 184, y + 140);
+  ctx.fillStyle = "#b47d2f";
+  ctx.font = "700 13px Microsoft YaHei";
+  ctx.fillText(`${jobLabel} · ${feedback.cta}`.slice(0, 34), x + 184, y + 166);
+
+  ctx.fillStyle = "rgba(224, 182, 109, 0.22)";
+  for (let i = 0; i < 5; i += 1) {
+    const angle = now / 520 + i * 1.24;
+    ctx.beginPath();
+    ctx.arc(x + 438 + Math.cos(angle) * 24, y + 42 + Math.sin(angle) * 18, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+  return true;
+}
+
 export function drawSpiritBondHeartlineWorldWorld({
   ctx,
   spec = null,
