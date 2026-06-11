@@ -1272,3 +1272,174 @@ export function drawCommerceWorldMarksWorld({
   ctx.restore();
   return true;
 }
+
+export function drawShopReputationStageSignWorld({
+  ctx,
+  spec = null,
+  motion = 0,
+  reducedMotion = false,
+} = {}) {
+  if (!ctx || !spec || spec.progressCount <= 0) return false;
+  const x = 56;
+  const y = 166;
+  const width = 256;
+  const height = spec.progressCount >= 5 ? 94 : 78;
+  const accentMap = {
+    quiet: "#8f5f3f",
+    start: "#b47d2f",
+    return: "#286f58",
+    spread: "#4d91a6",
+    trust: "#286f58",
+    complete: "#b47d2f",
+  };
+  const accent = accentMap[spec.tone] || "#b47d2f";
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.4) * 2;
+  const proofCount = Math.max(0, Math.min(spec.progressTotal || 8, spec.progressCount || 0));
+
+  ctx.save();
+  ctx.fillStyle = spec.tone === "complete" ? "rgba(255, 248, 232, 0.96)" : "rgba(255, 253, 245, 0.9)";
+  ctx.strokeStyle = `${accent}66`;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(x, y + pulse, width, height, 18);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = `${accent}22`;
+  ctx.beginPath();
+  ctx.roundRect(x + 14, y + 12 + pulse, 52, 44, 14);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.font = "800 24px Microsoft YaHei";
+  ctx.fillText("铺", x + 28, y + 42 + pulse);
+
+  ctx.fillStyle = "#17231d";
+  ctx.font = "700 14px Microsoft YaHei";
+  ctx.fillText(`旧铺名声 · ${spec.stageName}`.slice(0, 16), x + 78, y + 28 + pulse);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "12px Microsoft YaHei";
+  ctx.fillText(`${spec.metricsText} · ${spec.hotTagLabel}`.slice(0, 22), x + 78, y + 48 + pulse);
+
+  ctx.fillStyle = "rgba(23, 35, 29, 0.1)";
+  ctx.beginPath();
+  ctx.roundRect(x + 78, y + 58 + pulse, 132, 7, 999);
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.beginPath();
+  ctx.roundRect(x + 78, y + 58 + pulse, Math.max(12, 132 * spec.progressPercent / 100), 7, 999);
+  ctx.fill();
+
+  for (let i = 0; i < (spec.progressTotal || 8); i += 1) {
+    const dotX = x + 18 + i * 24;
+    const dotY = y + height - 16 + pulse;
+    ctx.fillStyle = i < proofCount ? accent : "rgba(143, 95, 63, 0.18)";
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, i < proofCount ? 4.2 : 3.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  if (spec.progressCount >= 3) {
+    const path = [
+      { x: 80, y: 302 },
+      { x: 116, y: 286 },
+      { x: 154, y: 284 },
+      { x: 196, y: 296 },
+    ];
+    ctx.strokeStyle = "rgba(40, 111, 88, 0.3)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 6]);
+    ctx.lineDashOffset = reducedMotion ? 0 : -motion * 8;
+    ctx.beginPath();
+    path.forEach((point, index) => {
+      if (index === 0) ctx.moveTo(point.x, point.y);
+      else ctx.lineTo(point.x, point.y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  if (spec.progressCount >= 5) {
+    ctx.fillStyle = "rgba(239, 217, 208, 0.94)";
+    ctx.strokeStyle = "rgba(190, 79, 55, 0.42)";
+    ctx.beginPath();
+    ctx.roundRect(272, 198 + pulse, 30, 42, 7);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#be4f37";
+    ctx.font = "700 10px Microsoft YaHei";
+    ctx.fillText("来帖", 276, 222 + pulse);
+  }
+
+  if (spec.progressCount >= 7) {
+    ctx.fillStyle = "rgba(224, 182, 109, 0.88)";
+    ctx.beginPath();
+    ctx.roundRect(304, 238 + pulse, 34, 24, 7);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(143, 95, 63, 0.58)";
+    ctx.stroke();
+    ctx.fillStyle = "#fffdf5";
+    ctx.font = "700 10px Microsoft YaHei";
+    ctx.fillText("捎", 316, 255 + pulse);
+    ctx.strokeStyle = "rgba(143, 95, 63, 0.5)";
+    ctx.beginPath();
+    ctx.arc(321, 238 + pulse, 12, Math.PI, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  if (spec.tone === "complete") {
+    for (let i = 0; i < 5; i += 1) {
+      ctx.fillStyle = i % 2 ? "rgba(246, 240, 182, 0.74)" : "rgba(202, 235, 210, 0.7)";
+      ctx.beginPath();
+      ctx.arc(86 + i * 48, 154 + Math.sin(motion * 1.7 + i) * 5, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+  return true;
+}
+
+export function drawCareChainShopEchoWorld({
+  ctx,
+  echo = null,
+  motion = 0,
+  reducedMotion = false,
+  drawCanvasCard = () => {},
+} = {}) {
+  if (!ctx || !echo) return false;
+  const pulse = reducedMotion ? 0 : Math.sin(motion * 2.1) * 2;
+
+  ctx.save();
+  ctx.strokeStyle = echo.tone === "town" ? "rgba(40, 111, 88, 0.46)" : "rgba(224, 182, 109, 0.42)";
+  ctx.lineWidth = 2.4;
+  ctx.setLineDash([5, 7]);
+  ctx.lineDashOffset = reducedMotion ? 0 : -motion * 10;
+  ctx.beginPath();
+  ctx.moveTo(92, 298);
+  ctx.quadraticCurveTo(150, 278 + pulse, 236, 292);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  for (let i = 0; i < 4; i += 1) {
+    ctx.fillStyle = i % 2 ? "rgba(202, 235, 210, 0.72)" : "rgba(246, 240, 182, 0.72)";
+    ctx.beginPath();
+    ctx.ellipse(104 + i * 34, 294 + Math.sin(motion * 1.8 + i) * 2, 8, 4, -0.18, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawCanvasCard(ctx, 218, 206 + pulse, 174, 58, "rgba(237, 243, 223, 0.88)");
+  ctx.fillStyle = echo.tone === "town" ? "#286f58" : "#8f5f3f";
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText(`生机回声 · ${echo.stageName}`, 236, 228 + pulse);
+  ctx.fillStyle = "#5d6f65";
+  ctx.font = "11px Microsoft YaHei";
+  ctx.fillText(echo.shopLine.slice(0, 22), 236, 246 + pulse);
+  ctx.fillStyle = "rgba(40, 111, 88, 0.14)";
+  ctx.beginPath();
+  ctx.arc(364, 224 + pulse, 12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#286f58";
+  ctx.font = "700 10px Microsoft YaHei";
+  ctx.fillText("稳", 358, 228 + pulse);
+  ctx.restore();
+  return true;
+}
