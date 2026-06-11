@@ -404,6 +404,7 @@ export function drawWorkshopOpeningValueWorldWorld({
 } = {}) {
   if (!ctx || !spec?.rect || !spec?.anchor) return false;
   const { rect, anchor } = spec;
+  const labels = spec.sectionLabels || {};
   const accent = spec.mode === "running"
     ? "#be4f37"
     : spec.mode === "ready"
@@ -482,9 +483,9 @@ export function drawWorkshopOpeningValueWorldWorld({
   }
 
   const chips = [
-    { label: "原料", value: `${spec.rawValue}` },
-    { label: "出锅", value: `${spec.outputValue}` },
-    { label: spec.orderReward ? "订单" : "旧铺", value: spec.orderReward ? `${spec.orderReward}` : spec.shopTagText.slice(0, 3) },
+    { label: labels.rawLabel || "原料", value: `${spec.rawValue}` },
+    { label: labels.outputLabel || "出锅", value: `${spec.outputValue}` },
+    { label: labels.routeLabel || (spec.orderReward ? "订单" : "旧铺"), value: spec.orderReward ? `${spec.orderReward}` : spec.shopTagText.slice(0, 3) },
   ];
   chips.forEach((chip, index) => {
     const chipX = rect.x + 18 + index * 76;
@@ -539,6 +540,7 @@ export function workshopOpeningValueWorldSpecFromRuntimeWorld({
   ecologySummary = null,
   prioritizeShopTag = () => "",
   shopTagLabel = () => "",
+  copy = null,
 } = {}) {
   const activeJob = lineSpec?.activeJob || null;
   const safeRecipes = Array.isArray(recipes) ? recipes : [];
@@ -564,6 +566,7 @@ export function workshopOpeningValueWorldSpecFromRuntimeWorld({
   const outputRatio = Number(preview.outputValue || 0) / maxValue;
   const orderRatio = Number(preview.orderReward || 0) / maxValue;
   const activeStage = activeJob?.currentStage?.label || "";
+  const safeCopy = copy || {};
   const headline = activeJob
     ? `${activeJob.recipeName} running ${activeStage || "line"}`
     : preview.craftable
@@ -617,17 +620,33 @@ export function workshopOpeningValueWorldSpecFromRuntimeWorld({
     orderReady: Boolean(orderMatch?.ready || preview.orderMatch?.ready),
     shopTag,
     shopTagText,
-    headline,
-    reason,
-    routeText,
-    title: "工坊开锅价值牌",
-    cta: "工坊开锅价值牌 路 可点",
-    safety: "只定位配方栏、订单板或旧铺货签，不会自动加工、排产、出锅、交单、开铺、入夜或消耗材料。",
+    headline: safeCopy.headline || headline,
+    reason: safeCopy.reason || reason,
+    routeText: safeCopy.routeText || routeText,
+    title: safeCopy.title || "工坊开锅价值牌",
+    cta: safeCopy.cta || "工坊开锅价值牌 路 可点",
+    safety: safeCopy.safety || "只定位配方栏、订单板或旧铺货签，不会自动加工、排产、出锅、交单、开铺、入夜或消耗材料。",
+    sectionLabels: safeCopy.sectionLabels || null,
     rect: { x, y, width: cardWidth, height: cardHeight },
     anchor: activeJob
       ? { x: 618, y: 502 }
       : { x: 708, y: 470 },
   };
+}
+
+export function workshopOpeningValueWorldAtCanvasPointWorld({
+  px,
+  py,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return (
+    px >= rect.x
+    && px <= rect.x + rect.width
+    && py >= rect.y
+    && py <= rect.y + rect.height
+  ) ? spec : null;
 }
 
 export function workshopSpiritAssistActionWorldSpecFromRuntimeWorld({

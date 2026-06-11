@@ -171,6 +171,7 @@ import {
   workshopIngredientReadyWorldAtCanvasPointWorld,
   workshopOutputStorageRouteWorldAtCanvasPointWorld,
   workshopIngredientReadyWorldSpecFromRuntimeWorld,
+  workshopOpeningValueWorldAtCanvasPointWorld,
   workshopOpeningValueWorldSpecFromRuntimeWorld,
   drawWorkshopOpeningValueWorldWorld,
   drawWorkshopOutputRouteTriptychWorldWorld,
@@ -51930,27 +51931,18 @@ function drawWorkshopLineOverviewWorldBoard(ctx, spec = workshopLineOverviewWorl
 }
 
 function workshopOpeningValueWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, lineSpec = workshopProductionLineSpec()) {
-  const activeJob = lineSpec?.activeJob || null;
-  const activeRecipe = activeJob
-    ? data.recipes.find((recipe) => recipe.recipe_id === activeJob.recipeId)
-    : null;
-  const selectedRecipe = data.recipes.find((recipe) => recipe.recipe_id === state.selectedRecipeId) || availableRecipes()[0] || null;
-  const recipe = activeRecipe || selectedRecipe;
-  if (!recipe) return null;
-  const preview = recipeCraftPreviewSpec(recipe);
-  if (!preview) return null;
-  const outputItemId = activeJob?.outputItemId || preview.outputItemId;
-  const outputCount = Number(activeJob?.outputCount || preview.outputCount || 1);
-  const outputName = itemName(outputItemId);
-  const orderMatch = activeJob?.orderMatch || preview.orderMatch || workshopOutputOrderMatchSpec(outputItemId, outputCount);
-  const shopTags = shopTagsForItem(outputItemId, ecologyCourtyardSummary());
-  const shopTag = prioritizeShopTag(shopTags, new Map(), "food");
-  const shopTagText = shopTagLabel(shopTag);
-  const mode = activeJob ? "running" : preview.craftable ? "ready" : "blocked";
-  const maxValue = Math.max(1, Number(preview.rawValue || 0), Number(preview.outputValue || 0), Number(preview.orderReward || 0));
-  const rawRatio = Number(preview.rawValue || 0) / maxValue;
-  const outputRatio = Number(preview.outputValue || 0) / maxValue;
-  const orderRatio = Number(preview.orderReward || 0) / maxValue;
+  return workshopOpeningValueWorldSpecBridge(width, height, lineSpec);
+}
+
+function workshopOpeningValueWorldCopy({
+  recipe = null,
+  preview = null,
+  activeJob = null,
+  orderMatch = null,
+  outputName = "",
+  shopTagText = "",
+} = {}) {
+  if (!recipe || !preview) return null;
   const activeStage = activeJob?.currentStage?.label || "";
   const headline = activeJob
     ? `${activeJob.recipeName} 正在${activeStage || "跑线"}`
@@ -51975,46 +51967,19 @@ function workshopOpeningValueWorldSpec(width = refs.world?.width || 960, height 
       ? "开锅/出锅 -> 订单可交 -> 手动交付"
       : "开锅/出锅 -> 订单接线 -> 补齐余料"
     : `开锅/出锅 -> ${shopTagText}货签 -> 手动开铺`;
-  const cardWidth = 334;
-  const cardHeight = 124;
-  const x = Math.max(506, Math.min(width - cardWidth - 28, 566));
-  const y = Math.max(408, Math.min(height - cardHeight - 28, 414));
   return {
-    key: `${state.day}:${recipe.recipe_id}:${outputItemId}:${mode}:${activeJob?.progress || 0}:${orderMatch?.orderId || "shop"}:${preview.valueGain}`,
-    day: state.day,
-    mode,
-    active: Boolean(activeJob),
-    recipeId: recipe.recipe_id,
-    recipeName: activeJob?.recipeName || preview.recipeName,
-    outputItemId,
-    outputName,
-    outputCount,
-    craftable: Boolean(preview.craftable),
-    machineText: preview.machineText,
-    inputText: preview.inputText,
-    missingText: preview.missingText,
-    rawValue: Number(preview.rawValue || 0),
-    outputValue: Number(preview.outputValue || 0),
-    orderReward: Number(preview.orderReward || 0),
-    valueGain: Number(preview.valueGain || 0),
-    rawRatio,
-    outputRatio,
-    orderRatio,
-    orderId: orderMatch?.orderId || "",
-    orderTitle: orderMatch?.orderTitle || preview.orderMatch?.orderTitle || "",
-    orderReady: Boolean(orderMatch?.ready || preview.orderMatch?.ready),
-    shopTag,
-    shopTagText,
     headline,
     reason,
     routeText,
     title: "工坊开锅价值牌",
     cta: "工坊开锅价值牌 · 可点",
     safety: "只定位配方栏、订单板或旧铺货签，不会自动加工、排产、出锅、交单、开铺、入夜或消耗材料",
-    rect: { x, y, width: cardWidth, height: cardHeight },
-    anchor: activeJob
-      ? { x: 618, y: 502 }
-      : { x: 708, y: 470 },
+    sectionLabels: {
+      reasonTitle: "为什么值得做",
+      rawLabel: "原料裸卖",
+      outputLabel: "出锅基价",
+      routeLabel: "订单/旧铺去向",
+    },
   };
 }
 
@@ -52158,6 +52123,22 @@ function workshopOpeningValueWorldSpecBridge(
   height = refs.world?.height || 640,
   lineSpec = workshopProductionLineSpec(),
 ) {
+  const activeJob = lineSpec?.activeJob || null;
+  const activeRecipe = activeJob
+    ? data.recipes.find((recipe) => recipe.recipe_id === activeJob.recipeId)
+    : null;
+  const selectedRecipe = data.recipes.find((recipe) => recipe.recipe_id === state.selectedRecipeId) || availableRecipes()[0] || null;
+  const recipe = activeRecipe || selectedRecipe;
+  const preview = recipe ? recipeCraftPreviewSpec(recipe) : null;
+  const outputItemId = activeJob?.outputItemId || preview?.outputItemId || "";
+  const outputCount = Number(activeJob?.outputCount || preview?.outputCount || 1);
+  const outputName = outputItemId ? itemName(outputItemId) : "";
+  const orderMatch = outputItemId
+    ? activeJob?.orderMatch || preview?.orderMatch || workshopOutputOrderMatchSpec(outputItemId, outputCount)
+    : null;
+  const shopTags = outputItemId ? shopTagsForItem(outputItemId, ecologyCourtyardSummary()) : [];
+  const shopTag = prioritizeShopTag(shopTags, new Map(), "food");
+  const shopTagText = shopTagLabel(shopTag);
   return workshopOpeningValueWorldSpecFromRuntimeWorld({
     width,
     height,
@@ -52173,19 +52154,23 @@ function workshopOpeningValueWorldSpecBridge(
     ecologySummary: ecologyCourtyardSummary(),
     prioritizeShopTag,
     shopTagLabel,
+    copy: workshopOpeningValueWorldCopy({
+      recipe,
+      preview,
+      activeJob,
+      orderMatch,
+      outputName,
+      shopTagText,
+    }),
   });
 }
 
 function workshopOpeningValueWorldAtCanvasPoint(px, py) {
-  const spec = workshopOpeningValueWorldSpecBridge();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return workshopOpeningValueWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: workshopOpeningValueWorldSpecBridge(),
+  });
 }
 
 function focusWorkshopOpeningValueWorldFromCanvas(spec = workshopOpeningValueWorldSpecBridge()) {
