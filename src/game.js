@@ -179,6 +179,7 @@ import {
   drawWorkshopOrderQueueWorldBoardWorld,
   workshopOrderQueueWorldBoardSpecFromRuntimeWorld,
   drawWorkshopReadyOrderDispatchWorldWorld,
+  workshopReadyOrderDispatchWorldAtCanvasPointWorld,
   workshopReadyOrderDispatchWorldSpecFromRuntimeWorld,
   drawWorkshopSpiritAssistActionWorldWorld,
   workshopSpiritAssistActionWorldSpecFromRuntimeWorld,
@@ -28542,26 +28543,12 @@ function drawWorkshopToShopStockBridgeWorld(ctx, spec = workshopToShopStockBridg
 }
 
 function workshopReadyOrderDispatchWorldSpec() {
-  const aromaSpec = workshopAromaOrderWorldSpec();
+  return workshopReadyOrderDispatchWorldSpecBridge();
+}
+
+function workshopReadyOrderDispatchWorldCopy(aromaSpec, rewardText = "订单奖励") {
   if (!aromaSpec?.ready || !aromaSpec.orderId) return null;
-  const order = visibleOrders().find((entry) => entry.order_id === aromaSpec.orderId);
-  if (!order || !canDeliverOrder(order)) return null;
-  const orderMatch = aromaSpec.orderMatch || workshopOutputOrderMatchSpec(aromaSpec.aroma?.itemId || "", aromaSpec.aroma?.outputCount || 1);
-  const rewardText = [
-    Number(order.reward_gold || 0) ? `${Number(order.reward_gold || 0)} 灵石` : "",
-    Number(order.reward_fame || 0) ? `声望 +${Number(order.reward_fame || 0)}` : "",
-  ].filter(Boolean).join(" / ") || "订单奖励";
   return {
-    key: `${state.day}:${aromaSpec.orderId}:${aromaSpec.outputLabel}`,
-    day: state.day,
-    order,
-    orderId: aromaSpec.orderId,
-    orderTitle: aromaSpec.orderTitle,
-    outputLabel: aromaSpec.outputLabel,
-    outputCount: Number(orderMatch?.outputCount || aromaSpec.aroma?.outputCount || 1),
-    rewardText,
-    path: aromaSpec.path,
-    rect: { x: 522, y: 314, width: 250, height: 92 },
     title: "主世界出锅可交单",
     headline: "出锅交单车已装好",
     detail: `${aromaSpec.outputLabel} -> ${aromaSpec.orderTitle}`,
@@ -28570,6 +28557,7 @@ function workshopReadyOrderDispatchWorldSpec() {
     manualLabel: "确认后手动点交付",
     safety: "不会自动交单或消耗库存",
     cta: "出锅交单 · 可点",
+    rewardText,
   };
 }
 
@@ -28583,10 +28571,10 @@ function workshopReadyOrderDispatchWorldSpecBridge() {
     : null;
   const rewardText = order
     ? [
-      Number(order.reward_gold || 0) ? `${Number(order.reward_gold || 0)} spirit stones` : "",
-      Number(order.reward_fame || 0) ? `Fame +${Number(order.reward_fame || 0)}` : "",
-    ].filter(Boolean).join(" / ") || "Order reward"
-    : "Order reward";
+      Number(order.reward_gold || 0) ? `${Number(order.reward_gold || 0)} 灵石` : "",
+      Number(order.reward_fame || 0) ? `声望 +${Number(order.reward_fame || 0)}` : "",
+    ].filter(Boolean).join(" / ") || "订单奖励"
+    : "订单奖励";
   return workshopReadyOrderDispatchWorldSpecFromRuntimeWorld({
     day: state.day,
     aromaSpec,
@@ -28594,19 +28582,16 @@ function workshopReadyOrderDispatchWorldSpecBridge() {
     deliverable: order ? canDeliverOrder(order) : false,
     orderMatch,
     rewardText,
+    copy: workshopReadyOrderDispatchWorldCopy(aromaSpec, rewardText),
   });
 }
 
 function workshopReadyOrderDispatchWorldAtCanvasPoint(px, py) {
-  const spec = workshopReadyOrderDispatchWorldSpecBridge();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return (
-    px >= rect.x
-    && px <= rect.x + rect.width
-    && py >= rect.y
-    && py <= rect.y + rect.height
-  ) ? spec : null;
+  return workshopReadyOrderDispatchWorldAtCanvasPointWorld({
+    px,
+    py,
+    spec: workshopReadyOrderDispatchWorldSpecBridge(),
+  });
 }
 
 function focusWorkshopReadyOrderDispatchWorldFromCanvas(spec = workshopReadyOrderDispatchWorldSpecBridge()) {

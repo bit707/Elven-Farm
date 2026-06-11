@@ -1549,9 +1549,11 @@ export function workshopReadyOrderDispatchWorldSpecFromRuntimeWorld({
   deliverable = false,
   orderMatch = null,
   rewardText = "Order reward",
+  copy = null,
 } = {}) {
   if (!aromaSpec?.ready || !aromaSpec.orderId) return null;
   if (!order || !deliverable) return null;
+  const safeCopy = copy || {};
 
   return {
     key: `${day}:${aromaSpec.orderId}:${aromaSpec.outputLabel}`,
@@ -1564,15 +1566,30 @@ export function workshopReadyOrderDispatchWorldSpecFromRuntimeWorld({
     rewardText,
     path: aromaSpec.path,
     rect: { x: 522, y: 314, width: 250, height: 92 },
-    title: "World output ready for order",
-    headline: "Delivery cart is loaded",
-    detail: `${aromaSpec.outputLabel} -> ${aromaSpec.orderTitle}`,
-    routeLabel: "Delivery route",
-    boardLabel: "Order board cashier",
-    manualLabel: "Confirm, then deliver manually",
-    safety: "Will not auto-deliver or consume stock",
-    cta: "Output order - click",
+    title: safeCopy.title || "World output ready for order",
+    headline: safeCopy.headline || "Delivery cart is loaded",
+    detail: safeCopy.detail || `${aromaSpec.outputLabel} -> ${aromaSpec.orderTitle}`,
+    routeLabel: safeCopy.routeLabel || "Delivery route",
+    boardLabel: safeCopy.boardLabel || "Order board cashier",
+    manualLabel: safeCopy.manualLabel || "Confirm, then deliver manually",
+    safety: safeCopy.safety || "Will not auto-deliver or consume stock",
+    cta: safeCopy.cta || "Output order - click",
   };
+}
+
+export function workshopReadyOrderDispatchWorldAtCanvasPointWorld({
+  px,
+  py,
+  spec = null,
+} = {}) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return (
+    px >= rect.x
+    && px <= rect.x + rect.width
+    && py >= rect.y
+    && py <= rect.y + rect.height
+  ) ? spec : null;
 }
 
 export function drawWorkshopReadyOrderDispatchWorldWorld({
