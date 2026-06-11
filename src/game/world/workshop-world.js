@@ -994,6 +994,57 @@ export function workshopSpiritAssistActionWorldSpecFromRuntimeWorld({
   };
 }
 
+export function workshopSpiritAssistActionPanelCopyFromRuntimeWorld({
+  helper = null,
+  helperText = "",
+  activeJob = null,
+  activeStage = null,
+  copy = null,
+  orderMatch = null,
+  panelCopy = null,
+} = {}) {
+  if (!helper || !copy) return null;
+  const safePanelCopy = panelCopy || {};
+  const helperName = helper.name || "Helper";
+  const orderDetail = orderMatch?.orderId
+    ? orderMatch.ready
+      ? safePanelCopy.readyOrderDetail || "Order becomes deliverable after this pot"
+      : `${safePanelCopy.linkedOrderPrefix || "Order connected / "}${orderMatch.missingText || safePanelCopy.missingFallback || "still missing materials"}`
+    : activeJob
+      ? safePanelCopy.activeJobDetail || `${activeJob.outputItemName} will choose a route after stocking`
+      : safePanelCopy.idleDetail || "Pick a recipe, then schedule manually";
+  return {
+    title: safePanelCopy.title || "Spirit assist micro-action - click",
+    headline: safePanelCopy.headline || (activeJob
+      ? `${helperName}${safePanelCopy.activeHeadlineSuffix || " is assisting the line"}`
+      : `${helperName}${safePanelCopy.idleHeadlineSuffix || " is waiting by the workshop"}`),
+    cta: safePanelCopy.cta || "Focus companion panel / workshop queue",
+    nodes: [
+      {
+        key: "helper",
+        badge: safePanelCopy.helperBadge || "HLP",
+        title: safePanelCopy.helperTitle || "Who helps",
+        detail: helperText,
+        accent: "#8f5f3f",
+      },
+      {
+        key: "action",
+        badge: copy.badge,
+        title: copy.title,
+        detail: copy.action,
+        accent: copy.accent,
+      },
+      {
+        key: "route",
+        badge: orderMatch?.orderId ? (safePanelCopy.routeOrderBadge || "ORD") : activeJob ? (safePanelCopy.routePotBadge || "POT") : (safePanelCopy.routeIdleBadge || "IDL"),
+        title: activeJob ? (safePanelCopy.routeActiveTitle || "Next step") : (safePanelCopy.routeIdleTitle || "Queue next"),
+        detail: orderDetail,
+        accent: orderMatch?.ready ? "#286f58" : "#b47d2f",
+      },
+    ],
+  };
+}
+
 export function workshopSpiritAssistActionWorldAtCanvasPointWorld({
   px,
   py,

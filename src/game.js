@@ -197,6 +197,7 @@ import {
   workshopReadyOrderDispatchWorldCopyFromRuntimeWorld,
   workshopReadyOrderDispatchWorldSpecFromRuntimeWorld,
   drawWorkshopSpiritAssistActionWorldWorld,
+  workshopSpiritAssistActionPanelCopyFromRuntimeWorld,
   workshopSpiritAssistActionWorldAtCanvasPointWorld,
   workshopSpiritAssistActionWorldSpecFromRuntimeWorld,
   workshopToShopStockBridgeWorldCopyFromRuntimeWorld,
@@ -52152,45 +52153,35 @@ function workshopSpiritAssistActionPanelCopy({
   copy = null,
   orderMatch = null,
 } = {}) {
-  if (!helper || !copy) return null;
-  const helperName = helper.name || "精怪";
-  const orderDetail = orderMatch?.orderId
-    ? orderMatch.ready
-      ? "出锅后订单可交"
-      : `接单中 · ${orderMatch.missingText || "还差余料"}`
-    : activeJob
-      ? `${activeJob.outputItemName} 入仓后再定去向`
-      : "选配方后手动排产";
-  return {
-    title: "精怪帮火小动作 · 可点",
-    headline: activeJob
-      ? `${helperName}在${activeStage?.label || activeJob.currentStage?.label || "灶边"}帮火`
-      : `${helperName}守着后厂候工`,
-    cta: "只定位伙伴栏/工坊队列",
-    nodes: [
-      {
-        key: "helper",
-        badge: "精",
-        title: "谁在帮",
-        detail: helperText,
-        accent: "#8f5f3f",
-      },
-      {
-        key: "action",
-        badge: copy.badge,
-        title: copy.title,
-        detail: copy.action,
-        accent: copy.accent,
-      },
-      {
-        key: "route",
-        badge: orderMatch?.orderId ? "单" : activeJob ? "锅" : "候",
-        title: activeJob ? "下一步看哪" : "排产口",
-        detail: orderDetail,
-        accent: orderMatch?.ready ? "#286f58" : "#b47d2f",
-      },
-    ],
-  };
+  return workshopSpiritAssistActionPanelCopyFromRuntimeWorld({
+    helper,
+    helperText,
+    activeJob,
+    activeStage,
+    copy,
+    orderMatch,
+    panelCopy: {
+      title: "精怪帮火小动作 · 可点",
+      headline: helper?.name
+        ? activeJob
+          ? `${helper.name}在${activeStage?.label || activeJob.currentStage?.label || "灶边"}帮火`
+          : `${helper.name}守着后厂候工`
+        : "",
+      cta: "只定位伙伴栏/工坊队列",
+      readyOrderDetail: "出锅后订单可交",
+      linkedOrderPrefix: "接单中 · ",
+      missingFallback: "还差余料",
+      activeJobDetail: activeJob ? `${activeJob.outputItemName} 入仓后再定去向` : "",
+      idleDetail: "选配方后手动排产",
+      helperBadge: "精",
+      helperTitle: "谁在帮",
+      routeOrderBadge: "单",
+      routePotBadge: "锅",
+      routeIdleBadge: "候",
+      routeActiveTitle: "下一步看哪",
+      routeIdleTitle: "排产口",
+    },
+  });
 }
 
 function workshopSpiritAssistActionWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, livingState = currentLivingWorldState(), lineSpec = workshopProductionLineSpec(livingState?.queue || state.workshopQueue || [])) {
