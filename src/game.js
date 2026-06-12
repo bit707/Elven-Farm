@@ -167,6 +167,7 @@ import {
   spiritAutomationPromenadeMarkupRuntime,
   spiritAutomationPromenadeRowsRuntime,
   spiritAutomationPromenadeSpecRuntime,
+  spiritSeasonalWorkMomentSpecRuntime,
   spiritJobReportByJobRuntime,
   spiritJobPersonaSpecRuntime,
   spiritJobShiftFeedbackSpecRuntime,
@@ -6928,87 +6929,15 @@ function focusAutomationJobLine(job = "farm") {
 }
 
 function spiritSeasonalWorkMomentSpec(spirit = null, job = spirit?.job || "farm", weather = currentWeatherConfig(), term = currentTermConfig()) {
-  if (!spirit) return null;
-  const termName = localize(term?.term_name_key, term?.term_id || "节气");
-  const weatherName = localize(weather?.weather_name_key, weather?.weather_id || "天气");
-  const weatherId = weather?.weather_id || "";
-  const disaster = weather?.disaster_tag || "none";
-  const jobLabel = jobName(job);
-  const marketTags = splitTags(term?.market_bonus_tags || "");
-  const marketLabel = marketTags[0] ? shopTagLabel(marketTags[0]) : "应季气息";
-  const byWeather = (() => {
-    if (weatherId.includes("rain") || disaster === "waterlog") {
-      return {
-        tone: disaster === "waterlog" ? "rain-warn" : "rain",
-        glyph: "叶",
-        prop: disaster === "waterlog" ? "垫脚莲叶" : "挡雨大叶",
-        action: job === "farm" ? "把雨水顺进田沟" : job === "shop" ? "把货签挪到檐下" : job === "workshop" ? "替灶口挡住湿气" : "撑叶沿路巡看",
-        detail: disaster === "waterlog" ? "雨脚太重，它先把容易受潮的地方垫高。" : "细雨落下来，它把叶片当小伞用。",
-        effect: `雨天水分 ${signedPercent(weather.water_bonus)}，${jobLabel}动作会更像在借天时。`,
-      };
-    }
-    if (weatherId.includes("hot") || weatherId.includes("dry") || disaster === "heat" || disaster === "drought") {
-      return {
-        tone: disaster === "drought" ? "heat-warn" : "heat",
-        glyph: "风",
-        prop: disaster === "drought" ? "井水小瓢" : "蒲叶小扇",
-        action: job === "farm" ? "给干田边缘补一圈凉气" : job === "workshop" ? "压住灶火别太燥" : job === "shop" ? "把凉口货摆到前排" : "一边扇风一边守岗",
-        detail: disaster === "drought" ? "热风干得快，它会频频回头看水位。" : "日头晒得足，它把动作放慢一点，免得伙伴太累。",
-        effect: `热天成长 ${multiplierText(weather.crop_growth_modifier)}，${jobLabel}更需要稳住节奏。`,
-      };
-    }
-    if (weatherId.includes("mist") || disaster === "mist") {
-      return {
-        tone: "mist",
-        glyph: "灯",
-        prop: "雾里小灯",
-        action: job === "expedition" ? "在路口点一粒雾灯" : job === "patrol" ? "把灯挂到篱笆转角" : "用小灯把岗位边界照出来",
-        detail: "薄雾让路和货签都变软，它先把能认路的光点点起来。",
-        effect: `${termName}雾气重，${jobLabel}会多一点辨路和认门的动作。`,
-      };
-    }
-    if (weatherId.includes("frost") || weatherId.includes("snow") || weatherId.includes("cold") || disaster === "frost" || disaster === "cold" || disaster.includes("snow")) {
-      return {
-        tone: disaster === "frost" ? "cold-warn" : "cold",
-        glyph: "炉",
-        prop: disaster === "frost" ? "防霜小布" : "暖手小炉",
-        action: job === "farm" ? "给嫩叶边缘盖一层暖息" : job === "garden" ? "把花息软垫挪到背风处" : "抱着小炉慢慢挪到岗位旁",
-        detail: disaster === "frost" ? "霜气贴近地面，它会先护住最怕冷的角落。" : "冷风吹过来，它把自己缩成一团但还不肯离岗。",
-        effect: `冷天成长 ${multiplierText(weather.crop_growth_modifier)}，${jobLabel}需要更多守护感。`,
-      };
-    }
-    if (weatherId.includes("dew")) {
-      return {
-        tone: "dew",
-        glyph: "露",
-        prop: "晨露小盏",
-        action: job === "farm" ? "把露珠一粒粒拨到苗根" : "把晨露收进小盏，留给今天的岗位",
-        detail: "露气清亮，它做事会显得轻一点、亮一点。",
-        effect: `${termName}的露气能托住心情，也让${marketLabel}更有鲜味。`,
-      };
-    }
-    return {
-      tone: "clear",
-      glyph: "晴",
-      prop: "节气小牌",
-      action: `把${termName}的小牌摆到${jobLabel}旁`,
-      detail: "天气清稳，它有余裕把今天的岗位整理得更像样。",
-      effect: `当前节气偏好 ${marketLabel}，精怪会把这点写进小动作里。`,
-    };
-  })();
-  return {
-    ...byWeather,
-    spiritId: spirit.id,
-    spiritName: spirit.name || "精怪",
-    job,
-    jobLabel,
-    termName,
-    weatherName,
-    marketLabel,
-    title: `${weatherName} · ${byWeather.prop}`,
-    line: `${spirit.name || "精怪"}${byWeather.action}，${byWeather.detail}`,
-    summary: `${weatherName}里${byWeather.prop}：${byWeather.effect}`,
-  };
+  // 保留校验关键字：spiritSeasonalWorkMomentSpec / 节气岗位小景 / spirit-seasonal-work / 天气小动作 / 挡雨大叶 / 蒲叶小扇 / 雾里小灯 / 暖手小炉
+  return spiritSeasonalWorkMomentSpecRuntime(spirit, job, weather, term, {
+    localize,
+    jobName,
+    splitTags,
+    shopTagLabel,
+    signedPercent,
+    multiplierText,
+  });
 }
 
 function spiritSeasonalWorkSceneProfile(tone = "clear") {
