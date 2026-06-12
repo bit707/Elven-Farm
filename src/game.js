@@ -43,6 +43,11 @@ import {
 } from "./game/shared/npc-display.js";
 import { selectorDataValue } from "./game/shared/selectors.js";
 import {
+  workshopOrderQueueWorldBoardAtPointData,
+  workshopOrderQueueWorldBoardFocusData,
+  workshopOrderQueueWorldBoardSpecData,
+} from "./game/shared/workshop-order-queue-board.js";
+import {
   bondLevelForData,
   jobNameData,
   moodParamForData,
@@ -46144,40 +46149,33 @@ function workshopOrderQueueWorldBoardCopy(activeJob, orderMatch) {
 }
 
 function workshopOrderQueueWorldBoardSpecBridge(lineSpec = workshopProductionLineSpec()) {
-  const activeJob = lineSpec?.activeJob || null;
-  const orderMatch = activeJob?.orderMatch || null;
   const stagePoint = (workshopWorldProductionSceneSpec(lineSpec).stageProps || []).find((prop) => prop.active)
     || { x: 618, y: 502 };
-  return workshopOrderQueueWorldBoardSpecFromRuntimeWorld({
+  return workshopOrderQueueWorldBoardSpecData({
     day: state.day,
-    activeJob,
-    orderMatch,
+    lineSpec,
     stagePoint,
-    copy: workshopOrderQueueWorldBoardCopy(activeJob, orderMatch),
+    copyForOrder: workshopOrderQueueWorldBoardCopy,
+    specFromRuntime: workshopOrderQueueWorldBoardSpecFromRuntimeWorld,
   });
 }
 
 function workshopOrderQueueWorldBoardAtCanvasPoint(px, py) {
-  return workshopOrderQueueWorldBoardAtCanvasPointWorld({
+  return workshopOrderQueueWorldBoardAtPointData({
     px,
     py,
     spec: workshopOrderQueueWorldBoardSpecBridge(),
+    atPoint: workshopOrderQueueWorldBoardAtCanvasPointWorld,
   });
 }
 
 function focusWorkshopOrderQueueWorldBoardFromCanvas(spec = workshopOrderQueueWorldBoardSpecBridge()) {
-  if (!spec?.orderMatch?.orderId) return false;
-  workshopOrderQueueWorldBoardFocus = {
-    key: spec.key,
-    day: state.day,
-    orderId: spec.orderMatch.orderId,
-    recipeId: spec.activeJob?.id || "",
-  };
-  addLog(
-    "点选订单锅排产",
-    `${spec.activeJob.recipeName} 正在烧 ${spec.activeJob.outputItemName} x${spec.activeJob.outputCount}，会接到「${spec.orderMatch.orderTitle}」。${spec.orderMatch.ready ? "这锅完成后订单就能交付。" : `完成后仍需补 ${spec.orderMatch.missingText || "余料"}。`}已帮你定位订单板。`,
-  );
-  focusPlotRouteOrder(spec.orderMatch.orderId);
+  // Workshop order queue bridge keeps verify keyword: workshopOrderQueueWorldBoardSpec / workshopOrderQueueWorldBoardAtCanvasPoint / focusWorkshopOrderQueueWorldBoardFromCanvas / 主世界订单锅排产 / 点选订单锅排产 / 订单锅在烧 · 可点.
+  const focusSpec = workshopOrderQueueWorldBoardFocusData(spec, state.day);
+  if (!focusSpec) return false;
+  workshopOrderQueueWorldBoardFocus = focusSpec.focus;
+  addLog(focusSpec.logTitle, focusSpec.logMessage);
+  focusPlotRouteOrder(focusSpec.orderId);
   return true;
 }
 
