@@ -19,3 +19,31 @@ export function normalizeShopRestockTargetData(target = null, options = {}) {
     canceledDay: Number(target.canceledDay || 0),
   };
 }
+
+export function normalizeShopCustomerDecisionLedgerData(ledger = null, options = {}) {
+  if (!ledger) return null;
+  const day = Number(options.day || 0);
+  const shopTagLabelFor = typeof options.shopTagLabel === "function" ? options.shopTagLabel : () => "";
+  return {
+    day: Number(ledger.day || day),
+    title: ledger.title || "顾客决策账页",
+    headline: ledger.headline || "旧铺还在等一条清楚的成交理由",
+    mainCustomer: ledger.mainCustomer || "客群未定",
+    mainCustomerArchetype: ledger.mainCustomerArchetype || "",
+    hotTag: ledger.hotTag || "",
+    hotTagLabel: ledger.hotTagLabel || (ledger.hotTag ? shopTagLabelFor(ledger.hotTag) : "应季货"),
+    visitors: Number(ledger.visitors || 0),
+    buyers: Number(ledger.buyers || 0),
+    leavers: Number(ledger.leavers || 0),
+    sales: Number(ledger.sales || 0),
+    conversion: Number(ledger.conversion || 0),
+    themeName: ledger.themeName || "",
+    themeScore: Number(ledger.themeScore || 0),
+    summaryLines: Array.isArray(ledger.summaryLines) ? ledger.summaryLines.map(String).slice(0, 3) : [],
+    chains: Array.isArray(ledger.chains) ? ledger.chains.map((entry) => ({ ...entry })).slice(0, 4) : [],
+    blockers: Array.isArray(ledger.blockers) ? ledger.blockers.map((entry) => ({ ...entry })).slice(0, 3) : [],
+    nextAction: ledger.nextAction || "",
+    mood: ledger.mood || "",
+    evidence: ledger.evidence || "",
+  };
+}
