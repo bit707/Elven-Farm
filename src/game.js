@@ -91,6 +91,12 @@ import {
   orderSeedRestockWorldRowsData,
 } from "./game/shared/order-seed-restock-board.js";
 import {
+  orderMarketPrepWorldBoardAtPointData,
+  orderMarketPrepWorldBoardFocusData,
+  orderMarketPrepWorldBoardSpecData,
+  orderMarketPrepWorldRowsData,
+} from "./game/shared/order-market-prep-board.js";
+import {
   workshopSpiritAssistActionFocusData,
   workshopSpiritAssistActionWorldAtPointData,
   workshopSpiritAssistActionWorldSpecData,
@@ -26109,70 +26115,29 @@ function drawOrderSeedRestockWorldBoard(ctx, spec = orderSeedRestockWorldBoardSp
 }
 
 function orderMarketPrepWorldRows(limit = 3) {
-  const orders = visibleOrders();
-  if (orders.some((order) => canDeliverOrder(order))) return [];
-  if (orderCraftPrepWorldRows(1).length || orderSeedPrepWorldRows(1).length || orderSeedRestockWorldRows(1).length) return [];
-  return orders
-    .filter((order) => !canDeliverOrder(order))
-    .flatMap((order) => {
-      const status = orderNeedStatus(order);
-      return status.missing
-        .map((missing) => {
-          const recipe = bestRecipeForOutput(missing.itemId);
-          if (!recipe || !recipeUnlocked(recipe) || !recipeMachine(recipe) || recipeCraftReady(recipe)) return null;
-          const missingInputs = aggregatedRecipeInputs(recipe)
-            .map(({ itemId, count }) => ({
-              itemId,
-              count: Number(count || 1),
-              have: Number(state.inventory[itemId] || 0),
-              price: buyPrice(itemId),
-            }))
-            .filter((entry) => entry.have < entry.count && entry.price > 0 && !String(entry.itemId || "").startsWith("seed_"));
-          if (!missingInputs.length) return null;
-          const input = missingInputs[0];
-          const missingCount = Math.max(1, input.count - input.have);
-          const totalCost = input.price * missingCount;
-          if (state.gold < totalCost) return null;
-          const rewardGold = Number(order.reward_gold || 0);
-          const rewardFame = Number(order.reward_fame || 0);
-          const outputHave = Number(state.inventory[missing.itemId] || 0);
-          const priority = 44
-            + rewardGold / 32
-            + rewardFame * 7
-            + Math.max(0, 18 - Number(recipe.base_process_time || 60) / 12)
-            + (String(order.order_id || "").startsWith("order_year2_") ? 16 : 0);
-          return {
-            order,
-            orderId: order.order_id,
-            orderTitle: orderTitle(order),
-            npc: npcName(order.issuer_id || order.reward_favor_npc),
-            itemId: missing.itemId,
-            itemName: itemName(missing.itemId),
-            outputHave,
-            outputNeed: Number(missing.count || 1),
-            recipe,
-            recipeId: recipe.recipe_id,
-            recipeTitle: recipeName(recipe),
-            inputId: input.itemId,
-            inputName: itemName(input.itemId),
-            inputHave: input.have,
-            inputNeed: input.count,
-            missingCount,
-            price: input.price,
-            totalCost,
-            machineText: recipeMachineHint(recipe),
-            inputText: recipeInputStatus(recipe, 3) || "原料已齐",
-            rewardText: [
-              rewardGold ? `${rewardGold} 灵石` : "",
-              rewardFame ? `声望 +${rewardFame}` : "",
-            ].filter(Boolean).join(" / ") || "订单奖励",
-            priority,
-          };
-        })
-        .filter(Boolean);
-    })
-    .sort((a, b) => b.priority - a.priority || a.orderTitle.localeCompare(b.orderTitle, "zh-Hans-CN"))
-    .slice(0, limit);
+  return orderMarketPrepWorldRowsData({
+    limit,
+    orders: visibleOrders(),
+    inventory: state.inventory,
+    gold: state.gold,
+    craftPrepRows: orderCraftPrepWorldRows(1),
+    seedPrepRows: orderSeedPrepWorldRows(1),
+    seedRestockRows: orderSeedRestockWorldRows(1),
+    canDeliverOrder,
+    orderNeedStatus,
+    bestRecipeForOutput,
+    recipeUnlocked,
+    recipeMachine,
+    recipeCraftReady,
+    aggregatedRecipeInputs,
+    buyPrice,
+    orderTitle,
+    npcName,
+    itemName,
+    recipeName,
+    recipeMachineHint,
+    recipeInputStatus,
+  });
 }
 
 function orderMarketPrepWorldBoardSpec(width = 960, height = 640) {
@@ -26186,37 +26151,33 @@ const ORDER_MARKET_PREP_WORLD_BOARD_COPY = {
 
 function orderMarketPrepWorldBoardSpecBridge(width = 960, height = 640) {
   const rows = orderMarketPrepWorldRows(3);
-  return orderMarketPrepWorldBoardSpecWorld({
+  // Order market prep bridge keeps verify keywords:
+  // orderMarketPrepWorldBoardSpec / orderMarketPrepWorldBoardAtCanvasPoint / focusOrderMarketPrepWorldBoardFromCanvas / drawOrderMarketPrepWorldBoard / 主世界订单缺口市集备料 / 市集备料 / 点选订单市集备料.
+  return orderMarketPrepWorldBoardSpecData({
     width,
     height,
     day: state.day,
     rows,
     copy: ORDER_MARKET_PREP_WORLD_BOARD_COPY,
+    specWorld: orderMarketPrepWorldBoardSpecWorld,
   });
 }
 
 function orderMarketPrepWorldBoardAtCanvasPoint(px, py) {
-  return orderMarketPrepWorldBoardAtCanvasPointWorld({
+  return orderMarketPrepWorldBoardAtPointData({
     px,
     py,
     spec: orderMarketPrepWorldBoardSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
+    atPoint: orderMarketPrepWorldBoardAtCanvasPointWorld,
   });
 }
 
 function focusOrderMarketPrepWorldBoardFromCanvas(spec = orderMarketPrepWorldBoardSpecBridge()) {
-  if (!spec?.top?.recipeId) return false;
-  const { top } = spec;
-  orderMarketPrepWorldBoardFocus = { key: spec.key, day: state.day, orderId: top.orderId, recipeId: top.recipeId, inputId: top.inputId };
-  state.selectedRecipeId = top.recipeId;
-  queuePlotRouteFocusTarget({
-    selector: "#recipeSelect",
-    fallbackSelector: "#inventoryList",
-    label: "点选订单市集备料",
-    log: `${top.orderTitle} 需要 ${top.itemName} ${top.outputHave}/${top.outputNeed}。${top.recipeTitle} 已切到加工栏，但还差 ${top.inputName} ${top.inputHave}/${top.inputNeed}；市集估价 ${top.price} 灵石/份，补 ${top.missingCount} 份约 ${top.totalCost} 灵石。`,
-    panelGroup: "core",
-    missingTitle: "订单市集备料",
-    missingLog: `${top.recipeTitle} 已选中，但配方栏暂时没有找到。先从背包和订单生产路线确认 ${top.inputName} 来源。`,
-  });
+  const focusSpec = orderMarketPrepWorldBoardFocusData(spec, state.day);
+  if (!focusSpec) return false;
+  orderMarketPrepWorldBoardFocus = focusSpec.focus;
+  state.selectedRecipeId = focusSpec.selectedRecipeId;
+  queuePlotRouteFocusTarget(focusSpec.target);
   return true;
 }
 
