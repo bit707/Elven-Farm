@@ -163,6 +163,7 @@ import {
   applySpiritJobSynergiesRuntime,
   spiritNightWorkFeedbackSpecRuntime,
   spiritJobReportByJobRuntime,
+  spiritJobPersonaSpecRuntime,
   spiritJobSynergyForSpiritRuntime,
   spiritJobSynergyLineRuntime,
   spiritJobSynergyNetworkMarkupRuntime,
@@ -6846,69 +6847,17 @@ function spiritWorkRangeSpec(spirit, job = spirit?.job || "farm") {
 }
 
 function spiritJobPersonaSpec(spirit, job = spirit.job || "farm") {
-  const helperName = spirit?.name || "精怪";
-  const planted = state.plots.filter((plot) => plot.cropId);
-  const mature = planted.filter((plot) => plot.mature);
-  const unwatered = planted.filter((plot) => !plot.watered && !plot.mature);
-  const workshopFocus = state.workshopAromaState?.liveFocus || workshopQueueFocusSpec();
-  const shopFocus = normalizeShopOpeningState(state.shopOpeningState).liveFocus;
-  const riskCount = unresolvedRisks().length;
-  const traveling = (state.tradeRuns || []).filter((run) => run.status === "traveling").length;
-  const gardenMoods = state.spirits.filter((entry) => entry.id !== spirit?.id).map((entry) => Number(entry.mood || 0));
-  const lowestMood = gardenMoods.length ? Math.min(...gardenMoods) : Number(spirit?.mood || 0);
-  const specs = {
-    farm: {
-      glyph: "水",
-      tone: "water",
-      action: unwatered.length > 0 ? `巡田补水 ${unwatered.length} 格` : mature.length > 0 ? `守着 ${mature.length} 块成熟田` : planted.length > 0 ? "压稳田垄夜露" : "等你播下新种",
-      focus: unwatered.length > 0 ? "缺水灵田" : mature.length > 0 ? "成熟作物" : "灵田土脉",
-      advice: unwatered.length > 0 ? "入夜前或交给精怪补水，明早成长更稳。" : mature.length > 0 ? "先收成熟作物，把库存转成工坊原料。" : "继续播种，农田岗才有发挥空间。",
-    },
-    workshop: {
-      glyph: "火",
-      tone: "ember",
-      action: state.workshopQueue.length > 0 ? `灶边稳火 ${workshopFocus.progress}%` : "擦亮锅铲等排产",
-      focus: workshopFocus.outputItemName || "工坊火候",
-      advice: state.workshopQueue.length > 0 ? workshopFocus.advice : "安排当前配方入夜生产，工坊岗会缩短等待。",
-    },
-    shop: {
-      glyph: "铃",
-      tone: "gold",
-      action: shopFocus ? `复盘 ${shopFocus.buyers} 单成交` : state.shopReport.length > 0 ? "整理旧铺反馈" : "练习招客话术",
-      focus: shopFocus?.topItemName || shopFocus?.hotTagLabel || "旧铺门口",
-      advice: shopFocus?.shelfAdvice || "开铺后会记录顾客为什么买、为什么离开。",
-    },
-    patrol: {
-      glyph: "灯",
-      tone: "jade",
-      action: riskCount > 0 ? `巡夜盯防 ${riskCount} 条风险` : "沿篱笆巡灯",
-      focus: riskCount > 0 ? "节气风险" : "洞天边界",
-      advice: riskCount > 0 ? "先处理风险，巡逻岗能帮你减轻入夜损失。" : "保持巡逻岗，可以在节气风险出现时更快响应。",
-    },
-    expedition: {
-      glyph: "旗",
-      tone: "sky",
-      action: traveling > 0 ? `校点 ${traveling} 支商队` : "测风看路",
-      focus: traveling > 0 ? "在途商路" : "可派遣路线",
-      advice: traveling > 0 ? "等商队返航后查看收益，再决定下一条路线。" : "派遣精怪短途商路，可以把库存和探索转成额外收益。",
-    },
-    garden: {
-      glyph: "花",
-      tone: "flower",
-      action: lowestMood < 60 ? "安抚低落伙伴" : "收拢庭院花息",
-      focus: lowestMood < 60 ? "伙伴心情" : "庭院共鸣",
-      advice: lowestMood < 60 ? "庭院岗能托住心情和体力，适合长线养成。" : "保持庭院岗，有助于稳定每日状态和同住事件。",
-    },
-  };
-  const spec = specs[job] || specs.farm;
-  return {
-    ...spec,
-    label: jobName(job),
-    helperName,
-    efficiency: multiplierText(jobEfficiency(spirit, job)),
-    specialty: spiritJobSpecialtyLabel(spirit, job),
-    shortLine: `${spec.glyph} · ${spec.action}`,
-  };
+  // 保留校验关键字：spiritJobPersonaSpec / spirit-job-persona / 浇水灵珠 / 灶火星屑 / 招客话牌 / 自动浇水轨迹 / 工坊投料 / 补货跑动 / 巡灯扫线 / 远征旗路 / 庭院安抚波
+  return spiritJobPersonaSpecRuntime(spirit, job, {
+    state,
+    workshopFocus: state.workshopAromaState?.liveFocus || workshopQueueFocusSpec(),
+    shopFocus: normalizeShopOpeningState(state.shopOpeningState).liveFocus,
+    riskCount: unresolvedRisks().length,
+    jobName,
+    multiplierText,
+    jobEfficiency,
+    spiritJobSpecialtyLabel,
+  });
 }
 
 function spiritAutomationLineTarget(job = "farm") {
