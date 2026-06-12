@@ -25,6 +25,11 @@ import {
   recipeNameData,
   skillNameData,
 } from "./game/shared/name-resolvers.js";
+import {
+  npcNameData,
+  npcPortraitImageData,
+  npcPortraitSrcData,
+} from "./game/shared/npc-display.js";
 import { selectorDataValue } from "./game/shared/selectors.js";
 import {
   conditionLabelData,
@@ -4811,23 +4816,26 @@ function recipeName(recipe) {
 }
 
 function npcName(npcId) {
-  if (npcId === "player") return "你";
-  if (npcId === "spirit_group") return "精怪们";
-  const npc = data.npcsById.get(npcId);
-  if (npc) return localize(npc.npc_name_key, npcId);
-  const spiritInstance = state.spirits.find((spirit) => spirit.id === npcId);
-  if (spiritInstance?.name) return spiritInstance.name;
-  const spirit = data.spirits.find((entry) => entry.spirit_id === npcId);
-  if (spirit) return localize(spirit.spirit_name_key, npcId);
-  return npcId;
+  // NPC display bridge keeps verify keywords: npcName / spirit_group.
+  return npcNameData(npcId, {
+    localize,
+    npcsById: data.npcsById,
+    spiritCatalog: data.spirits,
+    spirits: state.spirits,
+  });
 }
 
 function npcPortraitSrc(npcId = "") {
-  return ASSET_SOURCES[npcId] ? assetSrc(ASSET_SOURCES[npcId]) : assetSrc("assets/customer-villager.svg");
+  // NPC portrait bridge keeps verify assets: assets/customer-villager.svg / assets/npc-xubo.svg / assets/npc-shen-gudeng.svg.
+  return npcPortraitSrcData(npcId, {
+    assetSources: ASSET_SOURCES,
+    assetSrc,
+  });
 }
 
 function npcPortraitImage(npcId = "") {
-  return images[npcId] || images.customer || null;
+  // NPC portrait bridge keeps verify keyword: npcPortraitImage.
+  return npcPortraitImageData(npcId, images);
 }
 
 function areaName(areaId) {
