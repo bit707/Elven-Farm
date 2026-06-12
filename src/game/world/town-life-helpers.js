@@ -40,3 +40,38 @@ export function townLifeShopMomentMarkerRect(point = null) {
   if (!point) return null;
   return { x: point.x + 30, y: point.y - 20, width: 48, height: 28 };
 }
+
+export function townLifeErrandRouteCueSpec(row = null, {
+  townLifeGreetingSeen = () => false,
+  townLifeErrandStatus = () => null,
+  townLifeErrandRouteSpec = () => null,
+  itemName = (itemId = "") => itemId,
+} = {}) {
+  const npcId = row?.npc?.npc_id || "";
+  if (!npcId || !townLifeGreetingSeen(npcId)) return null;
+  const errand = townLifeErrandStatus(row);
+  if (!errand || errand.completed) return null;
+  const route = townLifeErrandRouteSpec(errand);
+  if (!route) return null;
+  const type = route.type || route.action || "inventory";
+  const profiles = {
+    harvest: { glyph: "收", accent: "#48a868", label: "先收" },
+    recipe: { glyph: "炊", accent: "#8f5f3f", label: "看配方" },
+    seed: { glyph: "种", accent: "#286f58", label: "播种" },
+    material: { glyph: "水", accent: "#4d91a6", label: "补材料" },
+    inventory: { glyph: "备", accent: "#4d91a6", label: "查来源" },
+    stock: { glyph: "交", accent: "#b47d2f", label: "可交" },
+  };
+  const profile = profiles[type] || profiles.inventory;
+  return {
+    ...route,
+    type,
+    glyph: profile.glyph,
+    accent: profile.accent,
+    deliveryReady: Boolean(errand.ready),
+    plaqueLabel: errand.ready ? "交付牌" : "备货牌",
+    shortLabel: errand.ready ? "交付" : profile.label,
+    itemName: errand.itemName || route.itemName || itemName(errand.itemId),
+    missing: Math.max(0, Number(errand.count || 1) - Number(errand.have || 0)),
+  };
+}

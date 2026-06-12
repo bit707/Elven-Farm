@@ -17,6 +17,7 @@ import { applyVisiblePanelColumns, pulseFocusElement } from "./game/shared/focus
 import { selectorDataValue } from "./game/shared/selectors.js";
 import {
   townAreaWorldPoint as townAreaWorldPointHelper,
+  townLifeErrandRouteCueSpec as townLifeErrandRouteCueSpecHelper,
   townLifeNpcColor as townLifeNpcColorHelper,
   townLifeShopMomentMarkerRect as townLifeShopMomentMarkerRectHelper,
   townLifeWorldPoint as townLifeWorldPointHelper,
@@ -70438,33 +70439,13 @@ function drawTownLifeWeatherErrandEcho(ctx, echo, point, index = 0, motion = 0) 
 }
 
 function townLifeErrandRouteCueSpec(row = null) {
-  const npcId = row?.npc?.npc_id || "";
-  if (!npcId || !townLifeGreetingSeen(npcId)) return null;
-  const errand = townLifeErrandStatus(row);
-  if (!errand || errand.completed) return null;
-  const route = townLifeErrandRouteSpec(errand);
-  if (!route) return null;
-  const type = route.type || route.action || "inventory";
-  const profiles = {
-    harvest: { glyph: "收", accent: "#48a868", label: "先收" },
-    recipe: { glyph: "炊", accent: "#8f5f3f", label: "看配方" },
-    seed: { glyph: "种", accent: "#286f58", label: "播种" },
-    material: { glyph: "水", accent: "#4d91a6", label: "补材料" },
-    inventory: { glyph: "备", accent: "#4d91a6", label: "查来源" },
-    stock: { glyph: "交", accent: "#b47d2f", label: "可交" },
-  };
-  const profile = profiles[type] || profiles.inventory;
-  return {
-    ...route,
-    type,
-    glyph: profile.glyph,
-    accent: profile.accent,
-    deliveryReady: Boolean(errand.ready),
-    plaqueLabel: errand.ready ? "交付牌" : "备货牌",
-    shortLabel: errand.ready ? "交付" : profile.label,
-    itemName: errand.itemName || route.itemName || itemName(errand.itemId),
-    missing: Math.max(0, Number(errand.count || 1) - Number(errand.have || 0)),
-  };
+  // townLifeErrandRouteCueSpec bridge keeps verify keywords: 备货牌 交付牌 看备货路线 harvest recipe seed material inventory stock
+  return townLifeErrandRouteCueSpecHelper(row, {
+    townLifeGreetingSeen,
+    townLifeErrandStatus,
+    townLifeErrandRouteSpec,
+    itemName,
+  });
 }
 
 function drawTownLifeErrandRouteCue(ctx, cue, point, index = 0, motion = 0) {
