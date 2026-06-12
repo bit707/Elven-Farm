@@ -141,6 +141,9 @@ import {
   drawSleepPrepChecklistCardWorld,
 } from "./game/world/daily-action-cards.js";
 import {
+  sideDialogueHintForRuntime,
+} from "./game/world/side-quest-runtime.js";
+import {
   applyCohabRewardRuntime,
   cohabDailyMapForRuntime,
   cohabBuffValueRuntime,
@@ -40143,10 +40146,10 @@ function focusCohabAfterglowWindowFromCanvas(spec = cohabAfterglowWindowSpec()) 
 }
 
 function sideDialogueHintFor(npcId) {
-  const quest = data.sideQuests.find((entry) => entry.issuer_id === npcId);
-  if (!quest) return null;
-  const map = (data.sideDialogueByQuest.get(quest.quest_id) || [])[0];
-  return map ? { quest, map } : null;
+  return sideDialogueHintForRuntime(npcId, {
+    sideQuests: data.sideQuests,
+    sideDialogueByQuest: data.sideDialogueByQuest,
+  });
 }
 
 function shopDiagnosis(report, goods, themeScore) {
