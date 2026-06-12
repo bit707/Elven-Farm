@@ -149,6 +149,7 @@ import {
 import {
   gridMetricsRuntime,
   moveSelectionRuntime,
+  performActionRuntime,
   primaryActionRuntime,
   spendStaminaRuntime,
 } from "./game/world/field-basic-actions.js";
@@ -40199,30 +40200,27 @@ function primaryAction() {
 }
 
 function performAction(action) {
-  if (!state.dataReady && !["save", "load", "newGame", "skipDialogue"].includes(action)) {
-    addLog("配置未就绪", "请等待 CSV 配置载入完成。");
-    return;
-  }
-
-  const handlers = {
-    primary: primaryAction,
-    clear: clearDebris,
-    plant,
-    water,
-    harvest,
-    spirit: spiritAssist,
-    craft,
-    shop: openShop,
-    pet: () => petSpirit(state.spirits[0]?.id || ""),
-    repair: repairCanal,
-    sleep,
-    save: saveGame,
-    load: loadGame,
-    newGame,
-    skipDialogue: skipCutscene,
-  };
-
-  handlers[action]?.();
+  return performActionRuntime(action, {
+    dataReady: state.dataReady,
+    addLog,
+    handlers: {
+      primary: primaryAction,
+      clear: clearDebris,
+      plant,
+      water,
+      harvest,
+      spirit: spiritAssist,
+      craft,
+      shop: openShop,
+      pet: () => petSpirit(state.spirits[0]?.id || ""),
+      repair: repairCanal,
+      sleep,
+      save: saveGame,
+      load: loadGame,
+      newGame,
+      skipDialogue: skipCutscene,
+    },
+  });
 }
 
 function nextDayAdvice() {

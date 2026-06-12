@@ -55,3 +55,16 @@ export function primaryActionRuntime({
   if (!plot.watered) return water();
   return sleep();
 }
+
+export function performActionRuntime(action = "", {
+  dataReady = false,
+  addLog = () => null,
+  handlers = {},
+  dataNotReadyAllowedActions = ["save", "load", "newGame", "skipDialogue"],
+} = {}) {
+  if (!dataReady && !dataNotReadyAllowedActions.includes(action)) {
+    addLog("配置未就绪", "请等待 CSV 配置载入完成。");
+    return undefined;
+  }
+  return handlers[action]?.();
+}
