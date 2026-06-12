@@ -39,6 +39,8 @@ import {
 } from "./game/shared/spirit-resolvers.js";
 import {
   spiritEventOwnedSpiritData,
+  spiritEventReadyData,
+  spiritEventRewardTextData,
   spiritEventStageLabelData,
   spiritEventUpgradeConfigData,
   spiritUpgradeSnapshotData,
@@ -4979,33 +4981,18 @@ function upgradeSpiritToConfig(spirit, config, options = {}) {
 }
 
 function spiritEventReady(event) {
-  if (state.completedSpiritEvents.has(event.spirit_event_id)) return false;
-  const condition = event.trigger_condition || "";
-  if (condition === "first_spirit_birth") return state.spirits.some((spirit) => spirit.lineId === event.spirit_line_id);
-  if (condition === "first_auto_water_complete") return state.completed.has("assist");
-  if (condition === "first_fire_machine_assign") return state.completed.has("machine") || state.builtBuildings.has("build_furnace_001");
-  if (condition === "first_auto_storage_complete") return state.builtBuildings.has("build_storage_001");
-  if (condition === "first_cloth_recipe_complete") return state.completed.has("craft") && state.shopShelfTheme.includes("gift");
-  if (condition === "storage_box_count_2") return state.builtBuildings.size >= 3;
-  if (condition === "has_dungeon_runs_5") return state.dungeonClears.size > 0 || state.completed.has("dungeon_explore");
-  if (condition === "has_faction_order_active") return state.tradeRuns.some((run) => run.status === "traveling") || state.completed.has("trade_route_start");
-  if (condition.startsWith("current_term_")) return currentTermId() === `term_${condition.replace("current_term_", "")}`;
-  if (condition.includes("chapter_3_complete")) {
-    return state.completed.has("chapter_3_complete")
-      || state.completed.has("fire_core_restored")
-      || state.defeatedBosses.has("boss_chiyan_xiehou")
-      || state.claimedQuestRewards.has("quest_main_0302_shanghui_laike");
-  }
-  if (condition.includes("quest_main_0402")) return state.completed.has("repair") || state.dungeonClears.size > 0;
-  if (condition.includes("quest_main_0403")) return state.completed.has("solar_trial_complete") || state.completedSolarTrials.size > 0;
-  return conditionMet(condition);
+  // Spirit event bridge keeps verify literals: spiritEventReady / first_spirit_birth / first_auto_water_complete / first_fire_machine_assign / storage_box_count_2.
+  return spiritEventReadyData(event, {
+    state,
+    conditionMet,
+    currentTermId,
+  });
 }
 
 function spiritEventRewardText(event) {
-  if (event.reward_type === "item") return itemName(event.reward_param);
-  if (event.reward_type === "scene") return `演出 ${event.reward_param}`;
-  if (event.reward_type === "buff") return `记忆效果 ${event.reward_param}`;
-  return `${event.reward_type} ${event.reward_param}`;
+  return spiritEventRewardTextData(event, {
+    itemName,
+  });
 }
 
 function applySpiritEventReward(event) {
