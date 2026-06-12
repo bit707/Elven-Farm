@@ -97,6 +97,12 @@ import {
   orderMarketPrepWorldRowsData,
 } from "./game/shared/order-market-prep-board.js";
 import {
+  orderBuildPrepWorldBoardAtPointData,
+  orderBuildPrepWorldBoardFocusData,
+  orderBuildPrepWorldBoardSpecData,
+  orderBuildPrepWorldRowsData,
+} from "./game/shared/order-build-prep-board.js";
+import {
   workshopSpiritAssistActionFocusData,
   workshopSpiritAssistActionWorldAtPointData,
   workshopSpiritAssistActionWorldSpecData,
@@ -26194,70 +26200,33 @@ function drawOrderMarketPrepWorldBoard(ctx, spec = orderMarketPrepWorldBoardSpec
 }
 
 function orderBuildPrepWorldRows(limit = 3) {
-  const orders = visibleOrders();
-  if (orders.some((order) => canDeliverOrder(order))) return [];
-  if (
-    orderCraftPrepWorldRows(1).length
-    || orderSeedPrepWorldRows(1).length
-    || orderSeedRestockWorldRows(1).length
-    || orderMarketPrepWorldRows(1).length
-  ) return [];
-  const visibleBuildingIds = new Set(buildableBuildings().map((building) => building.building_id));
-  return orders
-    .filter((order) => !canDeliverOrder(order))
-    .flatMap((order) => {
-      const status = orderNeedStatus(order);
-      return status.missing
-        .map((missing) => {
-          const recipe = bestRecipeForOutput(missing.itemId);
-          if (!recipe || !recipeUnlocked(recipe) || recipeMachine(recipe) || recipe.machine_type === "kitchen") return null;
-          const machine = machineForRecipe(recipe);
-          const building = machine?.building_unlock_id ? data.buildingsById.get(machine.building_unlock_id) : null;
-          if (!machine || !building || !visibleBuildingIds.has(building.building_id) || state.builtBuildings.has(building.building_id)) return null;
-          const rewardGold = Number(order.reward_gold || 0);
-          const rewardFame = Number(order.reward_fame || 0);
-          const outputHave = Number(state.inventory[missing.itemId] || 0);
-          const outputNeed = Number(missing.count || 1);
-          const buildReady = canBuild(building);
-          const priority = 32
-            + (buildReady ? 24 : 0)
-            + rewardGold / 36
-            + rewardFame * 6
-            + Math.max(0, 16 - Number(recipe.base_process_time || 60) / 12)
-            + (String(order.order_id || "").startsWith("order_year2_") ? 14 : 0);
-          return {
-            order,
-            orderId: order.order_id,
-            orderTitle: orderTitle(order),
-            npc: npcName(order.issuer_id || order.reward_favor_npc),
-            itemId: missing.itemId,
-            itemName: itemName(missing.itemId),
-            outputHave,
-            outputNeed,
-            missingCount: Math.max(0, outputNeed - outputHave),
-            recipe,
-            recipeId: recipe.recipe_id,
-            recipeTitle: recipeName(recipe),
-            machine,
-            machineId: machine.machine_id,
-            machineLabel: machineName(machine),
-            building,
-            buildingId: building.building_id,
-            buildingLabel: buildingName(building),
-            buildReady,
-            costLine: costText(building),
-            inputText: recipeInputStatus(recipe, 3) || "原料后续再备",
-            rewardText: [
-              rewardGold ? `${rewardGold} 灵石` : "",
-              rewardFame ? `声望 +${rewardFame}` : "",
-            ].filter(Boolean).join(" / ") || "订单奖励",
-            priority,
-          };
-        })
-        .filter(Boolean);
-    })
-    .sort((a, b) => b.priority - a.priority || a.orderTitle.localeCompare(b.orderTitle, "zh-Hans-CN"))
-    .slice(0, limit);
+  return orderBuildPrepWorldRowsData({
+    limit,
+    orders: visibleOrders(),
+    inventory: state.inventory,
+    buildingsById: data.buildingsById,
+    builtBuildings: state.builtBuildings,
+    buildableBuildings: buildableBuildings(),
+    craftPrepRows: orderCraftPrepWorldRows(1),
+    seedPrepRows: orderSeedPrepWorldRows(1),
+    seedRestockRows: orderSeedRestockWorldRows(1),
+    marketPrepRows: orderMarketPrepWorldRows(1),
+    canDeliverOrder,
+    orderNeedStatus,
+    bestRecipeForOutput,
+    recipeUnlocked,
+    recipeMachine,
+    machineForRecipe,
+    canBuild,
+    costText,
+    orderTitle,
+    npcName,
+    itemName,
+    recipeName,
+    machineName,
+    buildingName,
+    recipeInputStatus,
+  });
 }
 
 function orderBuildPrepWorldBoardSpec(width = 960, height = 640) {
@@ -26271,44 +26240,34 @@ const ORDER_BUILD_PREP_WORLD_BOARD_COPY = {
 
 function orderBuildPrepWorldBoardSpecBridge(width = 960, height = 640) {
   const rows = orderBuildPrepWorldRows(3);
-  return orderBuildPrepWorldBoardSpecWorld({
+  // Order build prep bridge keeps verify keywords:
+  // orderBuildPrepWorldBoardSpec / orderBuildPrepWorldBoardAtCanvasPoint / focusOrderBuildPrepWorldBoardFromCanvas / drawOrderBuildPrepWorldBoard / 主世界订单缺口需建工坊 / 先建工坊 / 点选订单工坊缺口.
+  return orderBuildPrepWorldBoardSpecData({
     width,
     height,
     day: state.day,
     rows,
     slot: builtStructureSlotForBuilding(rows[0]?.buildingId),
     copy: ORDER_BUILD_PREP_WORLD_BOARD_COPY,
+    specWorld: orderBuildPrepWorldBoardSpecWorld,
   });
 }
 
 function orderBuildPrepWorldBoardAtCanvasPoint(px, py) {
-  return orderBuildPrepWorldBoardAtCanvasPointWorld({
+  return orderBuildPrepWorldBoardAtPointData({
     px,
     py,
     spec: orderBuildPrepWorldBoardSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
+    atPoint: orderBuildPrepWorldBoardAtCanvasPointWorld,
   });
 }
 
 function focusOrderBuildPrepWorldBoardFromCanvas(spec = orderBuildPrepWorldBoardSpecBridge()) {
-  if (!spec?.top?.buildingId) return false;
-  const { top } = spec;
-  orderBuildPrepWorldBoardFocus = {
-    key: spec.key,
-    day: state.day,
-    orderId: top.orderId,
-    recipeId: top.recipeId,
-    buildingId: top.buildingId,
-  };
-  state.selectedRecipeId = top.recipeId;
-  queuePlotRouteFocusTarget({
-    selector: `[data-build-id="${selectorDataValue(top.buildingId)}"]`,
-    fallbackSelector: ".build-panel",
-    label: "点选订单工坊缺口",
-    log: `${top.orderTitle} 需要 ${top.itemName} ${top.outputHave}/${top.outputNeed}。${top.recipeTitle} 要用 ${top.machineLabel}，先建 ${top.buildingLabel}。${top.buildReady ? "材料已齐，可以在建造面板确认建造；建成后回配方栏排产。" : `建造材料还没齐：${top.costLine}。先补齐材料，再回来建工坊。`}`,
-    panelGroup: "systems",
-    missingTitle: "订单工坊缺口",
-    missingLog: `${top.recipeTitle} 已选中，但 ${top.buildingLabel} 的建造卡暂时没有找到。先确认系统深挖分组里的洞天建设面板。`,
-  });
+  const focusSpec = orderBuildPrepWorldBoardFocusData(spec, state.day, selectorDataValue);
+  if (!focusSpec) return false;
+  orderBuildPrepWorldBoardFocus = focusSpec.focus;
+  state.selectedRecipeId = focusSpec.selectedRecipeId;
+  queuePlotRouteFocusTarget(focusSpec.target);
   return true;
 }
 
