@@ -486,6 +486,7 @@ import {
 import {
   drawWorkshopAromaStoryWorldWorld,
   workshopAromaStoryWorldAtCanvasPointWorld,
+  workshopAromaStoryWorldCopyFromRuntimeWorld,
   workshopAromaStoryWorldSpecFromRuntimeWorld,
   drawWorkshopIngredientReadyWorldWorld,
   workshopIngredientReadyWorldAtCanvasPointWorld,
@@ -26564,55 +26565,8 @@ function workshopAromaStoryWorldSpec(aromaSpec = workshopAromaOrderWorldSpec()) 
 }
 
 function workshopAromaStoryWorldCopy(aromaSpec = null) {
-  if (!aromaSpec?.aroma?.orderUnlocked) return null;
-  const aroma = aromaSpec.aroma;
-  const latest = aroma.history?.[0] || null;
-  const firstAroma = Boolean(latest?.firstAroma || !aroma.history || aroma.history.length <= 1);
-  const ready = Boolean(aromaSpec.ready);
-  const orderTitle = aromaSpec.orderTitle || "第一张订单";
-  const outputLabel = aromaSpec.outputLabel || aroma.itemName || "第一锅菜";
-  return {
-    orderTitle,
-    outputLabel,
-    title: firstAroma ? "香气引单小剧场 · 可点" : "后厂香气走线 · 可点",
-    headline: firstAroma ? "第一锅香气把订单吹到旧铺" : `${outputLabel} 把订单线续上了`,
-    detail: ready
-      ? `${orderTitle} 已被这锅香气点亮，可以手动去订单板交付。`
-      : `${orderTitle} 已接上 ${outputLabel}，继续补齐余料后再交单。`,
-    cta: "只定位订单板，不会自动交单",
-    accent: ready ? "#286f58" : firstAroma ? "#be4f37" : "#b47d2f",
-    soft: ready ? "rgba(202, 235, 210, 0.24)" : "rgba(246, 240, 182, 0.24)",
-    steps: [
-      {
-        key: "pot",
-        label: "出锅",
-        title: outputLabel,
-        detail: firstAroma ? "第一锅香气" : "后厂出货",
-        done: true,
-        x: 518,
-        y: 354,
-      },
-      {
-        key: "aroma",
-        label: "飘香",
-        title: "旧铺门口",
-        detail: "顾客闻见",
-        done: true,
-        x: 588,
-        y: 334,
-      },
-      {
-        key: "order",
-        label: ready ? "可交" : "接单",
-        title: orderTitle,
-        detail: ready ? "订单板亮" : "还差余料",
-        done: Boolean(aromaSpec.orderId),
-        x: 668,
-        y: 352,
-      },
-    ],
-    rect: { x: 462, y: 300, width: 292, height: 92 },
-  };
+  // 保留校验关键字：workshopAromaStoryWorldCopy / 香气引单小剧场 / 后厂香气走线 / 只定位订单板，不会自动交单
+  return workshopAromaStoryWorldCopyFromRuntimeWorld(aromaSpec);
 }
 
 function workshopAromaStoryWorldAtCanvasPoint(px, py) {
