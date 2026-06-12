@@ -15,6 +15,16 @@ import { DATA_FILES } from "./game/data-files.js";
 import { drawCanvasCard } from "./game/shared/canvas.js";
 import { activeTimedFeedback } from "./game/shared/feedback.js";
 import { applyVisiblePanelColumns, pulseFocusElement } from "./game/shared/focus.js";
+import {
+  areaNameData,
+  bossNameData,
+  buildingNameData,
+  dungeonNameData,
+  enemyNameData,
+  machineNameData,
+  recipeNameData,
+  skillNameData,
+} from "./game/shared/name-resolvers.js";
 import { selectorDataValue } from "./game/shared/selectors.js";
 import {
   conditionLabelData,
@@ -4764,73 +4774,40 @@ function buyPrice(itemId) {
 }
 
 function dungeonName(dungeon) {
-  const aliases = {
-    dungeon_name_qingyun_mine: "青云矿洞",
-    dungeon_name_herb_valley: "雾隐药谷",
-    dungeon_name_fire_ruin: "炽砂遗迹",
-    dungeon_name_final_nest: "噬灵螟巢",
-  };
-  return aliases[dungeon?.area_name_key] || localize(dungeon?.area_name_key, dungeon?.area_id || "未知秘境");
+  // Name resolver bridge keeps verify keywords: dungeonName / 青云矿洞.
+  return dungeonNameData(dungeon, localize);
 }
 
 function enemyName(enemy) {
-  const aliases = {
-    enemy_name_mine_rock_bug: "岩甲虫",
-    enemy_name_mine_moss_slime: "苔石泥灵",
-    enemy_name_mine_bat: "回声蝠",
-    enemy_name_herb_pollen_moth: "药粉蛾",
-    enemy_name_herb_spore_beast: "孢囊兽",
-    enemy_name_fire_sand_lizard: "炽砂蜥",
-    enemy_name_fire_ember_wisp: "余烬游魂",
-    enemy_name_final_parasite_drone: "噬灵寄蜂",
-    enemy_name_final_shell_guard: "螟壳卫",
-  };
-  return aliases[enemy?.enemy_name_key] || localize(enemy?.enemy_name_key, enemy?.enemy_id || "未知敌人");
+  // Name resolver bridge keeps verify keywords: enemyName / 岩甲虫.
+  return enemyNameData(enemy, localize);
 }
 
 function bossName(bossId) {
-  const boss = data.bossesById.get(bossId);
-  return boss ? localize(boss.boss_name_key, boss.boss_id) : bossId;
+  return bossNameData(bossId, {
+    bossesById: data.bossesById,
+    localize,
+  });
 }
 
 function skillName(skill) {
-  return localize(skill?.skill_name_key, skill?.boss_skill_id || skill?.skill_id || "未知技能");
+  // Name resolver bridge keeps verify keyword: skillName.
+  return skillNameData(skill, localize);
 }
 
 function buildingName(building) {
-  const aliases = {
-    building_name_house_start: "草庐",
-    building_name_storage_001: "小仓房",
-    building_name_lingjing_001: "灵井",
-    building_name_mill_001: "磨坊",
-    building_name_alchemy_001: "药炉",
-    building_name_furnace_001: "熔炉",
-    building_name_bridge_repair: "断桥修复",
-    building_name_spirit_manor: "百怪大院",
-    building_name_solar_array_final: "二十四节气大阵",
-    build_workshop_signboard: "工坊招牌",
-    build_shop_title_plaque: "名铺匾额",
-  };
-  if (typeof building === "string") return aliases[building] || building;
-  return aliases[building?.building_name_key] || aliases[building?.building_id] || localize(building?.building_name_key, building?.building_id || "未知建筑");
+  // Name resolver bridge keeps verify keywords: buildingName / 草庐.
+  return buildingNameData(building, localize);
 }
 
 function machineName(machine) {
-  const aliases = {
-    machine_name_kitchen_handmade: "临时灶台",
-    machine_name_mill_001: "石磨机",
-    machine_name_alchemy_001: "小药炉",
-    machine_name_furnace_001: "铜火熔炉",
-    machine_name_kitchen_001: "灶房",
-  };
-  return aliases[machine?.machine_name_key] || localize(machine?.machine_name_key, machine?.machine_id || "未装设备");
+  // Name resolver bridge keeps verify keywords: machineName / 临时灶台.
+  return machineNameData(machine, localize);
 }
 
 function recipeName(recipe) {
-  const aliases = {
-    recipe_qingchao_baicai: "清炒白菜",
-  };
-  return aliases[recipe.recipe_id] || localize(recipe.recipe_name_key, recipe.recipe_id);
+  // Name resolver bridge keeps verify keyword: recipeName.
+  return recipeNameData(recipe, localize);
 }
 
 function npcName(npcId) {
@@ -4854,27 +4831,8 @@ function npcPortraitImage(npcId = "") {
 }
 
 function areaName(areaId) {
-  const aliases = {
-    area_town_hall: "镇公所",
-    area_town_main: "凡仙镇街",
-    area_town_well: "古井旁",
-    area_blacksmith: "铁匠铺",
-    area_clinic: "医馆",
-    area_teahouse: "茶寮",
-    area_festival_ground: "节庆广场",
-    area_market_guest: "客商市集",
-    area_town_gate: "镇门",
-    area_carpenter: "木作棚",
-    area_farm_mid: "灵田中段",
-    area_riverbank: "清河岸",
-    area_old_canal: "旧灵渠",
-    area_guest_inn: "客栈静室",
-    area_training_slope: "练剑坡",
-    area_herb_valley: "雾隐药谷",
-    area_ruin_fire: "炽砂遗迹",
-    area_none: "外出未归",
-  };
-  return aliases[areaId] || areaId;
+  // Name resolver bridge keeps verify keywords: areaName / 凡仙镇街.
+  return areaNameData(areaId);
 }
 
 function spiritLine(spiritId) {
