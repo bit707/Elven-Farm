@@ -1614,6 +1614,45 @@ export function workshopSpiritAssistActionPanelCopyFromRuntimeWorld({
   };
 }
 
+export function workshopSpiritAssistActionPanelCopySpecWorld({
+  helper = null,
+  helperText = "",
+  activeJob = null,
+  activeStage = null,
+  copy = null,
+  orderMatch = null,
+} = {}) {
+  return workshopSpiritAssistActionPanelCopyFromRuntimeWorld({
+    helper,
+    helperText,
+    activeJob,
+    activeStage,
+    copy,
+    orderMatch,
+    panelCopy: {
+      title: "精怪帮火小动作 · 可点",
+      headline: helper?.name
+        ? activeJob
+          ? `${helper.name}在${activeStage?.label || activeJob.currentStage?.label || "灶边"}帮火`
+          : `${helper.name}守着后厂候工`
+        : "",
+      cta: "只定位伙伴栏/工坊队列",
+      readyOrderDetail: "出锅后订单可交",
+      linkedOrderPrefix: "接单中 · ",
+      missingFallback: "还差余料",
+      activeJobDetail: activeJob ? `${activeJob.outputItemName} 入仓后再定去向` : "",
+      idleDetail: "选配方后手动排产",
+      helperBadge: "精",
+      helperTitle: "谁在帮",
+      routeOrderBadge: "单",
+      routePotBadge: "锅",
+      routeIdleBadge: "候",
+      routeActiveTitle: "下一步看哪",
+      routeIdleTitle: "排产口",
+    },
+  });
+}
+
 export function workshopSpiritAssistActionWorldAtCanvasPointWorld({
   px,
   py,
