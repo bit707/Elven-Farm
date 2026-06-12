@@ -1,3 +1,125 @@
+export function townLifePassalongSafetyText() {
+  return "这里只定位镇上传话来源和回看入口，不会自动寒暄、赠礼、接支线、交托付、交单、开铺、领奖、播放对白或消耗资源。";
+}
+
+export function townLifePassalongCandidateForRow(row = null, {
+  npcName = (npcId = "") => npcId,
+  syncShopOpeningState = () => ({ lastSession: null }),
+  shopReputationTownBarkSpec = () => null,
+  careChainEchoSpec = () => null,
+  stateCareChainState = null,
+  townLifeWeatherMomentSpec = () => null,
+  selectorDataValue = (value = "") => String(value ?? ""),
+  shopReputationStageSpec = () => ({ stageKey: "", progressCount: 0 }),
+  stateCompleted = new Set(),
+  stateCanalRepaired = false,
+  stateClearedDebris = 0,
+} = {}) {
+  if (!row?.npc?.npc_id || row.status?.key === "away") return null;
+  const npcId = row.npc.npc_id;
+  const npcLabel = npcName(npcId);
+  const opening = syncShopOpeningState();
+  const reputation = row.shopReputationBark || shopReputationTownBarkSpec(row);
+  const careEcho = row.careChainBark || careChainEchoSpec(stateCareChainState, row);
+  const weatherMoment = row.weatherMoment || townLifeWeatherMomentSpec(row);
+  const firstSale = opening.firstSale || opening.lastSession?.firstSale || null;
+  const candidates = [];
+  if (reputation) {
+    const reputationStage = shopReputationStageSpec();
+    candidates.push({
+      id: `shop:${reputation.stageName || "stage"}:${npcId}`,
+      type: "shop_reputation",
+      tone: reputation.tone || "shop",
+      badge: "铺",
+      title: "旧铺名声顺路传开",
+      headline: reputation.label || reputation.stageName || "镇上传话",
+      line: reputation.line,
+      detail: reputation.detail,
+      sourceLabel: reputation.stageName || "旧铺名声",
+      routeLabel: "看旧铺名声",
+      selector: `[data-shop-reputation-stage="${selectorDataValue(reputationStage.stageKey)}"]`,
+      fallbackSelector: "#shopReport",
+      panelGroup: "core",
+      priority: 136 + Number(reputationStage.progressCount || 0),
+    });
+  }
+  if (firstSale && (opening.summaryUnlocked || stateCompleted.has("shop") || stateCompleted.has("first_shop_sale_summary"))) {
+    candidates.push({
+      id: `first_sale:${firstSale.itemId || firstSale.itemName || "goods"}:${npcId}`,
+      type: "first_sale_seen",
+      tone: "warm",
+      badge: "账",
+      title: "首单被镇上看见",
+      headline: `${firstSale.itemName || "第一件货"}有了第一句后话`,
+      line: `${npcLabel}顺路听见有人提起旧铺首单：${firstSale.name || "第一位顾客"}买走${firstSale.itemName || "一件货"}，这扇门开始被记住了。`,
+      detail: `成交原因：${firstSale.reasonText || firstSale.reviewQuote || "货、价和今日客需对上了。"} 这会把旧铺从一次买卖推向熟客苗头。`,
+      sourceLabel: "旧铺首单",
+      routeLabel: "看首单账页",
+      selector: "[data-shop-board=\"opening\"]",
+      fallbackSelector: "#shopReport",
+      panelGroup: "core",
+      priority: 122,
+    });
+  }
+  if (careEcho) {
+    candidates.push({
+      id: `care:${careEcho.tone || "chain"}:${npcId}`,
+      type: "care_chain",
+      tone: careEcho.tone || "care",
+      badge: "生",
+      title: "洞天生机传到镇上",
+      headline: careEcho.title || careEcho.stageName || "照应成线",
+      line: careEcho.townLine || `${npcLabel}听见洞天这几日有人照应，顺手把这句好话带回镇上。`,
+      detail: `${careEcho.detail || "连续照应让镇民开始把洞天当成稳定日常。"}${careEcho.streak ? ` · 连续照应 ${careEcho.streak} 日` : ""}`,
+      sourceLabel: careEcho.stageName || "洞天照应札记",
+      routeLabel: "看照应札记",
+      selector: ".care-chain-journal",
+      fallbackSelector: "#goalBookPanel",
+      panelGroup: "core",
+      priority: 118 + Number(careEcho.streak || 0),
+    });
+  }
+  if (stateCanalRepaired || stateCompleted.has("repair")) {
+    candidates.push({
+      id: `canal:${npcId}`,
+      type: "canal_repaired",
+      tone: "water",
+      badge: "渠",
+      title: "灵渠复流传进镇口",
+      headline: "水路重新有了声音",
+      line: `${npcLabel}经过镇口时说，洞天那边的水声已经能听见了，断掉的路像是重新接回凡仙镇。`,
+      detail: `${weatherMoment?.label ? `${weatherMoment.label}里，` : ""}灵渠复流让水田、料理和镇上小托付都多了一条能被看见的来路。`,
+      sourceLabel: "灵渠修复",
+      routeLabel: "看修复路线",
+      selector: "#missionPanel",
+      fallbackSelector: "#goalBookPanel",
+      panelGroup: "core",
+      priority: 110,
+    });
+  }
+  if ((stateCompleted.has("clear") || Number(stateClearedDebris || 0) > 0) && !stateCompleted.has("shop")) {
+    candidates.push({
+      id: `clear:${npcId}`,
+      type: "grotto_clear",
+      tone: "sprout",
+      badge: "露",
+      title: "清荒露纹被人看见",
+      headline: "第一口气传到镇上",
+      line: `${npcLabel}顺路看见洞天露纹亮了一下，说那块荒地终于不像被人忘在山里。`,
+      detail: "清荒后的露纹不只是特效，它把修复目标提前变成镇民能看见的一点变化。",
+      sourceLabel: "开场清荒",
+      routeLabel: "看复苏总览",
+      selector: "#missionPanel",
+      fallbackSelector: "#goalBookPanel",
+      panelGroup: "core",
+      priority: 96,
+    });
+  }
+  return candidates
+    .filter((candidate) => candidate.line)
+    .sort((a, b) => Number(b.priority || 0) - Number(a.priority || 0))[0] || null;
+}
+
 export function townLifePassalongRows(rowsInput = null, limit = 3, {
   townLifeRows = () => [],
   townLifePassalongCandidateForRow = () => null,
