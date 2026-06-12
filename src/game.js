@@ -161,6 +161,7 @@ import {
   settleShopSpiritJobRuntime,
   settleWorkshopSpiritJobRuntime,
   applySpiritJobSynergiesRuntime,
+  spiritNightWorkFeedbackSpecRuntime,
   spiritJobReportByJobRuntime,
   spiritJobSynergyLineRuntime,
 } from "./game/world/spirit-job-runtime.js";
@@ -40512,44 +40513,15 @@ function settleSpiritJobs() {
 }
 
 function spiritNightWorkFeedbackSpec(report = state.lastSpiritJobReport || []) {
-  const entries = (Array.isArray(report) ? report : [])
-    .slice(0, 6)
-    .map((entry, index) => {
-      const spirit = state.spirits.find((candidate) => candidate.name === entry.spirit) || state.spirits[index] || null;
-      const job = entry.job || spirit?.job || "farm";
-      const sameJobIndex = state.spirits
-        .slice(0, Math.max(0, state.spirits.findIndex((candidate) => candidate.id === spirit?.id)))
-        .filter((candidate) => (candidate.job || "farm") === job).length;
-      const station = spirit ? spiritJobStation({ ...spirit, job }, sameJobIndex, index) : spiritJobStation({ job }, index, index);
-      const persona = spirit ? spiritJobPersonaSpec(spirit, job) : { label: jobName(job), glyph: "灵", focus: entry.focus || "岗位夜勤" };
-      const profile = spirit ? spiritVisualProfile(spirit) : { accent: "#286f58", glow: "rgba(246, 240, 182, 0.24)" };
-      return {
-        ...entry,
-        spiritId: spirit?.id || "",
-        spiritName: entry.spirit || spirit?.name || "精怪",
-        job,
-        jobName: persona.label || jobName(job),
-        glyph: persona.glyph || profile.glyph || "灵",
-        focus: entry.focus || persona.focus || "岗位夜勤",
-        station,
-        accent: profile.accent || "#286f58",
-        glow: profile.glow || "rgba(246, 240, 182, 0.24)",
-      };
-    });
-  if (!entries.length) return null;
-  const totalImpact = entries.reduce((sum, entry) => sum + Math.max(0, Number(entry.impact || 0)), 0);
-  const synergies = (state.lastSpiritJobSynergy || []).slice(0, 3);
-  return {
-    entries,
-    synergies,
-    totalImpact,
-    headline: synergies.length > 0 ? `精怪夜勤 ${entries.length} 项 · 协作链 ${synergies.length}` : `精怪夜勤 ${entries.length} 项`,
-    detail: synergies.length > 0
-      ? synergies.map((entry) => `${entry.label}：${entry.rewardText}`).join("；")
-      : entries.slice(0, 3).map((entry) => `${entry.spiritName}：${entry.text}`).join("；"),
-    createdAt: performance.now(),
-    day: state.day,
-  };
+  // 保留校验关键字：精怪夜勤 / 协作链 / 岗位夜勤
+  return spiritNightWorkFeedbackSpecRuntime(report, {
+    state,
+    now: () => performance.now(),
+    jobName,
+    spiritJobPersonaSpec,
+    spiritJobStation,
+    spiritVisualProfile,
+  });
 }
 
 function triggerSpiritNightWorkFeedback(report = state.lastSpiritJobReport || []) {
