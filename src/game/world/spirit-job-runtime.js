@@ -1053,6 +1053,135 @@ export function spiritIdentityMemoryMarkupRuntime(memory = null) {
   `;
 }
 
+export function spiritCompanionCareSpecRuntime(spirit, {
+  interactionState = {},
+  rareMoment = null,
+  finale = null,
+  hasFood = false,
+  giftClaimed = false,
+  giftReadyByCare = false,
+  jobName = (jobId = "") => jobId,
+} = {}) {
+  const latestForSpirit = (interactionState.history || []).find((entry) => entry.spiritId === spirit.id)
+    || (interactionState.last?.spiritId === spirit.id ? interactionState.last : null);
+  const repairEvent = interactionState.moodRepairEvent && !interactionState.moodRepairEvent.repaired && interactionState.moodRepairEvent.spiritId === spirit.id
+    ? interactionState.moodRepairEvent
+    : null;
+  const mood = Math.round(spirit.mood || 0);
+  const hunger = Math.round(spirit.hunger || 0);
+  const bondLevel = spirit.bondLevel || 1;
+
+  let tone = "good";
+  let status = "愿意贴近";
+  let nextAction = "pet";
+  let nextLabel = "摸摸";
+  let nextDetail = "先摸摸它，让今日伙伴回应落到面板里。";
+  if (repairEvent) {
+    tone = "need";
+    status = "低落小事待安抚";
+    nextAction = "repair";
+    nextLabel = "安抚小事";
+    nextDetail = `${repairEvent.title}：${repairEvent.advice}`;
+  } else if (hunger < 45) {
+    tone = hasFood ? "warn" : "need";
+    status = hasFood ? "有点饿" : "想吃东西";
+    nextAction = hasFood ? "feed" : "pet";
+    nextLabel = hasFood ? "喂食" : "先摸摸";
+    nextDetail = hasFood ? "背包里有可喂食物，喂一次能补心情和羁绊。" : "先做白萝卜汤、清炒白菜，或留一份灵气白萝卜。";
+  } else if (mood < 65) {
+    tone = "warn";
+    status = "需要安抚";
+    nextAction = "pet";
+    nextLabel = "摸摸";
+    nextDetail = "心情偏低，摸摸比派工更适合把状态拉回来。";
+  } else if (rareMoment) {
+    tone = giftReadyByCare || giftClaimed ? "rare" : "good";
+    status = giftClaimed ? "已送回礼" : giftReadyByCare ? "藏着回礼" : "今日有小动作";
+    nextAction = "theater";
+    nextLabel = "看今日小剧场";
+    nextDetail = giftClaimed
+      ? `今天已经收到 ${rareMoment.giftName || "小回礼"}，可以回看它在${rareMoment.focus}的动作。`
+      : giftReadyByCare
+        ? `先陪它看完${rareMoment.actionShort}，再摸摸或喂食，可能拿到 ${rareMoment.giftName}。`
+        : `去看${rareMoment.actionShort}，把它今天在${rareMoment.focus}的生活片段收进记忆。`;
+  } else if (finale) {
+    tone = "finale";
+    status = "终章陪伴";
+    nextAction = "pet";
+    nextLabel = "回应它";
+    nextDetail = finale.nextDetail;
+  } else if (bondLevel <= 1) {
+    status = "还在熟悉你";
+    nextAction = hasFood ? "feed" : "pet";
+    nextLabel = hasFood ? "喂食" : "摸摸";
+    nextDetail = hasFood ? "早期喂食能更快建立伙伴感。" : "没有食物时先摸摸，也会记录第一次伙伴回应。";
+  } else {
+    status = "状态稳定";
+    nextAction = "pet";
+    nextLabel = "摸摸";
+    nextDetail = `${jobName(spirit.job)}可以继续工作，睡前摸摸能保留一天的陪伴感。`;
+  }
+
+  const lastText = latestForSpirit
+    ? `上次回应：第 ${latestForSpirit.day} 天 ${latestForSpirit.type === "theater" ? "小剧场" : latestForSpirit.type === "feed" ? "喂食" : "摸摸"} · “${latestForSpirit.quote}” · 羁绊 +${latestForSpirit.bondGain}`
+    : "上次回应：还没有单独记录，第一次摸摸会写入伙伴回应。";
+  const momentText = rareMoment
+    ? `今日小动作：${rareMoment.focus} · ${rareMoment.action} · “${rareMoment.quote}”`
+    : finale
+      ? `终章常驻：${finale.anchorLabel} · ${finale.sceneText}`
+    : "今日小动作：普通岗位日常，先把主循环推进到更多稀有精怪线索。";
+  const chips = [
+    `心情 ${mood}`,
+    `饱腹 ${hunger}`,
+    `羁绊 Lv.${bondLevel}`,
+    finale ? "终章常驻" : rareMoment ? rareMoment.actionShort : jobName(spirit.job),
+  ];
+
+  return {
+    tone,
+    status,
+    nextAction,
+    nextLabel,
+    nextDetail,
+    lastText,
+    momentText,
+    chips,
+    rareMoment,
+    finale,
+    repairEvent,
+  };
+}
+
+export function spiritCompanionCareMarkupRuntime(spirit, care = null, {
+  spiritBondMilestoneMarkup = () => "",
+} = {}) {
+  if (!spirit || !care) return "";
+  const actionButton = care.nextAction === "theater"
+    ? `<button type="button" data-rare-spirit-theater="${spirit.id}" ${care.rareMoment ? "" : "disabled"}>${care.nextLabel}</button>`
+    : care.nextAction === "repair"
+      ? `<button type="button" data-spirit-mood-repair="${spirit.id}">${care.nextLabel}</button>`
+    : care.nextAction === "feed"
+      ? `<button type="button" data-spirit-action="feed" data-spirit-id="${spirit.id}">${care.nextLabel}</button>`
+      : `<button type="button" data-spirit-action="pet" data-spirit-id="${spirit.id}">${care.nextLabel}</button>`;
+  return `
+    <div class="spirit-companion-care ${care.tone}">
+      <div class="spirit-companion-care-head">
+        <strong>今日陪伴 · ${care.status}</strong>
+        <span>${care.chips.map((chip) => `<b>${chip}</b>`).join("")}</span>
+      </div>
+      <small>${care.lastText}</small>
+      <small>${care.momentText}</small>
+      ${care.finale ? `<div class="spirit-finale-memory-ticket"><strong>${care.finale.title} · ${care.finale.anchorLabel}</strong><span>${care.finale.effectText}</span><small>${care.finale.memoryText} · ${care.finale.areaLabel}</small><small>“${care.finale.dialogueText}”</small></div>` : ""}
+      ${care.repairEvent ? `<div class="spirit-mood-repair-ticket"><strong>${care.repairEvent.title}</strong><span>${care.repairEvent.cause}</span><small>修复：${care.repairEvent.action}</small><small>建议：${care.repairEvent.advice}</small></div>` : ""}
+      ${spiritBondMilestoneMarkup(spirit)}
+      <div class="spirit-companion-next">
+        <span>下一次照料：${care.nextDetail}</span>
+        ${actionButton}
+      </div>
+    </div>
+  `;
+}
+
 export function settleFarmSpiritJobRuntime(spirit = {}, report = [], power = 0, {
   state = {},
   addJobExp = () => null,
