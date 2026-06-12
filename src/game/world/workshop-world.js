@@ -1,3 +1,69 @@
+export function workshopOutputOrderMatchSpecWorld({
+  orders = [],
+  outputItemId = "",
+  outputCount = 1,
+  inventory = {},
+  orderNeeds = () => [],
+  orderTitle = (order = {}) => order?.order_id || "",
+  npcName = (npcId = "") => npcId,
+  itemName = (itemId = "") => itemId,
+  missingSeparator = "\u3001",
+  locale = "zh-Hans-CN",
+} = {}) {
+  if (!outputItemId) return null;
+  const matches = (Array.isArray(orders) ? orders : [])
+    .map((order) => {
+      const needs = orderNeeds(order);
+      const need = needs.find((entry) => entry.itemId === outputItemId);
+      if (!need) return null;
+      const missing = needs
+        .map(({ itemId, count }) => ({
+          itemId,
+          count,
+          have: Number(inventory[itemId] || 0),
+        }))
+        .filter((entry) => entry.have < entry.count);
+      const ready = missing.length === 0;
+      const haveOutput = Number(inventory[outputItemId] || 0);
+      return {
+        orderId: order.order_id,
+        orderTitle: orderTitle(order),
+        orderNpc: npcName(order.issuer_id || order.reward_favor_npc),
+        outputItemId,
+        outputItemName: itemName(outputItemId),
+        outputCount: Number(outputCount || 1),
+        neededCount: Number(need.count || 1),
+        haveOutput,
+        ready,
+        missingText: missing.map((entry) => `${itemName(entry.itemId)} ${entry.have}/${entry.count}`).join(missingSeparator),
+        rewardGold: Number(order.reward_gold || 0),
+        rewardFame: Number(order.reward_fame || 0),
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => Number(b.ready) - Number(a.ready) || b.rewardGold - a.rewardGold || a.orderTitle.localeCompare(b.orderTitle, locale));
+  return matches[0] || null;
+}
+
+export function workshopOrderMatchSafeWorld(match = null) {
+  return match
+    ? {
+      orderId: match.orderId,
+      orderTitle: match.orderTitle,
+      orderNpc: match.orderNpc,
+      outputItemId: match.outputItemId,
+      outputItemName: match.outputItemName,
+      outputCount: Number(match.outputCount || 1),
+      neededCount: Number(match.neededCount || 1),
+      haveOutput: Number(match.haveOutput || 0),
+      ready: Boolean(match.ready),
+      missingText: match.missingText || "",
+      rewardGold: Number(match.rewardGold || 0),
+      rewardFame: Number(match.rewardFame || 0),
+    }
+    : null;
+}
+
 export function workshopLineFeedbackSpecWorld(kind = "queued", options = {}, {
   recipe = null,
   orderMatch = null,

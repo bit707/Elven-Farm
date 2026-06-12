@@ -493,6 +493,8 @@ import {
   workshopLineOverviewWorldBoardAtCanvasPointWorld,
   workshopLineOverviewWorldBoardSpecFromRuntimeWorld,
   workshopLineFeedbackSpecWorld,
+  workshopOutputOrderMatchSpecWorld,
+  workshopOrderMatchSafeWorld,
   workshopOutputStorageRouteWorldCopyFromFeedbackWorld,
   workshopOutputStorageRouteWorldAtCanvasPointWorld,
   workshopOutputStorageRouteFeedbackSpecWorld,
@@ -3555,57 +3557,22 @@ function syncWorkshopAromaState() {
 }
 
 function workshopOutputOrderMatchSpec(outputItemId = "", outputCount = 1) {
-  const matches = visibleOrders()
-    .map((order) => {
-      const needs = orderNeeds(order);
-      const need = needs.find((entry) => entry.itemId === outputItemId);
-      if (!need) return null;
-      const missing = needs
-        .map(({ itemId, count }) => ({
-          itemId,
-          count,
-          have: Number(state.inventory[itemId] || 0),
-        }))
-        .filter((entry) => entry.have < entry.count);
-      const ready = missing.length === 0;
-      const haveOutput = Number(state.inventory[outputItemId] || 0);
-      return {
-        orderId: order.order_id,
-        orderTitle: orderTitle(order),
-        orderNpc: npcName(order.issuer_id || order.reward_favor_npc),
-        outputItemId,
-        outputItemName: itemName(outputItemId),
-        outputCount: Number(outputCount || 1),
-        neededCount: Number(need.count || 1),
-        haveOutput,
-        ready,
-        missingText: missing.map((entry) => `${itemName(entry.itemId)} ${entry.have}/${entry.count}`).join("、"),
-        rewardGold: Number(order.reward_gold || 0),
-        rewardFame: Number(order.reward_fame || 0),
-      };
-    })
-    .filter(Boolean)
-    .sort((a, b) => Number(b.ready) - Number(a.ready) || b.rewardGold - a.rewardGold || a.orderTitle.localeCompare(b.orderTitle, "zh-Hans-CN"));
-  return matches[0] || null;
+  // 保留校验关键字：workshopOutputOrderMatchSpec / 订单板亮了 / 这锅已让订单可交 / 工坊接单
+  return workshopOutputOrderMatchSpecWorld({
+    orders: visibleOrders(),
+    outputItemId,
+    outputCount,
+    inventory: state.inventory,
+    orderNeeds,
+    orderTitle,
+    npcName,
+    itemName,
+  });
 }
 
 function workshopOrderMatchSafe(match = null) {
-  return match
-    ? {
-      orderId: match.orderId,
-      orderTitle: match.orderTitle,
-      orderNpc: match.orderNpc,
-      outputItemId: match.outputItemId,
-      outputItemName: match.outputItemName,
-      outputCount: Number(match.outputCount || 1),
-      neededCount: Number(match.neededCount || 1),
-      haveOutput: Number(match.haveOutput || 0),
-      ready: Boolean(match.ready),
-      missingText: match.missingText || "",
-      rewardGold: Number(match.rewardGold || 0),
-      rewardFame: Number(match.rewardFame || 0),
-    }
-    : null;
+  // 保留校验关键字：workshopOrderMatchSafe / workshop-order-match / workshop-order-board-row
+  return workshopOrderMatchSafeWorld(match);
 }
 
 function workshopLineFeedbackSpec(kind = "queued", options = {}) {
