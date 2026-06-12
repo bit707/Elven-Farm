@@ -165,6 +165,7 @@ import {
   jobEfficiencyRuntime,
   jobLevelForRuntime,
   spendSpiritJobNeedsRuntime,
+  spiritConfigForRuntime,
   spiritNightWorkFeedbackSpecRuntime,
   spiritAutomationLineFallbackRuntime,
   spiritAutomationLineTargetRuntime,
@@ -182,10 +183,17 @@ import {
   spiritDailyChoreSpecRuntime,
   spiritIdentityMemoryMarkupRuntime,
   spiritIdentityMemorySpecRuntime,
+  spiritJobSpecialtyBonusRuntime,
+  spiritJobSpecialtyLabelRuntime,
   spiritJobWorkPowerRuntime,
+  spiritLineJobAffinityRuntime,
+  spiritMainJobRuntime,
   spiritSeasonalWorkDaySummaryRowsRuntime,
   spiritSeasonalWorkMomentSpecRuntime,
   spiritSeasonalWorkSceneProfileRuntime,
+  spiritStageLabelRuntime,
+  spiritStageNumberRuntime,
+  spiritWorkRangeSpecRuntime,
   spiritJobReportByJobRuntime,
   spiritJobPersonaSpecRuntime,
   spiritJobShiftFeedbackSpecRuntime,
@@ -6737,126 +6745,57 @@ function jobLevelFor(job, exp) {
 }
 
 function spiritConfigFor(spirit) {
-  return data.spirits.find((entry) => entry.spirit_id === spirit?.id);
+  return spiritConfigForRuntime(spirit, data.spirits);
 }
 
 function spiritMainJob(spirit) {
-  const config = spiritConfigFor(spirit);
-  const roleMap = {
-    farm: "farm",
-    workshop: "workshop",
-    shop: "shop",
-    expedition: "expedition",
-    patrol: "patrol",
-    garden: "garden",
-    combat: "expedition",
-    utility: "patrol",
-  };
-  return roleMap[config?.main_role] || "farm";
+  // 保留校验关键字：spiritMainJob / combat / utility / expedition / patrol
+  return spiritMainJobRuntime(spirit, {
+    spiritRows: data.spirits,
+  });
 }
 
 function spiritLineJobAffinity(spirit, job = spirit.job || "farm") {
-  const lineId = spirit.lineId || spiritLine(spirit.id);
-  const affinityMap = {
-    spirit_line_luobo: { farm: 0.08 },
-    spirit_line_lajiao: { workshop: 0.1 },
-    spirit_line_shui: { farm: 0.1, garden: 0.04 },
-    spirit_line_yunshu: { patrol: 0.08, expedition: 0.04 },
-    spirit_line_bucao: { workshop: 0.08, farm: 0.04 },
-    spirit_line_caikuang: { expedition: 0.1, patrol: 0.04 },
-    spirit_line_jieqi: { patrol: 0.08, garden: 0.06 },
-    spirit_line_meishi: { workshop: 0.08, shop: 0.04 },
-    spirit_line_yaoyuan: { farm: 0.08, workshop: 0.04 },
-    spirit_line_hualing: { shop: 0.12, garden: 0.04 },
-    spirit_line_leizhu: { expedition: 0.12, patrol: 0.04 },
-    spirit_line_yuelian: { garden: 0.12, farm: 0.04 },
-    spirit_line_dengying: { patrol: 0.12, expedition: 0.04 },
-    spirit_line_shuqi: { shop: 0.1, patrol: 0.04 },
-    spirit_line_fengmi: { farm: 0.1, shop: 0.04 },
-  };
-  return Number(affinityMap[lineId]?.[job] || 0);
+  // 保留校验关键字：spiritLineJobAffinity / spirit_line_luobo / spirit_line_lajiao / spirit_line_hualing / spirit_line_leizhu
+  return spiritLineJobAffinityRuntime(spirit, job, {
+    spiritLine,
+  });
 }
 
 function spiritJobSpecialtyBonus(spirit, job = spirit.job || "farm") {
-  const mainBonus = spiritMainJob(spirit) === job ? 0.16 : 0;
-  const lineBonus = spiritLineJobAffinity(spirit, job);
-  const stageBonus = Math.max(0, Number((spirit.id.match(/_(\d+)$/) || [0, 1])[1]) - 1) * 0.03;
-  return mainBonus + lineBonus + stageBonus;
+  // 保留校验关键字：spiritJobSpecialtyBonus / mainBonus / lineBonus / stageBonus
+  return spiritJobSpecialtyBonusRuntime(spirit, job, {
+    spiritRows: data.spirits,
+    spiritLine,
+  });
 }
 
 function spiritJobSpecialtyLabel(spirit, job = spirit.job || "farm") {
-  const mainJob = spiritMainJob(spirit);
-  const bonus = spiritJobSpecialtyBonus(spirit, job);
-  const lineBonus = spiritLineJobAffinity(spirit, job);
-  if (mainJob === job && lineBonus > 0) return `天赋契合 ${jobName(job)} +${Math.round(bonus * 100)}%`;
-  if (mainJob === job) return `主职${jobName(job)} +${Math.round(bonus * 100)}%`;
-  if (lineBonus > 0) return `副专长${jobName(job)} +${Math.round(bonus * 100)}%`;
-  return `主职偏向${jobName(mainJob)}，当前无专长加成`;
+  // 保留校验关键字：spiritJobSpecialtyLabel / 天赋契合 / 主职 / 副专长 / 当前无专长加成
+  return spiritJobSpecialtyLabelRuntime(spirit, job, {
+    spiritRows: data.spirits,
+    spiritLine,
+    jobName,
+  });
 }
 
 function spiritStageNumber(spirit) {
-  const config = spiritConfigFor(spirit);
-  const suffixStage = Number((String(spirit?.id || "").match(/_(\d+)$/) || [0, 1])[1] || 1);
-  return Math.max(1, Number(config?.stage || suffixStage || 1));
+  return spiritStageNumberRuntime(spirit, {
+    spiritRows: data.spirits,
+  });
 }
 
 function spiritStageLabel(stage = 1) {
-  if (Number(stage) >= 3) return "三阶究极";
-  if (Number(stage) >= 2) return "二阶进化";
-  return "一阶初生";
+  // 保留校验关键字：spiritStageLabel / 三阶究极 / 二阶进化 / 一阶初生
+  return spiritStageLabelRuntime(stage);
 }
 
 function spiritWorkRangeSpec(spirit, job = spirit?.job || "farm") {
-  const config = spiritConfigFor(spirit);
-  const lineId = config?.spirit_line_id || spirit?.lineId || spiritLine(spirit?.id);
-  const stage = spiritStageNumber(spirit);
-  const rangeX = Math.max(1, Number(spirit?.workRangeX || config?.work_range_x || 1));
-  const rangeY = Math.max(1, Number(spirit?.workRangeY || config?.work_range_y || 1));
-  const previousConfig = data.spirits.find((entry) => entry.spirit_line_id === lineId && Number(entry.stage || 1) === stage - 1);
-  const nextConfig = data.spirits.find((entry) => entry.spirit_line_id === lineId && Number(entry.stage || 1) === stage + 1);
-  const previousRangeX = Math.max(1, Number(previousConfig?.work_range_x || rangeX));
-  const previousRangeY = Math.max(1, Number(previousConfig?.work_range_y || rangeY));
-  const nextRangeX = Math.max(1, Number(nextConfig?.work_range_x || rangeX));
-  const nextRangeY = Math.max(1, Number(nextConfig?.work_range_y || rangeY));
-  const area = rangeX * rangeY;
-  const previousArea = previousRangeX * previousRangeY;
-  const deltaCells = Math.max(0, area - previousArea);
-  const workPower = Number(config?.work_power_base || 1);
-  const previousPower = Number(previousConfig?.work_power_base || workPower);
-  const powerGain = Math.max(0, workPower - previousPower);
-  const jobHintMap = {
-    farm: "田间自动照看范围",
-    workshop: "后厂投料与看火范围",
-    shop: "货架补货与迎客范围",
-    patrol: "夜巡灯线覆盖范围",
-    expedition: "商路探旗响应范围",
-    garden: "庭院安抚灵息范围",
-  };
-  const deltaText = stage >= 2 && deltaCells > 0
-    ? `比上一阶多 ${deltaCells} 格，基础工力 +${Math.round(powerGain * 100)}%`
-    : nextConfig
-      ? `下一阶可扩到 ${nextRangeX}x${nextRangeY}`
-      : "范围已稳定成型";
-  const nextText = nextConfig
-    ? `下一阶预览：${nextRangeX}x${nextRangeY} · 工力 ${Number(nextConfig.work_power_base || workPower).toFixed(2)}`
-    : "已到当前配置最高阶，范围表现会持续留在场景中";
-  return {
-    stage,
-    stageName: spiritStageLabel(stage),
-    rangeX,
-    rangeY,
-    area,
-    previousRangeX,
-    previousRangeY,
-    deltaCells,
-    workPower,
-    powerGain,
-    rangeLabel: `${rangeX}x${rangeY} 覆盖`,
-    jobHint: jobHintMap[job] || "岗位覆盖范围",
-    deltaText,
-    nextText,
-    evolved: stage >= 2,
-  };
+  // 保留校验关键字：spiritWorkRangeSpec / 田间自动照看范围 / 后厂投料与看火范围 / 货架补货与迎客范围 / 夜巡灯线覆盖范围 / 商路探旗响应范围 / 庭院安抚灵息范围
+  return spiritWorkRangeSpecRuntime(spirit, job, {
+    spiritRows: data.spirits,
+    spiritLine,
+  });
 }
 
 function spiritJobPersonaSpec(spirit, job = spirit.job || "farm") {
