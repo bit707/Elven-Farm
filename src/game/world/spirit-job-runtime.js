@@ -376,6 +376,38 @@ export function spiritJobPersonaSpecRuntime(spirit, job = spirit?.job || "farm",
   };
 }
 
+export function spiritJobShiftFeedbackSpecRuntime(spirit, job = spirit?.job || "farm", persona = {}, {
+  state = {},
+  now = () => 0,
+  jobName = (jobId = "") => jobId,
+  spiritJobStation = (_spirit = {}, jobIndex = 0, globalIndex = 0) => ({ x: 0, y: 0, size: 0, jobIndex, globalIndex }),
+  spiritVisualProfile = () => ({ accent: "#286f58", glow: "rgba(246, 240, 182, 0.24)" }),
+} = {}) {
+  if (!spirit) return null;
+  const spirits = Array.isArray(state.spirits) ? state.spirits : [];
+  const index = Math.max(0, spirits.findIndex((entry) => entry.id === spirit.id));
+  const sameJobIndex = spirits.slice(0, index).filter((entry) => (entry.job || "farm") === job).length;
+  const station = spiritJobStation({ ...spirit, job }, sameJobIndex, index);
+  const profile = spiritVisualProfile(spirit);
+  return {
+    spiritId: spirit.id,
+    spiritName: spirit.name,
+    job,
+    jobName: persona.label || jobName(job),
+    action: persona.action,
+    focus: persona.focus,
+    efficiency: persona.efficiency,
+    specialty: persona.specialty,
+    advice: persona.advice,
+    glyph: persona.glyph || profile.glyph,
+    accent: profile.accent,
+    glow: profile.glow,
+    station,
+    createdAt: now(),
+    day: state.day,
+  };
+}
+
 export function settleFarmSpiritJobRuntime(spirit = {}, report = [], power = 0, {
   state = {},
   addJobExp = () => null,

@@ -164,6 +164,7 @@ import {
   spiritNightWorkFeedbackSpecRuntime,
   spiritJobReportByJobRuntime,
   spiritJobPersonaSpecRuntime,
+  spiritJobShiftFeedbackSpecRuntime,
   spiritJobSynergyForSpiritRuntime,
   spiritJobSynergyLineRuntime,
   spiritJobSynergyNetworkMarkupRuntime,
@@ -7866,28 +7867,14 @@ function assignSpiritJob(job, spiritId = "") {
 }
 
 function spiritJobShiftFeedbackSpec(spirit, job = spirit?.job || "farm", persona = spiritJobPersonaSpec(spirit, job)) {
-  if (!spirit) return null;
-  const index = Math.max(0, state.spirits.findIndex((entry) => entry.id === spirit.id));
-  const sameJobIndex = state.spirits.slice(0, index).filter((entry) => (entry.job || "farm") === job).length;
-  const station = spiritJobStation({ ...spirit, job }, sameJobIndex, index);
-  const profile = spiritVisualProfile(spirit);
-  return {
-    spiritId: spirit.id,
-    spiritName: spirit.name,
-    job,
-    jobName: persona.label || jobName(job),
-    action: persona.action,
-    focus: persona.focus,
-    efficiency: persona.efficiency,
-    specialty: persona.specialty,
-    advice: persona.advice,
-    glyph: persona.glyph || profile.glyph,
-    accent: profile.accent,
-    glow: profile.glow,
-    station,
-    createdAt: performance.now(),
-    day: state.day,
-  };
+  // 保留校验关键字：spiritJobShiftFeedbackSpec / spiritJobShiftFeedback / 岗位调度回声
+  return spiritJobShiftFeedbackSpecRuntime(spirit, job, persona, {
+    state,
+    now: () => performance.now(),
+    jobName,
+    spiritJobStation,
+    spiritVisualProfile,
+  });
 }
 
 function triggerSpiritJobShiftFeedback(spirit, job = spirit?.job || "farm", persona = spiritJobPersonaSpec(spirit, job)) {
