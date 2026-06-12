@@ -83,6 +83,16 @@ import {
   townLifeWorldBoardShortText as townLifeWorldBoardShortTextHelper,
 } from "./game/world/town-life-boards.js";
 import {
+  focusTownLifeErrandDeliveryConfirmWorld,
+  focusTownLifeGiftKeepsakeFromCanvasWorld,
+  focusTownLifeGreetingKeepsakeFromCanvasWorld,
+  focusTownLifeMemoryKeepsakeFromCanvasWorld,
+  focusTownLifeMemoryNewPageFromCanvasWorld,
+  focusTownLifeMemoryThresholdKeepsakeFromCanvasWorld,
+  focusTownLifePassalongLanternFromCanvasWorld,
+  focusTownLifeShopMomentFromCanvasWorld,
+} from "./game/world/town-life-focus.js";
+import {
   drawMorningActionBoardCardWorld,
   drawSolarMorningSignBadgeWorld,
   drawSleepPrepChecklistCardWorld,
@@ -4161,51 +4171,21 @@ function townLifeShopMomentKeepsakeAtCanvasPoint(px, py) {
 }
 
 function focusTownLifeShopMomentFromCanvas(target = null, options = {}) {
-  const moment = target?.moment || target || null;
-  const npcId = moment?.npcId || target?.npcId || "";
-  const momentId = moment?.id || target?.momentId || "";
-  const entry = townLifeShopMomentEntry(npcId, momentId);
-  if (!entry) {
-    addLog("旧铺后话留签", `这页旧铺后话还没有写进来往册。${townLifeShopMomentSafetyText()}`);
-    return renderLogs();
-  }
-  const spec = townLifeShopMomentKeepsakeSpec({ ...target, moment: entry }, townLifeRows(6));
-  const activeNode = target?.activeNode
-    || spec?.nodes?.find((node) => node.key === options.nodeKey)
-    || spec?.nodes?.[2]
-    || spec?.nodes?.[0]
-    || null;
-  townLifeShopMomentKeepsakeWorldFocus = {
-    key: spec?.key || `${state.day}:${entry.npcId}:${entry.id}:shop_moment_keepsake`,
-    nodeKey: activeNode?.key || "replay",
-    day: state.day,
-    npcId: entry.npcId,
-    momentId: entry.id,
-    source: options.source || "canvas",
-    point: spec?.point ? { x: Math.round(spec.point.x), y: Math.round(spec.point.y) } : null,
-  };
-  const focusRow = spec?.row || target?.row || canvasTownLifeFocusRow(entry.npcId);
-  if (focusRow?.npc?.npc_id) {
-    canvasTownLifeFocus = {
-      npcId: entry.npcId,
-      day: state.day,
-      area: focusRow.area || entry.area || "凡仙镇",
-      action: focusRow.action || "旧铺后话",
-      source: "town_life_shop_moment_keepsake",
-      point: spec?.point ? { x: Math.round(spec.point.x), y: Math.round(spec.point.y) } : null,
-    };
-  }
-  const selector = `button[data-town-shop-moment-npc="${selectorDataValue(entry.npcId)}"][data-town-shop-moment-id="${selectorDataValue(entry.id)}"]`;
-  queueStoryCompassFocusTarget({
-    selector: activeNode?.selector || selector,
-    fallbackSelector: "#relationshipPanel",
-    label: options.source === "marker" ? "点选旧铺后话签" : options.source === "waterway" ? "点选水路小簿" : options.source === "keepsake" ? `点选旧铺后话留签：${activeNode?.label || "回看入口"}` : "点选旧铺后话留签",
-    log: `${entry.npcName} · ${activeNode?.label || "回看入口"}：${activeNode?.title || entry.title}。${activeNode?.text || entry.summary} ${activeNode?.detail || ""}。${townLifeShopMomentSafetyText()}`,
-    panelGroup: "story",
-    missingTitle: "旧铺后话留签",
-    missingLog: `${entry.npcName}的旧铺后话按钮暂时没有找到，先打开关系面板查看来往册。${townLifeShopMomentSafetyText()}`,
+  // focusTownLifeShopMomentFromCanvas bridge keeps verify keywords: 旧铺后话留签 / 点选旧铺后话留签 / 点选旧铺后话签 / 点选水路小簿 / 这里只定位旧铺后话回看入口，不会自动打开后话页、播放对白、推进演出、写入完成标记或消耗资源。
+  return focusTownLifeShopMomentFromCanvasWorld(target, options, {
+    townLifeShopMomentEntry,
+    townLifeShopMomentSafetyText,
+    addLog,
+    renderLogs,
+    townLifeShopMomentKeepsakeSpec,
+    townLifeRows,
+    canvasTownLifeFocusRow,
+    selectorDataValue,
+    stateDay: state.day,
+    queueStoryCompassFocusTarget,
+    setShopMomentWorldFocus: (value) => { townLifeShopMomentKeepsakeWorldFocus = value; },
+    setCanvasTownLifeFocus: (value) => { canvasTownLifeFocus = value; },
   });
-  return true;
 }
 
 function closeTownLifeMemoryPage() {
@@ -38691,42 +38671,20 @@ function townLifeGreetingKeepsakeAtCanvasPoint(px, py) {
 }
 
 function focusTownLifeGreetingKeepsakeFromCanvas(target = null, options = {}) {
-  const npcId = target?.npcId || target?.row?.npc?.npc_id || "";
-  const spec = townLifeGreetingKeepsakeSpec(target, townLifeRows(6));
-  if (!spec?.npcId) {
-    addLog("今日寒暄留签", `${npcId ? npcName(npcId) : "这位镇民"}今天暂时没有可定位的寒暄入口。${townLifeGreetingSafetyText()}`);
-    return renderLogs();
-  }
-  const activeNode = target?.activeNode
-    || spec.nodes.find((node) => node.key === options.nodeKey)
-    || spec.nodes[2]
-    || spec.nodes[0];
-  townLifeGreetingKeepsakeWorldFocus = {
-    key: spec.key,
-    nodeKey: activeNode?.key || "confirm",
-    day: state.day,
-    npcId: spec.npcId,
-    point: spec.point ? { x: Math.round(spec.point.x), y: Math.round(spec.point.y) } : null,
-    source: options.source || "canvas",
-  };
-  canvasTownLifeFocus = {
-    npcId: spec.npcId,
-    day: state.day,
-    area: spec.row?.area || "凡仙镇",
-    action: spec.row?.action || "今日寒暄",
-    source: "town_life_greeting_keepsake",
-    point: spec.point ? { x: Math.round(spec.point.x), y: Math.round(spec.point.y) } : null,
-  };
-  queueStoryCompassFocusTarget({
-    selector: activeNode?.selector || `button[data-canvas-town-greet="${selectorDataValue(spec.npcId)}"], button[data-town-life-greet="${selectorDataValue(spec.npcId)}"]`,
-    fallbackSelector: "#relationshipPanel",
-    label: options.source === "keepsake" ? `点选今日寒暄留签：${activeNode?.label || "确认入口"}` : "今日寒暄留签",
-    log: `${npcName(spec.npcId)} · ${activeNode?.label || "确认入口"}：${activeNode?.title || spec.row.area}。${activeNode?.text || spec.lineText} ${activeNode?.detail || ""}。${townLifeGreetingSafetyText()}`,
-    panelGroup: "systems",
-    missingTitle: "今日寒暄留签",
-    missingLog: `${npcName(spec.npcId)}的寒暄按钮暂时没有找到，先打开关系面板查看今日动线。${townLifeGreetingSafetyText()}`,
+  // focusTownLifeGreetingKeepsakeFromCanvas bridge keeps verify keywords: 今日寒暄留签 · 可点 / 在哪遇见 / 会聊什么 / 确认入口 / 点选今日寒暄留签 / 只定位确认，不自动寒暄 / 不会自动寒暄、写入来往记录、增加好感、承接小托付或触发关系记忆
+  return focusTownLifeGreetingKeepsakeFromCanvasWorld(target, options, {
+    townLifeGreetingKeepsakeSpec,
+    townLifeRows,
+    npcName,
+    townLifeGreetingSafetyText,
+    addLog,
+    renderLogs,
+    selectorDataValue,
+    stateDay: state.day,
+    queueStoryCompassFocusTarget,
+    setGreetingWorldFocus: (value) => { townLifeGreetingKeepsakeWorldFocus = value; },
+    setCanvasTownLifeFocus: (value) => { canvasTownLifeFocus = value; },
   });
-  return true;
 }
 
 function townLifeErrandKey(npcId = "", day = state.day) {
@@ -39138,59 +39096,24 @@ function townLifeErrandDeliveryKeepsakeAtCanvasPoint(px, py) {
 }
 
 function focusTownLifeErrandDeliveryConfirm(npcId = "", options = {}) {
-  const row = townLifeRows(12).find((entry) => entry.npc.npc_id === npcId);
-  if (!row) {
-    addLog("小托付交付留签", `今天没在镇上找到这位镇民。${townLifeErrandDeliverySafetyText()}`);
-    return renderLogs();
-  }
-  const errand = townLifeErrandStatus(row);
-  if (!errand) {
-    addLog("小托付交付留签", `${npcName(npcId)}今天暂时没有可交的小托付。${townLifeErrandDeliverySafetyText()}`);
-    return renderLogs();
-  }
-  if (errand.completed) {
-    addLog("小托付交付留签", `${errand.title} 今天已经办妥了。${townLifeErrandDeliverySafetyText()}`);
-    return renderLogs();
-  }
-  const route = townLifeErrandRouteSpec(errand);
-  if (route) queueTownLifeErrandRouteWorldFocus(row, errand, route);
-  const spec = errand.ready ? townLifeErrandDeliveryKeepsakeSpec({ row, errand }, townLifeRows(6)) : null;
-  const activeNode = spec?.nodes?.find((node) => node.key === options.nodeKey)
-    || spec?.nodes?.[2]
-    || spec?.nodes?.[0]
-    || null;
-  if (spec?.rect) {
-    townLifeErrandDeliveryKeepsakeWorldFocus = {
-      key: spec.key,
-      nodeKey: activeNode?.key || "confirm",
-      day: state.day,
-      npcId: row.npc.npc_id,
-      errandKey: errand.key || errand.itemId,
-      point: spec.point ? { x: Math.round(spec.point.x), y: Math.round(spec.point.y) } : null,
-      source: options.source || "canvas",
-    };
-    canvasTownLifeFocus = {
-      npcId: row.npc.npc_id,
-      day: state.day,
-      area: row.area || "凡仙镇",
-      action: row.action || "小托付",
-      source: "town_life_errand_delivery_keepsake",
-      point: spec.point ? { x: Math.round(spec.point.x), y: Math.round(spec.point.y) } : null,
-    };
-  }
-  const haveText = `${errand.itemName} ${Number(state.inventory[errand.itemId] || 0)}/${errand.count}`;
-  const rewardText = `回礼 ${errand.rewardGold} 灵石${errand.rewardFame ? ` / 声望 +${errand.rewardFame}` : ""}${errand.rewardFavor ? ` / 好感 +${errand.rewardFavor}` : ""}`;
-  const readyText = errand.ready ? "材料已经备齐，请在关系面板点明确按钮交付。" : "材料还没备齐，先看备货路线。";
-  queueStoryCompassFocusTarget({
-    selector: activeNode?.selector || `button[data-town-life-errand="${selectorDataValue(npcId)}"]`,
-    fallbackSelector: "#relationshipPanel",
-    label: options.source === "plaque" ? "点选小托付交付牌" : options.source === "keepsake" ? `点选小托付交付留签：${activeNode?.label || "确认入口"}` : "小托付交付留签",
-    log: `${errand.npcName} · ${activeNode?.label || "确认入口"}：${activeNode?.title || errand.title}。${activeNode?.text || haveText} ${activeNode?.detail || readyText}。${rewardText}。${townLifeErrandDeliverySafetyText()}`,
-    panelGroup: "story",
-    missingTitle: "小托付交付留签",
-    missingLog: `${errand.npcName}的小托付按钮暂时没有找到，先打开关系面板查看凡仙镇今日动线。${townLifeErrandDeliverySafetyText()}`,
+  // focusTownLifeErrandDeliveryConfirm bridge keeps verify keywords: 小托付交付留签 · 可点 / 交给谁 / 带什么 / 确认入口 / 点选小托付交付留签 / 点选小托付交付牌 / 只定位确认，不自动交付
+  return focusTownLifeErrandDeliveryConfirmWorld(npcId, options, {
+    townLifeRows,
+    townLifeErrandStatus,
+    npcName,
+    townLifeErrandDeliverySafetyText,
+    addLog,
+    renderLogs,
+    townLifeErrandRouteSpec,
+    queueTownLifeErrandRouteWorldFocus,
+    townLifeErrandDeliveryKeepsakeSpec,
+    selectorDataValue,
+    stateDay: state.day,
+    stateInventory: state.inventory,
+    queueStoryCompassFocusTarget,
+    setErrandDeliveryWorldFocus: (value) => { townLifeErrandDeliveryKeepsakeWorldFocus = value; },
+    setCanvasTownLifeFocus: (value) => { canvasTownLifeFocus = value; },
   });
-  return true;
 }
 
 function focusTownLifeErrandRoute(npcId = "") {
@@ -39448,43 +39371,20 @@ function townLifeGiftKeepsakeAtCanvasPoint(px, py) {
 }
 
 function focusTownLifeGiftKeepsakeFromCanvas(target = null, options = {}) {
-  const npcId = target?.npcId || target?.row?.npc?.npc_id || "";
-  const spec = townLifeGiftKeepsakeSpec(target, townLifeRows(6));
-  if (!spec?.gift || !spec.npcId) {
-    addLog("今日赠礼留签", `${npcId ? npcName(npcId) : "这位镇民"}今天暂无可定位的推荐赠礼。${townLifeGiftSafetyText()}`);
-    return renderLogs();
-  }
-  const activeNode = target?.activeNode
-    || spec.nodes.find((node) => node.key === options.nodeKey)
-    || spec.nodes[2]
-    || spec.nodes[0];
-  townLifeGiftKeepsakeWorldFocus = {
-    key: spec.key,
-    nodeKey: activeNode?.key || "confirm",
-    day: state.day,
-    npcId: spec.npcId,
-    giftItemId: spec.gift.itemId,
-    point: spec.point ? { x: Math.round(spec.point.x), y: Math.round(spec.point.y) } : null,
-    source: options.source || "canvas",
-  };
-  canvasTownLifeFocus = {
-    npcId: spec.npcId,
-    day: state.day,
-    area: spec.row?.area || "凡仙镇",
-    action: spec.row?.action || "今日赠礼",
-    source: "town_life_gift_keepsake",
-    point: spec.point ? { x: Math.round(spec.point.x), y: Math.round(spec.point.y) } : null,
-  };
-  queueStoryCompassFocusTarget({
-    selector: activeNode?.selector || `button[data-canvas-town-gift="${selectorDataValue(spec.npcId)}"], button[data-npc-gift="${selectorDataValue(spec.npcId)}"]`,
-    fallbackSelector: "#relationshipPanel",
-    label: options.source === "keepsake" ? `点选今日赠礼留签：${activeNode?.label || "确认入口"}` : "今日赠礼留签",
-    log: `${npcName(spec.npcId)} · ${activeNode?.label || "确认入口"}：${activeNode?.title || spec.gift.itemName}。${activeNode?.text || spec.gift.reason} ${activeNode?.detail || ""}。${townLifeGiftSafetyText()}`,
-    panelGroup: "systems",
-    missingTitle: "今日赠礼留签",
-    missingLog: `${npcName(spec.npcId)}的赠礼按钮暂时没有找到，先打开关系面板查看推荐赠礼。${townLifeGiftSafetyText()}`,
+  // focusTownLifeGiftKeepsakeFromCanvas bridge keeps verify keywords: 今日赠礼留签 · 可点 / 送给谁 / 送什么 / 确认入口 / 点选今日赠礼留签 / 只定位确认，不自动赠礼 / 不会自动赠礼、扣除物品、增加好感或写入赠礼记录
+  return focusTownLifeGiftKeepsakeFromCanvasWorld(target, options, {
+    townLifeGiftKeepsakeSpec,
+    townLifeRows,
+    npcName,
+    townLifeGiftSafetyText,
+    addLog,
+    renderLogs,
+    selectorDataValue,
+    stateDay: state.day,
+    queueStoryCompassFocusTarget,
+    setGiftWorldFocus: (value) => { townLifeGiftKeepsakeWorldFocus = value; },
+    setCanvasTownLifeFocus: (value) => { canvasTownLifeFocus = value; },
   });
-  return true;
 }
 
 function greetTownLifeNpc(npcId = "") {
@@ -39800,42 +39700,20 @@ function townLifePassalongMarkerAtCanvasPoint(px, py) {
 }
 
 function focusTownLifePassalongLanternFromCanvas(target = null, options = {}) {
-  const spec = townLifePassalongLanternSpec(target, townLifeRows(6));
-  if (!spec?.npcId || !spec.passalong) {
-    addLog("镇民顺路捎话灯", `今天暂时没有可定位的镇上传话。${townLifePassalongSafetyText()}`);
-    return renderLogs();
-  }
-  const activeNode = target?.activeNode
-    || spec.nodes.find((node) => node.key === options.nodeKey)
-    || spec.nodes[2]
-    || spec.nodes[0];
-  townLifePassalongLanternWorldFocus = {
-    key: spec.key,
-    nodeKey: activeNode?.key || "where",
-    day: state.day,
-    npcId: spec.npcId,
-    type: spec.passalong.type,
-    source: options.source || "canvas",
-    point: spec.point ? { x: Math.round(spec.point.x), y: Math.round(spec.point.y) } : null,
-  };
-  canvasTownLifeFocus = {
-    npcId: spec.npcId,
-    day: state.day,
-    area: spec.row?.area || "凡仙镇",
-    action: spec.row?.action || "镇上传话",
-    source: "town_life_passalong_lantern",
-    point: spec.point ? { x: Math.round(spec.point.x), y: Math.round(spec.point.y) } : null,
-  };
-  queueStoryCompassFocusTarget({
-    selector: activeNode?.selector || spec.passalong.selector || `[data-npc-id="${selectorDataValue(spec.npcId)}"]`,
-    fallbackSelector: activeNode?.fallbackSelector || spec.passalong.fallbackSelector || "#relationshipPanel",
-    label: options.source === "marker" ? "点选镇民顺路捎话灯" : `点选镇民顺路捎话灯：${activeNode?.label || "回看入口"}`,
-    log: `${npcName(spec.npcId)} · ${activeNode?.label || "回看入口"}：${activeNode?.title || spec.passalong.title}。${activeNode?.text || spec.passalong.line} ${activeNode?.detail || ""}。${townLifePassalongSafetyText()}`,
-    panelGroup: activeNode?.panelGroup || spec.passalong.panelGroup || "core",
-    missingTitle: "镇民顺路捎话灯",
-    missingLog: `${npcName(spec.npcId)}的传话来源暂时没有找到，先打开关系面板或目标册回看。${townLifePassalongSafetyText()}`,
+  // focusTownLifePassalongLanternFromCanvas bridge keeps verify keywords: 镇民顺路捎话灯 · 可点 / 谁捎来 / 捎哪件事 / 回看入口 / 点选镇民顺路捎话灯 / 只定位来源，不自动推进 / 不会自动寒暄、赠礼、接支线、交托付、交单、开铺、领奖、播放对白或消耗资源 / 清荒、首单、旧铺名声、连续照应或灵渠复流
+  return focusTownLifePassalongLanternFromCanvasWorld(target, options, {
+    townLifePassalongLanternSpec,
+    townLifeRows,
+    townLifePassalongSafetyText,
+    addLog,
+    renderLogs,
+    selectorDataValue,
+    stateDay: state.day,
+    npcName,
+    queueStoryCompassFocusTarget,
+    setPassalongWorldFocus: (value) => { townLifePassalongLanternWorldFocus = value; },
+    setCanvasTownLifeFocus: (value) => { canvasTownLifeFocus = value; },
   });
-  return true;
 }
 
 function canvasTownLifeFocusRow(npcId = "") {
@@ -40477,33 +40355,15 @@ function townLifeMemoryKeepsakeAtCanvasPoint(px, py) {
 }
 
 function focusTownLifeMemoryKeepsakeFromCanvas(spec = townLifeMemoryKeepsakeSpec()) {
-  const node = spec?.activeNode || spec?.nodes?.[0];
-  if (!spec?.npcId || !node) return false;
-  townLifeMemoryKeepsakeWorldFocus = {
-    key: spec.key,
-    nodeKey: node.key,
-    day: state.day,
-    npcId: spec.npcId,
-  };
-  const row = spec.row || canvasTownLifeFocusRow(spec.npcId);
-  canvasTownLifeFocus = {
-    npcId: spec.npcId,
-    day: state.day,
-    area: row?.area || "凡仙镇",
-    action: row?.action || "关系册",
-    source: "town_life_memory_keepsake",
-    point: spec.point ? { x: Math.round(spec.point.x), y: Math.round(spec.point.y) } : null,
-  };
-  queueStoryCompassFocusTarget({
-    selector: node.selector || `[data-npc-id="${selectorDataValue(spec.npcId)}"]`,
-    fallbackSelector: ".relationship-panel",
-    label: `点选镇民关系心签：${node.label}`,
-    log: `${spec.npcName} · ${node.label}：${node.title}。${node.text} ${node.detail}。${spec.safety}`,
-    panelGroup: node.key === "final" && spec.bundle ? "systems" : "systems",
-    missingTitle: "点选镇民关系心签",
-    missingLog: `${spec.npcName} 的关系册暂时没有找到，先打开凡仙镇关系面板回看最近记忆、下一段记忆和终章伏笔。${spec.safety}`,
+  // focusTownLifeMemoryKeepsakeFromCanvas bridge keeps verify keywords: 镇民关系心签 / 最近记忆 / 下一段记忆 / 终章伏笔 / 点选镇民关系心签 / 这里只翻看/定位关系册，不会自动打招呼、送礼、接支线、交托付、播放同居事件或消耗资源
+  return focusTownLifeMemoryKeepsakeFromCanvasWorld(spec, {
+    stateDay: state.day,
+    canvasTownLifeFocusRow,
+    selectorDataValue,
+    queueStoryCompassFocusTarget,
+    setMemoryKeepsakeWorldFocus: (value) => { townLifeMemoryKeepsakeWorldFocus = value; },
+    setCanvasTownLifeFocus: (value) => { canvasTownLifeFocus = value; },
   });
-  return true;
 }
 
 function townLifeMemoryNewPageSafetyText() {
@@ -40549,36 +40409,15 @@ function townLifeMemoryNewPageAtCanvasPoint(px, py) {
 }
 
 function focusTownLifeMemoryNewPageFromCanvas(spec = townLifeMemoryNewPageSpec()) {
-  const node = spec?.activeNode || spec?.nodes?.[1] || spec?.nodes?.[0];
-  if (!spec?.npcId || !node) return false;
-  townLifeMemoryNewPageWorldFocus = {
-    key: spec.key,
-    nodeKey: node.key,
-    day: state.day,
-    npcId: spec.npcId,
-    memoryId: spec.memoryId,
-    source: "canvas",
-    createdAt: Date.now(),
-  };
-  const row = spec.row || canvasTownLifeFocusRow(spec.npcId);
-  canvasTownLifeFocus = {
-    npcId: spec.npcId,
-    day: state.day,
-    area: row?.area || "凡仙镇",
-    action: row?.action || "关系记忆新页",
-    source: "town_life_memory_new_page",
-    point: spec.point ? { x: Math.round(spec.point.x), y: Math.round(spec.point.y) } : null,
-  };
-  queueStoryCompassFocusTarget({
-    selector: node.selector || `[data-npc-id="${selectorDataValue(spec.npcId)}"]`,
-    fallbackSelector: "#relationshipPanel",
-    label: `点选关系记忆新页：${node.label}`,
-    log: `${spec.npcName} · ${node.label}：${node.title}。${node.text} ${node.detail}。${spec.safety}`,
-    panelGroup: "systems",
-    missingTitle: "关系记忆新页",
-    missingLog: `${spec.npcName} 的关系记忆入口暂时没有找到，先打开凡仙镇关系面板回看这页新记忆。${spec.safety}`,
+  // focusTownLifeMemoryNewPageFromCanvas bridge keeps verify keywords: 关系记忆新页 · 可点 / 谁写下 / 记了什么 / 回看入口 / 点选关系记忆新页 / 只定位回看入口 · 不自动播放 / 不会自动打开记忆页、播放对白、推进剧情、写入完成标记或消耗资源
+  return focusTownLifeMemoryNewPageFromCanvasWorld(spec, {
+    stateDay: state.day,
+    canvasTownLifeFocusRow,
+    selectorDataValue,
+    queueStoryCompassFocusTarget,
+    setMemoryNewPageWorldFocus: (value) => { townLifeMemoryNewPageWorldFocus = value; },
+    setCanvasTownLifeFocus: (value) => { canvasTownLifeFocus = value; },
   });
-  return true;
 }
 
 function townLifeMemoryThresholdSafetyText() {
@@ -40636,33 +40475,16 @@ function townLifeMemoryThresholdKeepsakeAtCanvasPoint(px, py) {
 }
 
 function focusTownLifeMemoryThresholdKeepsakeFromCanvas(spec = townLifeMemoryThresholdKeepsakeSpec()) {
-  const node = spec?.activeNode || spec?.nodes?.[2] || spec?.nodes?.[0];
-  if (!spec?.npcId || !node) return false;
-  townLifeMemoryThresholdKeepsakeWorldFocus = {
-    key: spec.key,
-    nodeKey: node.key,
-    day: state.day,
-    npcId: spec.npcId,
-  };
-  const row = spec.row || canvasTownLifeFocusRow(spec.npcId);
-  canvasTownLifeFocus = {
-    npcId: spec.npcId,
-    day: state.day,
-    area: row?.area || "凡仙镇",
-    action: row?.action || "关系记忆临门",
-    source: "town_life_memory_threshold",
-    point: spec.point ? { x: Math.round(spec.point.x), y: Math.round(spec.point.y) } : null,
-  };
-  queueStoryCompassFocusTarget({
-    selector: node.selector || `[data-npc-id="${selectorDataValue(spec.npcId)}"]`,
-    fallbackSelector: "#relationshipPanel",
-    label: `点选关系记忆临门签：${node.label}`,
-    log: `${spec.npcName} · ${node.label}：${node.title}。${node.text} ${node.detail}。${townLifeMemoryThresholdSafetyText()}`,
-    panelGroup: "systems",
-    missingTitle: "关系记忆临门签",
-    missingLog: `${spec.npcName} 的关系行动按钮暂时没有找到，先打开凡仙镇关系面板确认下一段记忆进度。${townLifeMemoryThresholdSafetyText()}`,
+  // focusTownLifeMemoryThresholdKeepsakeFromCanvas bridge keeps verify keywords: 关系记忆临门签 · 可点 / 当前来往 / 下一段记忆 / 推进入口 / 点选关系记忆临门签 / 只定位推进，不自动解锁记忆 / 不会自动寒暄、赠礼、交托付、解锁记忆或播放对白
+  return focusTownLifeMemoryThresholdKeepsakeFromCanvasWorld(spec, {
+    stateDay: state.day,
+    canvasTownLifeFocusRow,
+    selectorDataValue,
+    townLifeMemoryThresholdSafetyText,
+    queueStoryCompassFocusTarget,
+    setMemoryThresholdWorldFocus: (value) => { townLifeMemoryThresholdKeepsakeWorldFocus = value; },
+    setCanvasTownLifeFocus: (value) => { canvasTownLifeFocus = value; },
   });
-  return true;
 }
 
 function currentCohabWeekKey(day = state.day) {
