@@ -501,6 +501,7 @@ import {
   workshopOutputStorageRouteWorldAtCanvasPointWorld,
   workshopOutputStorageRouteFeedbackSpecWorld,
   workshopIngredientReadyWorldSpecFromRuntimeWorld,
+  workshopIngredientReadyWorldCopySpecWorld,
   workshopOpeningValueWorldAtCanvasPointWorld,
   workshopOpeningValueWorldCopySpecWorld,
   workshopOpeningValueWorldSpecFromRuntimeWorld,
@@ -47386,36 +47387,20 @@ function workshopIngredientReadyWorldCopy(candidate = null) {
   const shopTags = shopTagsForItem(preview.outputItemId, ecologyCourtyardSummary());
   const shopTag = prioritizeShopTag(shopTags, new Map(), "food");
   const shopTagText = shopTagLabel(shopTag);
-  const routeText = orderMatch
-    ? orderMatch.ready
-      ? "原料已齐 -> 手动加工 -> 订单可交"
-      : "原料已齐 -> 手动加工 -> 订单接线"
-    : workshopIngredientReadyRouteGuideText();
-  const headline = preview.firstAroma
-    ? "第一锅原料已齐"
-    : orderMatch?.ready
-      ? `${preview.outputName} 做完可交单`
-      : `${preview.recipeName} 可以开火`;
-  const detail = orderMatch
-    ? orderMatch.ready
-      ? `${orderMatch.orderTitle} 等这锅出锅，奖励 ${orderMatch.rewardGold} 灵石。`
-      : `${orderMatch.orderTitle} 会被这锅接上，还差 ${orderMatch.missingText || "余料"}。`
-    : preview.firstAroma
-      ? "第一锅香气会把订单贴到旧铺订单板。"
-      : `${preview.outputName} 可走旧铺 ${shopTagText} 货签。`;
   const inputItems = recipeInputs(recipe).slice(0, 3).map(({ itemId, count }) => ({
     itemId,
     name: itemName(itemId),
     count: Number(count || 1),
     have: Number(state.inventory[itemId] || 0),
   }));
-  return {
-    headline,
-    detail,
-    routeText,
-    title: "原料齐火候签 · 可点",
+  // 保留校验关键字：workshopIngredientReadyWorldCopy / 原料齐火候签 / 原料已齐 -> 手动加工 -> 出锅去向
+  return workshopIngredientReadyWorldCopySpecWorld({
+    candidate,
+    orderMatch,
+    shopTagText,
+    routeGuideText: workshopIngredientReadyRouteGuideText(),
     inputItems,
-  };
+  });
 }
 
 function workshopIngredientReadyWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
