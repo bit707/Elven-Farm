@@ -44,7 +44,10 @@ import {
   spiritInteractionFeedbackSpecData,
   spiritMoodRepairProfileData,
 } from "./game/shared/spirit-interaction.js";
-import { spiritAutomationBenefitRowsData } from "./game/shared/spirit-automation-benefit.js";
+import {
+  spiritAutomationBenefitRowsData,
+  spiritAutomationNextAssignmentAdviceData,
+} from "./game/shared/spirit-automation-benefit.js";
 import {
   spiritEventOwnedSpiritData,
   spiritEventGoalRowsData,
@@ -46578,19 +46581,12 @@ function spiritAutomationBenefitRows(groups = spiritAutomationBenefitJobGroups()
 }
 
 function spiritAutomationNextAssignmentAdvice(groups = spiritAutomationBenefitJobGroups()) {
-  const unwatered = state.plots.filter((plot) => plot.cropId && !plot.mature && !plot.watered).length;
-  const queue = state.workshopQueue || [];
-  const sellable = sellableInventoryGoods();
-  const risks = unresolvedRisks();
-  const idle = state.spirits.find((spirit) => !spirit.job);
-  if (idle) return { job: "farm", label: `${idle.name} 还没定岗，先放到农田岗把第一条代劳线点亮。` };
-  if (unwatered > 0 && !groups.farm?.length) return { job: "farm", label: `还有 ${unwatered} 格缺水，调一只精怪去农田岗最立刻省体力。` };
-  if (queue.length > 0 && !groups.workshop?.length) return { job: "workshop", label: "工坊有排产但没人看火，调一只精怪去工坊岗能让产线更像真正自动化。" };
-  if (sellable.length > 0 && !groups.shop?.length) return { job: "shop", label: "背包已有可卖货，调一只精怪去店铺岗，门口会出现补货和招呼动作。" };
-  if (risks.length > 0 && !groups.patrol?.length) return { job: "patrol", label: "节气风险还没处理，巡逻岗能把夜间损失变成可见防线。" };
-  if (groups.farm?.length && groups.workshop?.length) return { job: "workshop", label: "农田和工坊已经接线，今晚容易打出“清晨备料链”。" };
-  if (groups.workshop?.length && groups.shop?.length) return { job: "shop", label: "工坊和旧铺已经接线，下一步冲“出锅上架链”。" };
-  return { job: "farm", label: "岗位已覆盖，继续观察主世界里的搬运、补货、巡灯和庭院动作。" };
+  // Spirit automation bridge keeps verify keyword: spiritAutomationNextAssignmentAdvice / 自动化收益留痕.
+  return spiritAutomationNextAssignmentAdviceData(groups, {
+    state,
+    sellableInventoryGoods,
+    unresolvedRisks,
+  });
 }
 
 function spiritAutomationBenefitBoardSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
