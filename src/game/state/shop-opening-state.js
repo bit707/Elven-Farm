@@ -75,3 +75,48 @@ export function normalizeShopRegularBoardData(board = null, options = {}) {
       : [],
   };
 }
+
+export function normalizeShopReturningCustomerVisitData(entry = null, options = {}) {
+  if (!entry) return null;
+  const customerDisplayNameFor = typeof options.customerDisplayName === "function" ? options.customerDisplayName : () => "";
+  const itemNameFor = typeof options.itemName === "function" ? options.itemName : () => "";
+  return {
+    customerArchetype: entry.customerArchetype || "",
+    customerLabel: entry.customerLabel || customerDisplayNameFor(entry.customerArchetype || "") || "来客",
+    chance: Number(entry.chance || 0),
+    headline: entry.headline || "",
+    needText: entry.needText || "",
+    arrivalText: entry.arrivalText || "",
+    detail: entry.detail || "",
+    quote: entry.quote || "",
+    bought: Boolean(entry.bought),
+    itemId: entry.itemId || "",
+    itemName: entry.itemName || (entry.itemId ? itemNameFor(entry.itemId) : ""),
+    resultText: entry.resultText || "",
+    tone: entry.tone || (entry.bought ? "good" : "mid"),
+  };
+}
+
+export function normalizeShopIntroducedCustomerVisitData(entry = null, options = {}) {
+  if (!entry) return null;
+  const customerDisplayNameFor = typeof options.customerDisplayName === "function" ? options.customerDisplayName : () => "";
+  const itemNameFor = typeof options.itemName === "function" ? options.itemName : () => "";
+  return {
+    hostArchetype: entry.hostArchetype || "",
+    hostLabel: entry.hostLabel || customerDisplayNameFor(entry.hostArchetype || "") || "熟客",
+    customerArchetype: entry.customerArchetype || "",
+    customerLabel: entry.customerLabel || customerDisplayNameFor(entry.customerArchetype || "") || "新客",
+    chance: Number(entry.chance || entry.hostChance || 0),
+    headline: entry.headline || "",
+    needText: entry.needText || "",
+    arrivalText: entry.arrivalText || "",
+    detail: entry.detail || "",
+    quote: entry.quote || "",
+    broughtByText: entry.broughtByText || "",
+    bought: Boolean(entry.bought),
+    itemId: entry.itemId || "",
+    itemName: entry.itemName || (entry.itemId ? itemNameFor(entry.itemId) : ""),
+    resultText: entry.resultText || "",
+    tone: entry.tone || (entry.bought ? "good" : "mid"),
+  };
+}

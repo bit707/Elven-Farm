@@ -63,8 +63,10 @@ import {
 } from "./game/state/shop-stats.js";
 import {
   normalizeShopCustomerDecisionLedgerData,
+  normalizeShopIntroducedCustomerVisitData,
   normalizeShopRegularBoardData,
   normalizeShopRestockTargetData,
+  normalizeShopReturningCustomerVisitData,
 } from "./game/state/shop-opening-state.js";
 import {
   townAreaWorldPoint as townAreaWorldPointHelper,
@@ -1679,44 +1681,19 @@ function normalizeShopRegularBoard(board = null) {
 }
 
 function normalizeShopReturningCustomerVisit(entry = null) {
-  if (!entry) return null;
-  return {
-    customerArchetype: entry.customerArchetype || "",
-    customerLabel: entry.customerLabel || customerDisplayName(entry.customerArchetype || "") || "来客",
-    chance: Number(entry.chance || 0),
-    headline: entry.headline || "",
-    needText: entry.needText || "",
-    arrivalText: entry.arrivalText || "",
-    detail: entry.detail || "",
-    quote: entry.quote || "",
-    bought: Boolean(entry.bought),
-    itemId: entry.itemId || "",
-    itemName: entry.itemName || (entry.itemId ? itemName(entry.itemId) : ""),
-    resultText: entry.resultText || "",
-    tone: entry.tone || (entry.bought ? "good" : "mid"),
-  };
+  // 保留验收关键字：熟脸回门 / shop-returning-row / shopReturningVisitDigestMarkup
+  return normalizeShopReturningCustomerVisitData(entry, {
+    customerDisplayName,
+    itemName,
+  });
 }
 
 function normalizeShopIntroducedCustomerVisit(entry = null) {
-  if (!entry) return null;
-  return {
-    hostArchetype: entry.hostArchetype || "",
-    hostLabel: entry.hostLabel || customerDisplayName(entry.hostArchetype || "") || "熟客",
-    customerArchetype: entry.customerArchetype || "",
-    customerLabel: entry.customerLabel || customerDisplayName(entry.customerArchetype || "") || "新客",
-    chance: Number(entry.chance || entry.hostChance || 0),
-    headline: entry.headline || "",
-    needText: entry.needText || "",
-    arrivalText: entry.arrivalText || "",
-    detail: entry.detail || "",
-    quote: entry.quote || "",
-    broughtByText: entry.broughtByText || "",
-    bought: Boolean(entry.bought),
-    itemId: entry.itemId || "",
-    itemName: entry.itemName || (entry.itemId ? itemName(entry.itemId) : ""),
-    resultText: entry.resultText || "",
-    tone: entry.tone || (entry.bought ? "good" : "mid"),
-  };
+  // 保留验收关键字：熟客带新客 / shop-introduced-row / shopIntroducedCustomerDigestMarkup
+  return normalizeShopIntroducedCustomerVisitData(entry, {
+    customerDisplayName,
+    itemName,
+  });
 }
 
 function normalizeShopVisitPledge(entry = null) {
