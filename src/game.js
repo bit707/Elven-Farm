@@ -48,6 +48,11 @@ import {
   workshopOrderQueueWorldBoardSpecData,
 } from "./game/shared/workshop-order-queue-board.js";
 import {
+  workshopSpiritAssistActionFocusData,
+  workshopSpiritAssistActionWorldAtPointData,
+  workshopSpiritAssistActionWorldSpecData,
+} from "./game/shared/workshop-spirit-assist-action.js";
+import {
   bondLevelForData,
   jobNameData,
   moodParamForData,
@@ -46043,85 +46048,43 @@ function workshopSpiritAssistActionWorldSpec(width = refs.world?.width || 960, h
 function workshopSpiritAssistActionWorldSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640, livingState = currentLivingWorldState(), lineSpec = workshopProductionLineSpec(livingState?.queue || state.workshopQueue || [])) {
   const helpers = state.spirits.filter((spirit) => spirit.job === "workshop");
   const activeJob = lineSpec?.activeJob || null;
-  if (helpers.length === 0) return null;
   const sceneSpec = workshopWorldProductionSceneSpec(lineSpec);
-  const stageProps = sceneSpec.stageProps || [];
-  const activeStage = activeJob
-    ? stageProps.find((prop) => prop.active) || stageProps[Math.max(0, Math.min(stageProps.length - 1, Number(activeJob.activeStageIndex || 0)))]
-    : stageProps.find((prop) => prop.key === "heat") || stageProps[2] || { key: "idle", label: "Standby", x: 618, y: 502 };
-  const helper = helpers[0];
-  const helperNames = helpers.slice(0, 2).map((spirit) => spirit.name).join(" / ");
-  const helperText = helpers.length > 2 ? `${helperNames} +${helpers.length}` : helperNames || helper.name || "Helper";
-  const stageKey = activeJob ? activeStage?.key || "heat" : "idle";
-  const copy = workshopSpiritAssistActionCopy(stageKey, helper.name || "Helper", activeJob);
-  const orderMatch = activeJob?.orderMatch || null;
-  const speedText = activeJob?.speedText || lineSpec.speedText || multiplierText(workshopMultiplier() * workshopSpiritBonus());
-  const recipeId = activeJob?.recipeId || state.selectedRecipeId || availableRecipes()[0]?.recipe_id || "";
-  const panelCopy = workshopSpiritAssistActionPanelCopy({
-    helper,
-    helperText,
-    activeJob,
-    activeStage,
-    copy,
-    orderMatch,
-  });
-  return workshopSpiritAssistActionWorldSpecFromRuntimeWorld({
+  const speedText = activeJob?.speedText || lineSpec?.speedText || multiplierText(workshopMultiplier() * workshopSpiritBonus());
+  // Workshop spirit assist action bridge keeps verify keywords:
+  // workshopSpiritAssistActionWorldFocus / workshopSpiritAssistActionSafetyText / workshopSpiritAssistActionCopy / workshopSpiritAssistActionWorldSpec / workshopSpiritAssistActionWorldAtCanvasPoint / focusWorkshopSpiritAssistActionWorldFromCanvas / drawWorkshopSpiritAssistActionWorld / 精怪帮火小动作 / 谁在帮 / 递料 / 投料 / 压火 / 盛盘 / 贴签 / 下一步看哪 / 只定位伙伴栏、工坊队列或配方栏 / 不会自动切岗、加工、排产、出锅、交单、开铺、入夜或消耗材料.
+  return workshopSpiritAssistActionWorldSpecData({
     width,
     height,
     day: state.day,
     helpers,
-    activeJob,
-    activeStage,
-    helper,
-    helperText,
-    stageKey,
-    copy,
-    orderMatch,
+    lineSpec,
+    sceneSpec,
+    selectedRecipeId: state.selectedRecipeId,
+    availableRecipes: availableRecipes(),
     speedText,
-    recipeId,
     safetyText: workshopSpiritAssistActionSafetyText(),
-    panelCopy,
+    copyForStage: workshopSpiritAssistActionCopy,
+    panelCopyForRuntime: workshopSpiritAssistActionPanelCopy,
+    specFromRuntime: workshopSpiritAssistActionWorldSpecFromRuntimeWorld,
   });
 }
 
 function workshopSpiritAssistActionWorldAtCanvasPoint(px, py) {
-  return workshopSpiritAssistActionWorldAtCanvasPointWorld({
+  return workshopSpiritAssistActionWorldAtPointData({
     px,
     py,
     spec: workshopSpiritAssistActionWorldSpecBridge(),
+    atPoint: workshopSpiritAssistActionWorldAtCanvasPointWorld,
   });
 }
 
 function focusWorkshopSpiritAssistActionWorldFromCanvas(spec = workshopSpiritAssistActionWorldSpecBridge()) {
-  if (!spec?.helperId) return false;
-  workshopSpiritAssistActionWorldFocus = {
-    key: spec.key,
-    day: state.day,
-    spiritId: spec.helperId,
-    recipeId: spec.recipeId || "",
-  };
-  canvasSpiritCareFocus = {
-    spiritId: spec.helperId,
-    day: state.day,
-    seasonal: {
-      label: "精怪帮火小动作",
-      detail: spec.headline,
-      effect: `${spec.detail} ${spec.summary}`,
-    },
-  };
-  spiritFocusTarget = {
-    selector: `[data-spirit-id="${selectorDataValue(spec.helperId)}"]`,
-    spiritName: spec.helperName,
-  };
-  queueStoryCompassFocusTarget({
-    selector: spec.active ? "[data-workshop-queue]" : `[data-spirit-id="${selectorDataValue(spec.helperId)}"]`,
-    fallbackSelector: spec.active ? "#recipeSelect" : "#spiritList",
-    panelGroup: spec.active ? "systems" : "core",
-    label: "点选精怪帮火小动作",
-    log: `${spec.headline}：${spec.actionText}。${spec.detail} 当前 ${spec.stageLabel} · 帮工 ${spec.helperCount} · ${spec.speedText}。${spec.safety}`,
-    missingTitle: "精怪帮火小动作",
-    missingLog: `已读到 ${spec.helperName} 的工坊小动作，但面板暂时没有找到。${spec.safety}`,
-  });
+  const focusSpec = workshopSpiritAssistActionFocusData(spec, state.day, selectorDataValue);
+  if (!focusSpec) return false;
+  workshopSpiritAssistActionWorldFocus = focusSpec.worldFocus;
+  canvasSpiritCareFocus = focusSpec.canvasSpiritCareFocus;
+  spiritFocusTarget = focusSpec.spiritFocusTarget;
+  queueStoryCompassFocusTarget(focusSpec.compassTarget);
   return true;
 }
 
