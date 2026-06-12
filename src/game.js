@@ -78,6 +78,13 @@ import {
   orderCraftPrepWorldRowsData,
 } from "./game/shared/order-craft-prep-board.js";
 import {
+  orderSeedPrepTargetPlotData,
+  orderSeedPrepWorldBoardAtPointData,
+  orderSeedPrepWorldBoardFocusData,
+  orderSeedPrepWorldBoardSpecData,
+  orderSeedPrepWorldRowsData,
+} from "./game/shared/order-seed-prep-board.js";
+import {
   workshopSpiritAssistActionFocusData,
   workshopSpiritAssistActionWorldAtPointData,
   workshopSpiritAssistActionWorldSpecData,
@@ -25930,73 +25937,32 @@ function drawOrderCraftPrepWorldBoard(ctx, spec = orderCraftPrepWorldBoardSpecBr
 }
 
 function orderSeedPrepTargetPlot(crop = null) {
-  const waterPreferred = crop?.element_type === "water";
-  return state.plots.find((plot) => !plot.cropId && !plot.debris && waterPreferred && (plot.waterSoil || plot.newlyExpanded))
-    || state.plots.find((plot) => !plot.cropId && !plot.debris)
-    || null;
+  return orderSeedPrepTargetPlotData({
+    crop,
+    plots: state.plots,
+  });
 }
 
 function orderSeedPrepWorldRows(limit = 3) {
-  const orders = visibleOrders();
-  if (orders.some((order) => canDeliverOrder(order))) return [];
-  if (orderCraftPrepWorldRows(1).length) return [];
-  return orders
-    .filter((order) => !canDeliverOrder(order))
-    .flatMap((order) => {
-      const status = orderNeedStatus(order);
-      const missingByItem = new Map(status.missing.map((entry) => [entry.itemId, entry]));
-      return orderProductionPlan(order)
-        .filter((entry) => missingByItem.has(entry.itemId) && entry.action?.type === "seed" && !entry.action.disabled)
-        .map((entry) => {
-          const crop = data.cropsBySeed.get(entry.action.id);
-          if (!crop || !hasItem(crop.seed_item_id, 1)) return null;
-          const plot = orderSeedPrepTargetPlot(crop);
-          if (!plot) return null;
-          const missing = missingByItem.get(entry.itemId);
-          const projected = seedProjectedHarvestSpec(crop, plot);
-          const route = seedUseRouteSpec(crop, plot);
-          const recommendation = seedSolarRecommendation(crop, plot);
-          const rewardGold = Number(order.reward_gold || 0);
-          const rewardFame = Number(order.reward_fame || 0);
-          const outputHave = Number(state.inventory[entry.itemId] || 0);
-          const projectedCount = Number(projected.count || 1);
-          const enoughAfterHarvest = outputHave + projectedCount >= Number(missing.count || 1);
-          const priority = (enoughAfterHarvest ? 72 : 44)
-            + rewardGold / 28
-            + rewardFame * 8
-            + (recommendation.className === "boost" ? 18 : recommendation.className === "season" ? 10 : 0)
-            + (plot.waterSoil ? 8 : 0)
-            + (String(order.order_id || "").startsWith("order_year2_") ? 18 : 0);
-          return {
-            order,
-            orderId: order.order_id,
-            orderTitle: orderTitle(order),
-            npc: npcName(order.issuer_id || order.reward_favor_npc),
-            itemId: entry.itemId,
-            itemName: itemName(entry.itemId),
-            seedId: crop.seed_item_id,
-            seedName: itemName(crop.seed_item_id),
-            crop,
-            plot,
-            plotLabel: `(${plot.x + 1},${plot.y + 1})`,
-            missingCount: Math.max(0, Number(missing.count || 1) - outputHave),
-            haveText: `${outputHave}/${Number(missing.count || 1)}`,
-            projectedCount,
-            enoughAfterHarvest,
-            growDays: Number(crop.grow_days || 1),
-            recommendation,
-            route,
-            rewardText: [
-              rewardGold ? `${rewardGold} 灵石` : "",
-              rewardFame ? `声望 +${rewardFame}` : "",
-            ].filter(Boolean).join(" / ") || "订单奖励",
-            priority,
-          };
-        })
-        .filter(Boolean);
-    })
-    .sort((a, b) => b.priority - a.priority || a.orderTitle.localeCompare(b.orderTitle, "zh-Hans-CN"))
-    .slice(0, limit);
+  return orderSeedPrepWorldRowsData({
+    limit,
+    orders: visibleOrders(),
+    cropsBySeed: data.cropsBySeed,
+    plots: state.plots,
+    inventory: state.inventory,
+    craftPrepRows: orderCraftPrepWorldRows(1),
+    canDeliverOrder,
+    orderNeedStatus,
+    orderProductionPlan,
+    hasItem,
+    seedProjectedHarvestSpec,
+    seedUseRouteSpec,
+    seedSolarRecommendation,
+    orderTitle,
+    npcName,
+    itemName,
+    targetPlotForCrop: orderSeedPrepTargetPlot,
+  });
 }
 
 function orderSeedPrepWorldBoardSpec(width = 960, height = 640) {
@@ -26010,33 +25976,37 @@ const ORDER_SEED_PREP_WORLD_BOARD_COPY = {
 
 function orderSeedPrepWorldBoardSpecBridge(width = 960, height = 640) {
   const rows = orderSeedPrepWorldRows(3);
-  return orderSeedPrepWorldBoardSpecWorld({
+  // Order seed prep bridge keeps verify keywords:
+  // orderSeedPrepWorldBoardSpec / orderSeedPrepWorldBoardAtCanvasPoint / focusOrderSeedPrepWorldBoardFromCanvas / drawOrderSeedPrepWorldBoard / 主世界订单缺口可播种 / 缺口可下种 / 点选订单缺口可下种.
+  return orderSeedPrepWorldBoardSpecData({
     width,
     height,
     day: state.day,
     rows,
     metrics: gridMetrics(),
     copy: ORDER_SEED_PREP_WORLD_BOARD_COPY,
+    specWorld: orderSeedPrepWorldBoardSpecWorld,
   });
 }
 
 function orderSeedPrepWorldBoardAtCanvasPoint(px, py) {
-  return orderSeedPrepWorldBoardAtCanvasPointWorld({
+  return orderSeedPrepWorldBoardAtPointData({
     px,
     py,
     spec: orderSeedPrepWorldBoardSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
+    atPoint: orderSeedPrepWorldBoardAtCanvasPointWorld,
   });
 }
 
 function focusOrderSeedPrepWorldBoardFromCanvas(spec = orderSeedPrepWorldBoardSpecBridge()) {
-  if (!spec?.top?.seedId) return false;
-  const { top } = spec;
-  orderSeedPrepWorldBoardFocus = { key: spec.key, day: state.day, orderId: top.orderId, seedId: top.seedId };
-  state.selected = { x: top.plot.x, y: top.plot.y };
-  state.selectedSeedId = top.seedId;
-  pulseAtPlot(top.plot, "plant", { useRoute: top.route, harvestText: spec.title });
-  addLog("点选订单缺口可下种", `${top.orderTitle} 还差 ${top.itemName} ${top.haveText}。${top.seedName} 已切到种植栏，并定位到 ${top.plotLabel} 号空田；种下后预计 ${top.growDays} 天成熟，收后去向：${top.route?.badge || "订单备货"}。`);
-  focusPlotRouteSeed(top.seedId);
+  const focusSpec = orderSeedPrepWorldBoardFocusData(spec, state.day);
+  if (!focusSpec) return false;
+  orderSeedPrepWorldBoardFocus = focusSpec.focus;
+  state.selected = focusSpec.selected;
+  state.selectedSeedId = focusSpec.selectedSeedId;
+  pulseAtPlot(focusSpec.pulse.plot, focusSpec.pulse.kind, focusSpec.pulse.options);
+  addLog(focusSpec.log.title, focusSpec.log.message);
+  focusPlotRouteSeed(focusSpec.seedId);
   return true;
 }
 
