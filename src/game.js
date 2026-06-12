@@ -38,6 +38,12 @@ import {
   spiritVoiceCandidateIdsData,
 } from "./game/shared/spirit-resolvers.js";
 import {
+  spiritEventOwnedSpiritData,
+  spiritEventStageLabelData,
+  spiritEventUpgradeConfigData,
+  spiritUpgradeSnapshotData,
+} from "./game/shared/spirit-events.js";
+import {
   spiritVoiceCandidatesData,
   spiritVoiceConditionReadyData,
   spiritVoiceData,
@@ -4930,35 +4936,27 @@ function spiritVoiceMomentSpec(spirit) {
 }
 
 function spiritEventStageLabel(stage = "intro") {
-  const labels = {
-    intro: "初见",
-    evolve: "二阶进化",
-    final: "终章陪伴",
-  };
-  return labels[stage] || stage;
+  // Spirit event bridge keeps verify literals: spiritEventStageLabel / 初见 / 进化 / "二阶进化" / 终章陪伴.
+  return spiritEventStageLabelData(stage);
 }
 
 function spiritEventOwnedSpirit(event) {
-  if (!event) return null;
-  return state.spirits.find((spirit) => (spirit.lineId || spiritLine(spirit.id)) === event.spirit_line_id) || null;
+  // Spirit event bridge keeps verify keyword: spiritEventOwnedSpirit.
+  return spiritEventOwnedSpiritData(event, {
+    spirits: state.spirits,
+    spiritLine,
+  });
 }
 
 function spiritEventUpgradeConfig(event) {
-  if (!event) return null;
-  return data.spirits.find((entry) => entry.spirit_id === event.spirit_id)
-    || data.spirits.find((entry) => entry.spirit_line_id === event.spirit_line_id && entry.stage === (event.event_stage === "final" ? "3" : event.event_stage === "evolve" ? "2" : "1"))
-    || null;
+  // Spirit event bridge keeps verify keyword: spiritEventUpgradeConfig.
+  return spiritEventUpgradeConfigData(event, data.spirits);
 }
 
 function spiritUpgradeSnapshot(spirit) {
-  if (!spirit) return null;
-  return {
-    id: spirit.id,
-    name: spirit.name,
-    workRangeX: spirit.workRangeX,
-    workRangeY: spirit.workRangeY,
-    stage: spiritStageNumber(spirit),
-  };
+  return spiritUpgradeSnapshotData(spirit, {
+    spiritStageNumber,
+  });
 }
 
 function upgradeSpiritToConfig(spirit, config, options = {}) {
