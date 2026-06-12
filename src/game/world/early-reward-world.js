@@ -1,3 +1,22 @@
+export function earlyRewardFeedbackSpecWorld(pace = null, {
+  day = 1,
+  now = () => 0,
+} = {}) {
+  if (!pace) return null;
+  return {
+    paceId: pace.pace_id,
+    phase: pace.phase,
+    action: pace.player_action,
+    instant: pace.instant_feedback,
+    delayed: pace.delayed_feedback || pace.success_metric || "",
+    unlock: pace.system_unlock || "",
+    note: pace.note || "",
+    timeMin: Number(pace.time_min || 0),
+    createdAt: now(),
+    day,
+  };
+}
+
 export function drawEarlyRewardFeedbackWorld({
   ctx,
   width = 960,

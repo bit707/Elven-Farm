@@ -9,6 +9,84 @@ export function spiritJobReadyWorldAccentWorld(job = "") {
   }[job] || "#b47d2f";
 }
 
+export function goalClaimFeedbackSpecWorld(kind = "year2", options = {}, {
+  now = () => 0,
+} = {}) {
+  const profiles = {
+    year2: {
+      title: "年鉴落页",
+      sourceLabel: "第二年目标册",
+      verb: "收进年鉴",
+      accent: "#b47d2f",
+      soft: "rgba(224, 182, 109, 0.2)",
+      glyph: "鉴",
+    },
+    freeplay: {
+      title: "自由目标兑现",
+      sourceLabel: "后主线自由目标",
+      verb: "长期奖励",
+      accent: "#4d91a6",
+      soft: "rgba(77, 145, 166, 0.18)",
+      glyph: "游",
+    },
+    ecology: {
+      title: "生态造景收录",
+      sourceLabel: "生态庭院",
+      verb: "造景落成",
+      accent: "#286f58",
+      soft: "rgba(40, 111, 88, 0.18)",
+      glyph: "院",
+    },
+    job_goal: {
+      title: "岗位修行结印",
+      sourceLabel: "精怪岗位修行",
+      verb: "修行奖励",
+      accent: "#8f5f3f",
+      soft: "rgba(143, 95, 63, 0.18)",
+      glyph: "岗",
+    },
+    job_task: {
+      title: "岗位小事落页",
+      sourceLabel: "精怪岗位小事",
+      verb: "记忆落页",
+      accent: "#6a8c44",
+      soft: "rgba(122, 162, 90, 0.18)",
+      glyph: "事",
+    },
+    rare_spirit: {
+      title: "稀有记忆收录",
+      sourceLabel: "稀有精怪事件",
+      verb: "伙伴记忆",
+      accent: "#d87f8d",
+      soft: "rgba(216, 127, 141, 0.18)",
+      glyph: "灵",
+    },
+    daily_intent: {
+      title: "今日主轴起势",
+      sourceLabel: "每日三选目标",
+      verb: "今日目标",
+      accent: "#b47d2f",
+      soft: "rgba(224, 182, 109, 0.18)",
+      glyph: "势",
+    },
+  };
+  const profile = profiles[kind] || profiles.year2;
+  return {
+    kind,
+    title: options.title || profile.title,
+    sourceLabel: options.sourceLabel || profile.sourceLabel,
+    verb: options.verb || profile.verb,
+    headline: String(options.headline || "目标完成"),
+    detail: String(options.detail || "这段进展已经被洞天记住。"),
+    rewardText: String(options.rewardText || "奖励已入账"),
+    accent: options.accent || profile.accent,
+    soft: options.soft || profile.soft,
+    glyph: options.glyph || profile.glyph,
+    createdAt: now(),
+    duration: Number(options.duration || 6600),
+  };
+}
+
 export function drawGoalClaimFeedbackWorld({
   ctx,
   width = 960,
