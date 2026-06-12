@@ -47,3 +47,31 @@ export function normalizeShopCustomerDecisionLedgerData(ledger = null, options =
     evidence: ledger.evidence || "",
   };
 }
+
+export function normalizeShopRegularBoardData(board = null, options = {}) {
+  if (!board) return null;
+  const shopTagLabelFor = typeof options.shopTagLabel === "function" ? options.shopTagLabel : () => "";
+  const customerDisplayNameFor = typeof options.customerDisplayName === "function" ? options.customerDisplayName : () => "";
+  return {
+    title: board.title || "熟客留言墙",
+    headline: board.headline || "",
+    summary: board.summary || "",
+    nextAction: board.nextAction || "",
+    hotTag: board.hotTag || "",
+    hotTagLabel: board.hotTagLabel || (board.hotTag ? shopTagLabelFor(board.hotTag) : ""),
+    rows: Array.isArray(board.rows)
+      ? board.rows.map((row) => ({
+        customerArchetype: row.customerArchetype || "",
+        customerLabel: row.customerLabel || customerDisplayNameFor(row.customerArchetype || "") || "来客",
+        visits: Number(row.visits || 0),
+        buys: Number(row.buys || 0),
+        chance: Number(row.chance || 0),
+        headline: row.headline || "",
+        quote: row.quote || "",
+        detail: row.detail || "",
+        metricsText: row.metricsText || "",
+        tone: row.tone || "note",
+      })).slice(0, 3)
+      : [],
+  };
+}

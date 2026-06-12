@@ -61,7 +61,11 @@ import {
   normalizeShopStats,
   normalizeShopWordOfMouth,
 } from "./game/state/shop-stats.js";
-import { normalizeShopCustomerDecisionLedgerData, normalizeShopRestockTargetData } from "./game/state/shop-opening-state.js";
+import {
+  normalizeShopCustomerDecisionLedgerData,
+  normalizeShopRegularBoardData,
+  normalizeShopRestockTargetData,
+} from "./game/state/shop-opening-state.js";
 import {
   townAreaWorldPoint as townAreaWorldPointHelper,
   townLifeErrandPlaqueAtCanvasPoint as townLifeErrandPlaqueAtCanvasPointHelper,
@@ -1667,29 +1671,11 @@ function normalizeShopCustomerDecisionLedger(ledger = null) {
 }
 
 function normalizeShopRegularBoard(board = null) {
-  if (!board) return null;
-  return {
-    title: board.title || "熟客留言墙",
-    headline: board.headline || "",
-    summary: board.summary || "",
-    nextAction: board.nextAction || "",
-    hotTag: board.hotTag || "",
-    hotTagLabel: board.hotTagLabel || (board.hotTag ? shopTagLabel(board.hotTag) : ""),
-    rows: Array.isArray(board.rows)
-      ? board.rows.map((row) => ({
-        customerArchetype: row.customerArchetype || "",
-        customerLabel: row.customerLabel || customerDisplayName(row.customerArchetype || "") || "来客",
-        visits: Number(row.visits || 0),
-        buys: Number(row.buys || 0),
-        chance: Number(row.chance || 0),
-        headline: row.headline || "",
-        quote: row.quote || "",
-        detail: row.detail || "",
-        metricsText: row.metricsText || "",
-        tone: row.tone || "note",
-      })).slice(0, 3)
-      : [],
-  };
+  // 保留验收关键字：熟客留言墙 / shop-regular-board / shopRegularBoardMarkup / shopRegularBoardSpec
+  return normalizeShopRegularBoardData(board, {
+    shopTagLabel,
+    customerDisplayName,
+  });
 }
 
 function normalizeShopReturningCustomerVisit(entry = null) {
