@@ -273,3 +273,174 @@ export function spiritFinaleCompanionSpecsData(spirits = [], spiritFinaleCompani
   const specFor = typeof spiritFinaleCompanionSpec === "function" ? spiritFinaleCompanionSpec : () => null;
   return spirits.map(specFor).filter(Boolean);
 }
+
+const SPIRIT_FINALE_EFFECT_ROW_SPECS = [
+  {
+    lineId: "spirit_line_luobo",
+    key: "farmGrowthBonus",
+    shortTitle: "根环催苗",
+    fallbackSpirit: "萝卜精",
+    loopLabel: "农田",
+    effectLabel: "成长",
+    panel: "farm",
+    accent: "#7ba66c",
+    detail: "夜间成长倍率提高，偶数夜会替未照料地块补一圈根须护田。",
+  },
+  {
+    lineId: "spirit_line_shui",
+    key: "waterCareBonus",
+    shortTitle: "水滴巡田",
+    fallbackSpirit: "水滴精",
+    loopLabel: "农田",
+    effectLabel: "水生照料",
+    panel: "farm",
+    accent: "#4d91a6",
+    detail: "水生作物入夜视为被照料，雨水不足时也能续住一口灵水。",
+  },
+  {
+    lineId: "spirit_line_lajiao",
+    key: "workshopSpeedBonus",
+    shortTitle: "灶火添星",
+    fallbackSpirit: "辣椒精",
+    loopLabel: "工坊",
+    effectLabel: "效率",
+    panel: "workshop",
+    accent: "#be4f37",
+    detail: "后厂排产和出锅结算速度提升，火候看板会直接计入效率。",
+  },
+  {
+    lineId: "spirit_line_suan",
+    key: "patrolGuardBonus",
+    shortTitle: "夜巡剑弧",
+    fallbackSpirit: "蒜头精",
+    loopLabel: "巡逻",
+    effectLabel: "守护",
+    panel: "patrol",
+    accent: "#d8c27a",
+    detail: "入夜风险更容易被巡逻灵纹提前压下，未化解时也会减轻损失。",
+  },
+  {
+    lineId: "spirit_line_yunshu",
+    key: "shopBudgetBonus",
+    shortTitle: "云箱账路",
+    fallbackSpirit: "云薯精",
+    loopLabel: "旧铺",
+    effectLabel: "预算",
+    panel: "shop",
+    accent: "#8f9c9a",
+    detail: "开铺时顾客有效预算提高，仓店联动让客人更敢下单。",
+  },
+  {
+    lineId: "spirit_line_bucao",
+    key: "festivalThemeBonus",
+    shortTitle: "锦灯门面",
+    fallbackSpirit: "补草精",
+    loopLabel: "旧铺",
+    effectLabel: "礼宴主题",
+    panel: "shop",
+    accent: "#d87f8d",
+    detail: "礼品/宴席主题更容易成型，礼品货架还会额外吸引一位顾客。",
+  },
+];
+
+export function spiritFinaleEffectSummaryData(spiritFinaleCompanionSpecs) {
+  const specs = typeof spiritFinaleCompanionSpecs === "function" ? spiritFinaleCompanionSpecs() : [];
+  const hasLine = (lineId) => specs.some((spec) => spec.lineId === lineId);
+  const lines = new Set(specs.map((spec) => spec.lineId));
+  const effects = {
+    specs,
+    lines,
+    count: specs.length,
+    farmGrowthBonus: hasLine("spirit_line_luobo") ? 0.08 : 0,
+    waterCareBonus: hasLine("spirit_line_shui") ? 0.12 : 0,
+    workshopSpeedBonus: hasLine("spirit_line_lajiao") ? 0.08 : 0,
+    patrolGuardBonus: hasLine("spirit_line_suan") ? 0.12 : 0,
+    shopBudgetBonus: hasLine("spirit_line_yunshu") ? 0.06 : 0,
+    festivalThemeBonus: hasLine("spirit_line_bucao") ? 0.08 : 0,
+  };
+  effects.any = effects.count > 0;
+  effects.totalLoopBonus = effects.farmGrowthBonus
+    + effects.waterCareBonus
+    + effects.workshopSpeedBonus
+    + effects.patrolGuardBonus
+    + effects.shopBudgetBonus
+    + effects.festivalThemeBonus;
+  effects.labels = specs.map((spec) => `${spec.spiritName}·${spec.anchorLabel}`);
+  effects.text = specs.length
+    ? specs.map((spec) => `${spec.anchorLabel}：${spec.effectText.replace(/^[^：]+：/, "")}`).join("；")
+    : "";
+  return effects;
+}
+
+export function spiritFinaleEffectRowsData(effects = {}, options = {}) {
+  const percentText = typeof options.percentText === "function" ? options.percentText : (value) => `${Math.round(Number(value || 0) * 100)}%`;
+  const specByLine = new Map((effects.specs || []).map((spec) => [spec.lineId, spec]));
+  return SPIRIT_FINALE_EFFECT_ROW_SPECS.map((row) => {
+    const spec = specByLine.get(row.lineId);
+    const value = Number(effects[row.key] || 0);
+    const active = value > 0;
+    return {
+      ...row,
+      value,
+      active,
+      spiritName: spec?.spiritName || row.fallbackSpirit,
+      anchorLabel: spec?.anchorLabel || row.shortTitle,
+      label: spec ? `${spec.spiritName}·${spec.anchorLabel}` : `${row.fallbackSpirit}·${row.shortTitle}`,
+      valueText: active ? `${row.effectLabel} +${percentText(value)}` : "终章未收束",
+      accent: spec?.accent || row.accent,
+    };
+  });
+}
+
+export function spiritFinaleEffectPanelRowsData(effects = {}, panel = "", spiritFinaleEffectRows) {
+  const rowsFor = typeof spiritFinaleEffectRows === "function" ? spiritFinaleEffectRows : spiritFinaleEffectRowsData;
+  return rowsFor(effects).filter((row) => row.active && (!panel || row.panel === panel));
+}
+
+export function spiritFinaleEffectCompactTextData(effects = {}, limit = 3, spiritFinaleEffectRows) {
+  const rowsFor = typeof spiritFinaleEffectRows === "function" ? spiritFinaleEffectRows : spiritFinaleEffectRowsData;
+  const rows = Array.isArray(effects?.rows)
+    ? effects.rows.filter((row) => row.active !== false && Number(row.value || 0) > 0)
+    : rowsFor(effects).filter((row) => row.active);
+  if (rows.length === 0) return "";
+  const shown = rows.slice(0, limit).map((row) => `${row.shortTitle}：${row.valueText}`);
+  const more = rows.length > limit ? `；另有 ${rows.length - limit} 条常驻线` : "";
+  return `${shown.join("；")}${more}`;
+}
+
+export function spiritFinaleEffectPanelTextData(effects = {}, panel = "", limit = 2, options = {}) {
+  const spiritFinaleEffectPanelRows = typeof options.spiritFinaleEffectPanelRows === "function" ? options.spiritFinaleEffectPanelRows : spiritFinaleEffectPanelRowsData;
+  const rows = Array.isArray(effects?.rows)
+    ? effects.rows.filter((row) => row.active !== false && Number(row.value || 0) > 0 && (!panel || row.panel === panel))
+    : spiritFinaleEffectPanelRows(effects, panel);
+  if (rows.length === 0) return "";
+  const shown = rows.slice(0, limit).map((row) => `${row.shortTitle}：${row.valueText}`);
+  const more = rows.length > limit ? `；另有 ${rows.length - limit} 条` : "";
+  return `${shown.join("；")}${more}`;
+}
+
+export function spiritFinaleEffectSnapshotData(effects = {}, options = {}) {
+  if (!effects) return null;
+  const spiritFinaleEffectRows = typeof options.spiritFinaleEffectRows === "function" ? options.spiritFinaleEffectRows : spiritFinaleEffectRowsData;
+  const spiritFinaleEffectCompactText = typeof options.spiritFinaleEffectCompactText === "function" ? options.spiritFinaleEffectCompactText : spiritFinaleEffectCompactTextData;
+  const rows = Array.isArray(effects.rows)
+    ? effects.rows.filter((row) => row.active !== false && Number(row.value || 0) > 0).map((row) => ({ ...row, active: true }))
+    : spiritFinaleEffectRows(effects).filter((row) => row.active);
+  if (rows.length === 0) return null;
+  const totalLoopBonus = Number(effects.totalLoopBonus || rows.reduce((sum, row) => sum + Number(row.value || 0), 0));
+  return {
+    count: Number(effects.count || rows.length),
+    labels: Array.isArray(effects.labels) && effects.labels.length ? [...effects.labels] : rows.map((row) => row.label),
+    text: effects.text || rows.map((row) => `${row.anchorLabel}：${row.detail}`).join("；"),
+    rows,
+    farmGrowthBonus: Number(effects.farmGrowthBonus || 0),
+    waterCareBonus: Number(effects.waterCareBonus || 0),
+    workshopSpeedBonus: Number(effects.workshopSpeedBonus || 0),
+    patrolGuardBonus: Number(effects.patrolGuardBonus || 0),
+    shopBudgetBonus: Number(effects.shopBudgetBonus || 0),
+    festivalThemeBonus: Number(effects.festivalThemeBonus || 0),
+    totalLoopBonus,
+    headline: `终章伙伴常驻 ${rows.length}/6`,
+    detail: spiritFinaleEffectCompactText({ rows }, 4),
+  };
+}
