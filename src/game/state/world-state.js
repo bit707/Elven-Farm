@@ -113,6 +113,53 @@ export function normalizePondStateData(pondState = {}) {
   };
 }
 
+export function pondWaterLevelSpecData(level = 1) {
+  const map = {
+    0: {
+      level: 0,
+      label: "浅水",
+      shortLabel: "偏浅",
+      cropDelta: -1,
+      fishDelta: 0,
+      autoWater: false,
+      summary: "池边露出泥沿，适合歇水，但水生菜会吃亏。",
+    },
+    1: {
+      level: 1,
+      label: "平水",
+      shortLabel: "正稳",
+      cropDelta: 1,
+      fishDelta: 0,
+      autoWater: true,
+      summary: "水线刚好压过田沟，最适合养露珠芹这类嫩水菜。",
+    },
+    2: {
+      level: 2,
+      label: "丰水",
+      shortLabel: "偏满",
+      cropDelta: 0,
+      fishDelta: 1,
+      autoWater: true,
+      summary: "池水更深，灵鱼回得快，但嫩菜容易长得散。",
+    },
+  };
+  return map[Math.max(0, Math.min(2, Number(level || 0)))] || map[1];
+}
+
+export function pondWaterLevelTextData(level = 1) {
+  const spec = pondWaterLevelSpecData(level);
+  return `${spec.label} · ${spec.summary}`;
+}
+
+export function pondLotusStageTextData(stage = "none") {
+  const map = {
+    none: "水面还在养静气",
+    bud: "月白莲苞刚冒头",
+    bloom: "月白莲已经开稳",
+  };
+  return map[stage] || map.none;
+}
+
 export function createInitialDengyingLanternStateData() {
   return {
     lastRevealDay: 0,
