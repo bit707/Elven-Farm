@@ -39,6 +39,7 @@ import {
 } from "./game/shared/spirit-resolvers.js";
 import {
   spiritEventOwnedSpiritData,
+  spiritEventGoalRowsData,
   spiritEventReadyData,
   spiritEventRewardTextData,
   spiritEventSceneReadyData,
@@ -5073,57 +5074,17 @@ function playSpiritEventScene(eventId = "") {
 }
 
 function spiritEventGoalRows(limit = 6) {
-  const lineIds = [...new Set((data.spiritEvents || []).map((event) => event.spirit_line_id))];
-  return lineIds.map((lineId) => {
-    const events = (data.spiritEventsByLine.get(lineId) || [])
-      .slice()
-      .sort((a, b) => Number(["intro", "evolve", "final"].indexOf(a.event_stage)) - Number(["intro", "evolve", "final"].indexOf(b.event_stage)));
-    const ownedSpirit = state.spirits.find((spirit) => (spirit.lineId || spiritLine(spirit.id)) === lineId) || null;
-    const baseConfig = data.spirits.find((entry) => entry.spirit_line_id === lineId && Number(entry.stage || 1) === 1)
-      || data.spirits.find((entry) => entry.spirit_line_id === lineId)
-      || null;
-    const completedEvents = events.filter((event) => state.completedSpiritEvents.has(event.spirit_event_id));
-    const readyEvent = events.find(spiritEventReady) || null;
-    const nextEvent = events.find((event) => !state.completedSpiritEvents.has(event.spirit_event_id)) || null;
-    const replayEvent = events.find((event) => state.completedSpiritEvents.has(event.spirit_event_id) && spiritEventSceneReady(event)) || null;
-    const stateClass = completedEvents.length >= events.length
-      ? "done"
-      : readyEvent
-        ? "ready"
-        : ownedSpirit
-          ? "pending"
-          : "locked";
-    const headline = readyEvent
-      ? `${spiritEventStageLabel(readyEvent.event_stage)}可触发`
-      : nextEvent
-        ? `下一步：${spiritEventStageLabel(nextEvent.event_stage)}`
-        : "伙伴线已收录完成";
-    const detail = readyEvent
-      ? `${localize(readyEvent.dialogue_key, readyEvent.note)} · ${spiritEventSceneReady(readyEvent) ? "完成后会收进一段进化镜头。" : "完成后会写进伙伴记忆。"}`
-      : nextEvent
-        ? spiritEventTriggerHint(nextEvent)
-        : replayEvent
-          ? "这段进化镜头已经收进年鉴，随时可以回看。"
-          : "这一条伙伴线已经从初见走到终章陪伴。";
-    return {
-      lineId,
-      spiritName: ownedSpirit?.name || localize(baseConfig?.spirit_name_key, lineId.replace("spirit_line_", "")),
-      ownedSpirit,
-      events,
-      completedEvents,
-      readyEvent,
-      nextEvent,
-      replayEvent,
-      stateClass,
-      headline,
-      detail,
-    };
-  })
-    .sort((a, b) => {
-      const score = (row) => (row.readyEvent ? 30 : 0) + (row.ownedSpirit ? 10 : 0) + row.completedEvents.length;
-      return score(b) - score(a);
-    })
-    .slice(0, limit);
+  // Spirit event bridge keeps verify literals: spiritEventGoalRows / data-spirit-event / data-spirit-event-scene / spirit-line-event.
+  return spiritEventGoalRowsData(limit, {
+    data,
+    state,
+    localize,
+    spiritLine,
+    spiritEventReady,
+    spiritEventSceneReady,
+    spiritEventStageLabel,
+    spiritEventTriggerHint,
+  });
 }
 
 function spiritFinalEventForLine(lineId = "") {

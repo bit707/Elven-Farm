@@ -97,3 +97,70 @@ export function spiritEventSceneReadyData(event, cutsceneShots) {
   const shotsFor = typeof cutsceneShots === "function" ? cutsceneShots : () => [];
   return Boolean(event?.reward_type === "scene" && shotsFor(event.reward_param).length > 0);
 }
+
+export function spiritEventGoalRowsData(limit = 6, options = {}) {
+  const data = options.data || {};
+  const state = options.state || {};
+  const localize = typeof options.localize === "function" ? options.localize : (key, fallback = key) => fallback;
+  const spiritLine = typeof options.spiritLine === "function" ? options.spiritLine : () => "spirit_line_luobo";
+  const spiritEventReady = typeof options.spiritEventReady === "function" ? options.spiritEventReady : () => false;
+  const spiritEventSceneReady = typeof options.spiritEventSceneReady === "function" ? options.spiritEventSceneReady : () => false;
+  const spiritEventStageLabel = typeof options.spiritEventStageLabel === "function" ? options.spiritEventStageLabel : spiritEventStageLabelData;
+  const spiritEventTriggerHint = typeof options.spiritEventTriggerHint === "function" ? options.spiritEventTriggerHint : () => "继续推进洞天日常";
+  const spiritEvents = data.spiritEvents || [];
+  const spiritEventsByLine = data.spiritEventsByLine || new Map();
+  const spiritCatalog = data.spirits || [];
+  const completedSpiritEvents = state.completedSpiritEvents || new Set();
+  const ownedSpirits = state.spirits || [];
+  const lineIds = [...new Set(spiritEvents.map((event) => event.spirit_line_id))];
+  return lineIds.map((lineId) => {
+    const events = (spiritEventsByLine.get(lineId) || [])
+      .slice()
+      .sort((a, b) => Number(["intro", "evolve", "final"].indexOf(a.event_stage)) - Number(["intro", "evolve", "final"].indexOf(b.event_stage)));
+    const ownedSpirit = ownedSpirits.find((spirit) => (spirit.lineId || spiritLine(spirit.id)) === lineId) || null;
+    const baseConfig = spiritCatalog.find((entry) => entry.spirit_line_id === lineId && Number(entry.stage || 1) === 1)
+      || spiritCatalog.find((entry) => entry.spirit_line_id === lineId)
+      || null;
+    const completedEvents = events.filter((event) => completedSpiritEvents.has(event.spirit_event_id));
+    const readyEvent = events.find(spiritEventReady) || null;
+    const nextEvent = events.find((event) => !completedSpiritEvents.has(event.spirit_event_id)) || null;
+    const replayEvent = events.find((event) => completedSpiritEvents.has(event.spirit_event_id) && spiritEventSceneReady(event)) || null;
+    const stateClass = completedEvents.length >= events.length
+      ? "done"
+      : readyEvent
+        ? "ready"
+        : ownedSpirit
+          ? "pending"
+          : "locked";
+    const headline = readyEvent
+      ? `${spiritEventStageLabel(readyEvent.event_stage)}可触发`
+      : nextEvent
+        ? `下一步：${spiritEventStageLabel(nextEvent.event_stage)}`
+        : "伙伴线已收录完成";
+    const detail = readyEvent
+      ? `${localize(readyEvent.dialogue_key, readyEvent.note)} · ${spiritEventSceneReady(readyEvent) ? "完成后会收进一段进化镜头。" : "完成后会写进伙伴记忆。"}`
+      : nextEvent
+        ? spiritEventTriggerHint(nextEvent)
+        : replayEvent
+          ? "这段进化镜头已经收进年鉴，随时可以回看。"
+          : "这一条伙伴线已经从初见走到终章陪伴。";
+    return {
+      lineId,
+      spiritName: ownedSpirit?.name || localize(baseConfig?.spirit_name_key, lineId.replace("spirit_line_", "")),
+      ownedSpirit,
+      events,
+      completedEvents,
+      readyEvent,
+      nextEvent,
+      replayEvent,
+      stateClass,
+      headline,
+      detail,
+    };
+  })
+    .sort((a, b) => {
+      const score = (row) => (row.readyEvent ? 30 : 0) + (row.ownedSpirit ? 10 : 0) + row.completedEvents.length;
+      return score(b) - score(a);
+    })
+    .slice(0, limit);
+}
