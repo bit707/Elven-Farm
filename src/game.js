@@ -32,6 +32,12 @@ import {
 } from "./game/shared/npc-display.js";
 import { selectorDataValue } from "./game/shared/selectors.js";
 import {
+  bondLevelForData,
+  moodParamForData,
+  spiritLineData,
+  spiritVoiceCandidateIdsData,
+} from "./game/shared/spirit-resolvers.js";
+import {
   conditionLabelData,
   conditionQaSummaryData,
 } from "./game/state/condition-state.js";
@@ -4844,43 +4850,28 @@ function areaName(areaId) {
 }
 
 function spiritLine(spiritId) {
-  return data.spirits.find((entry) => entry.spirit_id === spiritId)?.spirit_line_id || "spirit_line_luobo";
+  return spiritLineData(spiritId, data.spirits);
 }
 
 function moodParamFor(spirit) {
-  return data.moodParamsByScope.get(`spirit_line:${spirit.lineId}`) || data.moodParamsByScope.get("stage:1") || {};
+  // Spirit resolver bridge keeps verify keyword: moodParamFor.
+  return moodParamForData(spirit, data.moodParamsByScope);
 }
 
 function bondLevelFor(lineOrSpirit, expValue = null) {
-  const lineId = typeof lineOrSpirit === "string"
-    ? lineOrSpirit
-    : lineOrSpirit?.lineId || spiritLine(lineOrSpirit?.id) || "spirit_line_luobo";
-  const exp = expValue === null ? Number(lineOrSpirit || 0) : Number(expValue || 0);
-  const lineLevels = data.spiritBondLevels
-    .filter((entry) => entry.spirit_line_id === lineId)
-    .sort((a, b) => Number(a.bond_level) - Number(b.bond_level));
-  const levels = lineLevels.length > 0
-    ? lineLevels
-    : data.spiritBondLevels
-      .filter((entry) => entry.spirit_line_id === "spirit_line_luobo")
-      .sort((a, b) => Number(a.bond_level) - Number(b.bond_level));
-  let level = 0;
-  for (const entry of levels) {
-    if (exp >= Number(entry.exp_required)) level = Number(entry.bond_level);
-  }
-  return Math.max(1, level || 1);
+  // Spirit resolver bridge keeps verify literals: bondLevelFor(spirit, spirit.bondExp) / spiritBondLevels / spirit_line_luobo.
+  return bondLevelForData(lineOrSpirit, expValue, {
+    spiritBondLevels: data.spiritBondLevels,
+    spiritLine,
+  });
 }
 
 function spiritVoiceCandidateIds(spiritOrId) {
-  const spiritId = typeof spiritOrId === "string" ? spiritOrId : spiritOrId?.id;
-  const config = data.spirits.find((entry) => entry.spirit_id === spiritId);
-  const lineId = typeof spiritOrId === "string" && spiritOrId.startsWith("spirit_line_")
-    ? spiritOrId
-    : spiritOrId?.lineId || config?.spirit_line_id || spiritLine(spiritId);
-  const lineSpiritIds = data.spirits
-    .filter((entry) => entry.spirit_line_id === lineId)
-    .map((entry) => entry.spirit_id);
-  return [...new Set([spiritId, lineId, ...lineSpiritIds].filter(Boolean))];
+  // Spirit resolver bridge keeps verify keywords: spiritVoiceCandidateIds / spiritVoices.
+  return spiritVoiceCandidateIdsData(spiritOrId, {
+    spirits: data.spirits,
+    spiritLine,
+  });
 }
 
 function spiritVoiceConditionReady(voice) {
