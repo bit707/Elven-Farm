@@ -61,6 +61,7 @@ import {
   normalizeShopStats,
   normalizeShopWordOfMouth,
 } from "./game/state/shop-stats.js";
+import { normalizeShopRestockTargetData } from "./game/state/shop-opening-state.js";
 import {
   townAreaWorldPoint as townAreaWorldPointHelper,
   townLifeErrandPlaqueAtCanvasPoint as townLifeErrandPlaqueAtCanvasPointHelper,
@@ -1651,23 +1652,10 @@ function createInitialShopOpeningState() {
 }
 
 function normalizeShopRestockTarget(target = null) {
-  if (!target) return null;
-  const itemId = target.itemId || "";
-  const createdDay = Number(target.createdDay || target.day || state?.day || 1);
-  return {
-    id: target.id || `shop_restock_${itemId || "goods"}_${createdDay}`,
-    itemId,
-    itemName: target.itemName || (itemId ? itemName(itemId) : "可卖货"),
-    desiredCount: Math.max(1, Number(target.desiredCount || 1)),
-    createdDay,
-    dueDay: Number(target.dueDay || createdDay + 2),
-    source: target.source || "customer_focus",
-    reason: target.reason || "",
-    note: target.note || "",
-    status: target.status || "active",
-    completedDay: Number(target.completedDay || 0),
-    canceledDay: Number(target.canceledDay || 0),
-  };
+  return normalizeShopRestockTargetData(target, {
+    day: state?.day || 1,
+    itemName,
+  });
 }
 
 function normalizeShopCustomerDecisionLedger(ledger = null) {
