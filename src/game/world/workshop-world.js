@@ -1507,6 +1507,62 @@ export function workshopSpiritAssistActionWorldSpecFromRuntimeWorld({
   };
 }
 
+export function workshopSpiritAssistActionCopySpecWorld(stageKey = "idle", helperName = "精怪", activeJob = null) {
+  const outputName = activeJob?.outputItemName || "这一锅";
+  const recipeText = activeJob?.recipeName || "下一锅";
+  const copies = {
+    prep: {
+      badge: "递",
+      title: "递料",
+      action: "把原料筐推到备料案",
+      detail: `${helperName} 正在核对 ${recipeText} 的材料。`,
+      summary: "递料动作把仓口、备料案和锅口接成一条线。",
+      accent: "#8f5f3f",
+    },
+    feed: {
+      badge: "投",
+      title: "投料",
+      action: "沿锅沿递勺下料",
+      detail: `${helperName} 把料勺递到锅边，火星开始接住配方。`,
+      summary: "投料动作让玩家看见材料从背包变成锅里的东西。",
+      accent: "#be4f37",
+    },
+    heat: {
+      badge: "火",
+      title: "压火",
+      action: "蹲在灶口看烟色",
+      detail: `${helperName} 守着火候，烟色稳住后 ${outputName} 才不会散香。`,
+      summary: "帮火动作把“工坊速度加成”翻译成看得见的烟、火和守候。",
+      accent: "#d58d3d",
+    },
+    finish: {
+      badge: "盛",
+      title: "盛盘",
+      action: "拿竹盘接第一勺",
+      detail: `${helperName} 在出锅口接货，${outputName} 快要入仓。`,
+      summary: "盛盘动作让出锅前一刻更像真的有人在后厂忙活。",
+      accent: "#b47d2f",
+    },
+    store: {
+      badge: "仓",
+      title: "贴签",
+      action: "给竹匣挂上货签",
+      detail: `${helperName} 把 ${outputName} 贴签入仓，旧铺能读到备货。`,
+      summary: "入仓动作把工坊产物接到订单、旧铺和下一锅备货。",
+      accent: "#286f58",
+    },
+    idle: {
+      badge: "候",
+      title: "候工",
+      action: "把空锅擦到能照见火星",
+      detail: `${helperName} 已经守在灶边，等你手动排下一锅。`,
+      summary: "候工动作提示工坊岗已经有人，排产后会立刻接手。",
+      accent: "#b47d2f",
+    },
+  };
+  return copies[stageKey] || copies.idle;
+}
+
 export function workshopSpiritAssistActionPanelCopyFromRuntimeWorld({
   helper = null,
   helperText = "",
