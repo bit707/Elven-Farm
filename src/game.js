@@ -74,16 +74,16 @@ import {
   townLifeShopMomentSafetyText as townLifeShopMomentSafetyTextHelper,
 } from "./game/world/town-life-transaction-keepsakes.js";
 import {
-  townLifeOpportunityActionMarkup as townLifeOpportunityActionMarkupHelper,
-  townLifeOpportunityBoardMarkup as townLifeOpportunityBoardMarkupHelper,
-  townLifeOpportunityRows as townLifeOpportunityRowsHelper,
-  townLifeRelationshipWorldBoardPalette as townLifeRelationshipWorldBoardPaletteHelper,
-  townLifeRelationshipWorldBoardSpec as townLifeRelationshipWorldBoardSpecHelper,
-  townLifeRouteWorldBoardAtCanvasPoint as townLifeRouteWorldBoardAtCanvasPointHelper,
-  townLifeRouteWorldBoardEntry as townLifeRouteWorldBoardEntryHelper,
-  townLifeRouteWorldBoardSpec as townLifeRouteWorldBoardSpecHelper,
-  townLifeWorldBoardShortText as townLifeWorldBoardShortTextHelper,
-} from "./game/world/town-life-boards.js";
+  townLifeOpportunityActionMarkupRuntime,
+  townLifeOpportunityBoardMarkupRuntime,
+  townLifeOpportunityRowsRuntime,
+  townLifeRelationshipWorldBoardPaletteRuntime,
+  townLifeRelationshipWorldBoardSpecRuntime,
+  townLifeRouteWorldBoardAtCanvasPointRuntime,
+  townLifeRouteWorldBoardEntryRuntime,
+  townLifeRouteWorldBoardSpecRuntime,
+  townLifeWorldBoardShortTextRuntime,
+} from "./game/world/town-life-board-runtime.js";
 import {
   focusTownLifeErrandRoute as focusTownLifeErrandRouteHelper,
   focusTownLifeErrandRouteWorldTarget as focusTownLifeErrandRouteWorldTargetHelper,
@@ -39542,11 +39542,11 @@ function focusEarlyNpcWorldRoadsignFromCanvas(spec = earlyNpcWorldRoadsignSpec()
 }
 
 function townLifeOpportunityActionMarkup(opportunity) {
-  return townLifeOpportunityActionMarkupHelper(opportunity);
+  return townLifeOpportunityActionMarkupRuntime(opportunity);
 }
 
 function townLifeOpportunityRows(rows = townLifeRows(8), limit = 4) {
-  return townLifeOpportunityRowsHelper(rows, limit, {
+  return townLifeOpportunityRowsRuntime(rows, limit, {
     shopTownErrandDisplaySpec,
     shopTownErrandPrimaryActionSpec,
     townLifeGreetingSeen,
@@ -39567,18 +39567,18 @@ function townLifeOpportunityRows(rows = townLifeRows(8), limit = 4) {
 
 function townLifeOpportunityBoardMarkup(rows = townLifeRows(8)) {
   // townLifeOpportunityBoardMarkup bridge keeps verify keywords: townLifeOpportunityRows / townLifeOpportunityActionMarkup / data-town-opportunity-board / data-town-opportunity-greet / data-town-opportunity-errand / data-town-opportunity-errand-route / data-town-opportunity-gift / data-town-opportunity-side-quest / data-town-opportunity-memory-id / town-life-opportunity-board / town-life-opportunity-list / town-life-opportunity / 今日关系机会 / 关系记忆临门
-  return townLifeOpportunityBoardMarkupHelper(rows, {
+  return townLifeOpportunityBoardMarkupRuntime(rows, {
     townLifeOpportunityRows,
     townLifeOpportunityActionMarkup,
   });
 }
 
 function townLifeWorldBoardShortText(text = "", limit = 18) {
-  return townLifeWorldBoardShortTextHelper(text, limit);
+  return townLifeWorldBoardShortTextRuntime(text, limit);
 }
 
 function townLifeRouteWorldBoardEntry(row = null, index = 0) {
-  return townLifeRouteWorldBoardEntryHelper(row, index, {
+  return townLifeRouteWorldBoardEntryRuntime(row, index, {
     townLifeGreetingSeen,
     townLifeErrandStatus,
     townLifeErrandRouteSpec,
@@ -39592,7 +39592,7 @@ function townLifeRouteWorldBoardEntry(row = null, index = 0) {
 }
 
 function townLifeRouteWorldBoardSpec(rowsInput = null, canvasWidth = refs.world?.width || 960, canvasHeight = refs.world?.height || 640) {
-  return townLifeRouteWorldBoardSpecHelper(rowsInput, canvasWidth, canvasHeight, {
+  return townLifeRouteWorldBoardSpecRuntime(rowsInput, canvasWidth, canvasHeight, {
     stateDay: state.day,
     townLifeRows,
     townLifeRouteWorldBoardEntry,
@@ -39604,7 +39604,7 @@ function townLifeRouteWorldBoardSpec(rowsInput = null, canvasWidth = refs.world?
 }
 
 function townLifeRouteWorldBoardAtCanvasPoint(px, py) {
-  return townLifeRouteWorldBoardAtCanvasPointHelper(px, py, {
+  return townLifeRouteWorldBoardAtCanvasPointRuntime(px, py, {
     townLifeRouteWorldBoardSpec,
   });
 }
@@ -39626,11 +39626,11 @@ function focusTownLifeRouteWorldBoardFromCanvas(spec = townLifeRouteWorldBoardSp
 }
 
 function townLifeRelationshipWorldBoardPalette(tone = "daily") {
-  return townLifeRelationshipWorldBoardPaletteHelper(tone);
+  return townLifeRelationshipWorldBoardPaletteRuntime(tone);
 }
 
 function townLifeRelationshipWorldBoardSpec(rows = townLifeRows(6), canvasWidth = refs.world?.width || 960, canvasHeight = refs.world?.height || 640) {
-  return townLifeRelationshipWorldBoardSpecHelper(rows, canvasWidth, canvasHeight, {
+  return townLifeRelationshipWorldBoardSpecRuntime(rows, canvasWidth, canvasHeight, {
     stateDay: state.day,
     townLifeOpportunityRows,
     townLifeRows,
