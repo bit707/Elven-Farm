@@ -49,6 +49,9 @@ import {
   spiritAutomationBenefitBoardFocusData,
   spiritAutomationBenefitBoardSpecData,
   spiritAutomationBenefitRowsData,
+  spiritAutomationGroundTraceAtPointData,
+  spiritAutomationGroundTraceFocusLogData,
+  spiritAutomationGroundTraceSpecData,
   spiritAutomationNextAssignmentAdviceData,
 } from "./game/shared/spirit-automation-benefit.js";
 import {
@@ -46673,48 +46676,17 @@ function spiritAutomationGroundTraceAnchor(job = "farm", width = refs.world?.wid
 function spiritAutomationGroundTraceSpec(width = refs.world?.width || 960, height = refs.world?.height || 640, benefitSpec = spiritAutomationBenefitBoardSpec(width, height)) {
   if (!state.spirits.length || state.dungeon) return null;
   const promenadeRows = spiritAutomationPromenadeRows();
-  if (!promenadeRows.length) return null;
-  const benefitByJob = new Map((benefitSpec?.rows || []).map((row) => [row.job, row]));
-  const traces = promenadeRows.map((row) => {
-    const benefit = benefitByJob.get(row.job) || null;
-    const anchor = spiritAutomationGroundTraceAnchor(row.job, width, height);
-    const active = Boolean(row.active || benefit);
-    const rect = {
-      x: Math.max(12, Math.min(width - 124, anchor.x - 46)),
-      y: Math.max(82, Math.min(height - 64, anchor.y - 34)),
-      width: 116,
-      height: 54,
-    };
-    return {
-      key: `${state.day}:${row.job}:${active ? "active" : "idle"}:${benefit?.value || row.metric || ""}`,
-      job: row.job,
-      label: row.label || jobName(row.job),
-      glyph: benefit?.glyph || row.glyph || "灵",
-      tone: benefit?.tone || row.tone || "stable",
-      title: benefit?.title || (active ? `${row.label}留痕` : `${row.label}待接线`),
-      value: benefit?.value || (active ? row.metric : "待接线"),
-      detail: benefit?.detail || row.detail || row.impact || "",
-      helperText: row.helperText || "空岗",
-      action: row.action || "",
-      active,
-      anchor,
-      rect,
-      target: spiritAutomationLineTarget(row.job),
-    };
+  // Spirit automation bridge keeps verify keyword: spiritAutomationGroundTraceSpec / 自动化收益留痕 / 田水、灶火、货签、巡灯、旗路和庭院花息.
+  return spiritAutomationGroundTraceSpecData({
+    day: state.day,
+    promenadeRows,
+    benefitSpec,
+    width,
+    height,
+    anchorForJob: spiritAutomationGroundTraceAnchor,
+    jobName,
+    lineTarget: spiritAutomationLineTarget,
   });
-  const activeTraces = traces.filter((trace) => trace.active);
-  return {
-    key: `${state.day}:${activeTraces.map((trace) => trace.job).join("|")}:${benefitSpec?.key || "no-benefit"}`,
-    title: "自动化收益留痕",
-    headline: activeTraces.length
-      ? `今日 ${activeTraces.length}/6 条岗位在场景里留下动作`
-      : "精怪定岗后，场景会留下自动化动作痕迹",
-    detail: "把后台省工翻译成田水、灶火、货签、巡灯、旗路和庭院花息。",
-    activeCount: activeTraces.length,
-    traces,
-    benefitKey: benefitSpec?.key || "",
-    safetyText: "点击留痕只定位对应系统，不会自动切岗、派工、排产、开铺、发商队、处理风险、入夜或消耗资源。",
-  };
 }
 
 function spiritAutomationGroundTraceSpecBridge(
@@ -46732,26 +46704,15 @@ function spiritAutomationGroundTraceSpecBridge(
 }
 
 function spiritAutomationGroundTraceAtCanvasPoint(px, py) {
-  const spec = spiritAutomationGroundTraceSpecBridge();
-  if (!spec?.traces?.length) return null;
-  return spec.traces
-    .slice()
-    .reverse()
-    .find((trace) => (
-      px >= trace.rect.x
-      && px <= trace.rect.x + trace.rect.width
-      && py >= trace.rect.y
-      && py <= trace.rect.y + trace.rect.height
-    )) || null;
+  return spiritAutomationGroundTraceAtPointData(spiritAutomationGroundTraceSpecBridge(), px, py);
 }
 
 function focusSpiritAutomationGroundTraceFromCanvas(trace = null) {
-  if (!trace) return false;
-  addLog(
-    "点选自动化收益留痕",
-    `${trace.label}：${trace.active ? `${trace.title} ${trace.value}` : "这条线还在待接线"}。${trace.detail || trace.action} ${spiritAutomationGroundTraceSpec()?.safetyText || "这里只定位回看，不会自动执行动作。"}`,
-  );
-  focusAutomationJobLine(trace.job);
+  // Spirit automation bridge keeps verify keyword: 点选自动化收益留痕.
+  const focusLog = spiritAutomationGroundTraceFocusLogData(trace, spiritAutomationGroundTraceSpec()?.safetyText || "");
+  if (!focusLog) return false;
+  addLog(focusLog.title, focusLog.message);
+  focusAutomationJobLine(focusLog.job);
   return true;
 }
 

@@ -207,3 +207,80 @@ export function spiritAutomationBenefitBoardFocusData(spec = null, day = 1) {
     },
   };
 }
+
+export function spiritAutomationGroundTraceSpecData({
+  day = 1,
+  promenadeRows = [],
+  benefitSpec = null,
+  width = 960,
+  height = 640,
+  anchorForJob = () => ({ x: 0, y: 0 }),
+  jobName = (job) => job,
+  lineTarget = () => null,
+} = {}) {
+  const safeRows = Array.isArray(promenadeRows) ? promenadeRows : [];
+  if (!safeRows.length) return null;
+  const benefitByJob = new Map((benefitSpec?.rows || []).map((row) => [row.job, row]));
+  const traces = safeRows.map((row) => {
+    const benefit = benefitByJob.get(row.job) || null;
+    const anchor = anchorForJob(row.job, width, height) || { x: 0, y: 0 };
+    const active = Boolean(row.active || benefit);
+    const rect = {
+      x: Math.max(12, Math.min(width - 124, anchor.x - 46)),
+      y: Math.max(82, Math.min(height - 64, anchor.y - 34)),
+      width: 116,
+      height: 54,
+    };
+    return {
+      key: `${day}:${row.job}:${active ? "active" : "idle"}:${benefit?.value || row.metric || ""}`,
+      job: row.job,
+      label: row.label || jobName(row.job),
+      glyph: benefit?.glyph || row.glyph || "灵",
+      tone: benefit?.tone || row.tone || "stable",
+      title: benefit?.title || (active ? `${row.label}留痕` : `${row.label}待接线`),
+      value: benefit?.value || (active ? row.metric : "待接线"),
+      detail: benefit?.detail || row.detail || row.impact || "",
+      helperText: row.helperText || "空岗",
+      action: row.action || "",
+      active,
+      anchor,
+      rect,
+      target: lineTarget(row.job),
+    };
+  });
+  const activeTraces = traces.filter((trace) => trace.active);
+  return {
+    key: `${day}:${activeTraces.map((trace) => trace.job).join("|")}:${benefitSpec?.key || "no-benefit"}`,
+    title: "自动化收益留痕",
+    headline: activeTraces.length
+      ? `今日 ${activeTraces.length}/6 条岗位在场景里留下动作`
+      : "精怪定岗后，场景会留下自动化动作痕迹",
+    detail: "把后台省工翻译成田水、灶火、货签、巡灯、旗路和庭院花息。",
+    activeCount: activeTraces.length,
+    traces,
+    benefitKey: benefitSpec?.key || "",
+    safetyText: "点击留痕只定位对应系统，不会自动切岗、派工、排产、开铺、发商队、处理风险、入夜或消耗资源。",
+  };
+}
+
+export function spiritAutomationGroundTraceAtPointData(spec = null, px = 0, py = 0) {
+  if (!spec?.traces?.length) return null;
+  return spec.traces
+    .slice()
+    .reverse()
+    .find((trace) => (
+      px >= trace.rect.x
+      && px <= trace.rect.x + trace.rect.width
+      && py >= trace.rect.y
+      && py <= trace.rect.y + trace.rect.height
+    )) || null;
+}
+
+export function spiritAutomationGroundTraceFocusLogData(trace = null, safetyText = "") {
+  if (!trace) return null;
+  return {
+    title: "点选自动化收益留痕",
+    message: `${trace.label}：${trace.active ? `${trace.title} ${trace.value}` : "这条线还在待接线"}。${trace.detail || trace.action} ${safetyText || "这里只定位回看，不会自动执行动作。"}`,
+    job: trace.job || "farm",
+  };
+}
