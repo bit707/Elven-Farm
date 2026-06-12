@@ -172,6 +172,8 @@ import {
   spiritBondRewardLabelRuntime,
   spiritDailyChoreMarkupRuntime,
   spiritDailyChoreSpecRuntime,
+  spiritIdentityMemoryMarkupRuntime,
+  spiritIdentityMemorySpecRuntime,
   spiritSeasonalWorkDaySummaryRowsRuntime,
   spiritSeasonalWorkMomentSpecRuntime,
   spiritSeasonalWorkSceneProfileRuntime,
@@ -7116,86 +7118,22 @@ function spiritCompanionCareSpec(spirit) {
 }
 
 function spiritIdentityMemorySpec(spirit) {
-  if (!spirit) return null;
-  const interactionState = normalizeSpiritInteractionState(state.spiritInteractionState);
-  const history = Array.isArray(interactionState.history) ? interactionState.history : [];
-  const todayEntry = history.find((entry) => entry.spiritId === spirit.id && Number(entry.day || 0) === state.day) || null;
-  const latestEntry = todayEntry
-    || history.find((entry) => entry.spiritId === spirit.id)
-    || (interactionState.last?.spiritId === spirit.id ? interactionState.last : null);
-  const rareMoment = rareSpiritMomentForSpirit(spirit);
-  const profile = spiritVisualProfile(spirit);
-  const persona = spiritJobPersonaSpec(spirit, spirit.job || "farm");
-  const bondLevel = Number(spirit.bondLevel || 1);
-  const actionLabel = latestEntry
-    ? latestEntry.type === "theater" ? "今日小剧场"
-      : latestEntry.type === "feed" ? "喂食转圈"
-        : latestEntry.type === "mood_repair" ? "被认真安抚"
-          : "蹭掌心"
-    : rareMoment ? rareMoment.actionShort || "稀有小动作"
-      : `${jobName(spirit.job)}岗小动作`;
-  const memoryLine = todayEntry
-    ? `我记得它：今天${String(todayEntry.actionText || spiritInteractionActionText(todayEntry.type, spirit)).replace(spirit.name, "")}`
-    : rareMoment
-      ? `我记得它：今天在${rareMoment.focus}${rareMoment.action}，这是它自己的小习惯。`
-      : `我记得它：今天在${jobName(spirit.job)}岗${persona.action}，还等着第一句伙伴回应写进档案。`;
-  const quote = latestEntry?.quote || rareMoment?.quote || spiritVoice(spirit.id, "idle");
-  const behaviorNote = latestEntry
-    ? `最近记录：第 ${latestEntry.day} 天 · ${actionLabel} · 羁绊 +${latestEntry.bondGain || 0}`
-    : rareMoment
-      ? `今日行为：${rareMoment.focus} · ${rareMoment.actionShort || rareMoment.action}`
-      : `今日行为：${persona.focus} · ${persona.advice}`;
-  const chips = [
-    `名字 ${spirit.name}`,
-    `岗位 ${jobName(spirit.job)}`,
-    `行为 ${actionLabel}`,
-    `羁绊 Lv.${bondLevel}`,
-  ];
-  const quoteShort = String(quote || "嗯嗯。").replace(/[“”]/g, "").slice(0, 16);
-  const memoryHooks = [
-    { label: "记住名字", text: spirit.name },
-    { label: "记住动作", text: actionLabel },
-    { label: "记住短台词", text: quoteShort },
-  ];
-  const recallLine = `记住它三件事：名字 ${spirit.name} / 动作 ${actionLabel} / 短台词「${quoteShort}」`;
-
-  return {
-    title: `伙伴名牌 · ${spirit.name}`,
-    subtitle: `今日行为记忆 · ${profile.label}`,
-    tone: todayEntry ? "fresh" : rareMoment ? "rare" : "quiet",
-    memoryLine,
-    behaviorNote,
-    quote,
-    quoteShort,
-    memoryHooks,
-    recallLine,
-    chips,
-    safeNote: "只帮助记住名字和行为；不会自动摸摸、喂食、派工或消耗食物。",
-  };
+  // 保留校验关键字：spiritIdentityMemorySpec / 伙伴名牌 / 今日行为记忆 / 记住名字 / 记住动作 / 记住短台词 / 记住它三件事
+  return spiritIdentityMemorySpecRuntime(spirit, {
+    day: state.day,
+    interactionState: normalizeSpiritInteractionState(state.spiritInteractionState),
+    rareMoment: rareSpiritMomentForSpirit(spirit),
+    profile: spiritVisualProfile(spirit),
+    persona: spiritJobPersonaSpec(spirit, spirit?.job || "farm"),
+    jobName,
+    spiritInteractionActionText,
+    spiritVoice,
+  });
 }
 
 function spiritIdentityMemoryMarkup(spirit) {
-  const memory = spiritIdentityMemorySpec(spirit);
-  if (!memory) return "";
-  return `
-    <div class="spirit-identity-memory ${memory.tone}">
-      <div class="spirit-identity-memory-head">
-        <strong>${memory.title}</strong>
-        <span>${memory.subtitle}</span>
-      </div>
-      <p>${memory.memoryLine}</p>
-      <div class="spirit-memory-recall">
-        <strong>记忆三拍</strong>
-        ${memory.memoryHooks.map((hook) => `<span><b>${hook.label}</b>${hook.text}</span>`).join("")}
-      </div>
-      <small>${memory.behaviorNote}</small>
-      <em>“${memory.quote}”</em>
-      <div class="spirit-identity-memory-tags">
-        ${memory.chips.map((chip) => `<b>${chip}</b>`).join("")}
-      </div>
-      <small>${memory.safeNote}</small>
-    </div>
-  `;
+  // 保留校验关键字：spiritIdentityMemoryMarkup / spirit-identity-memory / spirit-identity-memory-tags / spirit-memory-recall / 记忆三拍
+  return spiritIdentityMemoryMarkupRuntime(spiritIdentityMemorySpec(spirit));
 }
 
 function spiritCompanionCareMarkup(spirit) {
