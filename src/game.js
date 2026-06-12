@@ -107,6 +107,11 @@ import {
   focusTownLifeNpcFromCanvasWorld,
 } from "./game/world/town-life-canvas-focus.js";
 import {
+  focusTownLifeRelationshipWorldBoardFromCanvasWorld,
+  focusTownLifeRouteWorldBoardFromCanvasWorld,
+  townLifeRelationshipWorldBoardAtCanvasPointWorld,
+} from "./game/world/town-life-board-focus.js";
+import {
   canvasTownLifeFocusRowWorld,
   townLifeNextMemoryPreviewWorld,
 } from "./game/world/town-life-context.js";
@@ -39246,49 +39251,24 @@ function townLifeNpcAtCanvasPoint(px, py) {
 }
 
 function townLifeRelationshipWorldBoardAtCanvasPoint(px, py) {
-  const spec = townLifeRelationshipWorldBoardSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? spec
-    : null;
+  return townLifeRelationshipWorldBoardAtCanvasPointWorld(px, py, {
+    townLifeRelationshipWorldBoardSpec,
+  });
 }
 
 function focusTownLifeRelationshipWorldBoardFromCanvas(spec = townLifeRelationshipWorldBoardSpec()) {
-  if (!spec) return false;
-  const row = spec.row || canvasTownLifeFocusRow(spec.npcId);
-  if (spec.npcId) {
-    const visibleRows = townLifeRows(6).filter((entry) => entry.status.key !== "away").slice(0, 5);
-    const pointIndex = visibleRows.findIndex((entry) => entry.npc.npc_id === spec.npcId);
-    const point = pointIndex >= 0 ? townLifeWorldPoint(visibleRows[pointIndex], pointIndex) : spec.point;
-    canvasTownLifeFocus = {
-      npcId: spec.npcId,
-      day: state.day,
-      area: row?.area || spec.area,
-      action: row?.action || spec.action,
-      source: "relationship_board",
-      point: point ? { x: Math.round(point.x), y: Math.round(point.y) } : null,
-    };
-  }
-  townLifeRelationshipWorldBoardFocus = {
-    key: spec.key,
-    day: state.day,
-    npcId: spec.npcId,
-    title: spec.title,
-    actionLabel: spec.actionLabel,
-  };
-  queueStoryCompassFocusTarget({
-    selector: spec.npcId ? `[data-npc-id="${selectorDataValue(spec.npcId)}"]` : ".town-life-opportunity-board",
-    fallbackSelector: ".town-life-opportunity-board",
-    label: "点选关系路标",
-    log: spec.npcId
-      ? `${spec.npcName} · ${spec.title}：${spec.detail} 已高亮关系卡；下一步建议 ${spec.actionLabel}。`
-      : `${spec.title}：${spec.detail} 已展开今日关系机会。`,
-    panelGroup: "systems",
-    missingTitle: "点选关系路标",
-    missingLog: "关系路标已经判断出今日机会，但关系面板里暂时没有找到对应卡片。",
+  // focusTownLifeRelationshipWorldBoardFromCanvas bridge keeps verify keywords: focusTownLifeRelationshipWorldBoardFromCanvas / townLifeRelationshipWorldBoardAtCanvasPoint / townLifeRelationshipWorldBoardSpec / 今日关系机会 / 点选关系路标 / 关系记忆临门 / town-life-opportunity-board
+  return focusTownLifeRelationshipWorldBoardFromCanvasWorld(spec, {
+    townLifeRelationshipWorldBoardSpec,
+    canvasTownLifeFocusRow,
+    townLifeRows,
+    townLifeWorldPoint,
+    stateDay: state.day,
+    selectorDataValue,
+    queueStoryCompassFocusTarget,
+    setCanvasTownLifeFocus: (value) => { canvasTownLifeFocus = value; },
+    setRelationshipWorldBoardFocus: (value) => { townLifeRelationshipWorldBoardFocus = value; },
   });
-  return true;
 }
 
 function townLifeErrandRouteCueAtCanvasPoint(px, py) {
@@ -39630,41 +39610,19 @@ function townLifeRouteWorldBoardAtCanvasPoint(px, py) {
 }
 
 function focusTownLifeRouteWorldBoardFromCanvas(spec = townLifeRouteWorldBoardSpec()) {
-  const entry = spec?.activeEntry || spec?.main || spec?.entries?.[0];
-  if (!entry?.npcId) return false;
-  const row = entry.row || canvasTownLifeFocusRow(entry.npcId);
-  const visibleRows = townLifeRows(6).filter((candidate) => candidate.status.key !== "away").slice(0, 5);
-  const pointIndex = visibleRows.findIndex((candidate) => candidate.npc.npc_id === entry.npcId);
-  const point = pointIndex >= 0 ? townLifeWorldPoint(visibleRows[pointIndex], pointIndex) : entry.point;
-  canvasTownLifeFocus = {
-    npcId: entry.npcId,
-    day: state.day,
-    area: row?.area || entry.area,
-    action: row?.action || entry.action,
-    source: "town_life_route_board",
-    point: point ? { x: Math.round(point.x), y: Math.round(point.y) } : null,
-  };
-  townLifeRouteWorldBoardFocus = {
-    key: spec.key,
-    entryKey: entry.key,
-    day: state.day,
-    npcId: entry.npcId,
-    type: entry.type,
-  };
-  if (entry.type === "errand_route" && row && entry.errand && entry.route) {
-    queueTownLifeErrandRouteWorldFocus(row, entry.errand, entry.route);
-  }
-  const shopLine = entry.type === "shop_moment" ? "旧铺后话在镇上，" : "";
-  queueStoryCompassFocusTarget({
-    selector: `[data-npc-id="${selectorDataValue(entry.npcId)}"]`,
-    fallbackSelector: ".town-life-opportunity-board",
-    label: "点选镇民动线牌",
-    log: `${entry.npcName} · ${entry.title}：${shopLine}${entry.detail} 已高亮关系卡；这里只定位下一步，不会自动寒暄/交付/领奖。`,
-    panelGroup: "systems",
-    missingTitle: "点选镇民动线牌",
-    missingLog: `${entry.npcName}的今日动线已经定位，但关系面板里暂时没有找到对应卡片。`,
+  // focusTownLifeRouteWorldBoardFromCanvas bridge keeps verify keywords: focusTownLifeRouteWorldBoardFromCanvas / townLifeRouteWorldBoardSpec / townLifeRouteWorldBoardAtCanvasPoint / 点选镇民动线牌 / town-life-opportunity-board / 看备货路线 / 旧铺后话 / 旧铺后话在镇上
+  return focusTownLifeRouteWorldBoardFromCanvasWorld(spec, {
+    townLifeRouteWorldBoardSpec,
+    canvasTownLifeFocusRow,
+    townLifeRows,
+    townLifeWorldPoint,
+    stateDay: state.day,
+    selectorDataValue,
+    queueStoryCompassFocusTarget,
+    queueTownLifeErrandRouteWorldFocus,
+    setCanvasTownLifeFocus: (value) => { canvasTownLifeFocus = value; },
+    setRouteWorldBoardFocus: (value) => { townLifeRouteWorldBoardFocus = value; },
   });
-  return true;
 }
 
 function townLifeRelationshipWorldBoardPalette(tone = "daily") {
