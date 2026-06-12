@@ -17,6 +17,10 @@ import { activeTimedFeedback } from "./game/shared/feedback.js";
 import { applyVisiblePanelColumns, pulseFocusElement } from "./game/shared/focus.js";
 import { selectorDataValue } from "./game/shared/selectors.js";
 import {
+  conditionLabelData,
+  conditionQaSummaryData,
+} from "./game/state/condition-state.js";
+import {
   createInitialDungeonMechanicStateData,
   normalizeDungeonMechanicStateData,
 } from "./game/state/dungeon-mechanic-state.js";
@@ -19455,25 +19459,15 @@ function conditionGroupStatus(id = "", seen = new Set()) {
 }
 
 function conditionQaSummary() {
-  const statuses = data.conditionGroups.map((group) => conditionGroupStatus(group.condition_group_id));
-  const supported = statuses.filter((status) => status.supported).length;
-  const passed = statuses.filter((status) => status.supported && status.pass).length;
-  return { total: statuses.length, supported, passed, statuses };
+  // Condition bridge keeps verify keywords: data.conditionGroups / conditionGroupsById / condition_group.csv / conditionExpressionFor / evaluateConditionExpression / conditionGroupStatus / conditionQaSummary / conditionPanel / condition-card / condition-summary
+  return conditionQaSummaryData(data.conditionGroups, conditionGroupStatus);
 }
 
 function conditionLabel(condition = "") {
-  if (!condition) return "默认开放";
-  const group = conditionGroupFor(condition);
-  if (group) return `${condition} · ${group.expression}`;
-  const favorMatch = condition.match(/^npc_(.+)_favor_(\d+)$/);
-  if (favorMatch) return `${npcName(`npc_${favorMatch[1]}`)}好感 Lv.${favorMatch[2]}`;
-  const chapterMatch = condition.match(/^chapter_(\d+)_complete$/);
-  if (chapterMatch) return `主线第 ${chapterMatch[1]} 章完成`;
-  const activeQuestMatch = condition.match(/^quest_(.+)_active$/);
-  if (activeQuestMatch) return `任务 ${condition.replace("_active", "")} 进行中`;
-  const questMatch = condition.match(/^quest_(.+)_complete$/);
-  if (questMatch) return `任务 ${condition.replace("_complete", "")} 完成`;
-  return condition;
+  return conditionLabelData(condition, {
+    conditionGroupFor,
+    npcName,
+  });
 }
 
 function fallbackConditionMet(condition = "") {
