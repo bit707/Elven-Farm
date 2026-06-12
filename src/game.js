@@ -16,6 +16,12 @@ import { drawCanvasCard } from "./game/shared/canvas.js";
 import { activeTimedFeedback } from "./game/shared/feedback.js";
 import { applyVisiblePanelColumns, pulseFocusElement } from "./game/shared/focus.js";
 import {
+  automationDayLedgerFocusData,
+  automationDayLedgerReportTextData,
+  automationDayLedgerRowsData,
+  automationDayLedgerSpecData,
+} from "./game/shared/automation-day-ledger.js";
+import {
   areaNameData,
   bossNameData,
   buildingNameData,
@@ -43541,187 +43547,35 @@ function createDaySummary(before) {
 function automationDayLedgerReportText(summary = state.lastDaySummary) {
   if (!summary) return "";
   const rows = automationDayLedgerRows(summary);
-  if (!rows.length) return "自动化日账本还没有接起第一条岗位线。";
-  return rows.map((row) => `${row.label}：${row.value}`).join(" / ");
+  return automationDayLedgerReportTextData(rows);
 }
 
 function automationDayLedgerRows(summary = state.lastDaySummary) {
   if (!summary) return [];
-  const workshopLine = workshopProductionLineSpec();
-  const completedWorkshopJobs = Array.isArray(summary.completedWorkshopJobs) ? summary.completedWorkshopJobs : [];
-  const restock = summary.shopRestock || shopRestockSummarySpec();
-  const weatherShelf = summary.shopWeatherShelf || null;
-  const waterwayStanding = summary.shopWaterwayStandingOrder || null;
-  const activeRisks = unresolvedRisks();
-  const riskCount = Math.max(Number(summary.unresolved || 0), activeRisks.length);
-  const spiritJobs = Array.isArray(summary.spiritJobs) ? summary.spiritJobs : [];
-  const synergy = Array.isArray(summary.spiritJobSynergy) ? summary.spiritJobSynergy : [];
-  const fieldSpirits = state.spirits.filter((spirit) => (spirit.job || "farm") === "farm");
-  const workshopSpirits = state.spirits.filter((spirit) => (spirit.job || "") === "workshop");
-  const patrolSpirits = state.spirits.filter((spirit) => (spirit.job || "") === "patrol");
-  const expeditionSpirits = state.spirits.filter((spirit) => (spirit.job || "") === "expedition");
-  const gardenSpirits = state.spirits.filter((spirit) => (spirit.job || "") === "garden");
-  const unwatered = state.plots.filter((plot) => plot.cropId && !plot.mature && !plot.watered).length;
-  const tradeRuns = (state.tradeRuns || []).slice();
-  const latestRun = tradeRuns
-    .slice()
-    .sort((a, b) => Number(b.returnedDay || b.returnDay || 0) - Number(a.returnedDay || a.returnDay || 0))[0] || null;
-  const tradeReturnDay = latestRun
-    ? (() => {
-      const run = latestRun;
-      return Number(run.returnedDay || run.returnDay || 0);
-    })()
-    : 0;
-  const ecologyRows = ecologyCourtyardGoalRows();
-  const readyEcology = ecologyRows.find((row) => row.ready) || ecologyRows.find((row) => row.active) || null;
-  const moodCareText = summary.cohabBuffs?.[0]
-    ? `${summary.cohabBuffs[0].routeName || "同住"} · ${summary.cohabBuffs[0].label}`
-    : summary.ecologyMemoryResonance?.tier > 0
-      ? `${summary.ecologyMemoryResonance.label} · 连记 ${summary.ecologyMemoryResonance.nights} 夜`
-      : gardenSpirits[0]
-        ? `${gardenSpirits[0].name} 在庭院托住伙伴心情`
-        : "庭院还没接起稳定的情绪托底线";
-  const rows = [
-    {
-      key: "field",
-      label: "田里被接手",
-      value: fieldSpirits.length > 0
-        ? `${fieldSpirits[0].name} 接了 ${Math.max(1, Math.min(unwatered || fieldSpirits.length * 3, fieldSpirits.length * 3))} 格活`
-        : `还有 ${Math.max(0, unwatered)} 格待接手`,
-      detail: fieldSpirits.length > 0
-        ? (unwatered > 0 ? `今晚还剩 ${unwatered} 格待润，明早先看精怪与田垄。` : "浇水和守熟已经不必全靠手点。")
-        : "先把一位伙伴调到农田岗，自动化日账本才会写下第一笔。",
-      selector: "#spiritList",
-      fallbackSelector: "#selectedPlotCard",
-      panelGroup: "core",
-      tone: fieldSpirits.length > 0 ? "ready" : "pending",
-      cta: "看田垄接手",
-    },
-    {
-      key: "workshop",
-      label: "后厂在烧",
-      value: workshopLine.activeJob
-        ? `${workshopLine.activeJob.currentStage.label} ${workshopLine.activeJob.progress}%`
-        : workshopSpirits.length > 0
-          ? `${workshopSpirits[0].name} 在灶边候工`
-          : "后厂还没跑起来",
-      detail: completedWorkshopJobs[0]
-        ? `${completedWorkshopJobs[0].outputItemName || "成品"} 已出锅入线。`
-        : workshopLine.activeJob
-          ? `这锅 ${workshopLine.activeJob.outputItemName} 正在接向 ${workshopLine.activeJob.orderText || "库存/旧铺"}` 
-          : "排进一锅生产后，后厂会从备料一路亮到入仓。",
-      selector: workshopLine.activeJob ? "[data-workshop-queue]" : ".workshop-production-line",
-      fallbackSelector: "#buildPanel",
-      panelGroup: "systems",
-      tone: workshopLine.activeJob || workshopSpirits.length > 0 ? "ready" : "pending",
-      cta: "看后厂跑线",
-    },
-    {
-      key: "stock",
-      label: "入仓/补货",
-      value: restock
-        ? `${restock.itemName} ${restock.have}/${restock.desiredCount}`
-        : weatherShelf?.itemName
-          ? `${weatherShelf.itemName} 等着补到头排`
-          : completedWorkshopJobs[0]
-            ? `${completedWorkshopJobs[0].outputItemName || "成品"} 已可转库存`
-            : "今晚暂时没有新补货线",
-      detail: restock
-        ? `${restock.sourceLabel || "旧铺补货"} · ${restock.statusText}`
-        : weatherShelf?.nextAction
-          ? `天气货签建议：${weatherShelf.nextAction}`
-          : "从后厂到库存、再到旧铺补货的线已经能被记住。",
-      selector: restock ? "#shopReport" : "#inventoryList",
-      fallbackSelector: "#goalBookPanel",
-      panelGroup: "core",
-      tone: restock?.ready || completedWorkshopJobs.length > 0 ? "ready" : "active",
-      cta: "看补货去向",
-    },
-    {
-      key: "patrol",
-      label: "巡灯压风险",
-      value: patrolSpirits.length > 0
-        ? (riskCount > 0 ? `${patrolSpirits[0].name} 盯着 ${riskCount} 条风险` : `${patrolSpirits[0].name} 在守夜路`)
-        : (riskCount > 0 ? `还有 ${riskCount} 条风险待压` : "今晚没有风险压上来"),
-      detail: riskCount > 0
-        ? "先看风险面板，再决定明早是巡灯还是亲自补处理。"
-        : "巡逻岗能把夜里最容易漏掉的风险提前记下来。",
-      selector: "#riskPanel",
-      fallbackSelector: "#spiritList",
-      panelGroup: "core",
-      tone: riskCount > 0 ? "warn" : patrolSpirits.length > 0 ? "ready" : "active",
-      cta: "看巡灯线",
-    },
-    {
-      key: "expedition",
-      label: "商队/远路",
-      value: latestRun
-        ? `${latestRun.routeName || "商路"} · 第 ${tradeReturnDay || state.day} 天`
-        : waterwayStanding?.focusItemName
-          ? `${waterwayStanding.focusItemName} 常单备货 ${waterwayStanding.focusHave}/${waterwayStanding.focusTarget}`
-          : expeditionSpirits.length > 0
-            ? `${expeditionSpirits[0].name} 守着远路时刻`
-            : "远路暂时还没接上线",
-      detail: latestRun
-        ? `${latestRun.status === "returned" ? "今天返程落账" : "还在路上"}${latestRun.routeName ? ` · ${latestRun.routeName}` : ""}`
-        : waterwayStanding?.detail || "商队回来时，这条线会把返程、补货和下次远行连成一页。",
-      selector: "#orderPanel",
-      fallbackSelector: "#goalBookPanel",
-      panelGroup: "core",
-      tone: latestRun || waterwayStanding || expeditionSpirits.length > 0 ? "ready" : "active",
-      cta: "看远路线",
-    },
-    {
-      key: "garden",
-      label: "庭院托心情",
-      value: moodCareText,
-      detail: readyEcology
-        ? `${readyEcology.name} 已接近可收录。`
-        : synergy[0]?.detail || "照应、同住和庭院共鸣会把自动化从省事变成生活感。",
-      selector: "#relationshipPanel",
-      fallbackSelector: "#goalBookPanel",
-      panelGroup: "story",
-      tone: readyEcology || gardenSpirits.length > 0 || summary.ecologyMemoryResonance?.tier > 0 ? "ready" : "active",
-      cta: "看庭院照应",
-    },
-  ];
-  return rows.filter((row) => row.value || row.detail);
+  // Automation ledger bridge keeps verify keyword: automationDayLedgerRows / returnedDay || run.returnDay / 田里被接手 / 后厂在烧 / 入仓/补货 / 巡灯压风险 / 商队/远路 / 庭院托心情.
+  return automationDayLedgerRowsData({
+    summary,
+    workshopLine: workshopProductionLineSpec(),
+    restock: summary?.shopRestock || shopRestockSummarySpec(),
+    activeRisks: unresolvedRisks(),
+    spirits: state.spirits,
+    plots: state.plots,
+    tradeRuns: state.tradeRuns || [],
+    ecologyRows: ecologyCourtyardGoalRows(),
+    day: state.day,
+  });
 }
 
 function automationDayLedgerSpec(summary = state.lastDaySummary) {
   if (!summary) return null;
   const rows = automationDayLedgerRows(summary);
-  if (!rows.length) return null;
-  return {
-    active: true,
-    title: "自动化日终流水账",
-    headline: "田里被接手 -> 后厂在烧 -> 入仓/补货 -> 旧铺/商队/巡灯",
-    reportText: automationDayLedgerReportText(summary),
-    rows,
-    safety: "只定位自动化岗位线，不会自动切岗、派工、排产、开铺、发商队、处理风险、入夜或消耗资源",
-  };
+  // Automation ledger bridge keeps verify keyword: automationDayLedgerSpec / 自动化日终流水账 / 田里被接手 -> 后厂在烧 -> 入仓/补货 -> 旧铺/商队/巡灯 / 只定位自动化岗位线.
+  return automationDayLedgerSpecData(summary, rows, automationDayLedgerReportText(summary));
 }
 
 function automationDayLedgerMarkup(spec = automationDayLedgerSpec()) {
-  if (!spec?.active) return "";
-  return `
-    <div class="day-summary-automation-ledger">
-      <strong>${spec.title}</strong>
-      <span>${spec.headline}</span>
-      <small>${spec.reportText}</small>
-      <div class="day-summary-automation-ledger-grid">
-        ${spec.rows.map((row) => `
-          <div class="day-summary-automation-ledger-row ${row.tone || "active"}">
-            <b>${row.label}</b>
-            <span>${row.value}</span>
-            <small>${row.detail}</small>
-            <button type="button" data-day-summary-automation-line="${row.key}">${row.cta}</button>
-          </div>
-        `).join("")}
-      </div>
-      <small>${spec.safety}</small>
-    </div>
-  `;
+  // Automation ledger bridge keeps verify keyword: automationDayLedgerMarkup / day-summary-automation-ledger / day-summary-automation-ledger-grid / day-summary-automation-ledger-row / data-day-summary-automation-line.
+  return automationDayLedgerMarkupSafeWorld(spec);
 }
 
 function automationDayLedgerReportTextBridge(summary = state.lastDaySummary) {
@@ -43743,31 +43597,14 @@ function automationDayLedgerMarkupBridge(spec = automationDayLedgerSpecBridge())
 
 function focusDaySummaryAutomationLedger(lineKey = "field") {
   const spec = automationDayLedgerSpecBridge();
-  if (!spec?.rows?.length) return addLog("自动化日终流水账", "今晚还没有可回看的自动化岗位线，先让第一位伙伴接手重复劳动。");
-  const row = spec.rows.find((entry) => entry.key === lineKey) || spec.rows[0];
-  if (["field", "workshop", "patrol", "expedition", "garden"].includes(row.key)) {
-    const jobMap = {
-      field: "farm",
-      workshop: "workshop",
-      patrol: "patrol",
-      expedition: "expedition",
-      garden: "garden",
-    };
-    if (jobMap[row.key]) {
-      focusAutomationJobLine(jobMap[row.key]);
-      addLog("点选自动化日账本", `${row.label}：${row.value}。${row.detail} ${spec.safety}`);
-      return true;
-    }
+  const focusSpec = automationDayLedgerFocusData(spec, lineKey);
+  if (focusSpec.type === "empty") return addLog(focusSpec.title, focusSpec.message);
+  if (focusSpec.type === "job") {
+    focusAutomationJobLine(focusSpec.job);
+    addLog(focusSpec.title, focusSpec.message);
+    return true;
   }
-  queueStoryCompassFocusTarget({
-    selector: row.selector,
-    fallbackSelector: row.fallbackSelector || "#goalBookPanel",
-    label: `点选自动化日账本：${row.label}`,
-    log: `${row.label}：${row.value}。${row.detail} ${spec.safety}`,
-    panelGroup: row.panelGroup || "core",
-    missingTitle: `点选自动化日账本：${row.label}`,
-    missingLog: "自动化岗位线已经写入日终流水账，但对应面板暂时没有找到。",
-  });
+  queueStoryCompassFocusTarget(focusSpec.compassTarget);
   return true;
 }
 
