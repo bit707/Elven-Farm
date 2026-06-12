@@ -1023,10 +1023,12 @@ import {
   drawSolarTermFieldAuraWorld,
 } from "./game/world/field-visual-overlays.js";
 import {
+  createInitialFailureCodexStateWorld,
   drawFailureCodexWorldBoardWorld,
   drawRiskCompensationFeedbackWorld,
   drawFailureMercyLanternWorldWorld,
   drawFailureRecoveryRouteWorldWorld,
+  failureCodexTypeLabelWorld,
   failureCodexWorldBoardAtCanvasPointWorld,
   failureCodexWorldBoardSpecWorld,
   failureCodexWorldPaletteWorld,
@@ -1036,6 +1038,8 @@ import {
   failureLearningTriptychSpecWorld,
   failureMercyLanternWorldAtCanvasPointWorld,
   failureMercyLanternWorldSpecWorld,
+  normalizeFailureCodexEntryWorld,
+  normalizeFailureCodexStateWorld,
   failureRecoveryRouteWorldAtCanvasPointWorld,
   failureRecoveryRouteWorldRectWorld,
   failureRecoveryRouteWorldSpecWorld,
@@ -1592,46 +1596,15 @@ function createInitialWorkshopAromaState() {
 }
 
 function createInitialFailureCodexState() {
-  return {
-    total: 0,
-    byType: {},
-    last: null,
-    entries: [],
-  };
+  return createInitialFailureCodexStateWorld();
 }
 
 function normalizeFailureCodexEntry(entry = null) {
-  if (!entry) return null;
-  return {
-    id: entry.id || `failure_${entry.type || "note"}_${entry.day || state?.day || 1}`,
-    type: entry.type || "note",
-    day: Number(entry.day || state?.day || 1),
-    title: entry.title || "失败见闻",
-    headline: entry.headline || entry.title || "这次没有白走",
-    problem: entry.problem || "",
-    insight: entry.insight || "",
-    nextAction: entry.nextAction || "",
-    support: entry.support || "",
-    rewardText: entry.rewardText || entry.support || "",
-    sourceId: entry.sourceId || "",
-    tone: entry.tone || "learn",
-    icon: entry.icon || "记",
-  };
+  return normalizeFailureCodexEntryWorld(entry, state?.day || 1);
 }
 
 function normalizeFailureCodexState(failureCodexState = {}) {
-  const defaults = createInitialFailureCodexState();
-  const entries = Array.isArray(failureCodexState.entries)
-    ? failureCodexState.entries.map(normalizeFailureCodexEntry).filter(Boolean).slice(0, 12)
-    : [];
-  return {
-    ...defaults,
-    ...failureCodexState,
-    total: Number(failureCodexState.total || entries.length || 0),
-    byType: { ...(failureCodexState.byType || {}) },
-    last: normalizeFailureCodexEntry(failureCodexState.last) || entries[0] || null,
-    entries,
-  };
+  return normalizeFailureCodexStateWorld(failureCodexState, state?.day || 1);
 }
 
 function syncFailureCodexState() {
@@ -1640,14 +1613,8 @@ function syncFailureCodexState() {
 }
 
 function failureCodexTypeLabel(type = "") {
-  const labels = {
-    order: "订单",
-    shop: "旧铺",
-    risk: "节气风险",
-    dungeon: "秘境",
-    trade: "商队/远征",
-  };
-  return labels[type] || "见闻";
+  // 保留校验关键字：failureCodexState / 失败见闻册 / 失败见闻 / 下次处理
+  return failureCodexTypeLabelWorld(type);
 }
 
 function recordFailureCodexEntry(entry = {}) {
