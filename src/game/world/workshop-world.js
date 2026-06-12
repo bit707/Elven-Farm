@@ -1,3 +1,98 @@
+export function workshopLineFeedbackSpecWorld(kind = "queued", options = {}, {
+  recipe = null,
+  orderMatch = null,
+  outputItemName = "",
+  recipeLabel = "",
+  helperCount = 0,
+  speedText = "x1.00",
+  day = 1,
+  now = () => 0,
+} = {}) {
+  const outputItemId = options.outputItemId || recipe?.output_item_id || orderMatch?.outputItemId || "";
+  const outputName = options.outputItemName || outputItemName || (outputItemId || "工坊产物");
+  const resolvedRecipeLabel = options.recipeName || recipeLabel || outputName;
+  const count = Number(options.outputCount || recipe?.output_count || orderMatch?.outputCount || 1);
+  const profiles = {
+    queued: {
+      title: "工坊上灶",
+      verb: "排产入线",
+      accent: "#be4f37",
+      detail: `${resolvedRecipeLabel} 已进后厂，锅火会在入夜推进。`,
+    },
+    completed: {
+      title: "后厂出锅",
+      verb: "香气走线",
+      accent: "#b47d2f",
+      detail: `${outputName} x${count} 已沿产线送到前场。`,
+    },
+    order_ready: {
+      title: "订单板亮了",
+      verb: "这锅可交",
+      accent: "#286f58",
+      detail: `${orderMatch?.orderTitle || "订单"} 已备齐，可以去订单板交付。`,
+    },
+    order_pending: {
+      title: "订单接上线",
+      verb: "还差余料",
+      accent: "#8f5f3f",
+      detail: `${orderMatch?.orderTitle || "订单"} 接上这锅，还差 ${orderMatch?.missingText || "余料"}。`,
+    },
+  };
+  const profile = profiles[kind] || profiles.queued;
+  return {
+    kind,
+    title: profile.title,
+    verb: profile.verb,
+    accent: profile.accent,
+    detail: options.detail || profile.detail,
+    recipeId: recipe?.recipe_id || options.recipeId || "",
+    recipeName: resolvedRecipeLabel,
+    outputItemId,
+    outputItemName: outputName,
+    outputCount: count,
+    orderMatch,
+    helperCount,
+    speedText,
+    etaNights: Number(options.etaNights || 0),
+    createdAt: now(),
+    day,
+  };
+}
+
+export function workshopCraftFeedbackSpecWorld(recipe = null, outputItemId = "", outputCount = 1, firstAroma = false, orderMatch = null, {
+  itemName = (itemId = "") => itemId,
+  recipeName = (recipeRow = {}) => recipeRow?.recipe_id || "",
+  day = 1,
+  now = () => 0,
+} = {}) {
+  if (!recipe) return null;
+  const outputName = itemName(outputItemId);
+  const orderLine = orderMatch
+    ? orderMatch.ready
+      ? `${orderMatch.orderTitle} 已备齐，可以直接交单。`
+      : `${orderMatch.orderTitle} 接上这锅，还差 ${orderMatch.missingText || "余料"}。`
+    : "";
+  return {
+    recipeId: recipe.recipe_id,
+    recipeName: recipeName(recipe),
+    outputItemId,
+    outputItemName: outputName,
+    outputCount: Number(outputCount || 1),
+    firstAroma: Boolean(firstAroma),
+    orderId: orderMatch?.orderId || "",
+    orderTitle: orderMatch?.orderTitle || "",
+    orderNpc: orderMatch?.orderNpc || "",
+    orderReady: Boolean(orderMatch?.ready),
+    orderMissingText: orderMatch?.missingText || "",
+    orderMatch,
+    headline: firstAroma ? "第一锅香气引来了订单" : orderMatch?.ready ? `${outputName} 可交单` : `${outputName} 出锅`,
+    detail: firstAroma ? `${outputName} 的香气已经把第一张订单贴上旧铺订单板。${orderLine ? ` ${orderLine}` : ""}` : orderLine || `${recipeName(recipe)} 已完成，后厂这一锅已经可以直接备货。`,
+    cta: orderMatch?.ready ? "去订单板交付这单" : orderMatch ? `继续补齐：${orderMatch.missingText || "订单余料"}` : firstAroma ? "去订单板看看要交什么" : "趁热摆上货架，或者继续排产",
+    createdAt: now(),
+    day,
+  };
+}
+
 export function drawWorkshopAromaStoryWorldWorld({
   ctx,
   spec = null,

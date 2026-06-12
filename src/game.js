@@ -492,6 +492,7 @@ import {
   drawWorkshopLineOverviewWorldBoardWorld,
   workshopLineOverviewWorldBoardAtCanvasPointWorld,
   workshopLineOverviewWorldBoardSpecFromRuntimeWorld,
+  workshopLineFeedbackSpecWorld,
   workshopOutputStorageRouteWorldCopyFromFeedbackWorld,
   workshopOutputStorageRouteWorldAtCanvasPointWorld,
   workshopIngredientReadyWorldSpecFromRuntimeWorld,
@@ -509,6 +510,7 @@ import {
   workshopOrderQueueWorldBoardAtCanvasPointWorld,
   workshopOrderQueueWorldBoardSpecFromRuntimeWorld,
   drawWorkshopCraftFeedbackWorld,
+  workshopCraftFeedbackSpecWorld,
   workshopReadyOrderDispatchRewardTextWorld,
   drawWorkshopReadyOrderDispatchWorldWorld,
   workshopReadyOrderDispatchWorldAtCanvasPointWorld,
@@ -3611,54 +3613,19 @@ function workshopLineFeedbackSpec(kind = "queued", options = {}) {
   const outputItemId = options.outputItemId || recipe?.output_item_id || orderMatch?.outputItemId || "";
   const outputName = options.outputItemName || (outputItemId ? itemName(outputItemId) : "工坊产物");
   const recipeLabel = options.recipeName || (recipe ? recipeName(recipe) : outputName);
-  const count = Number(options.outputCount || recipe?.output_count || orderMatch?.outputCount || 1);
   const helperCount = Number(options.helperCount ?? state.spirits.filter((spirit) => spirit.job === "workshop").length);
   const speedText = options.speedText || multiplierText(Number(options.speed || 1));
-  const profiles = {
-    queued: {
-      title: "工坊上灶",
-      verb: "排产入线",
-      accent: "#be4f37",
-      detail: `${recipeLabel} 已进后厂，锅火会在入夜推进。`,
-    },
-    completed: {
-      title: "后厂出锅",
-      verb: "香气走线",
-      accent: "#b47d2f",
-      detail: `${outputName} x${count} 已沿产线送到前场。`,
-    },
-    order_ready: {
-      title: "订单板亮了",
-      verb: "这锅可交",
-      accent: "#286f58",
-      detail: `${orderMatch?.orderTitle || "订单"} 已备齐，可以去订单板交付。`,
-    },
-    order_pending: {
-      title: "订单接上线",
-      verb: "还差余料",
-      accent: "#8f5f3f",
-      detail: `${orderMatch?.orderTitle || "订单"} 接上这锅，还差 ${orderMatch?.missingText || "余料"}。`,
-    },
-  };
-  const profile = profiles[kind] || profiles.queued;
-  return {
-    kind,
-    title: profile.title,
-    verb: profile.verb,
-    accent: profile.accent,
-    detail: options.detail || profile.detail,
-    recipeId: recipe?.recipe_id || options.recipeId || "",
-    recipeName: recipeLabel,
-    outputItemId,
-    outputItemName: outputName,
-    outputCount: count,
+  // 保留校验关键字：workshopLineFeedbackSpec / 工坊上灶 / 后厂出锅 / 订单板亮了 / 订单接上线
+  return workshopLineFeedbackSpecWorld(kind, options, {
+    recipe,
     orderMatch,
+    outputItemName: outputName,
+    recipeLabel,
     helperCount,
     speedText,
-    etaNights: Number(options.etaNights || 0),
-    createdAt: performance.now(),
     day: state.day,
-  };
+    now: () => performance.now(),
+  });
 }
 
 function triggerWorkshopLineFeedback(kind = "queued", options = {}) {
@@ -3667,32 +3634,14 @@ function triggerWorkshopLineFeedback(kind = "queued", options = {}) {
 }
 
 function workshopCraftFeedbackSpec(recipe, outputItemId, outputCount, firstAroma = false, orderMatch = workshopOutputOrderMatchSpec(outputItemId, outputCount)) {
-  const outputName = itemName(outputItemId);
   const safeOrderMatch = workshopOrderMatchSafe(orderMatch);
-  const orderLine = safeOrderMatch
-    ? safeOrderMatch.ready
-      ? `${safeOrderMatch.orderTitle} 已备齐，可以直接交单。`
-      : `${safeOrderMatch.orderTitle} 接上这锅，还差 ${safeOrderMatch.missingText || "余料"}。`
-    : "";
-  return {
-    recipeId: recipe.recipe_id,
-    recipeName: recipeName(recipe),
-    outputItemId,
-    outputItemName: outputName,
-    outputCount: Number(outputCount || 1),
-    firstAroma: Boolean(firstAroma),
-    orderId: safeOrderMatch?.orderId || "",
-    orderTitle: safeOrderMatch?.orderTitle || "",
-    orderNpc: safeOrderMatch?.orderNpc || "",
-    orderReady: Boolean(safeOrderMatch?.ready),
-    orderMissingText: safeOrderMatch?.missingText || "",
-    orderMatch: safeOrderMatch,
-    headline: firstAroma ? "第一锅香气引来了订单" : safeOrderMatch?.ready ? `${outputName} 可交单` : `${outputName} 出锅`,
-    detail: firstAroma ? `${outputName} 的香气已经把第一张订单贴上旧铺订单板。${orderLine ? ` ${orderLine}` : ""}` : orderLine || `${recipeName(recipe)} 已完成，后厂这一锅已经可以直接备货。`,
-    cta: safeOrderMatch?.ready ? "去订单板交付这单" : safeOrderMatch ? `继续补齐：${safeOrderMatch.missingText || "订单余料"}` : firstAroma ? "去订单板看看要交什么" : "趁热摆上货架，或者继续排产",
-    createdAt: performance.now(),
+  // 保留校验关键字：workshopCraftFeedbackSpec / 第一锅香气引来了订单 / 可交单 / 出锅 / 趁热摆上货架
+  return workshopCraftFeedbackSpecWorld(recipe, outputItemId, outputCount, firstAroma, safeOrderMatch, {
+    itemName,
+    recipeName,
     day: state.day,
-  };
+    now: () => performance.now(),
+  });
 }
 
 function triggerWorkshopCraftFeedback(recipe, outputItemId, outputCount, firstAroma = false, orderMatch = workshopOutputOrderMatchSpec(outputItemId, outputCount)) {
