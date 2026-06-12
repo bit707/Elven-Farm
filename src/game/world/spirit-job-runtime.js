@@ -7,6 +7,156 @@ export function spiritJobReportByJobRuntime(report = []) {
   }, new Map());
 }
 
+export function spiritJobSynergyLineRuntime(id, jobs, reportByJob, {
+  state = {},
+  addItem = () => null,
+  itemName = (itemId = "") => itemId,
+} = {}) {
+  const entries = jobs.map((job) => reportByJob.get(job)?.[0]).filter(Boolean);
+  if (entries.length < jobs.length) return null;
+  const names = entries.map((entry) => entry.spirit).join(" + ");
+  const baseImpact = entries.reduce((sum, entry) => sum + Math.max(0, Number(entry.impact || 0)), 0);
+  const impact = Math.max(1, Math.round(baseImpact / Math.max(1, entries.length)));
+  const spec = {
+    farm_workshop: {
+      label: "清晨备料链",
+      title: "田垄把露水递进灶口",
+      detail: `${names}把夜里补下的水和新鲜边料接进工坊，明早第一锅不再冷启动。`,
+      reward: () => {
+        addItem("item_material_clean_water", 1);
+        const job = (state.workshopQueue || []).find((entry) => Number(entry.remainingWork || 0) > 0);
+        if (job) job.remainingWork = Math.max(0, Number(job.remainingWork || 0) - 6);
+        return job ? `${itemName("item_material_clean_water")} x1 · 工坊工时 -6` : `${itemName("item_material_clean_water")} x1`;
+      },
+      accent: "#4d91a6",
+      glyph: "露",
+      focus: "农田 -> 工坊",
+    },
+    workshop_shop: {
+      label: "出锅上架链",
+      title: "灶火直接烘热旧铺货签",
+      detail: `${names}把工坊香气接到旧铺门口，熟客知道明早有热货可看。`,
+      reward: () => {
+        state.gold += 12;
+        state.fame += 1;
+        state.shopReport = [
+          { name: "岗位协作", text: "工坊香气接上旧铺货签，熟客预订 +12 灵石。", reason: "spirit_synergy", detail: "出锅上架链 · 声望 +1" },
+          ...(state.shopReport || []).slice(0, 5),
+        ];
+        return "灵石 +12 · 声望 +1";
+      },
+      accent: "#b47d2f",
+      glyph: "签",
+      focus: "工坊 -> 店铺",
+    },
+    shop_patrol: {
+      label: "夜市护客链",
+      title: "灯线沿着铺门走了一圈",
+      detail: `${names}让夜客敢多停半刻，旧铺门前的安全感也算一种招牌。`,
+      reward: () => {
+        state.fame += 1;
+        state.completed.add("buff_trade_risk_down_next");
+        return "声望 +1 · 下次商路风险 -4%";
+      },
+      accent: "#e0b66d",
+      glyph: "灯",
+      focus: "店铺 -> 巡逻",
+    },
+    patrol_expedition: {
+      label: "巡路探旗链",
+      title: "巡夜灯把远路岔口照亮",
+      detail: `${names}把镇口、旧桥和外域小路串成一条安全线，明天派商队会更稳。`,
+      reward: () => {
+        state.completed.add("buff_trade_risk_down_next");
+        addItem("item_tool_signal_flare", 1);
+        return `${itemName("item_tool_signal_flare")} x1 · 下次商路风险 -4%`;
+      },
+      accent: "#e6c65e",
+      glyph: "旗",
+      focus: "巡逻 -> 远征",
+    },
+    garden_farm: {
+      label: "庭院养田链",
+      title: "花息落回田垄",
+      detail: `${names}让休息的灵息回到泥里，明早田埂边会有更软的露。`,
+      reward: () => {
+        const targets = state.plots.filter((plot) => plot.cropId && !plot.mature).slice(0, 2);
+        targets.forEach((plot) => { plot.watered = true; });
+        return targets.length ? `额外润田 ${targets.length} 格` : "全队心情维持稳定";
+      },
+      accent: "#7aa25a",
+      glyph: "花",
+      focus: "庭院 -> 农田",
+    },
+    garden_shop: {
+      label: "花客引路链",
+      title: "庭院香气绕到铺门口",
+      detail: `${names}把庭院的好心情带到旧铺，明早第一波客人会更愿意听介绍。`,
+      reward: () => {
+        state.gold += 8;
+        state.fame += 1;
+        return "灵石 +8 · 声望 +1";
+      },
+      accent: "#d87f8d",
+      glyph: "客",
+      focus: "庭院 -> 店铺",
+    },
+  }[id];
+  if (!spec) return null;
+  return {
+    id,
+    jobs,
+    entries,
+    spirits: entries.map((entry) => entry.spirit),
+    label: spec.label,
+    title: spec.title,
+    detail: spec.detail,
+    rewardText: spec.reward(),
+    accent: spec.accent,
+    glyph: spec.glyph,
+    focus: spec.focus,
+    impact,
+    day: state.day,
+  };
+}
+
+export function applySpiritJobSynergiesRuntime(report = undefined, {
+  state = {},
+  complete = () => null,
+  addLog = () => null,
+  spiritJobReportByJob = spiritJobReportByJobRuntime,
+  spiritJobSynergyLine = spiritJobSynergyLineRuntime,
+  addItem = () => null,
+  itemName = (itemId = "") => itemId,
+} = {}) {
+  const source = Array.isArray(report) ? report : state.lastSpiritJobReport || [];
+  const reportByJob = spiritJobReportByJob(source.filter((entry) => Number(entry.impact || 0) > 0));
+  const candidates = [
+    ["farm_workshop", ["farm", "workshop"]],
+    ["workshop_shop", ["workshop", "shop"]],
+    ["shop_patrol", ["shop", "patrol"]],
+    ["patrol_expedition", ["patrol", "expedition"]],
+    ["garden_farm", ["garden", "farm"]],
+    ["garden_shop", ["garden", "shop"]],
+  ];
+  const synergies = [];
+  for (const [id, jobs] of candidates) {
+    if (synergies.length >= 3) break;
+    const synergy = spiritJobSynergyLine(id, jobs, reportByJob, {
+      state,
+      addItem,
+      itemName,
+    });
+    if (synergy) synergies.push(synergy);
+  }
+  state.lastSpiritJobSynergy = synergies;
+  if (synergies.length > 0) {
+    complete("spirit_job_synergy");
+    addLog("精怪协作链", synergies.map((entry) => `${entry.label}：${entry.rewardText}`).join("；"));
+  }
+  return synergies;
+}
+
 export function settleFarmSpiritJobRuntime(spirit = {}, report = [], power = 0, {
   state = {},
   addJobExp = () => null,
