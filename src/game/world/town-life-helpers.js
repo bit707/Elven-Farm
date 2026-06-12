@@ -110,3 +110,55 @@ export function townLifeShopMomentMarkerAtCanvasPoint(px, py, {
     })
     || null;
 }
+
+export function townLifeFeaturedBubbleSpec(rowsInput = null, {
+  townLifeRows = () => [],
+  syncTownLifeInteractionState = () => ({}),
+  townLifeWorldPoint = () => null,
+  stateDay = 0,
+} = {}) {
+  const rows = rowsInput || townLifeRows(6).filter((row) => row.status.key !== "away");
+  if (!rows.length) return null;
+  const townState = syncTownLifeInteractionState();
+  const recentWeatherErrand = townState.lastWeatherErrand?.day === stateDay ? townState.lastWeatherErrand : null;
+  const recentGreeting = townState.last?.day === stateDay ? townState.last : null;
+  const featured = recentWeatherErrand
+    ? rows.find((row) => row.npc.npc_id === recentWeatherErrand.npcId) || rows[0]
+    : recentGreeting
+      ? rows.find((row) => row.npc.npc_id === recentGreeting.npcId) || rows[0]
+      : rows.find((row) => row.shopMomentBark) || rows.find((row) => row.careChainBark) || rows.find((row) => row.shopReputationBark) || rows.find((row) => row.status.key === "urgent" || row.status.key === "festival") || rows[0];
+  const index = Math.max(0, rows.indexOf(featured));
+  const point = townLifeWorldPoint(featured, index);
+  const ambientBarkAllowed = !recentWeatherErrand && !recentGreeting;
+  const shopMomentBark = ambientBarkAllowed ? featured.shopMomentBark : null;
+  const careChainBark = ambientBarkAllowed && !shopMomentBark ? featured.careChainBark : null;
+  const reputationBark = ambientBarkAllowed && !shopMomentBark && !careChainBark ? featured.shopReputationBark : null;
+  const weatherErrandForFeatured = recentWeatherErrand?.npcId === featured.npc.npc_id ? recentWeatherErrand : null;
+  const bubbleText = weatherErrandForFeatured
+    ? weatherErrandForFeatured.summary
+    : recentGreeting?.npcId === featured.npc.npc_id ? recentGreeting.line : shopMomentBark?.line || shopMomentBark?.summary || careChainBark?.townLine || reputationBark?.line || featured.bark;
+  const width = weatherErrandForFeatured || shopMomentBark || careChainBark || reputationBark ? 198 : 178;
+  const shortLimit = shopMomentBark ? 16 : 20;
+  return {
+    featured,
+    point,
+    rect: { x: point.x + 42, y: point.y + 8, width, height: 42 },
+    bubbleText,
+    shortBark: bubbleText.length > shortLimit ? `${bubbleText.slice(0, shortLimit)}...` : bubbleText,
+    recentGreeting,
+    weatherErrandForFeatured,
+    shopMomentBark,
+    careChainBark,
+    reputationBark,
+  };
+}
+
+export function townLifeShopMomentBubbleAtCanvasPoint(px, py, {
+  townLifeFeaturedBubbleSpec = () => null,
+} = {}) {
+  const bubble = townLifeFeaturedBubbleSpec();
+  if (!bubble?.shopMomentBark) return null;
+  const { rect } = bubble;
+  if (px < rect.x || px > rect.x + rect.width || py < rect.y || py > rect.y + rect.height) return null;
+  return { row: bubble.featured, moment: bubble.shopMomentBark, rect };
+}
