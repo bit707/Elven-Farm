@@ -13,6 +13,7 @@ import {
 } from "./game/config.js";
 import { DATA_FILES } from "./game/data-files.js";
 import { drawCanvasCard } from "./game/shared/canvas.js";
+import { activeTimedFeedback } from "./game/shared/feedback.js";
 import { applyVisiblePanelColumns, pulseFocusElement } from "./game/shared/focus.js";
 import { selectorDataValue } from "./game/shared/selectors.js";
 import {
@@ -41917,21 +41918,17 @@ function triggerDailyIntentFeedback(entry = null) {
 }
 
 function activeDailyIntentFeedback(now = performance.now()) {
-  const feedback = state.dailyIntentFeedback;
-  if (!feedback) return null;
-  const duration = Math.max(1, Number(feedback.duration || 3400));
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > duration) {
+  const feedback = activeTimedFeedback(state.dailyIntentFeedback, now, {
+    duration: 3400,
+    fadeDuration: 900,
+    freshUntil: 1400,
+    useFeedbackDuration: true,
+  });
+  if (!feedback) {
     state.dailyIntentFeedback = null;
     return null;
   }
-  const fadeStart = Math.max(1, duration - 900);
-  return {
-    ...feedback,
-    age,
-    fresh: age < 1400,
-    fade: age < fadeStart ? 1 : Math.max(0, 1 - (age - fadeStart) / Math.max(1, duration - fadeStart)),
-  };
+  return feedback;
 }
 
 function dailyIntentWorldTargetPoint(row = null, originX = 300, originY = 142, tile = 72, gap = 8) {
@@ -53527,14 +53524,12 @@ function drawActiveDialogueStage(ctx, width, height) {
 }
 
 function activeEarlyRewardFeedback(now = performance.now()) {
-  const feedback = state.earlyRewardFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 5200) {
+  const feedback = activeTimedFeedback(state.earlyRewardFeedback, now, { duration: 5200, fadeStart: 4200 });
+  if (!feedback) {
     state.earlyRewardFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 4200 ? 1 : Math.max(0, 1 - (age - 4200) / 1000) };
+  return feedback;
 }
 
 function drawEarlyRewardFeedback(ctx, width, height, feedback = activeEarlyRewardFeedback()) {
@@ -53631,71 +53626,40 @@ function triggerGoalClaimFeedback(kind = "year2", options = {}) {
 }
 
 function activeGoalClaimFeedback(now = performance.now()) {
-  const feedback = state.goalClaimFeedback;
-  if (!feedback) return null;
-  const duration = Math.max(1, Number(feedback.duration || 6600));
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > duration) {
+  // 保留校验关键字：activeGoalClaimFeedback / duration / fadeStart / age / fade
+  const feedback = activeTimedFeedback(state.goalClaimFeedback, now, { duration: 6600, fadeDuration: 1400, useFeedbackDuration: true });
+  if (!feedback) {
     state.goalClaimFeedback = null;
     return null;
   }
-  const fadeStart = Math.max(1, duration - 1400);
-  return {
-    ...feedback,
-    age,
-    fade: age < fadeStart ? 1 : Math.max(0, 1 - (age - fadeStart) / Math.max(1, duration - fadeStart)),
-  };
+  return feedback;
 }
 
 function activeFinalSupportPrepFeedback(now = performance.now()) {
-  const feedback = state.finalSupportPrepFeedback;
-  if (!feedback) return null;
-  const duration = Math.max(1, Number(feedback.duration || 6200));
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > duration) {
+  const feedback = activeTimedFeedback(state.finalSupportPrepFeedback, now, { duration: 6200, fadeDuration: 1400, useFeedbackDuration: true });
+  if (!feedback) {
     state.finalSupportPrepFeedback = null;
     return null;
   }
-  const fadeStart = Math.max(1, duration - 1400);
-  return {
-    ...feedback,
-    age,
-    fade: age < fadeStart ? 1 : Math.max(0, 1 - (age - fadeStart) / Math.max(1, duration - fadeStart)),
-  };
+  return feedback;
 }
 
 function activeFinalSupportUnlockFeedback(now = performance.now()) {
-  const feedback = state.finalSupportUnlockFeedback;
-  if (!feedback) return null;
-  const duration = Math.max(1, Number(feedback.duration || 6600));
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > duration) {
+  const feedback = activeTimedFeedback(state.finalSupportUnlockFeedback, now, { duration: 6600, fadeDuration: 1500, useFeedbackDuration: true });
+  if (!feedback) {
     state.finalSupportUnlockFeedback = null;
     return null;
   }
-  const fadeStart = Math.max(1, duration - 1500);
-  return {
-    ...feedback,
-    age,
-    fade: age < fadeStart ? 1 : Math.max(0, 1 - (age - fadeStart) / Math.max(1, duration - fadeStart)),
-  };
+  return feedback;
 }
 
 function activeRiskCompensationFeedback(now = performance.now()) {
-  const feedback = state.riskCompensationFeedback;
-  if (!feedback) return null;
-  const duration = Math.max(1, Number(feedback.duration || 6200));
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > duration) {
+  const feedback = activeTimedFeedback(state.riskCompensationFeedback, now, { duration: 6200, fadeDuration: 1400, useFeedbackDuration: true });
+  if (!feedback) {
     state.riskCompensationFeedback = null;
     return null;
   }
-  const fadeStart = Math.max(1, duration - 1400);
-  return {
-    ...feedback,
-    age,
-    fade: age < fadeStart ? 1 : Math.max(0, 1 - (age - fadeStart) / Math.max(1, duration - fadeStart)),
-  };
+  return feedback;
 }
 
 function drawGoalClaimFeedback(ctx, width, height, feedback = activeGoalClaimFeedback()) {
@@ -53777,71 +53741,47 @@ function drawRiskCompensationFeedback(ctx, width, height, feedback = activeRiskC
 }
 
 function activeOrderDeliveryMoment(now = performance.now()) {
-  const feedback = state.orderDeliveryFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 6200) return null;
-  return { ...feedback, age, fade: age < 5000 ? 1 : Math.max(0, 1 - (age - 5000) / 1200) };
+  return activeTimedFeedback(state.orderDeliveryFeedback, now, { duration: 6200, fadeStart: 5000 });
 }
 
 function activeShopTownErrandFeedback(now = performance.now()) {
-  const feedback = state.shopTownErrandFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 7600) return null;
-  return {
-    ...feedback,
-    age,
-    fade: age < 6200 ? 1 : Math.max(0, 1 - (age - 6200) / 1400),
-  };
+  return activeTimedFeedback(state.shopTownErrandFeedback, now, { duration: 7600, fadeStart: 6200 });
 }
 
 function activeTownLifeErrandFeedback(now = performance.now()) {
-  const feedback = state.townLifeErrandFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 6800) {
+  const feedback = activeTimedFeedback(state.townLifeErrandFeedback, now, { duration: 6800, fadeStart: 5400 });
+  if (!feedback) {
     state.townLifeErrandFeedback = null;
     return null;
   }
-  return {
-    ...feedback,
-    age,
-    fade: age < 5400 ? 1 : Math.max(0, 1 - (age - 5400) / 1400),
-  };
+  return feedback;
 }
 
 function activeEcologyOrderFeedback(now = performance.now()) {
-  const feedback = state.ecologyOrderFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 7800) {
+  const feedback = activeTimedFeedback(state.ecologyOrderFeedback, now, { duration: 7800, fadeStart: 6200 });
+  if (!feedback) {
     state.ecologyOrderFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 6200 ? 1 : Math.max(0, 1 - (age - 6200) / 1600) };
+  return feedback;
 }
 
 function activeEcologyDailyFeedback(now = performance.now()) {
-  const feedback = state.ecologyDailyFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 6800) {
+  const feedback = activeTimedFeedback(state.ecologyDailyFeedback, now, { duration: 6800, fadeStart: 5400 });
+  if (!feedback) {
     state.ecologyDailyFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 5400 ? 1 : Math.max(0, 1 - (age - 5400) / 1400) };
+  return feedback;
 }
 
 function activeEcologyInspectionFeedback(now = performance.now()) {
-  const feedback = state.ecologyInspectionFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 6400) {
+  const feedback = activeTimedFeedback(state.ecologyInspectionFeedback, now, { duration: 6400, fadeStart: 5000 });
+  if (!feedback) {
     state.ecologyInspectionFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 5000 ? 1 : Math.max(0, 1 - (age - 5000) / 1400) };
+  return feedback;
 }
 
 function activeStoryVisitFeedback(now = performance.now()) {
@@ -53868,198 +53808,157 @@ function activeStoryVisitFeedback(now = performance.now()) {
 }
 
 function activeSideQuestFeedback(now = performance.now()) {
-  const feedback = state.sideQuestFeedback;
-  if (!feedback) return null;
-  const duration = Math.max(1, Number(feedback.duration || 7200));
-  const age = now - Number(feedback.createdAt || now);
-  if (age > duration) return null;
-  const fadeStart = Math.max(1, duration - 1500);
-  return {
-    ...feedback,
-    age,
-    fresh: age < 2600,
-    fade: age < fadeStart ? 1 : Math.max(0, 1 - (age - fadeStart) / Math.max(1, duration - fadeStart)),
-  };
+  return activeTimedFeedback(state.sideQuestFeedback, now, {
+    duration: 7200,
+    fadeDuration: 1500,
+    freshUntil: 2600,
+    createdAtFallback: now,
+    useFeedbackDuration: true,
+  });
 }
 
 function activeWorkshopCraftFeedback(now = performance.now()) {
-  const feedback = state.workshopCraftFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 5600) {
+  const feedback = activeTimedFeedback(state.workshopCraftFeedback, now, { duration: 5600, fadeStart: 4400 });
+  if (!feedback) {
     state.workshopCraftFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 4400 ? 1 : Math.max(0, 1 - (age - 4400) / 1200) };
+  return feedback;
 }
 
 function activeHarvestFeedback(now = performance.now()) {
-  const feedback = state.harvestFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 5200) {
+  const feedback = activeTimedFeedback(state.harvestFeedback, now, { duration: 5200, fadeStart: 4100 });
+  if (!feedback) {
     state.harvestFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 4100 ? 1 : Math.max(0, 1 - (age - 4100) / 1100) };
+  return feedback;
 }
 
 function activeSpiritSproutFeedback(now = performance.now()) {
-  const feedback = state.spiritSproutFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 5800) {
+  const feedback = activeTimedFeedback(state.spiritSproutFeedback, now, { duration: 5800, fadeStart: 4600 });
+  if (!feedback) {
     state.spiritSproutFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 4600 ? 1 : Math.max(0, 1 - (age - 4600) / 1200) };
+  return feedback;
 }
 
 function activeSpiritInteractionFeedback(now = performance.now()) {
-  const feedback = state.spiritInteractionFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 6200) {
+  const feedback = activeTimedFeedback(state.spiritInteractionFeedback, now, { duration: 6200, fadeStart: 5000 });
+  if (!feedback) {
     state.spiritInteractionFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 5000 ? 1 : Math.max(0, 1 - (age - 5000) / 1200) };
+  return feedback;
 }
 
 function activeCanalRestorationFeedback(now = performance.now()) {
-  const feedback = state.canalRestorationFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 7200) {
+  const feedback = activeTimedFeedback(state.canalRestorationFeedback, now, { duration: 7200, fadeStart: 5800 });
+  if (!feedback) {
     state.canalRestorationFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 5800 ? 1 : Math.max(0, 1 - (age - 5800) / 1400) };
+  return feedback;
 }
 
 function activeWaterCropPlantFeedback(now = performance.now()) {
-  const feedback = state.waterCropPlantFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 6200) {
+  const feedback = activeTimedFeedback(state.waterCropPlantFeedback, now, { duration: 6200, fadeStart: 5000 });
+  if (!feedback) {
     state.waterCropPlantFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 5000 ? 1 : Math.max(0, 1 - (age - 5000) / 1200) };
+  return feedback;
 }
 
 function activeWaterCropHarvestFeedback(now = performance.now()) {
-  const feedback = state.waterCropHarvestFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 6600) {
+  const feedback = activeTimedFeedback(state.waterCropHarvestFeedback, now, { duration: 6600, fadeStart: 5200 });
+  if (!feedback) {
     state.waterCropHarvestFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 5200 ? 1 : Math.max(0, 1 - (age - 5200) / 1400) };
+  return feedback;
 }
 
 function activeWaterCropDishFeedback(now = performance.now()) {
-  const feedback = state.waterCropDishFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 7000) {
+  const feedback = activeTimedFeedback(state.waterCropDishFeedback, now, { duration: 7000, fadeStart: 5600 });
+  if (!feedback) {
     state.waterCropDishFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 5600 ? 1 : Math.max(0, 1 - (age - 5600) / 1400) };
+  return feedback;
 }
 
 function activeWaterCropOrderFeedback(now = performance.now()) {
-  const feedback = state.waterCropOrderFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 7600) {
+  const feedback = activeTimedFeedback(state.waterCropOrderFeedback, now, { duration: 7600, fadeStart: 6100 });
+  if (!feedback) {
     state.waterCropOrderFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 6100 ? 1 : Math.max(0, 1 - (age - 6100) / 1500) };
+  return feedback;
 }
 
 function activeQinghePondEntryFeedback(now = performance.now()) {
-  const feedback = state.qinghePondEntryFeedback;
-  if (!feedback) return null;
-  const duration = Math.max(1, Number(feedback.duration || 12000));
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > duration) {
+  const feedback = activeTimedFeedback(state.qinghePondEntryFeedback, now, { duration: 12000, fadeDuration: 1800, useFeedbackDuration: true });
+  if (!feedback) {
     state.qinghePondEntryFeedback = null;
     return null;
   }
-  const fadeStart = Math.max(1, duration - 1800);
-  return { ...feedback, age, fade: age < fadeStart ? 1 : Math.max(0, 1 - (age - fadeStart) / Math.max(1, duration - fadeStart)) };
+  return feedback;
 }
 
 function activeQinghePondProgressFeedback(now = performance.now()) {
-  const feedback = state.qinghePondProgressFeedback;
-  if (!feedback) return null;
-  const duration = Math.max(1, Number(feedback.duration || 9800));
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > duration) {
+  const feedback = activeTimedFeedback(state.qinghePondProgressFeedback, now, { duration: 9800, fadeDuration: 1500, useFeedbackDuration: true });
+  if (!feedback) {
     state.qinghePondProgressFeedback = null;
     return null;
   }
-  const fadeStart = Math.max(1, duration - 1500);
-  return { ...feedback, age, fade: age < fadeStart ? 1 : Math.max(0, 1 - (age - fadeStart) / Math.max(1, duration - fadeStart)) };
+  return feedback;
 }
 
 function activeWorkshopLineFeedback(now = performance.now()) {
-  const feedback = state.workshopLineFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 4200) {
+  const feedback = activeTimedFeedback(state.workshopLineFeedback, now, { duration: 4200, fadeStart: 3300 });
+  if (!feedback) {
     state.workshopLineFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 3300 ? 1 : Math.max(0, 1 - (age - 3300) / 900) };
+  return feedback;
 }
 
 function activeSpiritJobShiftFeedback(now = performance.now()) {
-  const feedback = state.spiritJobShiftFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 4200) {
+  const feedback = activeTimedFeedback(state.spiritJobShiftFeedback, now, { duration: 4200, fadeStart: 3300 });
+  if (!feedback) {
     state.spiritJobShiftFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 3300 ? 1 : Math.max(0, 1 - (age - 3300) / 900) };
+  return feedback;
 }
 
 function activeSpiritNightWorkFeedback(now = performance.now()) {
-  const feedback = state.spiritNightWorkFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 6400) {
+  const feedback = activeTimedFeedback(state.spiritNightWorkFeedback, now, { duration: 6400, fadeStart: 5200 });
+  if (!feedback) {
     state.spiritNightWorkFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 5200 ? 1 : Math.max(0, 1 - (age - 5200) / 1200) };
+  return feedback;
 }
 
 function activeSpiritEvolutionFeedback(now = performance.now()) {
-  const feedback = state.spiritEvolutionFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 6800) {
+  const feedback = activeTimedFeedback(state.spiritEvolutionFeedback, now, { duration: 6800, fadeStart: 5400 });
+  if (!feedback) {
     state.spiritEvolutionFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 5400 ? 1 : Math.max(0, 1 - (age - 5400) / 1400) };
+  return feedback;
 }
 
 function activeSpiritFinaleFeedback(now = performance.now()) {
-  const feedback = state.spiritFinaleFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 7200) {
+  const feedback = activeTimedFeedback(state.spiritFinaleFeedback, now, { duration: 7200, fadeStart: 5700 });
+  if (!feedback) {
     state.spiritFinaleFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 5700 ? 1 : Math.max(0, 1 - (age - 5700) / 1500) };
+  return feedback;
 }
 
 function activeShopSaleFeedback(now = performance.now()) {
@@ -54118,62 +54017,54 @@ function drawShopSaleExchangeAnimation(ctx, x, y, feedback = {}, progress = 0) {
 }
 
 function activeBaizhiQuestPlantFeedback(now = performance.now()) {
-  const feedback = state.baizhiQuestPlantFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 6200) {
+  const feedback = activeTimedFeedback(state.baizhiQuestPlantFeedback, now, { duration: 6200, fadeStart: 5000 });
+  if (!feedback) {
     state.baizhiQuestPlantFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 5000 ? 1 : Math.max(0, 1 - (age - 5000) / 1200) };
+  return feedback;
 }
 
 function activeBaizhiQuestStageFeedback(now = performance.now()) {
-  const feedback = state.baizhiQuestStageFeedback;
-  if (!feedback) return null;
-  if (state.claimedQuestRewards.has(feedback.questId)) {
+  const source = state.baizhiQuestStageFeedback;
+  if (!source) return null;
+  if (state.claimedQuestRewards.has(source.questId)) {
     state.baizhiQuestStageFeedback = null;
     return null;
   }
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 7600) {
+  const feedback = activeTimedFeedback(source, now, { duration: 7600, fadeStart: 6200 });
+  if (!feedback) {
     state.baizhiQuestStageFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 6200 ? 1 : Math.max(0, 1 - (age - 6200) / 1400) };
+  return feedback;
 }
 
 function activeHerbValleyUnlockFeedback(now = performance.now()) {
-  const feedback = state.herbValleyUnlockFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 11000) {
+  const feedback = activeTimedFeedback(state.herbValleyUnlockFeedback, now, { duration: 11000, fadeStart: 9000 });
+  if (!feedback) {
     state.herbValleyUnlockFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 9000 ? 1 : Math.max(0, 1 - (age - 9000) / 2000) };
+  return feedback;
 }
 
 function activeBaizhiChapterFinishFeedback(now = performance.now()) {
-  const feedback = state.baizhiChapterFinishFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 12000) {
+  const feedback = activeTimedFeedback(state.baizhiChapterFinishFeedback, now, { duration: 12000, fadeStart: 9800 });
+  if (!feedback) {
     state.baizhiChapterFinishFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 9800 ? 1 : Math.max(0, 1 - (age - 9800) / 2200) };
+  return feedback;
 }
 
 function activeChapter4DroughtFeedback(now = performance.now()) {
-  const feedback = state.chapter4DroughtFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 13000) {
+  const feedback = activeTimedFeedback(state.chapter4DroughtFeedback, now, { duration: 13000, fadeStart: 10600 });
+  if (!feedback) {
     state.chapter4DroughtFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 10600 ? 1 : Math.max(0, 1 - (age - 10600) / 2400) };
+  return feedback;
 }
 
 function drawShopSaleFeedback(ctx, width, height, feedback = activeShopSaleFeedback()) {
@@ -54648,14 +54539,12 @@ function drawChapter4DroughtFeedback(ctx, width, height, feedback = activeChapte
 }
 
 function activeSpiritJoinFeedback(now = performance.now()) {
-  const feedback = state.spiritJoinFeedback;
-  if (!feedback) return null;
-  const age = now - Number(feedback.createdAt || 0);
-  if (age > 5600) {
+  const feedback = activeTimedFeedback(state.spiritJoinFeedback, now, { duration: 5600, fadeStart: 4500 });
+  if (!feedback) {
     state.spiritJoinFeedback = null;
     return null;
   }
-  return { ...feedback, age, fade: age < 4500 ? 1 : Math.max(0, 1 - (age - 4500) / 1100) };
+  return feedback;
 }
 
 function drawSpiritInteractionFeedback(ctx, width, height, feedback = activeSpiritInteractionFeedback()) {
