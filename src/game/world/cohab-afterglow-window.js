@@ -215,3 +215,44 @@ export function cohabAfterglowWindowAtCanvasPointWorld(px, py, {
   }) || spec.nodes[0];
   return { ...spec, activeNode };
 }
+
+export function focusCohabAfterglowWindowFromCanvasWorld(spec = null, {
+  cohabAfterglowWindowSpec = () => null,
+  canvasTownLifeFocusRow = () => null,
+  stateDay = 1,
+  npcName = (npcId = "") => npcId,
+  queueStoryCompassFocusTarget = () => null,
+  setCohabAfterglowWindowWorldFocus = () => null,
+  setCanvasTownLifeFocus = () => null,
+} = {}) {
+  const resolvedSpec = spec?.rect ? spec : cohabAfterglowWindowSpec();
+  const node = resolvedSpec?.activeNode || resolvedSpec?.nodes?.[0];
+  if (!resolvedSpec || !node) return false;
+  setCohabAfterglowWindowWorldFocus({
+    key: resolvedSpec.key,
+    nodeKey: node.key,
+    day: stateDay,
+    npcId: node.npcId || "",
+  });
+  if (node.npcId) {
+    const row = canvasTownLifeFocusRow(node.npcId);
+    setCanvasTownLifeFocus({
+      npcId: node.npcId,
+      day: stateDay,
+      area: row?.area || "家中",
+      action: row?.action || "同住后日谈",
+      source: "cohab_afterglow_window",
+      point: null,
+    });
+  }
+  queueStoryCompassFocusTarget({
+    selector: node.selector || ".relationship-panel",
+    fallbackSelector: ".relationship-panel",
+    label: `点选同住后日谈窗灯：${node.label}`,
+    log: `${node.route ? npcName(node.route.npc_id) : "同住后日谈"} · ${node.label}：${node.title}。${node.text} ${node.detail}。${resolvedSpec.safety}`,
+    panelGroup: "systems",
+    missingTitle: "点选同住后日谈窗灯",
+    missingLog: `同住后日谈窗灯已经点到，但关系面板暂时没有找到对应卡片。先打开凡仙镇关系面板查看同住日常、周常和节气小事。${resolvedSpec.safety}`,
+  });
+  return true;
+}

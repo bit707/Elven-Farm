@@ -164,6 +164,7 @@ import {
   cohabMomentTitleWorld,
   cohabMomentWindowTextWorld,
   cohabRouteLifeSnapshotWorld,
+  focusCohabAfterglowWindowFromCanvasWorld,
 } from "./game/world/cohab-afterglow-window.js";
 import {
   drawAmbientMotesWorld,
@@ -40153,35 +40154,16 @@ function cohabAfterglowWindowAtCanvasPoint(px, py) {
 }
 
 function focusCohabAfterglowWindowFromCanvas(spec = cohabAfterglowWindowSpec()) {
-  const node = spec?.activeNode || spec?.nodes?.[0];
-  if (!spec || !node) return false;
-  cohabAfterglowWindowWorldFocus = {
-    key: spec.key,
-    nodeKey: node.key,
-    day: state.day,
-    npcId: node.npcId || "",
-  };
-  if (node.npcId) {
-    const row = canvasTownLifeFocusRow(node.npcId);
-    canvasTownLifeFocus = {
-      npcId: node.npcId,
-      day: state.day,
-      area: row?.area || "家中",
-      action: row?.action || "同住后日谈",
-      source: "cohab_afterglow_window",
-      point: null,
-    };
-  }
-  queueStoryCompassFocusTarget({
-    selector: node.selector || ".relationship-panel",
-    fallbackSelector: ".relationship-panel",
-    label: `点选同住后日谈窗灯：${node.label}`,
-    log: `${node.route ? npcName(node.route.npc_id) : "同住后日谈"} · ${node.label}：${node.title}。${node.text} ${node.detail}。${spec.safety}`,
-    panelGroup: "systems",
-    missingTitle: "点选同住后日谈窗灯",
-    missingLog: `同住后日谈窗灯已经点到，但关系面板暂时没有找到对应卡片。先打开凡仙镇关系面板查看同住日常、周常和节气小事。${spec.safety}`,
+  // focusCohabAfterglowWindowFromCanvas bridge keeps verify keywords: 点选同住后日谈窗灯 / 同住日常 / 周常 / 节气小事 / 不会自动播放同住日常、推进周常、触发节庆事件、赠礼、接支线、交托付或消耗资源
+  return focusCohabAfterglowWindowFromCanvasWorld(spec, {
+    cohabAfterglowWindowSpec,
+    canvasTownLifeFocusRow,
+    stateDay: state.day,
+    npcName,
+    queueStoryCompassFocusTarget,
+    setCohabAfterglowWindowWorldFocus: (value) => { cohabAfterglowWindowWorldFocus = value; },
+    setCanvasTownLifeFocus: (value) => { canvasTownLifeFocus = value; },
   });
-  return true;
 }
 
 function sideDialogueHintFor(npcId) {
