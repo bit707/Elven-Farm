@@ -167,6 +167,9 @@ import {
   spiritAutomationPromenadeMarkupRuntime,
   spiritAutomationPromenadeRowsRuntime,
   spiritAutomationPromenadeSpecRuntime,
+  spiritBondMilestoneMarkupRuntime,
+  spiritBondMilestoneSpecRuntime,
+  spiritBondRewardLabelRuntime,
   spiritDailyChoreMarkupRuntime,
   spiritDailyChoreSpecRuntime,
   spiritSeasonalWorkDaySummaryRowsRuntime,
@@ -6994,82 +6997,25 @@ function spiritDailyChoreMarkup(spirit) {
 }
 
 function spiritBondRewardLabel(level = null) {
-  const rewardType = String(level?.reward_type || "");
-  const rewardParam = String(level?.reward_param || "");
-  const typeLabel = {
-    dialogue: "新对话",
-    event: "羁绊事件",
-    buff: "伙伴加成",
-    cosmetic: "外观",
-    title: "称号",
-  }[rewardType] || "羁绊奖励";
-  if (rewardType === "dialogue") return `${typeLabel} · ${localize(rewardParam, rewardParam || "待配置")}`;
-  if (rewardType === "event") return `${typeLabel} · ${rewardParam || "专属记忆"}`;
-  if (rewardType === "buff") return `${typeLabel} · ${rewardParam || "岗位效率"}`;
-  if (rewardType === "cosmetic") return `${typeLabel} · ${rewardParam || "新装束"}`;
-  if (rewardType === "title") return `${typeLabel} · ${rewardParam || "伙伴名号"}`;
-  return `${typeLabel}${rewardParam ? ` · ${rewardParam}` : ""}`;
+  return spiritBondRewardLabelRuntime(level, {
+    localize,
+  });
 }
 
 function spiritBondMilestoneSpec(spirit) {
-  const lineId = spirit?.lineId || spiritLine(spirit?.id);
-  const exp = Math.max(0, Number(spirit?.bondExp || 0));
-  const levels = data.spiritBondLevels
-    .filter((entry) => entry.spirit_line_id === lineId)
-    .sort((a, b) => Number(a.exp_required || 0) - Number(b.exp_required || 0));
-  const fallbackLevels = levels.length > 0
-    ? levels
-    : data.spiritBondLevels
-      .filter((entry) => entry.spirit_line_id === "spirit_line_luobo")
-      .sort((a, b) => Number(a.exp_required || 0) - Number(b.exp_required || 0));
-  const reached = fallbackLevels.filter((entry) => exp >= Number(entry.exp_required || 0)).at(-1) || null;
-  const next = fallbackLevels.find((entry) => exp < Number(entry.exp_required || 0)) || null;
-  const currentThreshold = reached ? Number(reached.exp_required || 0) : 0;
-  const nextThreshold = next ? Number(next.exp_required || 0) : Math.max(exp, currentThreshold);
-  const span = Math.max(1, nextThreshold - currentThreshold);
-  const progress = next ? Math.max(0, Math.min(100, Math.round(((exp - currentThreshold) / span) * 100))) : 100;
-  const remaining = next ? Math.max(0, nextThreshold - exp) : 0;
-  const recent = normalizeSpiritInteractionState(state.spiritInteractionState).history
-    .filter((entry) => entry.spiritId === spirit?.id)
-    .slice(0, 3);
-  const recentText = recent.length
-    ? recent.map((entry) => `${entry.type === "theater" ? "小剧场" : entry.type === "feed" ? "喂食" : entry.type === "mood_repair" ? "安抚" : "摸摸"} +${entry.bondGain}`).join(" / ")
-    : "还没有牵挂记录";
-  const suggestion = !next
-    ? "这条羁绊档案已经全亮，继续互动会保留每日伙伴余温。"
-    : remaining <= 12
-      ? "再摸摸或喂食一次，就很可能点亮下一段牵挂。"
-      : recent.length === 0
-        ? "先摸摸一次，把今天第一条伙伴回应写进精怪面板。"
-        : "继续用摸摸、喂食、小剧场或岗位协助，把羁绊从工具关系养成伙伴关系。";
-  return {
-    currentLevel: Number(spirit?.bondLevel || bondLevelFor(spirit, exp) || 1),
-    nextLevel: next ? Number(next.bond_level || 1) : Number(spirit?.bondLevel || 1),
-    exp,
-    remaining,
-    progress,
-    rewardText: next ? spiritBondRewardLabel(next) : "全部羁绊档案已点亮",
-    recentText,
-    suggestion,
-    complete: !next,
-  };
+  // 保留校验关键字：spiritBondMilestoneSpec / 伙伴牵挂便笺 / 下阶羁绊 / 下一份牵挂
+  return spiritBondMilestoneSpecRuntime(spirit, {
+    levels: data.spiritBondLevels,
+    interactionState: normalizeSpiritInteractionState(state.spiritInteractionState),
+    spiritLine,
+    bondLevelFor,
+    spiritBondRewardLabel,
+  });
 }
 
 function spiritBondMilestoneMarkup(spirit) {
-  const milestone = spiritBondMilestoneSpec(spirit);
-  return `
-    <div class="spirit-bond-milestone ${milestone.complete ? "complete" : "active"}">
-      <div class="spirit-bond-milestone-head">
-        <strong>伙伴牵挂便笺 · ${milestone.complete ? "羁绊已圆满" : `下阶羁绊 Lv.${milestone.nextLevel}`}</strong>
-        <span>${milestone.complete ? `当前 EXP ${milestone.exp}` : `还差 ${milestone.remaining} EXP · 当前 ${milestone.exp}`}</span>
-      </div>
-      <div class="spirit-bond-meter" style="--bond-progress:${milestone.progress}%"><i></i></div>
-      <small>下一份牵挂：${milestone.rewardText}</small>
-      <small>最近回应：${milestone.recentText}</small>
-      <small>掌柜建议：${milestone.suggestion}</small>
-      <em>只预告羁绊进度；不会自动摸摸、喂食、派工或消耗食物。</em>
-    </div>
-  `;
+  // 保留校验关键字：spiritBondMilestoneMarkup / spirit-bond-milestone / spirit-bond-meter / 不会自动摸摸、喂食、派工或消耗食物
+  return spiritBondMilestoneMarkupRuntime(spiritBondMilestoneSpec(spirit));
 }
 
 function spiritCompanionCareSpec(spirit) {
