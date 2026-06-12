@@ -120,3 +120,71 @@ export function normalizeShopIntroducedCustomerVisitData(entry = null, options =
     tone: entry.tone || (entry.bought ? "good" : "mid"),
   };
 }
+
+export function normalizeShopVisitPledgeData(entry = null, options = {}) {
+  if (!entry) return null;
+  const customerDisplayNameFor = typeof options.customerDisplayName === "function" ? options.customerDisplayName : () => "";
+  const shopTagLabelFor = typeof options.shopTagLabel === "function" ? options.shopTagLabel : () => "";
+  const itemNameFor = typeof options.itemName === "function" ? options.itemName : () => "";
+  return {
+    id: entry.id || "",
+    status: entry.status || "active",
+    createdDay: Number(entry.createdDay || 0),
+    activeDay: Number(entry.activeDay || 0),
+    dueDay: Number(entry.dueDay || 0),
+    customerArchetype: entry.customerArchetype || "",
+    customerLabel: entry.customerLabel || customerDisplayNameFor(entry.customerArchetype || "") || "来客",
+    sourceLabel: entry.sourceLabel || "",
+    hotTag: entry.hotTag || "",
+    hotTagLabel: entry.hotTagLabel || (entry.hotTag ? shopTagLabelFor(entry.hotTag) : ""),
+    targetItemId: entry.targetItemId || "",
+    targetItemName: entry.targetItemName || (entry.targetItemId ? itemNameFor(entry.targetItemId) : ""),
+    rewardGold: Number(entry.rewardGold || 0),
+    rewardFame: Number(entry.rewardFame || 0),
+    headline: entry.headline || "",
+    detail: entry.detail || "",
+    cta: entry.cta || "",
+    note: entry.note || "",
+    resultText: entry.resultText || "",
+    fulfilledDay: Number(entry.fulfilledDay || 0),
+    expiredDay: Number(entry.expiredDay || 0),
+    tone: entry.tone || "mid",
+  };
+}
+
+export function normalizeShopTownErrandData(entry = null, options = {}) {
+  if (!entry) return null;
+  const npcNameFor = typeof options.npcName === "function" ? options.npcName : () => "";
+  const customerDisplayNameFor = typeof options.customerDisplayName === "function" ? options.customerDisplayName : () => "";
+  const shopTagLabelFor = typeof options.shopTagLabel === "function" ? options.shopTagLabel : () => "";
+  const itemNameFor = typeof options.itemName === "function" ? options.itemName : () => "";
+  return {
+    id: entry.id || "",
+    status: entry.status || "active",
+    createdDay: Number(entry.createdDay || 0),
+    activeDay: Number(entry.activeDay || 0),
+    dueDay: Number(entry.dueDay || 0),
+    npcId: entry.npcId || "",
+    npcLabel: entry.npcLabel || npcNameFor(entry.npcId || "") || "镇民",
+    areaLabel: entry.areaLabel || "凡仙镇",
+    sourceLabel: entry.sourceLabel || "",
+    customerLabel: entry.customerLabel || customerDisplayNameFor(entry.customerArchetype || "") || "来客",
+    hotTag: entry.hotTag || "",
+    hotTagLabel: entry.hotTagLabel || (entry.hotTag ? shopTagLabelFor(entry.hotTag) : ""),
+    requestItemId: entry.requestItemId || "",
+    requestItemName: entry.requestItemName || (entry.requestItemId ? itemNameFor(entry.requestItemId) : ""),
+    count: Math.max(1, Number(entry.count || 1)),
+    rewardGold: Number(entry.rewardGold || 0),
+    rewardFame: Number(entry.rewardFame || 0),
+    rewardFavor: Number(entry.rewardFavor || 0),
+    headline: entry.headline || "",
+    detail: entry.detail || "",
+    requestText: entry.requestText || "",
+    cta: entry.cta || "",
+    note: entry.note || "",
+    resultText: entry.resultText || "",
+    fulfilledDay: Number(entry.fulfilledDay || 0),
+    expiredDay: Number(entry.expiredDay || 0),
+    tone: entry.tone || "mid",
+  };
+}

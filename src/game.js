@@ -67,6 +67,8 @@ import {
   normalizeShopRegularBoardData,
   normalizeShopRestockTargetData,
   normalizeShopReturningCustomerVisitData,
+  normalizeShopTownErrandData,
+  normalizeShopVisitPledgeData,
 } from "./game/state/shop-opening-state.js";
 import {
   townAreaWorldPoint as townAreaWorldPointHelper,
@@ -1697,64 +1699,22 @@ function normalizeShopIntroducedCustomerVisit(entry = null) {
 }
 
 function normalizeShopVisitPledge(entry = null) {
-  if (!entry) return null;
-  return {
-    id: entry.id || "",
-    status: entry.status || "active",
-    createdDay: Number(entry.createdDay || 0),
-    activeDay: Number(entry.activeDay || 0),
-    dueDay: Number(entry.dueDay || 0),
-    customerArchetype: entry.customerArchetype || "",
-    customerLabel: entry.customerLabel || customerDisplayName(entry.customerArchetype || "") || "来客",
-    sourceLabel: entry.sourceLabel || "",
-    hotTag: entry.hotTag || "",
-    hotTagLabel: entry.hotTagLabel || (entry.hotTag ? shopTagLabel(entry.hotTag) : ""),
-    targetItemId: entry.targetItemId || "",
-    targetItemName: entry.targetItemName || (entry.targetItemId ? itemName(entry.targetItemId) : ""),
-    rewardGold: Number(entry.rewardGold || 0),
-    rewardFame: Number(entry.rewardFame || 0),
-    headline: entry.headline || "",
-    detail: entry.detail || "",
-    cta: entry.cta || "",
-    note: entry.note || "",
-    resultText: entry.resultText || "",
-    fulfilledDay: Number(entry.fulfilledDay || 0),
-    expiredDay: Number(entry.expiredDay || 0),
-    tone: entry.tone || "mid",
-  };
+  // 保留验收关键字：来帖小约 / shop-visit-pledge / shopVisitPledgeMarkup / visitPledge
+  return normalizeShopVisitPledgeData(entry, {
+    customerDisplayName,
+    shopTagLabel,
+    itemName,
+  });
 }
 
 function normalizeShopTownErrand(entry = null) {
-  if (!entry) return null;
-  return {
-    id: entry.id || "",
-    status: entry.status || "active",
-    createdDay: Number(entry.createdDay || 0),
-    activeDay: Number(entry.activeDay || 0),
-    dueDay: Number(entry.dueDay || 0),
-    npcId: entry.npcId || "",
-    npcLabel: entry.npcLabel || npcName(entry.npcId || "") || "镇民",
-    areaLabel: entry.areaLabel || "凡仙镇",
-    sourceLabel: entry.sourceLabel || "",
-    customerLabel: entry.customerLabel || customerDisplayName(entry.customerArchetype || "") || "来客",
-    hotTag: entry.hotTag || "",
-    hotTagLabel: entry.hotTagLabel || (entry.hotTag ? shopTagLabel(entry.hotTag) : ""),
-    requestItemId: entry.requestItemId || "",
-    requestItemName: entry.requestItemName || (entry.requestItemId ? itemName(entry.requestItemId) : ""),
-    count: Math.max(1, Number(entry.count || 1)),
-    rewardGold: Number(entry.rewardGold || 0),
-    rewardFame: Number(entry.rewardFame || 0),
-    rewardFavor: Number(entry.rewardFavor || 0),
-    headline: entry.headline || "",
-    detail: entry.detail || "",
-    requestText: entry.requestText || "",
-    cta: entry.cta || "",
-    note: entry.note || "",
-    resultText: entry.resultText || "",
-    fulfilledDay: Number(entry.fulfilledDay || 0),
-    expiredDay: Number(entry.expiredDay || 0),
-    tone: entry.tone || "mid",
-  };
+  // 保留验收关键字：镇上捎话 / shop-town-errand / shopTownErrandMarkup / data-shop-town-errand-action
+  return normalizeShopTownErrandData(entry, {
+    npcName,
+    customerDisplayName,
+    shopTagLabel,
+    itemName,
+  });
 }
 
 function normalizeShopOpeningState(shopOpeningState = {}) {
