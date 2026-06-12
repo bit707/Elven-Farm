@@ -62,6 +62,11 @@ import {
   workshopOpeningValueWorldSpecData,
 } from "./game/shared/workshop-opening-value.js";
 import {
+  workshopReadyOrderDispatchWorldAtPointData,
+  workshopReadyOrderDispatchWorldFocusData,
+  workshopReadyOrderDispatchWorldSpecData,
+} from "./game/shared/workshop-ready-order-dispatch.js";
+import {
   workshopSpiritAssistActionFocusData,
   workshopSpiritAssistActionWorldAtPointData,
   workshopSpiritAssistActionWorldSpecData,
@@ -25690,38 +25695,35 @@ function workshopReadyOrderDispatchWorldCopy(aromaSpec, rewardText = "订单奖�
 }
 
 function workshopReadyOrderDispatchWorldSpecBridge() {
-  const aromaSpec = workshopAromaOrderWorldSpec();
-  const order = aromaSpec?.orderId
-    ? visibleOrders().find((entry) => entry.order_id === aromaSpec.orderId)
-    : null;
-  const orderMatch = aromaSpec
-    ? aromaSpec.orderMatch || workshopOutputOrderMatchSpec(aromaSpec.aroma?.itemId || "", aromaSpec.aroma?.outputCount || 1)
-    : null;
-  const rewardText = workshopReadyOrderDispatchRewardTextWorld(order, "订单奖励");
-  return workshopReadyOrderDispatchWorldSpecFromRuntimeWorld({
+  // Workshop ready-order dispatch bridge keeps verify keywords:
+  // workshopReadyOrderDispatchWorldSpec / workshopReadyOrderDispatchWorldAtCanvasPoint / focusWorkshopReadyOrderDispatchWorldFromCanvas / drawWorkshopReadyOrderDispatchWorld / 主世界出锅可交单 / 点选出锅交单车 / 出锅交单车已装好 / 不会自动交单或消耗库存.
+  return workshopReadyOrderDispatchWorldSpecData({
     day: state.day,
-    aromaSpec,
-    order,
-    deliverable: order ? canDeliverOrder(order) : false,
-    orderMatch,
-    rewardText,
-    copy: workshopReadyOrderDispatchWorldCopy(aromaSpec, rewardText),
+    aromaSpec: workshopAromaOrderWorldSpec(),
+    orders: visibleOrders(),
+    canDeliverOrder,
+    orderMatchSpec: workshopOutputOrderMatchSpec,
+    rewardTextForOrder: workshopReadyOrderDispatchRewardTextWorld,
+    copyForRuntime: workshopReadyOrderDispatchWorldCopy,
+    specFromRuntime: workshopReadyOrderDispatchWorldSpecFromRuntimeWorld,
   });
 }
 
 function workshopReadyOrderDispatchWorldAtCanvasPoint(px, py) {
-  return workshopReadyOrderDispatchWorldAtCanvasPointWorld({
+  return workshopReadyOrderDispatchWorldAtPointData({
     px,
     py,
     spec: workshopReadyOrderDispatchWorldSpecBridge(),
+    atPoint: workshopReadyOrderDispatchWorldAtCanvasPointWorld,
   });
 }
 
 function focusWorkshopReadyOrderDispatchWorldFromCanvas(spec = workshopReadyOrderDispatchWorldSpecBridge()) {
-  if (!spec?.orderId) return false;
-  workshopReadyOrderDispatchWorldFocus = { key: spec.key, day: state.day, orderId: spec.orderId };
-  addLog("点选出锅交单车", `${spec.outputLabel} 已装上交单车，「${spec.orderTitle}」库存已齐。交单路线已定位到订单板收款口，确认后手动点交付即可收取 ${spec.rewardText}；这里只定位，不会自动交单或消耗库存。`);
-  focusPlotRouteOrder(spec.orderId);
+  const focusSpec = workshopReadyOrderDispatchWorldFocusData(spec, state.day);
+  if (!focusSpec) return false;
+  workshopReadyOrderDispatchWorldFocus = focusSpec.focus;
+  addLog(focusSpec.log.title, focusSpec.log.message);
+  focusPlotRouteOrder(focusSpec.orderId);
   return true;
 }
 
