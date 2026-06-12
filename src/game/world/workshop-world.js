@@ -766,6 +766,42 @@ export function workshopOutputRouteTriptychWorldCopyFromRuntimeWorld({
   };
 }
 
+export function workshopOutputRouteTriptychWorldCopySpecWorld({
+  aromaSpec = null,
+  outputLabel = "",
+  haveCount = 0,
+  orderTitleText = "第一张订单",
+  shopTagText = "",
+  recipeLabel = "当前配方",
+} = {}) {
+  return workshopOutputRouteTriptychWorldCopyFromRuntimeWorld({
+    aromaSpec,
+    outputLabel,
+    haveCount,
+    orderTitleText,
+    shopTagText,
+    recipeLabel,
+    copy: {
+      title: "出锅去向三联签 · 可点",
+      headline: `${outputLabel} 出锅后有三条路`,
+      safety: "不会自动交单、开铺或继续加工",
+      cta: "只定位去向 · 不自动执行",
+      orderReadyDetail: `${orderTitleText} 已备齐`,
+      orderMissingPrefix: " 还差 ",
+      orderMissingFallback: "余料",
+      noOrderDetail: "暂无指定订单",
+      shopDetailSuffix: "货签 · 库存 ",
+      orderBadge: "单",
+      orderTitle: "订单去向",
+      shopBadge: "铺",
+      shopTitle: "旧铺去向",
+      stockBadge: "仓",
+      stockTitle: "备货再排产",
+      stockDetailSuffix: " · 可再做一锅",
+    },
+  });
+}
+
 export function workshopOutputRouteTriptychWorldAtCanvasPointWorld({
   px,
   py,
