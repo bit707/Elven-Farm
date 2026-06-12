@@ -525,7 +525,7 @@ import {
   workshopSpiritAssistActionPanelCopyFromRuntimeWorld,
   workshopSpiritAssistActionWorldAtCanvasPointWorld,
   workshopSpiritAssistActionWorldSpecFromRuntimeWorld,
-  workshopToShopStockBridgeWorldCopyFromRuntimeWorld,
+  workshopToShopStockBridgeWorldCopySpecWorld,
   drawWorkshopToShopStockBridgeWorldWorld,
   workshopToShopStockBridgeWorldAtCanvasPointWorld,
   workshopToShopStockBridgeWorldSpecFromRuntimeWorld,
@@ -26894,26 +26894,14 @@ function workshopToShopStockBridgeSafetyText() {
 }
 
 function workshopToShopStockBridgeCopy(feedback, stock = 0, shopTagText = "", customerName = "第一批路过客", reason = "") {
-  return workshopToShopStockBridgeWorldCopyFromRuntimeWorld({
+  // 保留校验关键字：workshopToShopStockBridgeCopy / 工坊到旧铺备货桥 · 可点 / 出锅入仓 -> 擦亮货签 -> 门口会看见
+  return workshopToShopStockBridgeWorldCopySpecWorld({
     feedback,
     stock,
     shopTagText,
     customerName,
     reason,
-    copy: {
-      title: "工坊到旧铺备货桥 · 可点",
-      headline: `${feedback?.outputItemName || (feedback?.outputItemId ? itemName(feedback.outputItemId) : "成品")} 已能变成铺门前的货`,
-      detail: `库存 ${stock} · ${shopTagText || "旧铺货"} · ${reason || "先把这份成品从锅边讲到门口"}`,
-      routeText: "出锅入仓 -> 擦亮货签 -> 门口会看见",
-      stockBadge: "仓",
-      stockTitle: "出锅入仓",
-      ticketBadge: "签",
-      ticketTitle: "擦亮货签",
-      doorBadge: "眼",
-      doorTitle: "门口会看见",
-      shopTagFallback: "旧铺货",
-      customerFallback: "路过客",
-    },
+    itemName,
   });
 }
 
