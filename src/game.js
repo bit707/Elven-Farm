@@ -45,6 +45,9 @@ import {
   spiritMoodRepairProfileData,
 } from "./game/shared/spirit-interaction.js";
 import {
+  spiritAutomationBenefitBoardAtPointData,
+  spiritAutomationBenefitBoardFocusData,
+  spiritAutomationBenefitBoardSpecData,
   spiritAutomationBenefitRowsData,
   spiritAutomationNextAssignmentAdviceData,
 } from "./game/shared/spirit-automation-benefit.js";
@@ -46595,81 +46598,44 @@ function spiritAutomationBenefitBoardSpec(width = refs.world?.width || 960, heig
   const rows = spiritAutomationBenefitRows(groups);
   if (!rows.length) return null;
   const advice = spiritAutomationNextAssignmentAdvice(groups);
-  const coveredJobs = Object.keys(groups).length;
-  const totalPower = Object.values(groups)
-    .flat()
-    .reduce((sum, entry) => sum + Number(entry.power || 0), 0);
-  const top = rows[0];
-  const rect = {
-    x: Math.max(18, Math.min(width - 304, 330)),
-    y: Math.max(176, Math.min(height - 154, 398)),
-    width: 304,
-    height: 146,
-  };
-  return {
-    key: `${state.day}:${coveredJobs}:${top.job}:${Math.round(totalPower * 10)}`,
-    day: state.day,
-    groups,
-    rows,
-    top,
-    advice,
-    coveredJobs,
-    totalPower,
-    headline: coveredJobs >= 3 ? "精怪岗位已经接成半自动院线" : "精怪正在替你接手重复劳动",
-    summary: `岗位 ${coveredJobs}/6 · 精怪 ${state.spirits.length} · 省工 ${Math.round(totalPower * 10)}`,
-    rect,
-  };
-}
-
-function spiritAutomationBenefitBoardSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640) {
-  if (!state.spirits.length || state.dungeon) return null;
-  const groups = spiritAutomationBenefitJobGroups();
-  const rows = spiritAutomationBenefitRows(groups);
-  if (!rows.length) return null;
-  const advice = spiritAutomationNextAssignmentAdvice(groups);
-  const coveredJobs = Object.keys(groups).length;
-  const totalPower = Object.values(groups)
-    .flat()
-    .reduce((sum, entry) => sum + Number(entry.power || 0), 0);
-  return spiritAutomationBenefitBoardSpecWorld({
+  // Spirit automation bridge keeps verify keyword: spiritAutomationBenefitBoardSpec / 精怪今日省工.
+  return spiritAutomationBenefitBoardSpecData({
     day: state.day,
     spiritCount: state.spirits.length,
     groups,
     rows,
     advice,
-    coveredJobs,
-    totalPower,
+    width,
+    height,
+  });
+}
+
+function spiritAutomationBenefitBoardSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640) {
+  const spec = spiritAutomationBenefitBoardSpec(width, height);
+  if (!spec) return null;
+  return spiritAutomationBenefitBoardSpecWorld({
+    day: spec.day,
+    spiritCount: state.spirits.length,
+    groups: spec.groups,
+    rows: spec.rows,
+    advice: spec.advice,
+    coveredJobs: spec.coveredJobs,
+    totalPower: spec.totalPower,
     width,
     height,
   });
 }
 
 function spiritAutomationBenefitBoardAtCanvasPoint(px, py) {
-  const spec = spiritAutomationBenefitBoardSpecBridge();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
-    ? spec
-    : null;
+  return spiritAutomationBenefitBoardAtPointData(spiritAutomationBenefitBoardSpecBridge(), px, py);
 }
 
 function focusSpiritAutomationBenefitBoardFromCanvas(spec = spiritAutomationBenefitBoardSpecBridge()) {
-  if (!spec) return false;
-  const target = spec.top || spec.rows?.[0] || null;
-  spiritAutomationBenefitBoardFocus = {
-    key: spec.key,
-    day: state.day,
-    job: target?.job || "",
-  };
-  queueStoryCompassFocusTarget({
-    selector: target?.selector || "#spiritList",
-    fallbackSelector: target?.fallbackSelector || "#spiritList",
-    label: "点选省工看板",
-    log: `${spec.headline}：${target?.title || "自动化"} ${target?.value || ""}。${target?.detail || spec.advice.label} 下一步：${spec.advice.label}`,
-    panelGroup: target?.panelGroup || "core",
-    missingTitle: "点选省工看板",
-    missingLog: "省工看板已经判断出岗位方向，但对应面板暂时没有找到。",
-  });
+  // Spirit automation bridge keeps verify keyword: 点选省工看板.
+  const focusSpec = spiritAutomationBenefitBoardFocusData(spec, state.day);
+  if (!focusSpec) return false;
+  spiritAutomationBenefitBoardFocus = focusSpec.focus;
+  queueStoryCompassFocusTarget(focusSpec.compassTarget);
   return true;
 }
 

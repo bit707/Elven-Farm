@@ -139,3 +139,71 @@ export function spiritAutomationNextAssignmentAdviceData(groups = {}, options = 
   if (groups.workshop?.length && groups.shop?.length) return { job: "shop", label: "工坊和旧铺已经接线，下一步冲“出锅上架链”。" };
   return { job: "farm", label: "岗位已覆盖，继续观察主世界里的搬运、补货、巡灯和庭院动作。" };
 }
+
+export function spiritAutomationBenefitBoardSpecData({
+  day = 1,
+  spiritCount = 0,
+  groups = {},
+  rows = [],
+  advice = null,
+  width = 960,
+  height = 640,
+} = {}) {
+  const safeGroups = groups && typeof groups === "object" ? groups : {};
+  const safeRows = Array.isArray(rows) ? rows : [];
+  const top = safeRows[0] || null;
+  if (!top) return null;
+  const coveredJobs = Object.keys(safeGroups).length;
+  const totalPower = Object.values(safeGroups)
+    .flat()
+    .reduce((sum, entry) => sum + Number(entry?.power || 0), 0);
+  const rect = {
+    x: Math.max(18, Math.min(width - 304, 330)),
+    y: Math.max(176, Math.min(height - 154, 398)),
+    width: 304,
+    height: 146,
+  };
+  return {
+    key: `${day}:${coveredJobs}:${top.job}:${Math.round(totalPower * 10)}`,
+    day,
+    groups: safeGroups,
+    rows: safeRows,
+    top,
+    advice,
+    coveredJobs,
+    totalPower,
+    headline: coveredJobs >= 3 ? "精怪岗位已经接成半自动院线" : "精怪正在替你接手重复劳动",
+    summary: `岗位 ${coveredJobs}/6 · 精怪 ${spiritCount} · 省工 ${Math.round(totalPower * 10)}`,
+    rect,
+  };
+}
+
+export function spiritAutomationBenefitBoardAtPointData(spec = null, px = 0, py = 0) {
+  if (!spec?.rect) return null;
+  const { rect } = spec;
+  return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height
+    ? spec
+    : null;
+}
+
+export function spiritAutomationBenefitBoardFocusData(spec = null, day = 1) {
+  if (!spec) return null;
+  const target = spec.top || spec.rows?.[0] || null;
+  const adviceLabel = spec.advice?.label || "";
+  return {
+    focus: {
+      key: spec.key,
+      day,
+      job: target?.job || "",
+    },
+    compassTarget: {
+      selector: target?.selector || "#spiritList",
+      fallbackSelector: target?.fallbackSelector || "#spiritList",
+      label: "点选省工看板",
+      log: `${spec.headline}：${target?.title || "自动化"} ${target?.value || ""}。${target?.detail || adviceLabel} 下一步：${adviceLabel}`,
+      panelGroup: target?.panelGroup || "core",
+      missingTitle: "点选省工看板",
+      missingLog: "省工看板已经判断出岗位方向，但对应面板暂时没有找到。",
+    },
+  };
+}
