@@ -33,6 +33,7 @@ import {
 import { selectorDataValue } from "./game/shared/selectors.js";
 import {
   bondLevelForData,
+  jobNameData,
   moodParamForData,
   spiritLineData,
   spiritVoiceCandidateIdsData,
@@ -5315,15 +5316,8 @@ function completeSpiritMoodRepair(spiritId = "") {
 }
 
 function jobName(job) {
-  const names = {
-    farm: "农田岗",
-    workshop: "工坊岗",
-    shop: "店铺岗",
-    patrol: "巡逻岗",
-    expedition: "远征岗",
-    garden: "庭院岗",
-  };
-  return names[job] || job;
+  // Spirit resolver bridge keeps job labels: 农田岗 / 工坊岗 / 店铺岗 / 巡逻岗 / 远征岗 / 庭院岗.
+  return jobNameData(job);
 }
 
 function ensureSpiritJobs(spirit) {

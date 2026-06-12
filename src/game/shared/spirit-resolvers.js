@@ -1,11 +1,24 @@
 const DEFAULT_SPIRIT_LINE_ID = "spirit_line_luobo";
 
+const JOB_NAME_LABELS = {
+  farm: "农田岗",
+  workshop: "工坊岗",
+  shop: "店铺岗",
+  patrol: "巡逻岗",
+  expedition: "远征岗",
+  garden: "庭院岗",
+};
+
 function sortedBondLevels(levels = []) {
   return [...levels].sort((a, b) => Number(a.bond_level) - Number(b.bond_level));
 }
 
 export function spiritLineData(spiritId, spirits = []) {
   return spirits.find((entry) => entry.spirit_id === spiritId)?.spirit_line_id || DEFAULT_SPIRIT_LINE_ID;
+}
+
+export function jobNameData(job) {
+  return JOB_NAME_LABELS[job] || job;
 }
 
 export function moodParamForData(spirit, moodParamsByScope = new Map()) {
