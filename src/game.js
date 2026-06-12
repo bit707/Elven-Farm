@@ -141,12 +141,19 @@ import {
   drawSleepPrepChecklistCardWorld,
 } from "./game/world/daily-action-cards.js";
 import {
+  cohabBuffValueRuntime,
   cohabBuffSpecRuntime,
   cohabEventTimingMetRuntime,
   cohabHouseReadyRuntime,
+  cohabRequirementTextRuntime,
+  cohabSharedBonusValueRuntime,
   cohabSharedBonusTextRuntime,
+  cohabStatusForRuntime,
+  cohabUnlockedRoutesRuntime,
   currentCohabFestivalKeyRuntime,
   currentCohabWeekKeyRuntime,
+  festivalEventForRuntime,
+  nextCohabEventRuntime,
   syncCohabStateRuntime,
 } from "./game/world/cohab-runtime.js";
 import {
@@ -39852,52 +39859,44 @@ function cohabHouseReady(epilogue) {
 }
 
 function cohabStatusFor(npcId) {
-  const epilogue = data.cohabByNpc.get(npcId);
-  if (!epilogue) return null;
-  const level = favorLevel(state.npcFavor[npcId] || 0);
-  const unlocked = conditionMet(epilogue.unlock_condition_group) && cohabHouseReady(epilogue);
-  return { epilogue, unlocked, level, bonusType: epilogue.shared_bonus_type, bonusValue: Number(epilogue.shared_bonus_value || 0) };
+  return cohabStatusForRuntime(npcId, {
+    dataCohabByNpc: data.cohabByNpc,
+    stateNpcFavor: state.npcFavor,
+    favorLevel,
+    conditionMet,
+    cohabHouseReady,
+  });
 }
 
 function cohabRequirementText(cohab) {
-  if (!cohab?.epilogue) return "未配置";
-  if (cohab.unlocked) return `${cohab.epilogue.route_name} · 可推进`;
-  const requirements = [];
-  if (cohab.epilogue.unlock_condition_group) requirements.push(conditionLabel(cohab.epilogue.unlock_condition_group));
-  if (cohab.epilogue.home_upgrade_required) {
-    if (data.buildingsById.has(cohab.epilogue.home_upgrade_required)) {
-      requirements.push(buildingName(data.buildingsById.get(cohab.epilogue.home_upgrade_required)));
-    } else {
-      requirements.push("居所升级完成（当前 Demo 以初始小屋/精怪居所代替）");
-    }
-  }
-  return `${cohab.epilogue.route_name} · 需 ${requirements.join(" + ")}`;
+  return cohabRequirementTextRuntime(cohab, {
+    dataBuildingsById: data.buildingsById,
+    conditionLabel,
+    buildingName,
+  });
 }
 
 function nextCohabEvent(epilogueId) {
-  return (data.cohabWeeklyByEpilogue.get(epilogueId) || [])[0]
-    || (data.cohabFestivalByEpilogue.get(epilogueId) || [])[0]
-    || (data.cohabDialogueByEpilogue.get(epilogueId) || [])[0]
-    || null;
+  return nextCohabEventRuntime(epilogueId, {
+    dataCohabWeeklyByEpilogue: data.cohabWeeklyByEpilogue,
+    dataCohabFestivalByEpilogue: data.cohabFestivalByEpilogue,
+    dataCohabDialogueByEpilogue: data.cohabDialogueByEpilogue,
+  });
 }
 
 function festivalEventFor(epilogueId) {
-  const termId = currentTermId();
-  return (data.cohabFestivalByEpilogue.get(epilogueId) || [])
-    .find((event) => event.trigger_param === termId)
-    || (data.cohabFestivalByEpilogue.get(epilogueId) || [])[0]
-    || null;
+  return festivalEventForRuntime(epilogueId, {
+    termId: currentTermId(),
+    dataCohabFestivalByEpilogue: data.cohabFestivalByEpilogue,
+  });
 }
 
 function cohabUnlockedRoutes() {
-  return data.cohabEpilogues.filter((epilogue) => cohabStatusFor(epilogue.npc_id)?.unlocked);
+  return cohabUnlockedRoutesRuntime(data.cohabEpilogues, { cohabStatusFor });
 }
 
 function cohabSharedBonusValue(type) {
-  if (!type) return 0;
-  return cohabUnlockedRoutes()
-    .filter((epilogue) => epilogue.shared_bonus_type === type)
-    .reduce((sum, epilogue) => sum + Number(epilogue.shared_bonus_value || 0), 0);
+  return cohabSharedBonusValueRuntime(type, cohabUnlockedRoutes());
 }
 
 function cohabBuffSpec(buffId) {
@@ -39905,8 +39904,7 @@ function cohabBuffSpec(buffId) {
 }
 
 function cohabBuffValue(buffId) {
-  syncCohabState();
-  return Number(state.cohabState.activeBuffs?.[buffId]?.value || 0);
+  return cohabBuffValueRuntime(buffId, { syncCohabState });
 }
 
 function cohabSharedBonusText(epilogue) {

@@ -31,6 +31,73 @@ export function cohabHouseReadyRuntime(epilogue = null, {
   return false;
 }
 
+export function cohabStatusForRuntime(npcId = "", {
+  dataCohabByNpc = new Map(),
+  stateNpcFavor = {},
+  favorLevel = () => 0,
+  conditionMet = () => false,
+  cohabHouseReady = () => false,
+} = {}) {
+  const epilogue = dataCohabByNpc.get(npcId);
+  if (!epilogue) return null;
+  const level = favorLevel(stateNpcFavor[npcId] || 0);
+  const unlocked = conditionMet(epilogue.unlock_condition_group) && cohabHouseReady(epilogue);
+  return { epilogue, unlocked, level, bonusType: epilogue.shared_bonus_type, bonusValue: Number(epilogue.shared_bonus_value || 0) };
+}
+
+export function cohabRequirementTextRuntime(cohab = null, {
+  dataBuildingsById = new Map(),
+  conditionLabel = (conditionGroup) => conditionGroup,
+  buildingName = (building) => building?.name || building?.building_name || "",
+} = {}) {
+  if (!cohab?.epilogue) return "未配置";
+  if (cohab.unlocked) return `${cohab.epilogue.route_name} · 可推进`;
+  const requirements = [];
+  if (cohab.epilogue.unlock_condition_group) requirements.push(conditionLabel(cohab.epilogue.unlock_condition_group));
+  if (cohab.epilogue.home_upgrade_required) {
+    if (dataBuildingsById.has(cohab.epilogue.home_upgrade_required)) {
+      requirements.push(buildingName(dataBuildingsById.get(cohab.epilogue.home_upgrade_required)));
+    } else {
+      requirements.push("居所升级完成（当前 Demo 以初始小屋/精怪居所代替）");
+    }
+  }
+  return `${cohab.epilogue.route_name} · 需 ${requirements.join(" + ")}`;
+}
+
+export function nextCohabEventRuntime(epilogueId = "", {
+  dataCohabWeeklyByEpilogue = new Map(),
+  dataCohabFestivalByEpilogue = new Map(),
+  dataCohabDialogueByEpilogue = new Map(),
+} = {}) {
+  return (dataCohabWeeklyByEpilogue.get(epilogueId) || [])[0]
+    || (dataCohabFestivalByEpilogue.get(epilogueId) || [])[0]
+    || (dataCohabDialogueByEpilogue.get(epilogueId) || [])[0]
+    || null;
+}
+
+export function festivalEventForRuntime(epilogueId = "", {
+  termId = "",
+  dataCohabFestivalByEpilogue = new Map(),
+} = {}) {
+  return (dataCohabFestivalByEpilogue.get(epilogueId) || [])
+    .find((event) => event.trigger_param === termId)
+    || (dataCohabFestivalByEpilogue.get(epilogueId) || [])[0]
+    || null;
+}
+
+export function cohabUnlockedRoutesRuntime(cohabEpilogues = [], {
+  cohabStatusFor = () => null,
+} = {}) {
+  return cohabEpilogues.filter((epilogue) => cohabStatusFor(epilogue.npc_id)?.unlocked);
+}
+
+export function cohabSharedBonusValueRuntime(type = "", routes = []) {
+  if (!type) return 0;
+  return routes
+    .filter((epilogue) => epilogue.shared_bonus_type === type)
+    .reduce((sum, epilogue) => sum + Number(epilogue.shared_bonus_value || 0), 0);
+}
+
 export function cohabBuffSpecRuntime(buffId = "") {
   const specs = {
     buff_trade_margin_up: { label: "商路议价", value: 0.08, durationDays: 7 },
@@ -38,6 +105,13 @@ export function cohabBuffSpecRuntime(buffId = "") {
     buff_night_guard_up: { label: "夜守巡灯", value: 0.12, durationDays: 7 },
   };
   return specs[buffId] || { label: buffId, value: 0.05, durationDays: 5 };
+}
+
+export function cohabBuffValueRuntime(buffId = "", {
+  syncCohabState = () => ({}),
+} = {}) {
+  const cohabState = syncCohabState() || {};
+  return Number(cohabState.activeBuffs?.[buffId]?.value || 0);
 }
 
 export function cohabSharedBonusTextRuntime(epilogue = null) {
