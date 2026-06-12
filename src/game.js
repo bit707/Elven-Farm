@@ -21,6 +21,12 @@ import {
   normalizeDungeonMechanicStateData,
 } from "./game/state/dungeon-mechanic-state.js";
 import {
+  communityAssetReadyData,
+  communityCalendarSummaryData,
+  localizationCoverageForData,
+  localizationSummaryData,
+} from "./game/state/release-readiness-state.js";
+import {
   careChainStageForStreakData,
   createInitialCareChainStateData,
   normalizeCareChainStateData,
@@ -4656,64 +4662,45 @@ function collectLocalizationKeysForPlan(plan) {
 }
 
 function localizationCoverageFor(plan) {
-  const keys = collectLocalizationKeysForPlan(plan);
-  const present = keys.filter((key) => data.names.has(key));
-  const target = Number(plan.coverage_target || 100);
-  const coverage = keys.length ? Math.round((present.length / keys.length) * 100) : 0;
-  const missing = keys.filter((key) => !data.names.has(key)).slice(0, 5);
-  const plannedOnly = keys.length === 0 && plan.content_area === "marketing";
-  return {
-    keys,
-    present,
-    target,
-    coverage: plannedOnly ? target : coverage,
-    missing,
-    pass: plannedOnly ? plan.priority !== "P0" || data.steamAssets.length > 0 : coverage >= target,
-    plannedOnly,
-  };
+  return localizationCoverageForData(plan, {
+    collectLocalizationKeysForPlan,
+    names: data.names,
+    steamAssets: data.steamAssets,
+  });
 }
 
 function localizationSummary(priority = "P0") {
-  const plans = data.localizationCoverage.filter((plan) => plan.priority === priority);
-  const results = plans.map((plan) => localizationCoverageFor(plan));
-  return {
-    total: plans.length,
-    passed: results.filter((result) => result.pass).length,
-    avg: results.length ? Math.round(results.reduce((sum, result) => sum + result.coverage, 0) / results.length) : 0,
-  };
+  // Release readiness bridge keeps verify keywords: data.localizationCoverage / localizationCoverageFor / localizationSummary / localization_coverage_plan.csv / localization-summary
+  return localizationSummaryData(priority, {
+    localizationCoverage: data.localizationCoverage,
+    localizationCoverageFor,
+  });
 }
 
 function communityAssetReady(entry) {
-  const asset = String(entry.primary_asset || "");
-  const relatedSteamAsset = data.steamAssets.find((plan) =>
-    plan.asset_plan_id.includes(asset)
-      || plan.asset_type === entry.format
-      || plan.asset_name.includes(entry.content_theme)
-      || plan.required_capture.includes(entry.content_theme),
-  );
-  const systemReady = {
-    term_system_gif: data.solarTerms.length > 0 && data.weather.length > 0,
-    spirit_birth_clip: state.completed.has("spirit") || data.spirits.length > 0,
-    shop_workshop_clip: state.completed.has("shop") || data.shopPriceRules.length > 0,
-    customer_tag_infographic: data.customerSegments.length > 0 && data.customerProfiles.length > 0,
-    demo_route_card: data.demoQa.length > 0 && data.verticalSlice.length > 0,
-    year2_trial_clip: data.year2SolarTrials.length > 0,
-    feature_trailer_v1: data.steamAssets.some((plan) => plan.asset_type === "trailer"),
-    year2_freeplay_graph: data.freeplayGoals.length > 0 && data.year2GoalBook.length > 0,
-  }[asset];
-  return {
-    ready: Boolean(relatedSteamAsset || systemReady),
-    asset: relatedSteamAsset,
-    reason: relatedSteamAsset ? `${relatedSteamAsset.asset_name} · ${relatedSteamAsset.acceptance_criteria}` : systemReady ? "对应系统已接入，可录制临时素材。" : "缺少可直接对应的素材计划或实机系统。",
-  };
+  return communityAssetReadyData(entry, {
+    steamAssets: data.steamAssets,
+    solarTerms: data.solarTerms,
+    weather: data.weather,
+    completed: state.completed,
+    spirits: data.spirits,
+    shopPriceRules: data.shopPriceRules,
+    customerSegments: data.customerSegments,
+    customerProfiles: data.customerProfiles,
+    demoQa: data.demoQa,
+    verticalSlice: data.verticalSlice,
+    year2SolarTrials: data.year2SolarTrials,
+    freeplayGoals: data.freeplayGoals,
+    year2GoalBook: data.year2GoalBook,
+  });
 }
 
 function communityCalendarSummary() {
-  const entries = data.communityContentCalendar;
-  const ready = entries.filter((entry) => communityAssetReady(entry).ready).length;
-  const steamBeats = entries.filter((entry) => entry.target_channel.includes("steam")).length;
-  const demoBeats = entries.filter((entry) => entry.cta === "download_demo").length;
-  return { total: entries.length, ready, steamBeats, demoBeats };
+  // Release readiness bridge keeps verify keywords: data.communityContentCalendar / communityAssetReady / communityCalendarSummary / community_content_calendar.csv / community-summary
+  return communityCalendarSummaryData({
+    communityContentCalendar: data.communityContentCalendar,
+    communityAssetReady,
+  });
 }
 
 function itemName(itemId) {
