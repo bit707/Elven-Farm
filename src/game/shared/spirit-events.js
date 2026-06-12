@@ -67,3 +67,33 @@ export function spiritEventRewardTextData(event, options = {}) {
   if (event.reward_type === "buff") return `记忆效果 ${event.reward_param}`;
   return `${event.reward_type} ${event.reward_param}`;
 }
+
+export function spiritEventTriggerHintData(event, options = {}) {
+  const conditionLabel = typeof options.conditionLabel === "function" ? options.conditionLabel : (condition) => condition;
+  const localize = typeof options.localize === "function" ? options.localize : (key, fallback = key) => fallback;
+  const solarTermsById = options.solarTermsById || new Map();
+  const condition = String(event?.trigger_condition || "");
+  if (!condition) return "继续推进洞天日常";
+  if (condition === "first_spirit_birth") return "收获第一只作物精怪后会自动接上";
+  if (condition === "first_auto_water_complete") return "先让精怪完成一次自动浇水";
+  if (condition === "first_fire_machine_assign") return "先给工坊点起第一台火位";
+  if (condition === "first_auto_storage_complete") return "先把仓房和自动入库接上";
+  if (condition === "first_cloth_recipe_complete") return "先做出第一张布料配方并接上礼品主题";
+  if (condition === "storage_box_count_2") return "继续扩仓，让仓位真正忙起来";
+  if (condition === "has_dungeon_runs_5") return "再去几趟秘境，让护卫经验成型";
+  if (condition === "has_faction_order_active") return "先让商路和势力订单真正跑起来";
+  if (condition.startsWith("current_term_")) {
+    const termId = `term_${condition.replace("current_term_", "")}`;
+    const term = solarTermsById.get(termId);
+    return `等到 ${localize(term?.term_name_key, termId)} 时节再来`;
+  }
+  if (condition.includes("chapter_3_complete")) return "推进第三章主线，等火位与终章前置接上";
+  if (condition.includes("quest_main_0402")) return "推进第四章前段，让灵渠与水线接上";
+  if (condition.includes("quest_main_0403")) return "推进终阵前的试炼与宴席准备";
+  return conditionLabel(condition);
+}
+
+export function spiritEventSceneReadyData(event, cutsceneShots) {
+  const shotsFor = typeof cutsceneShots === "function" ? cutsceneShots : () => [];
+  return Boolean(event?.reward_type === "scene" && shotsFor(event.reward_param).length > 0);
+}
