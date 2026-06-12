@@ -85,6 +85,12 @@ import {
   orderSeedPrepWorldRowsData,
 } from "./game/shared/order-seed-prep-board.js";
 import {
+  orderSeedRestockWorldBoardAtPointData,
+  orderSeedRestockWorldBoardFocusData,
+  orderSeedRestockWorldBoardSpecData,
+  orderSeedRestockWorldRowsData,
+} from "./game/shared/order-seed-restock-board.js";
+import {
   workshopSpiritAssistActionFocusData,
   workshopSpiritAssistActionWorldAtPointData,
   workshopSpiritAssistActionWorldSpecData,
@@ -26023,68 +26029,27 @@ function drawOrderSeedPrepWorldBoard(ctx, spec = orderSeedPrepWorldBoardSpecBrid
 }
 
 function orderSeedRestockWorldRows(limit = 3) {
-  const orders = visibleOrders();
-  if (orders.some((order) => canDeliverOrder(order))) return [];
-  if (orderCraftPrepWorldRows(1).length || orderSeedPrepWorldRows(1).length) return [];
-  return orders
-    .filter((order) => !canDeliverOrder(order))
-    .flatMap((order) => {
-      const status = orderNeedStatus(order);
-      const missingByItem = new Map(status.missing.map((entry) => [entry.itemId, entry]));
-      return orderProductionPlan(order)
-        .filter((entry) => missingByItem.has(entry.itemId) && entry.action?.type === "seed" && !entry.action.disabled)
-        .map((entry) => {
-          const crop = data.cropsBySeed.get(entry.action.id);
-          if (!crop || hasItem(crop.seed_item_id, 1)) return null;
-          const price = buyPrice(crop.seed_item_id);
-          const buyCount = 3;
-          const totalCost = price * buyCount;
-          if (price <= 0 || state.gold < totalCost) return null;
-          const plot = orderSeedPrepTargetPlot(crop);
-          if (!plot) return null;
-          const missing = missingByItem.get(entry.itemId);
-          const recommendation = seedSolarRecommendation(crop, plot);
-          const route = seedUseRouteSpec(crop, plot);
-          const rewardGold = Number(order.reward_gold || 0);
-          const rewardFame = Number(order.reward_fame || 0);
-          const outputHave = Number(state.inventory[entry.itemId] || 0);
-          const priority = 56
-            + rewardGold / 30
-            + rewardFame * 8
-            + (recommendation.className === "boost" ? 18 : recommendation.className === "season" ? 10 : 0)
-            + (plot.waterSoil ? 8 : 0)
-            + (String(order.order_id || "").startsWith("order_year2_") ? 18 : 0);
-          return {
-            order,
-            orderId: order.order_id,
-            orderTitle: orderTitle(order),
-            npc: npcName(order.issuer_id || order.reward_favor_npc),
-            itemId: entry.itemId,
-            itemName: itemName(entry.itemId),
-            seedId: crop.seed_item_id,
-            seedName: itemName(crop.seed_item_id),
-            crop,
-            plot,
-            plotLabel: `(${plot.x + 1},${plot.y + 1})`,
-            missingCount: Math.max(0, Number(missing.count || 1) - outputHave),
-            haveText: `${outputHave}/${Number(missing.count || 1)}`,
-            price,
-            buyCount,
-            totalCost,
-            growDays: Number(crop.grow_days || 1),
-            recommendation,
-            route,
-            rewardText: [
-              rewardGold ? `${rewardGold} 灵石` : "",
-              rewardFame ? `声望 +${rewardFame}` : "",
-            ].filter(Boolean).join(" / ") || "订单奖励",
-            priority,
-          };
-        })
-        .filter(Boolean);
-    })
-    .sort((a, b) => b.priority - a.priority || a.orderTitle.localeCompare(b.orderTitle, "zh-Hans-CN"))
-    .slice(0, limit);
+  return orderSeedRestockWorldRowsData({
+    limit,
+    orders: visibleOrders(),
+    cropsBySeed: data.cropsBySeed,
+    plots: state.plots,
+    inventory: state.inventory,
+    gold: state.gold,
+    craftPrepRows: orderCraftPrepWorldRows(1),
+    seedPrepRows: orderSeedPrepWorldRows(1),
+    canDeliverOrder,
+    orderNeedStatus,
+    orderProductionPlan,
+    hasItem,
+    buyPrice,
+    seedUseRouteSpec,
+    seedSolarRecommendation,
+    orderTitle,
+    npcName,
+    itemName,
+    targetPlotForCrop: orderSeedPrepTargetPlot,
+  });
 }
 
 function orderSeedRestockWorldBoardSpec(width = 960, height = 640) {
@@ -26098,40 +26063,36 @@ const ORDER_SEED_RESTOCK_WORLD_BOARD_COPY = {
 
 function orderSeedRestockWorldBoardSpecBridge(width = 960, height = 640) {
   const rows = orderSeedRestockWorldRows(3);
-  return orderSeedRestockWorldBoardSpecWorld({
+  // Order seed restock bridge keeps verify keywords:
+  // orderSeedRestockWorldBoardSpec / orderSeedRestockWorldBoardAtCanvasPoint / focusOrderSeedRestockWorldBoardFromCanvas / drawOrderSeedRestockWorldBoard / 主世界订单缺口种子可补货 / 缺口先补种 / 点选订单缺口补种.
+  return orderSeedRestockWorldBoardSpecData({
     width,
     height,
     day: state.day,
     rows,
     metrics: gridMetrics(),
     copy: ORDER_SEED_RESTOCK_WORLD_BOARD_COPY,
+    specWorld: orderSeedRestockWorldBoardSpecWorld,
   });
 }
 
 function orderSeedRestockWorldBoardAtCanvasPoint(px, py) {
-  return orderSeedRestockWorldBoardAtCanvasPointWorld({
+  return orderSeedRestockWorldBoardAtPointData({
     px,
     py,
     spec: orderSeedRestockWorldBoardSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
+    atPoint: orderSeedRestockWorldBoardAtCanvasPointWorld,
   });
 }
 
 function focusOrderSeedRestockWorldBoardFromCanvas(spec = orderSeedRestockWorldBoardSpecBridge()) {
-  if (!spec?.top?.seedId) return false;
-  const { top } = spec;
-  orderSeedRestockWorldBoardFocus = { key: spec.key, day: state.day, orderId: top.orderId, seedId: top.seedId };
-  state.selected = { x: top.plot.x, y: top.plot.y };
-  state.selectedSeedId = top.seedId;
-  pulseAtPlot(top.plot, "plant", { useRoute: top.route, harvestText: spec.title });
-  queuePlotRouteFocusTarget({
-    selector: "#buySeedButton",
-    fallbackSelector: "#seedRestockHint",
-    label: "点选订单缺口补种",
-    log: `${top.orderTitle} 还差 ${top.itemName} ${top.haveText}。${top.seedName} 已切到种子栏，先补 ${top.buyCount} 包需要 ${top.totalCost} 灵石；补完后可在 ${top.plotLabel} 号空田下种，预计 ${top.growDays} 天成熟。`,
-    panelGroup: "core",
-    missingTitle: "订单缺口补种",
-    missingLog: `${top.seedName} 已选中，但补种按钮暂时没有找到。先看种子栏库存与买价。`,
-  });
+  const focusSpec = orderSeedRestockWorldBoardFocusData(spec, state.day);
+  if (!focusSpec) return false;
+  orderSeedRestockWorldBoardFocus = focusSpec.focus;
+  state.selected = focusSpec.selected;
+  state.selectedSeedId = focusSpec.selectedSeedId;
+  pulseAtPlot(focusSpec.pulse.plot, focusSpec.pulse.kind, focusSpec.pulse.options);
+  queuePlotRouteFocusTarget(focusSpec.target);
   return true;
 }
 
