@@ -256,3 +256,77 @@ export function playCohabDailySceneRuntime(npcId = "", {
   render();
   return true;
 }
+
+export function playCohabWeeklyEventRuntime(npcId = "", {
+  cohabStatusFor = () => null,
+  cohabRequirementText = () => "",
+  currentCohabWeekKey = () => "",
+  dataCohabWeeklyByEpilogue = new Map(),
+  cohabState = {},
+  conditionMet = () => false,
+  npcName = (id = "") => id,
+  syncCohabState = () => ({}),
+  queueDialogueGroup = () => null,
+  applyCohabReward = () => "",
+  recordCohabHistory = () => null,
+  complete = () => null,
+  addLog = () => null,
+  render = () => null,
+} = {}) {
+  const cohab = cohabStatusFor(npcId);
+  if (!cohab?.epilogue) return addLog("后日谈未配置", "这位角色暂时没有同住周常路线。");
+  if (!cohab.unlocked) return addLog("后日谈未开启", `${npcName(npcId)} 还需要 ${cohabRequirementText(cohab)}。`);
+  const syncedState = syncCohabState();
+  const weeklyClaims = syncedState.weeklyClaims || cohabState.weeklyClaims || {};
+  const cycleKey = currentCohabWeekKey();
+  const event = (dataCohabWeeklyByEpilogue.get(cohab.epilogue.epilogue_id) || [])
+    .find((entry) => conditionMet(entry.condition_group) && weeklyClaims[entry.weekly_event_id] !== cycleKey)
+    || null;
+  if (!event) return addLog("本周后日谈已稳", `${cohab.epilogue.route_name} 本周暂无新的周常事件，先推进商路、建设、秘境或入夜等自然触发。`);
+  weeklyClaims[event.weekly_event_id] = cycleKey;
+  if (event.dialogue_group_id) queueDialogueGroup(event.dialogue_group_id);
+  const rewardText = applyCohabReward(event, cohab.epilogue);
+  recordCohabHistory("weekly", cohab.epilogue, event.event_name, rewardText);
+  complete(`cohab_weekly_${event.weekly_event_id}`);
+  addLog("同住周常", `${npcName(npcId)} · ${event.event_name}：${rewardText}。`);
+  render();
+  return true;
+}
+
+export function triggerCohabWeeklyEventsRuntime(source = "", payload = {}, {
+  cohabUnlockedRoutes = () => [],
+  dataCohabWeeklyByEpilogue = new Map(),
+  cohabState = {},
+  currentCohabWeekKey = () => "",
+  conditionMet = () => false,
+  cohabEventTimingMet = () => false,
+  npcName = (id = "") => id,
+  syncCohabState = () => ({}),
+  queueDialogueGroup = () => null,
+  applyCohabReward = () => "",
+  recordCohabHistory = () => null,
+  complete = () => null,
+  addLog = () => null,
+} = {}) {
+  let triggered = 0;
+  const syncedState = syncCohabState();
+  const weeklyClaims = syncedState.weeklyClaims || cohabState.weeklyClaims || {};
+  const cycleKey = currentCohabWeekKey(payload.day);
+  for (const epilogue of cohabUnlockedRoutes()) {
+    const events = dataCohabWeeklyByEpilogue.get(epilogue.epilogue_id) || [];
+    for (const event of events) {
+      if (event.trigger_type !== source) continue;
+      if (!conditionMet(event.condition_group)) continue;
+      if (!cohabEventTimingMet(event.trigger_type, event.trigger_param, payload)) continue;
+      if (weeklyClaims[event.weekly_event_id] === cycleKey) continue;
+      weeklyClaims[event.weekly_event_id] = cycleKey;
+      if (event.dialogue_group_id) queueDialogueGroup(event.dialogue_group_id);
+      const rewardText = applyCohabReward(event, epilogue);
+      addLog("同住周常", `${npcName(epilogue.npc_id)} · ${event.event_name}：${rewardText}。`);
+      recordCohabHistory("weekly", epilogue, event.event_name, rewardText);
+      complete(`cohab_weekly_${event.weekly_event_id}`);
+      triggered += 1;
+    }
+  }
+  return triggered;
+}
