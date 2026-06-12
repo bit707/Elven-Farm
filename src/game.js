@@ -55,6 +55,13 @@ import {
   workshopIngredientReadyWorldSpecData,
 } from "./game/shared/workshop-ingredient-ready.js";
 import {
+  workshopOpeningValueRuntimeData,
+  workshopOpeningValueWorldAtPointData,
+  workshopOpeningValueWorldCopyData,
+  workshopOpeningValueWorldFocusData,
+  workshopOpeningValueWorldSpecData,
+} from "./game/shared/workshop-opening-value.js";
+import {
   workshopSpiritAssistActionFocusData,
   workshopSpiritAssistActionWorldAtPointData,
   workshopSpiritAssistActionWorldSpecData,
@@ -45799,13 +45806,16 @@ function workshopOpeningValueWorldCopy({
   shopTagText = "",
 } = {}) {
   // 保留校验关键字：workshopOpeningValueWorldCopy / 工坊开锅价值牌 / 为什么值得做 / 原料裸卖 / 出锅基价 / 订单/旧铺去向
-  return workshopOpeningValueWorldCopySpecWorld({
-    recipe,
-    preview,
-    activeJob,
-    orderMatch,
-    outputName,
-    shopTagText,
+  return workshopOpeningValueWorldCopyData({
+    runtime: {
+      recipe,
+      preview,
+      activeJob,
+      orderMatch,
+      outputName,
+      shopTagText,
+    },
+    copySpec: workshopOpeningValueWorldCopySpecWorld,
   });
 }
 
@@ -45912,74 +45922,64 @@ function workshopOpeningValueWorldSpecBridge(
   height = refs.world?.height || 640,
   lineSpec = workshopProductionLineSpec(),
 ) {
-  const activeJob = lineSpec?.activeJob || null;
-  const activeRecipe = activeJob
-    ? data.recipes.find((recipe) => recipe.recipe_id === activeJob.recipeId)
-    : null;
-  const selectedRecipe = data.recipes.find((recipe) => recipe.recipe_id === state.selectedRecipeId) || availableRecipes()[0] || null;
-  const recipe = activeRecipe || selectedRecipe;
-  const preview = recipe ? recipeCraftPreviewSpec(recipe) : null;
-  const outputItemId = activeJob?.outputItemId || preview?.outputItemId || "";
-  const outputCount = Number(activeJob?.outputCount || preview?.outputCount || 1);
-  const outputName = outputItemId ? itemName(outputItemId) : "";
-  const orderMatch = outputItemId
-    ? activeJob?.orderMatch || preview?.orderMatch || workshopOutputOrderMatchSpec(outputItemId, outputCount)
-    : null;
-  const shopTags = outputItemId ? shopTagsForItem(outputItemId, ecologyCourtyardSummary()) : [];
-  const shopTag = prioritizeShopTag(shopTags, new Map(), "food");
-  const shopTagText = shopTagLabel(shopTag);
-  return workshopOpeningValueWorldSpecFromRuntimeWorld({
-    width,
-    height,
-    day: state.day,
+  const ecologySummary = ecologyCourtyardSummary();
+  const recipes = data.recipes;
+  const available = availableRecipes();
+  const runtime = workshopOpeningValueRuntimeData({
     lineSpec,
-    recipes: data.recipes,
+    recipes,
     selectedRecipeId: state.selectedRecipeId,
-    availableRecipes: availableRecipes(),
+    availableRecipes: available,
     recipePreviewSpec: recipeCraftPreviewSpec,
     itemName,
     orderMatchSpec: workshopOutputOrderMatchSpec,
     shopTagsForItem,
-    ecologySummary: ecologyCourtyardSummary(),
+    ecologySummary,
     prioritizeShopTag,
     shopTagLabel,
-    copy: workshopOpeningValueWorldCopy({
-      recipe,
-      preview,
-      activeJob,
-      orderMatch,
-      outputName,
-      shopTagText,
-    }),
+  });
+  // Workshop opening value bridge keeps verify keywords:
+  // workshopOpeningValueWorldFocus / workshopOpeningValueWorldSpec / workshopOpeningValueWorldAtCanvasPoint / focusWorkshopOpeningValueWorldFromCanvas / drawWorkshopOpeningValueWorld / 工坊开锅价值牌 / 为什么值得做 / 原料裸卖 / 出锅基价 / 订单/旧铺去向 / 只定位配方栏、订单板或旧铺货签 / 不会自动加工、排产、出锅、交单、开铺、入夜或消耗材料.
+  return workshopOpeningValueWorldSpecData({
+    width,
+    height,
+    day: state.day,
+    lineSpec,
+    recipes,
+    selectedRecipeId: state.selectedRecipeId,
+    availableRecipes: available,
+    recipePreviewSpec: recipeCraftPreviewSpec,
+    itemName,
+    orderMatchSpec: workshopOutputOrderMatchSpec,
+    shopTagsForItem,
+    ecologySummary,
+    prioritizeShopTag,
+    shopTagLabel,
+    copy: workshopOpeningValueWorldCopy(runtime),
+    specFromRuntime: workshopOpeningValueWorldSpecFromRuntimeWorld,
   });
 }
 
 function workshopOpeningValueWorldAtCanvasPoint(px, py) {
-  return workshopOpeningValueWorldAtCanvasPointWorld({
+  return workshopOpeningValueWorldAtPointData({
     px,
     py,
     spec: workshopOpeningValueWorldSpecBridge(),
+    atPoint: workshopOpeningValueWorldAtCanvasPointWorld,
   });
 }
 
 function focusWorkshopOpeningValueWorldFromCanvas(spec = workshopOpeningValueWorldSpecBridge()) {
-  if (!spec?.recipeId) return false;
-  workshopOpeningValueWorldFocus = {
-    key: spec.key,
-    day: state.day,
-    recipeId: spec.recipeId,
-    orderId: spec.orderId || "",
-  };
-  playCue("对话翻页");
-  addLog(
-    "点选工坊开锅价值牌",
-    `${spec.recipeName}：${spec.reason} 增值账 ${spec.rawValue} -> ${spec.outputValue}${spec.orderReward ? ` -> ${spec.orderReward}` : ""}。${spec.safety}。`,
-  );
-  focusPlotRouteRecipe(spec.recipeId);
-  if (spec.orderId) {
-    focusPlotRouteOrder(spec.orderId);
+  const focusSpec = workshopOpeningValueWorldFocusData(spec, state.day);
+  if (!focusSpec) return false;
+  workshopOpeningValueWorldFocus = focusSpec.focus;
+  playCue(focusSpec.cue);
+  addLog(focusSpec.log.title, focusSpec.log.message);
+  focusPlotRouteRecipe(focusSpec.recipeId);
+  if (focusSpec.orderId) {
+    focusPlotRouteOrder(focusSpec.orderId);
   } else {
-    focusPlotRouteShop(spec.shopTag, spec.outputItemId);
+    focusPlotRouteShop(focusSpec.shopTag, focusSpec.outputItemId);
   }
   render();
   return true;
