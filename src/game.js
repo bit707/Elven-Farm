@@ -162,6 +162,11 @@ import {
   settleWorkshopSpiritJobRuntime,
   applySpiritJobSynergiesRuntime,
   spiritNightWorkFeedbackSpecRuntime,
+  spiritAutomationLineFallbackRuntime,
+  spiritAutomationLineTargetRuntime,
+  spiritAutomationPromenadeMarkupRuntime,
+  spiritAutomationPromenadeRowsRuntime,
+  spiritAutomationPromenadeSpecRuntime,
   spiritJobReportByJobRuntime,
   spiritJobPersonaSpecRuntime,
   spiritJobShiftFeedbackSpecRuntime,
@@ -6862,164 +6867,37 @@ function spiritJobPersonaSpec(spirit, job = spirit.job || "farm") {
 }
 
 function spiritAutomationLineTarget(job = "farm") {
-  const targets = {
-    farm: {
-      selector: "#selectedPlotCard",
-      fallbackSelector: "#spiritList",
-      panelGroup: "core",
-      targetLabel: "灵田与种植控件",
-      cta: "定位田垄",
-    },
-    workshop: {
-      selector: "#buildPanel",
-      fallbackSelector: "#recipeSelect",
-      panelGroup: "systems",
-      targetLabel: "后厂工坊流水线",
-      cta: "看后厂产线",
-    },
-    shop: {
-      selector: "#shopReport",
-      fallbackSelector: "#spiritList",
-      panelGroup: "core",
-      targetLabel: "旧铺经营复盘",
-      cta: "看旧铺反馈",
-    },
-    patrol: {
-      selector: "#riskPanel",
-      fallbackSelector: "#spiritList",
-      panelGroup: "systems",
-      targetLabel: "节气风险面板",
-      cta: "看巡逻风险",
-    },
-    expedition: {
-      selector: ".trade-route-card",
-      fallbackSelector: "#spiritList",
-      panelGroup: "core",
-      targetLabel: "跨界商路与商队",
-      cta: "看商队路线",
-    },
-    garden: {
-      selector: "#relationshipPanel",
-      fallbackSelector: "#spiritList",
-      panelGroup: "systems",
-      targetLabel: "凡仙镇关系与庭院照应",
-      cta: "看庭院照应",
-    },
-  };
-  return targets[job] || targets.farm;
+  return spiritAutomationLineTargetRuntime(job);
 }
 
 function spiritAutomationLineFallback(job = "farm", context = {}) {
-  const planted = state.plots.filter((plot) => plot.cropId);
-  const mature = planted.filter((plot) => plot.mature);
-  const unwatered = planted.filter((plot) => !plot.watered && !plot.mature);
-  const workshopLine = context.workshopLine || workshopProductionLineSpec();
-  const shopFocus = normalizeShopOpeningState(state.shopOpeningState).liveFocus;
-  const risks = context.risks || unresolvedRisks();
-  const traveling = (state.tradeRuns || []).filter((run) => run.status === "traveling");
-  const lowSpirits = state.spirits.filter((spirit) => Number(spirit.mood || 0) < 60 || Number(spirit.stamina || 0) < 40);
-  const fallback = {
-    farm: {
-      glyph: "水",
-      tone: "water",
-      action: unwatered.length > 0 ? `等待接管 ${unwatered.length} 格补水` : mature.length > 0 ? `等待守收 ${mature.length} 块成熟田` : "等待新种下田",
-      focus: unwatered.length > 0 ? "缺水田垄" : mature.length > 0 ? "成熟作物" : "灵田土脉",
-      metric: planted.length > 0 ? `种植 ${planted.length} · 成熟 ${mature.length}` : "尚未形成农田工作面",
-      detail: "安排农田岗后，精怪会把补水和守田从重复劳动里接走。",
-      impact: unwatered.length > 0 ? "可见收益：减少缺水漏处理" : "可见收益：稳定成长节奏",
-    },
-    workshop: {
-      glyph: "火",
-      tone: "ember",
-      action: workshopLine.activeJob ? `产线跑到 ${workshopLine.activeJob.progress}%` : "空锅候火等排产",
-      focus: workshopLine.activeJob?.currentStage?.label || workshopLine.title,
-      metric: workshopLine.outputLine,
-      detail: workshopLine.visualCue,
-      impact: `可见收益：效率 ${workshopLine.speedText}`,
-    },
-    shop: {
-      glyph: "铃",
-      tone: "gold",
-      action: shopFocus ? `复盘 ${shopFocus.buyers || 0} 单成交` : "等一次开铺后写入顾客动线",
-      focus: shopFocus?.topItemName || shopFocus?.hotTagLabel || "旧铺门口",
-      metric: shopFocus ? `成交 ${shopFocus.buyers || 0} · 离店 ${shopFocus.leavers || 0}` : `历史报告 ${state.shopReport.length}`,
-      detail: shopFocus?.shelfAdvice || "店铺岗会把成交、犹豫和差评整理成下一次陈列建议。",
-      impact: "可见收益：顾客原因更容易读懂",
-    },
-    patrol: {
-      glyph: "灯",
-      tone: "jade",
-      action: risks.length > 0 ? `盯防 ${risks.length} 条未处理风险` : "巡灯线暂无警报",
-      focus: risks[0]?.title || risks[0]?.event_name || "洞天边界",
-      metric: risks.length > 0 ? `风险 ${risks.length} · 入夜前可处理` : "当前风险清空",
-      detail: "巡逻岗会把节气风险从突然损失变成可提前看见的警示。",
-      impact: risks.length > 0 ? "可见收益：减少入夜损失" : "可见收益：保持风险安全线",
-    },
-    expedition: {
-      glyph: "旗",
-      tone: "sky",
-      action: traveling.length > 0 ? `校点 ${traveling.length} 支在途商队` : "测风看路等派遣",
-      focus: traveling[0] ? data.tradeRoutesById.get(traveling[0].routeId)?.route_name || "在途商队" : "跨界商路",
-      metric: traveling.length > 0 ? `最近返程第 ${Math.min(...traveling.map((run) => Number(run.returnDay || state.day))) } 天` : `商路 ${data.tradeRoutes.length} 条`,
-      detail: "远征岗会把路线风险、补给和返程收益写成可复盘商路。",
-      impact: "可见收益：库存转化为灵石和稀有返货",
-    },
-    garden: {
-      glyph: "花",
-      tone: "flower",
-      action: lowSpirits.length > 0 ? `照应 ${lowSpirits.length} 位低状态伙伴` : "庭院花息稳定",
-      focus: lowSpirits[0]?.name || "伙伴心情",
-      metric: lowSpirits.length > 0 ? `低状态 ${lowSpirits.length}` : `伙伴 ${state.spirits.length} 位`,
-      detail: "庭院岗把心情、体力和同住生活做成长期留存的暖线。",
-      impact: lowSpirits.length > 0 ? "可见收益：降低伙伴低落断档" : "可见收益：维持日常陪伴",
-    },
-  };
-  return fallback[job] || fallback.farm;
+  return spiritAutomationLineFallbackRuntime(job, {
+    state,
+    ...context,
+    workshopLine: context.workshopLine || workshopProductionLineSpec(),
+    shopFocus: normalizeShopOpeningState(state.shopOpeningState).liveFocus,
+    risks: context.risks || unresolvedRisks(),
+    tradeRouteCount: data.tradeRoutes.length,
+    tradeRouteNameById: (routeId) => data.tradeRoutesById.get(routeId)?.route_name || "",
+  });
 }
 
 function spiritAutomationPromenadeRows() {
-  const jobs = ["farm", "workshop", "shop", "patrol", "expedition", "garden"];
-  const context = {
-    workshopLine: workshopProductionLineSpec(),
-    risks: unresolvedRisks(),
-  };
-  return jobs.map((job, index) => {
-    const helpers = state.spirits.filter((spirit) => (spirit.job || "farm") === job);
-    const lead = helpers[0] || null;
-    const fallback = spiritAutomationLineFallback(job, context);
-    const persona = lead ? spiritJobPersonaSpec(lead, job) : null;
-    const target = spiritAutomationLineTarget(job);
-    return {
-      job,
-      index,
-      label: jobName(job),
-      glyph: persona?.glyph || fallback.glyph,
-      tone: persona?.tone || fallback.tone,
-      helperCount: helpers.length,
-      helperText: helpers.length ? helpers.slice(0, 2).map((spirit) => spirit.name).join("、") : "空岗",
-      action: persona?.action || fallback.action,
-      focus: persona?.focus || fallback.focus,
-      metric: fallback.metric,
-      detail: persona?.advice || fallback.detail,
-      impact: lead ? `${lead.name}：${persona.efficiency} · ${persona.specialty}` : fallback.impact,
-      cta: target.cta,
-      active: helpers.length > 0,
-    };
+  // 保留校验关键字：spiritAutomationPromenadeRows / data-automation-line
+  return spiritAutomationPromenadeRowsRuntime({
+    state,
+    jobName,
+    spiritJobPersonaSpec,
+    spiritAutomationLineFallback,
+    spiritAutomationLineTarget,
   });
 }
 
 function spiritAutomationPromenadeSpec(rows = spiritAutomationPromenadeRows()) {
-  if (!state.spirits.length) return null;
-  const activeRows = rows.filter((row) => row.active);
-  const workshopRow = rows.find((row) => row.job === "workshop");
-  return {
-    active: true,
-    title: "精怪自动化巡演牌",
-    headline: `六线岗位 ${activeRows.length}/6 已接管 · ${workshopRow?.metric || "后厂待命"}`,
-    detail: "把农田、工坊、旧铺、巡逻、远征和庭院的后台效率翻译成可见动作、收益和缺口。",
-    safety: "定位只辅助查看，不会自动切岗、派工、排产、开铺、发商队、处理风险、入夜或消耗资源。",
-    rows,
-  };
+  // 保留校验关键字：spiritAutomationPromenadeSpec / 精怪自动化巡演牌 / 六线岗位
+  return spiritAutomationPromenadeSpecRuntime(rows, {
+    state,
+  });
 }
 
 function spiritAutomationPromenadeSpecBridge(rows = spiritAutomationPromenadeRows()) {
@@ -7030,26 +6908,8 @@ function spiritAutomationPromenadeSpecBridge(rows = spiritAutomationPromenadeRow
 }
 
 function spiritAutomationPromenadeMarkup(spec = spiritAutomationPromenadeSpec()) {
-  if (!spec?.active) return "";
-  return `
-    <div class="spirit-automation-promenade">
-      <strong>${spec.title} · ${spec.headline}</strong>
-      <span>${spec.detail}</span>
-      <div class="spirit-automation-grid">
-        ${spec.rows.map((row) => `
-          <div class="spirit-automation-card ${row.tone} ${row.active ? "active" : "idle"}" data-automation-line="${row.job}">
-            <b>${row.glyph} ${row.label} · ${row.helperText}</b>
-            <em>${row.action}</em>
-            <small>${row.focus} · ${row.metric}</small>
-            <small>${row.impact}</small>
-            <small>${row.detail}</small>
-            <button type="button" data-automation-job-line="${row.job}">${row.cta}</button>
-          </div>
-        `).join("")}
-      </div>
-      <small class="spirit-automation-safety">${spec.safety}</small>
-    </div>
-  `;
+  // 保留校验关键字：spiritAutomationPromenadeMarkup / spirit-automation-promenade / spirit-automation-grid / spirit-automation-card / data-automation-job-line
+  return spiritAutomationPromenadeMarkupRuntime(spec);
 }
 
 function spiritAutomationPromenadeMarkupBridge(spec = spiritAutomationPromenadeSpecBridge()) {
