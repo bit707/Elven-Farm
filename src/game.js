@@ -502,6 +502,7 @@ import {
   workshopOutputStorageRouteFeedbackSpecWorld,
   workshopIngredientReadyWorldSpecFromRuntimeWorld,
   workshopOpeningValueWorldAtCanvasPointWorld,
+  workshopOpeningValueWorldCopySpecWorld,
   workshopOpeningValueWorldSpecFromRuntimeWorld,
   drawWorkshopOpeningValueWorldWorld,
   drawWorkshopOutputRouteTriptychWorldWorld,
@@ -47338,45 +47339,15 @@ function workshopOpeningValueWorldCopy({
   outputName = "",
   shopTagText = "",
 } = {}) {
-  if (!recipe || !preview) return null;
-  const activeStage = activeJob?.currentStage?.label || "";
-  const headline = activeJob
-    ? `${activeJob.recipeName} 正在${activeStage || "跑线"}`
-    : preview.craftable
-      ? `${preview.recipeName} 可以开锅`
-      : preview.headline;
-  const reason = activeJob
-    ? orderMatch?.ready
-      ? `${outputName}出锅后会让「${orderMatch.orderTitle}」可交。`
-      : orderMatch
-        ? `${outputName}正在接「${orderMatch.orderTitle}」，还差 ${orderMatch.missingText || "余料"}。`
-        : `${outputName}出锅后可走旧铺 ${shopTagText} 货签。`
-    : preview.orderMatch
-      ? preview.orderMatch.ready
-        ? `${preview.outputName}下锅后会让「${preview.orderMatch.orderTitle}」可交。`
-        : `${preview.outputName}会接上「${preview.orderMatch.orderTitle}」，还差 ${preview.orderMatch.missingText || "余料"}。`
-      : preview.firstAroma
-        ? "第一锅香气会把第一张订单吹到旧铺订单板。"
-        : `${preview.outputName}可先走旧铺 ${shopTagText} 货签或继续备货。`;
-  const routeText = orderMatch?.orderId
-    ? orderMatch.ready
-      ? "开锅/出锅 -> 订单可交 -> 手动交付"
-      : "开锅/出锅 -> 订单接线 -> 补齐余料"
-    : `开锅/出锅 -> ${shopTagText}货签 -> 手动开铺`;
-  return {
-    headline,
-    reason,
-    routeText,
-    title: "工坊开锅价值牌",
-    cta: "工坊开锅价值牌 · 可点",
-    safety: "只定位配方栏、订单板或旧铺货签，不会自动加工、排产、出锅、交单、开铺、入夜或消耗材料",
-    sectionLabels: {
-      reasonTitle: "为什么值得做",
-      rawLabel: "原料裸卖",
-      outputLabel: "出锅基价",
-      routeLabel: "订单/旧铺去向",
-    },
-  };
+  // 保留校验关键字：workshopOpeningValueWorldCopy / 工坊开锅价值牌 / 为什么值得做 / 原料裸卖 / 出锅基价 / 订单/旧铺去向
+  return workshopOpeningValueWorldCopySpecWorld({
+    recipe,
+    preview,
+    activeJob,
+    orderMatch,
+    outputName,
+    shopTagText,
+  });
 }
 
 function workshopIngredientReadySafetyText() {
