@@ -163,7 +163,10 @@ import {
   applySpiritJobSynergiesRuntime,
   spiritNightWorkFeedbackSpecRuntime,
   spiritJobReportByJobRuntime,
+  spiritJobSynergyForSpiritRuntime,
   spiritJobSynergyLineRuntime,
+  spiritJobSynergyNetworkMarkupRuntime,
+  spiritJobSynergyNetworkSpecRuntime,
 } from "./game/world/spirit-job-runtime.js";
 import {
   applyCohabRewardRuntime,
@@ -40530,88 +40533,23 @@ function triggerSpiritNightWorkFeedback(report = state.lastSpiritJobReport || []
 }
 
 function spiritJobSynergyForSpirit(spirit) {
-  if (!spirit) return null;
-  return (state.lastSpiritJobSynergy || []).find((entry) =>
-    entry.spirits?.includes(spirit.name) || entry.entries?.some((report) => report.spirit === spirit.name),
-  ) || null;
+  return spiritJobSynergyForSpiritRuntime(spirit, {
+    state,
+  });
 }
 
 function spiritJobSynergyNetworkSpec(synergies = state.lastSpiritJobSynergy || []) {
-  const rows = (Array.isArray(synergies) ? synergies : [])
-    .filter(Boolean)
-    .slice(0, 3)
-    .map((synergy, index) => {
-      const nodes = (synergy.entries || [])
-        .map((entry, entryIndex) => {
-          const spirit = state.spirits.find((candidate) => candidate.name === entry.spirit);
-          const job = entry.job || spirit?.job || synergy.jobs?.[entryIndex] || "farm";
-          const sameJobIndex = state.spirits
-            .slice(0, Math.max(0, state.spirits.findIndex((candidate) => candidate.id === spirit?.id)))
-            .filter((candidate) => (candidate.job || "farm") === job).length;
-          const globalIndex = Math.max(entryIndex, state.spirits.findIndex((candidate) => candidate.id === spirit?.id));
-          const station = spiritJobStation(spirit ? { ...spirit, job } : { job }, sameJobIndex, globalIndex);
-          return {
-            spiritName: entry.spirit || spirit?.name || "精怪",
-            job,
-            jobName: jobName(job),
-            text: entry.text || "",
-            station,
-            point: {
-              x: station.x + station.size * 0.5,
-              y: station.y + station.size * 0.52,
-            },
-          };
-        });
-      return {
-        ...synergy,
-        index,
-        nodes,
-        points: nodes.map((node) => node.point),
-        jobNames: (synergy.jobs || nodes.map((node) => node.job)).map(jobName),
-        spiritText: (synergy.spirits || nodes.map((node) => node.spiritName)).join(" + "),
-        routeText: synergy.focus || nodes.map((node) => node.jobName).join(" -> "),
-        rewardText: synergy.rewardText || "协作收益待结算",
-        accent: synergy.accent || "#e0b66d",
-      };
-    })
-    .filter((row) => row.nodes.length >= 2);
-  if (!rows.length) return null;
-  const jobs = [...new Set(rows.flatMap((row) => row.jobNames))];
-  const spirits = [...new Set(rows.flatMap((row) => row.nodes.map((node) => node.spiritName)))];
-  const nextSuggestion = rows.length >= 3
-    ? "昨夜协作已经拉满三条，下一步可以把低心情精怪换去庭院休整，保持连续产线。"
-    : "若想再亮一条搭班光轨，试着把农田、工坊、店铺、巡逻或庭院岗位错开安排。";
-  return {
-    title: "岗位协作网",
-    subtitle: `搭班光轨 ${rows.length} 条 · 接力节点 ${spirits.length} 只`,
-    jobs,
-    spirits,
-    rows,
-    nextSuggestion,
-  };
+  // 保留校验关键字：spiritJobSynergyNetworkSpec / 岗位协作网 / 搭班光轨 / 接力节点
+  return spiritJobSynergyNetworkSpecRuntime(synergies, {
+    state,
+    jobName,
+    spiritJobStation,
+  });
 }
 
 function spiritJobSynergyNetworkMarkup(spec = spiritJobSynergyNetworkSpec()) {
-  if (!spec?.rows?.length) return "";
-  return `
-    <div class="spirit-synergy-network">
-      <div class="spirit-synergy-network-head">
-        <strong>${spec.title}</strong>
-        <span>${spec.subtitle}</span>
-      </div>
-      <small>覆盖岗位：${spec.jobs.join(" / ")} · ${spec.nextSuggestion}</small>
-      ${spec.rows.map((row) => `
-        <div class="spirit-synergy-network-row" style="--synergy-accent:${row.accent};">
-          <strong>${row.label} · ${row.routeText}</strong>
-          <div class="spirit-synergy-network-path">
-            ${row.nodes.map((node) => `<span class="spirit-synergy-chip">${node.spiritName}<b>${node.jobName}</b></span>`).join("<i>→</i>")}
-          </div>
-          <small>协作收益：${row.rewardText}</small>
-          <small>接力节点：${row.detail}</small>
-        </div>
-      `).join("")}
-    </div>
-  `;
+  // 保留校验关键字：spiritJobSynergyNetworkMarkup / spirit-synergy-network / 协作收益
+  return spiritJobSynergyNetworkMarkupRuntime(spec);
 }
 
 function demoGuideStep() {
