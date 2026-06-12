@@ -46,6 +46,9 @@ import {
   spiritEventStageLabelData,
   spiritEventTriggerHintData,
   spiritEventUpgradeConfigData,
+  spiritFinalEventForLineData,
+  spiritFinaleCompanionSpecData,
+  spiritFinaleCompanionSpecsData,
   spiritUpgradeSnapshotData,
 } from "./game/shared/spirit-events.js";
 import {
@@ -5088,100 +5091,27 @@ function spiritEventGoalRows(limit = 6) {
 }
 
 function spiritFinalEventForLine(lineId = "") {
-  return (data.spiritEventsByLine.get(lineId) || []).find((event) => event.event_stage === "final") || null;
+  return spiritFinalEventForLineData(lineId, data.spiritEventsByLine);
 }
 
 function spiritFinaleCompanionSpec(spirit) {
-  if (!spirit) return null;
-  const lineId = spirit.lineId || spiritLine(spirit.id);
-  const event = spiritFinalEventForLine(lineId);
-  if (!event || !state.completedSpiritEvents.has(event.spirit_event_id)) return null;
-  const profile = spiritVisualProfile(spirit);
-  const memory = data.spiritMemoryByEvent.get(event.spirit_event_id);
-  const lineSpecs = {
-    spirit_line_luobo: {
-      title: "田心共守",
-      anchorLabel: "田心土息",
-      sceneText: "田垄边多了一圈厚实土光，成熟作物像被人从根上托住。",
-      effectText: "农田终章：修复与成熟节奏更稳",
-      nextDetail: "睡前回应它，田心土息会在主画面继续亮着。",
-      glyph: "田",
-      accent: "#286f58",
-    },
-    spirit_line_lajiao: {
-      title: "镇火看灶",
-      anchorLabel: "灶口镇火",
-      sceneText: "工坊火口旁留下小小镇火纹，灶声比以前稳了半拍。",
-      effectText: "工坊终章：火位事故被压到更低",
-      nextDetail: "让它守着工坊，灶火会像有人看着一样安分。",
-      glyph: "火",
-      accent: "#be4f37",
-    },
-    spirit_line_suan: {
-      title: "夜巡剑弧",
-      anchorLabel: "院门剑线",
-      sceneText: "篱笆外多出一圈淡淡剑弧，夜风吹过也不再空。",
-      effectText: "巡逻终章：夜间风险有了长期护线",
-      nextDetail: "点它回应一下，院门那道剑线会继续替洞天值夜。",
-      glyph: "巡",
-      accent: "#8f5f3f",
-    },
-    spirit_line_shui: {
-      title: "灵渠共息",
-      anchorLabel: "水脉常明",
-      sceneText: "旧渠口浮着一盏水灯，灵田和终阵之间终于接上了气。",
-      effectText: "水线终章：灌溉与终阵水脉稳定",
-      nextDetail: "让它留在水线旁，灵渠会在画面里保持常明。",
-      glyph: "水",
-      accent: "#4d91a6",
-    },
-    spirit_line_yunshu: {
-      title: "云仓守店",
-      anchorLabel: "云箱账路",
-      sceneText: "仓门外排起云箱小径，旧铺和仓房之间有了固定跑线。",
-      effectText: "仓店终章：批量整理和店铺补货更连贯",
-      nextDetail: "点点它，云箱账路会继续提示仓店联动。",
-      glyph: "箱",
-      accent: "#8f9c9a",
-    },
-    spirit_line_bucao: {
-      title: "宴锦常明",
-      anchorLabel: "锦灯门面",
-      sceneText: "节庆灯棚边垂下一条流霞锦，旧铺门面终于有了体面。",
-      effectText: "节庆终章：宴席与礼品主题更有表现力",
-      nextDetail: "摸摸它，锦灯门面会在洞天里继续发光。",
-      glyph: "锦",
-      accent: "#d87f8d",
-    },
-  };
-  const spec = lineSpecs[lineId] || {
-    title: "终章共守",
-    anchorLabel: "洞天常驻",
-    sceneText: "这只精怪把自己的岗位真正留在洞天里。",
-    effectText: "伙伴终章：岗位与陪伴进入长期状态",
-    nextDetail: "摸摸它，让这段终章陪伴继续留在主画面。",
-    glyph: profile.glyph || "灵",
-    accent: profile.accent,
-  };
-  return {
-    ...spec,
-    spiritId: spirit.id,
-    spiritName: spirit.name,
-    lineId,
-    eventId: event.spirit_event_id,
-    areaLabel: areaName(event.area_id),
-    dialogueText: localize(event.dialogue_key, event.note),
-    rewardText: spiritEventRewardText(event),
-    memoryText: memory ? `记忆 ${memory.memory_flag_id}` : "终章记忆已收束",
-    profile,
-    accent: spec.accent || profile.accent,
-    glow: profile.glow,
-    stageLabel: spiritStageLabel(spiritStageNumber(spirit)),
-  };
+  // Spirit finale bridge keeps verify literals: spiritFinaleCompanionSpec / 终章常驻 / 终章伙伴常驻.
+  return spiritFinaleCompanionSpecData(spirit, {
+    spiritLine,
+    spiritFinalEventForLine,
+    spiritVisualProfile,
+    areaName,
+    localize,
+    spiritEventRewardText,
+    spiritStageNumber,
+    spiritStageLabel,
+    completedSpiritEvents: state.completedSpiritEvents,
+    spiritMemoryByEvent: data.spiritMemoryByEvent,
+  });
 }
 
 function spiritFinaleCompanionSpecs() {
-  return state.spirits.map(spiritFinaleCompanionSpec).filter(Boolean);
+  return spiritFinaleCompanionSpecsData(state.spirits, spiritFinaleCompanionSpec);
 }
 
 function spiritFinaleEffectSummary() {
