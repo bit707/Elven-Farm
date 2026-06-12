@@ -17,8 +17,11 @@ import { applyVisiblePanelColumns, pulseFocusElement } from "./game/shared/focus
 import { selectorDataValue } from "./game/shared/selectors.js";
 import {
   townAreaWorldPoint as townAreaWorldPointHelper,
+  townLifeErrandPlaqueAtCanvasPoint as townLifeErrandPlaqueAtCanvasPointHelper,
+  townLifeErrandRouteCueAtCanvasPoint as townLifeErrandRouteCueAtCanvasPointHelper,
   townLifeErrandRouteCueSpec as townLifeErrandRouteCueSpecHelper,
   townLifeNpcColor as townLifeNpcColorHelper,
+  townLifeShopMomentMarkerAtCanvasPoint as townLifeShopMomentMarkerAtCanvasPointHelper,
   townLifeShopMomentMarkerRect as townLifeShopMomentMarkerRectHelper,
   townLifeWorldPoint as townLifeWorldPointHelper,
 } from "./game/world/town-life-helpers.js";
@@ -39837,16 +39840,19 @@ function focusTownLifeRelationshipWorldBoardFromCanvas(spec = townLifeRelationsh
 }
 
 function townLifeErrandRouteCueAtCanvasPoint(px, py) {
-  return townLifeErrandPlaqueAtCanvasPoint(px, py)?.row || null;
+  // townLifeErrandRouteCueAtCanvasPoint bridge keeps verify keywords: 点选备货牌 点选小托付交付牌
+  return townLifeErrandRouteCueAtCanvasPointHelper(px, py, {
+    townLifeErrandPlaqueAtCanvasPoint,
+  });
 }
 
 function townLifeErrandPlaqueAtCanvasPoint(px, py) {
-  return townLifeRows(6)
-    .filter((row) => row.status.key !== "away")
-    .slice(0, 5)
-    .map((row, index) => ({ row, cue: townLifeErrandRouteCueSpec(row), point: townLifeWorldPoint(row, index) }))
-    .find(({ cue, point }) => cue && px >= point.x + 36 && px <= point.x + 120 && py >= point.y + 48 && py <= point.y + 90)
-    || null;
+  // townLifeErrandPlaqueAtCanvasPoint bridge keeps verify keywords: 看备货路线 备货牌 交付牌
+  return townLifeErrandPlaqueAtCanvasPointHelper(px, py, {
+    townLifeRows,
+    townLifeErrandRouteCueSpec,
+    townLifeWorldPoint,
+  });
 }
 
 function townLifeFeaturedBubbleSpec(rowsInput = null) {
@@ -39900,15 +39906,12 @@ function townLifeShopMomentMarkerRect(point = null) {
 }
 
 function townLifeShopMomentMarkerAtCanvasPoint(px, py) {
-  return townLifeRows(6)
-    .filter((row) => row.status.key !== "away")
-    .slice(0, 5)
-    .map((row, index) => ({ row, moment: row.shopMomentBark, point: townLifeWorldPoint(row, index) }))
-    .find(({ moment, point }) => {
-      const rect = moment ? townLifeShopMomentMarkerRect(point) : null;
-      return rect && px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
-    })
-    || null;
+  // townLifeShopMomentMarkerAtCanvasPoint bridge keeps verify keywords: 点选旧铺后话签 old shop afterword marker
+  return townLifeShopMomentMarkerAtCanvasPointHelper(px, py, {
+    townLifeRows,
+    townLifeWorldPoint,
+    townLifeShopMomentMarkerRect,
+  });
 }
 
 function townLifePassalongSafetyText() {

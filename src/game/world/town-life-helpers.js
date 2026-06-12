@@ -75,3 +75,38 @@ export function townLifeErrandRouteCueSpec(row = null, {
     missing: Math.max(0, Number(errand.count || 1) - Number(errand.have || 0)),
   };
 }
+
+export function townLifeErrandPlaqueAtCanvasPoint(px, py, {
+  townLifeRows = () => [],
+  townLifeErrandRouteCueSpec = () => null,
+  townLifeWorldPoint = () => null,
+} = {}) {
+  return townLifeRows(6)
+    .filter((row) => row.status.key !== "away")
+    .slice(0, 5)
+    .map((row, index) => ({ row, cue: townLifeErrandRouteCueSpec(row), point: townLifeWorldPoint(row, index) }))
+    .find(({ cue, point }) => cue && point && px >= point.x + 36 && px <= point.x + 120 && py >= point.y + 48 && py <= point.y + 90)
+    || null;
+}
+
+export function townLifeErrandRouteCueAtCanvasPoint(px, py, {
+  townLifeErrandPlaqueAtCanvasPoint = () => null,
+} = {}) {
+  return townLifeErrandPlaqueAtCanvasPoint(px, py)?.row || null;
+}
+
+export function townLifeShopMomentMarkerAtCanvasPoint(px, py, {
+  townLifeRows = () => [],
+  townLifeWorldPoint = () => null,
+  townLifeShopMomentMarkerRect = () => null,
+} = {}) {
+  return townLifeRows(6)
+    .filter((row) => row.status.key !== "away")
+    .slice(0, 5)
+    .map((row, index) => ({ row, moment: row.shopMomentBark, point: townLifeWorldPoint(row, index) }))
+    .find(({ moment, point }) => {
+      const rect = moment ? townLifeShopMomentMarkerRect(point) : null;
+      return rect && px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
+    })
+    || null;
+}
