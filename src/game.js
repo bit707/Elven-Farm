@@ -67,6 +67,11 @@ import {
   workshopReadyOrderDispatchWorldSpecData,
 } from "./game/shared/workshop-ready-order-dispatch.js";
 import {
+  readyOrderSealWorldAtPointData,
+  readyOrderSealWorldFocusData,
+  readyOrderSealWorldSpecData,
+} from "./game/shared/ready-order-seal.js";
+import {
   workshopSpiritAssistActionFocusData,
   workshopSpiritAssistActionWorldAtPointData,
   workshopSpiritAssistActionWorldSpecData,
@@ -25800,41 +25805,37 @@ function readyOrderSealNodes(row = null) {
 }
 
 function readyOrderSealWorldSpec(width = refs.world?.width || 960, height = refs.world?.height || 640) {
-  return readyOrderSealWorldSpecWorld({
-    width,
-    height,
-    board: readyOrderWorldBoardSpec(width, height),
-    day: state.day,
-    selectorDataValue,
-  });
+  return readyOrderSealWorldSpecBridge(width, height);
 }
 
 function readyOrderSealWorldSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640) {
-  return readyOrderSealWorldSpecWorld({
+  // Ready order seal bridge keeps verify keywords:
+  // readyOrderSealWorldFocus / readyOrderSealSafetyText / readyOrderSealNodes / readyOrderSealWorldSpec / readyOrderSealWorldAtCanvasPoint / focusReadyOrderSealWorldFromCanvas / drawReadyOrderSealWorld.
+  return readyOrderSealWorldSpecData({
     width,
     height,
     board: readyOrderWorldBoardSpec(width, height),
     day: state.day,
     selectorDataValue,
+    specWorld: readyOrderSealWorldSpecWorld,
   });
 }
 
 function readyOrderSealWorldAtCanvasPoint(px, py) {
-  return readyOrderSealWorldAtCanvasPointWorld({
+  return readyOrderSealWorldAtPointData({
     px,
     py,
     spec: readyOrderSealWorldSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
+    atPoint: readyOrderSealWorldAtCanvasPointWorld,
   });
 }
 
 function focusReadyOrderSealWorldFromCanvas(spec = readyOrderSealWorldSpecBridge()) {
-  if (!spec?.orderId) return false;
-  readyOrderSealWorldFocus = { key: spec.key, day: state.day, orderId: spec.orderId };
-  addLog(
-    "点选订单备齐封签",
-    `${spec.orderTitle} 已备齐：${spec.routeText}。已定位订单卡，真正交付仍需手动点击订单板按钮；${spec.safety}。`,
-  );
-  focusPlotRouteOrder(spec.orderId);
+  const focusSpec = readyOrderSealWorldFocusData(spec, state.day);
+  if (!focusSpec) return false;
+  readyOrderSealWorldFocus = focusSpec.focus;
+  addLog(focusSpec.log.title, focusSpec.log.message);
+  focusPlotRouteOrder(focusSpec.orderId);
   return true;
 }
 
