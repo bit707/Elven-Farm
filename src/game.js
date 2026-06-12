@@ -18,6 +18,12 @@ import { applyVisiblePanelColumns, pulseFocusElement } from "./game/shared/focus
 import { selectorDataValue } from "./game/shared/selectors.js";
 import { createInitialGoalBookState, normalizeGoalBookState } from "./game/state/goal-book-state.js";
 import {
+  createInitialRareSpiritLifeStateData,
+  createInitialSpiritSproutStateData,
+  normalizeRareSpiritLifeStateData,
+  normalizeSpiritSproutStateData,
+} from "./game/state/spirit-life-state.js";
+import {
   cloneShopSeasonCycleStats,
   cloneShopSeasonSettlement,
   createEmptyShopSeasonCycleStats,
@@ -1344,36 +1350,15 @@ const STORY_BEATS = [
 ];
 
 function createInitialRareSpiritLifeState() {
-  return {
-    cycleKey: "",
-    momentsBySpirit: {},
-    claimedGiftDays: {},
-    history: [],
-  };
+  return createInitialRareSpiritLifeStateData();
 }
 
 function normalizeRareSpiritLifeState(rareSpiritLifeState = {}) {
-  const defaults = createInitialRareSpiritLifeState();
-  return {
-    ...defaults,
-    ...rareSpiritLifeState,
-    momentsBySpirit: Object.fromEntries(
-      Object.entries(rareSpiritLifeState.momentsBySpirit || {}).map(([spiritId, moment]) => [spiritId, { ...moment }]),
-    ),
-    claimedGiftDays: { ...(rareSpiritLifeState.claimedGiftDays || {}) },
-    history: Array.isArray(rareSpiritLifeState.history) ? rareSpiritLifeState.history.map((entry) => ({ ...entry })) : [],
-  };
+  return normalizeRareSpiritLifeStateData(rareSpiritLifeState);
 }
 
 function createInitialSpiritSproutState() {
-  return {
-    stage: "none",
-    firstSignalDay: 0,
-    peekDay: 0,
-    birthDay: 0,
-    lastPlot: null,
-    history: [],
-  };
+  return createInitialSpiritSproutStateData();
 }
 
 function createInitialWorkshopAromaState() {
@@ -3475,13 +3460,7 @@ function recordWorkshopAroma(recipe, outputItemId, outputCount, orderMatchOverri
 }
 
 function normalizeSpiritSproutState(spiritSproutState = {}) {
-  const defaults = createInitialSpiritSproutState();
-  return {
-    ...defaults,
-    ...spiritSproutState,
-    lastPlot: spiritSproutState.lastPlot ? { ...spiritSproutState.lastPlot } : null,
-    history: Array.isArray(spiritSproutState.history) ? spiritSproutState.history.map((entry) => ({ ...entry })) : [],
-  };
+  return normalizeSpiritSproutStateData(spiritSproutState);
 }
 
 function createInitialCohabState() {
