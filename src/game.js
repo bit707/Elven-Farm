@@ -154,6 +154,9 @@ import {
   spendStaminaRuntime,
 } from "./game/world/field-basic-actions.js";
 import {
+  spiritJobReportByJobRuntime,
+} from "./game/world/spirit-job-runtime.js";
+import {
   applyCohabRewardRuntime,
   cohabDailyMapForRuntime,
   cohabBuffValueRuntime,
@@ -40471,12 +40474,7 @@ function settleGardenSpiritJob(spirit, report, power) {
 }
 
 function spiritJobReportByJob(report = []) {
-  return report.reduce((map, entry) => {
-    const job = entry.job || "farm";
-    if (!map.has(job)) map.set(job, []);
-    map.get(job).push(entry);
-    return map;
-  }, new Map());
+  return spiritJobReportByJobRuntime(report);
 }
 
 function spiritJobSynergyLine(id, jobs, reportByJob) {
