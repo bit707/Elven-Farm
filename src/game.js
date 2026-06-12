@@ -141,6 +141,7 @@ import {
   drawSleepPrepChecklistCardWorld,
 } from "./game/world/daily-action-cards.js";
 import {
+  applyCohabRewardRuntime,
   cohabBuffValueRuntime,
   cohabBuffSpecRuntime,
   cohabEventTimingMetRuntime,
@@ -154,6 +155,7 @@ import {
   currentCohabWeekKeyRuntime,
   festivalEventForRuntime,
   nextCohabEventRuntime,
+  recordCohabHistoryRuntime,
   syncCohabStateRuntime,
 } from "./game/world/cohab-runtime.js";
 import {
@@ -39929,40 +39931,22 @@ function cohabEventTimingMet(triggerType, triggerParam, payload = {}) {
 }
 
 function applyCohabReward(event, epilogue) {
-  if (!event) return "无";
-  if (event.reward_type === "item") {
-    addItem(event.reward_param, Number(event.reward_count || 1));
-    return `${itemName(event.reward_param)} x${Number(event.reward_count || 1)}`;
-  }
-  if (event.reward_type === "buff") {
-    const spec = cohabBuffSpec(event.reward_param);
-    syncCohabState();
-    state.cohabState.activeBuffs[event.reward_param] = {
-      value: spec.value,
-      expiresDay: state.day + spec.durationDays,
-      route: epilogue?.epilogue_id || "",
-    };
-    state.completed.add(`cohab_buff_${event.reward_param}`);
-    return `${spec.label} ${spec.value >= 1 ? `+${spec.value}` : `+${Math.round(spec.value * 100)}%`}（持续 ${spec.durationDays} 天）`;
-  }
-  return applyRewardEntry({
-    reward_type: event.reward_type,
-    reward_param: event.reward_param,
-    reward_count: event.reward_count,
+  return applyCohabRewardRuntime(event, epilogue, {
+    stateDay: state.day,
+    stateCompleted: state.completed,
+    syncCohabState,
+    cohabBuffSpec,
+    addItem,
+    itemName,
+    applyRewardEntry,
   });
 }
 
 function recordCohabHistory(type, epilogue, eventName, rewardText) {
-  syncCohabState();
-  state.cohabState.history.unshift({
-    type,
-    epilogueId: epilogue?.epilogue_id || "",
-    routeName: epilogue?.route_name || "",
-    eventName,
-    rewardText,
-    day: state.day,
+  state.cohabState = recordCohabHistoryRuntime(type, epilogue, eventName, rewardText, {
+    stateDay: state.day,
+    syncCohabState,
   });
-  state.cohabState.history = state.cohabState.history.slice(0, 10);
 }
 
 function triggerCohabDailyScene(timing = "on_day_start") {

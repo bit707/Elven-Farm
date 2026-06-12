@@ -141,3 +141,54 @@ export function cohabEventTimingMetRuntime(triggerType = "", triggerParam = "", 
   if (triggerType === "on_dungeon_return") return !triggerParam || payload.areaId === triggerParam || stateDungeonClears.size > 0;
   return false;
 }
+
+export function applyCohabRewardRuntime(event = null, epilogue = null, {
+  stateDay = 1,
+  stateCompleted = new Set(),
+  syncCohabState = () => ({}),
+  cohabBuffSpec = () => ({ label: "", value: 0, durationDays: 0 }),
+  addItem = () => null,
+  itemName = (itemId = "") => itemId,
+  applyRewardEntry = () => "",
+} = {}) {
+  if (!event) return "无";
+  if (event.reward_type === "item") {
+    const count = Number(event.reward_count || 1);
+    addItem(event.reward_param, count);
+    return `${itemName(event.reward_param)} x${count}`;
+  }
+  if (event.reward_type === "buff") {
+    const spec = cohabBuffSpec(event.reward_param);
+    const cohabState = syncCohabState();
+    cohabState.activeBuffs[event.reward_param] = {
+      value: spec.value,
+      expiresDay: stateDay + spec.durationDays,
+      route: epilogue?.epilogue_id || "",
+    };
+    stateCompleted.add(`cohab_buff_${event.reward_param}`);
+    return `${spec.label} ${spec.value >= 1 ? `+${spec.value}` : `+${Math.round(spec.value * 100)}%`}（持续 ${spec.durationDays} 天）`;
+  }
+  return applyRewardEntry({
+    reward_type: event.reward_type,
+    reward_param: event.reward_param,
+    reward_count: event.reward_count,
+  });
+}
+
+export function recordCohabHistoryRuntime(type = "", epilogue = null, eventName = "", rewardText = "", {
+  stateDay = 1,
+  syncCohabState = () => ({}),
+  limit = 10,
+} = {}) {
+  const cohabState = syncCohabState();
+  cohabState.history.unshift({
+    type,
+    epilogueId: epilogue?.epilogue_id || "",
+    routeName: epilogue?.route_name || "",
+    eventName,
+    rewardText,
+    day: stateDay,
+  });
+  cohabState.history = cohabState.history.slice(0, limit);
+  return cohabState;
+}
