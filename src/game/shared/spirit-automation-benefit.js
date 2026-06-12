@@ -284,3 +284,136 @@ export function spiritAutomationGroundTraceFocusLogData(trace = null, safetyText
     job: trace.job || "farm",
   };
 }
+
+export function spiritAutomationRelaySpecData({
+  day = 1,
+  traceSpec = null,
+  width = 960,
+  height = 640,
+  anchorForJob = () => ({ x: 0, y: 0 }),
+  jobName = (job) => job,
+} = {}) {
+  if (!traceSpec?.traces?.length) return null;
+  const routeJobs = ["farm", "workshop", "shop", "patrol", "expedition", "garden"];
+  const routeNames = {
+    farm: "田垄",
+    workshop: "后厂",
+    shop: "旧铺",
+    patrol: "巡灯",
+    expedition: "远征",
+    garden: "庭院",
+  };
+  const ordered = routeJobs
+    .map((job) => traceSpec.traces.find((trace) => trace.job === job))
+    .filter(Boolean);
+  const activeNodes = ordered.filter((trace) => trace.active);
+  const chosen = [];
+  const addTrace = (trace) => {
+    if (trace && !chosen.some((entry) => entry.job === trace.job)) chosen.push(trace);
+  };
+
+  if (activeNodes.length >= 2) {
+    activeNodes.slice(0, 4).forEach(addTrace);
+  } else {
+    addTrace(activeNodes[0] || ordered[0]);
+    const seedIndex = Math.max(0, ordered.findIndex((trace) => trace.job === chosen[0]?.job));
+    ordered.slice(seedIndex + 1).forEach((trace) => {
+      if (chosen.length < 3) addTrace(trace);
+    });
+  }
+
+  if (!chosen.length) return null;
+  const activeCount = activeNodes.length;
+  const safeBannerX = Math.max(18, Math.min(width - 314, 614));
+  const safeBannerY = Math.max(92, Math.min(height - 90, 116));
+  const nodes = chosen.slice(0, 4).map((trace, index) => {
+    const anchor = trace.anchor || anchorForJob(trace.job, width, height) || { x: 0, y: 0 };
+    const rect = {
+      x: Math.max(18, Math.min(width - 86, anchor.x - 36)),
+      y: Math.max(86, Math.min(height - 54, anchor.y - 64)),
+      width: 82,
+      height: 34,
+    };
+    return {
+      ...trace,
+      index,
+      routeName: routeNames[trace.job] || trace.label || jobName(trace.job),
+      nodeTitle: `接力节点 ${index + 1}`,
+      rect,
+      anchor,
+    };
+  });
+  const activeRoute = activeNodes
+    .slice(0, 4)
+    .map((trace) => routeNames[trace.job] || trace.label || jobName(trace.job))
+    .join(" -> ");
+  const previewRoute = nodes
+    .map((node) => node.routeName)
+    .join(" -> ");
+  const nextNode = nodes.find((node) => !node.active) || nodes[nodes.length - 1] || null;
+  const headline = activeCount >= 3
+    ? `${activeRoute} 正在省工接力`
+    : activeCount >= 2
+      ? `${activeRoute} 已经接成小循环`
+      : `${nodes[0]?.routeName || "田垄"} -> ${nextNode?.routeName || "后厂"} 等待下一位精怪接棒`;
+  const detail = activeCount >= 2
+    ? "把分散岗位串成一条玩家能看见的精怪接力线。"
+    : `${nextNode?.routeName || "下一岗"}点亮后，后台省工会变成连续的岗位动作。`;
+
+  return {
+    key: `${day}:${nodes.map((node) => `${node.job}:${node.active ? 1 : 0}`).join("|")}:${traceSpec.key}`,
+    title: "精怪接力线",
+    headline,
+    detail,
+    routeText: "田垄 -> 后厂 -> 旧铺 -> 巡灯 -> 远征 -> 庭院",
+    previewRoute,
+    activeRoute: activeRoute || previewRoute,
+    activeCount,
+    totalCount: routeJobs.length,
+    nodes,
+    rect: { x: safeBannerX, y: safeBannerY, width: 300, height: 78 },
+    safetyText: "点选精怪接力线只定位接力节点和岗位说明，不会自动切岗、派工、排产、开铺、发商队、处理风险、入夜或消耗资源。",
+  };
+}
+
+export function spiritAutomationRelayAtPointData(spec = null, px = 0, py = 0) {
+  if (!spec?.nodes?.length) return null;
+  const node = spec.nodes
+    .slice()
+    .reverse()
+    .find((entry) => (
+      px >= entry.rect.x
+      && px <= entry.rect.x + entry.rect.width
+      && py >= entry.rect.y
+      && py <= entry.rect.y + entry.rect.height
+    ));
+  if (node) return { type: "node", spec, node };
+  const { rect } = spec;
+  if (px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height) {
+    return { type: "banner", spec, node: spec.nodes.find((entry) => entry.active) || spec.nodes[0] };
+  }
+  return null;
+}
+
+export function spiritAutomationRelayFocusData(hit = null, fallbackSpec = null, targetForJob = () => ({}), day = 1) {
+  const spec = hit?.spec || fallbackSpec;
+  const node = hit?.node || spec?.nodes?.find((entry) => entry.active) || spec?.nodes?.[0] || null;
+  if (!spec || !node) return null;
+  const target = targetForJob(node.job) || {};
+  return {
+    focus: {
+      key: spec.key,
+      day,
+      job: node.job,
+    },
+    compassTarget: {
+      selector: target.selector,
+      fallbackSelector: target.fallbackSelector,
+      panelGroup: target.panelGroup,
+      label: `点选精怪接力线：${node.routeName}`,
+      log: `${spec.title}：${spec.headline}。当前接力节点：${spec.previewRoute}；省工接力 ${spec.activeCount}/${spec.totalCount}。${node.nodeTitle} ${node.routeName}：${node.active ? `${node.title} ${node.value}` : "等待岗位接手"}，${node.detail || node.action || "查看岗位缺口"}。${spec.safetyText}`,
+      missingTitle: "点选精怪接力线",
+      missingLog: `精怪接力线已经定位到${node.routeName}，但对应面板暂时没有找到。${spec.safetyText}`,
+    },
+  };
+}
