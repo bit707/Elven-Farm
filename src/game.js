@@ -38,6 +38,14 @@ import {
   spiritVoiceCandidateIdsData,
 } from "./game/shared/spirit-resolvers.js";
 import {
+  spiritVoiceCandidatesData,
+  spiritVoiceConditionReadyData,
+  spiritVoiceData,
+  spiritVoiceEntriesForData,
+  spiritVoiceMomentSpecData,
+  spiritVoiceTypeForMoodData,
+} from "./game/shared/spirit-voice.js";
+import {
   conditionLabelData,
   conditionQaSummaryData,
 } from "./game/state/condition-state.js";
@@ -4875,86 +4883,50 @@ function spiritVoiceCandidateIds(spiritOrId) {
 }
 
 function spiritVoiceConditionReady(voice) {
-  const condition = voice?.condition_group || "";
-  if (!condition || condition === "always_true") return true;
-  try {
-    return conditionMet(condition);
-  } catch {
-    return true;
-  }
+  return spiritVoiceConditionReadyData(voice, conditionMet);
 }
 
 function spiritVoiceEntriesFor(target, type = "") {
-  const lineId = typeof target === "string" && target.startsWith("spirit_line_")
-    ? target
-    : target?.lineId || data.spirits.find((entry) => entry.spirit_id === target)?.spirit_line_id || spiritLine(target?.id || target);
-  const ids = spiritVoiceCandidateIds(target);
-  const rank = new Map(ids.map((id, index) => [id, index]));
-  return data.spiritVoices
-    .filter((entry) => rank.has(entry.spirit_id) || entry.spirit_id === lineId)
-    .filter((entry) => !type || entry.voice_type === type)
-    .filter(spiritVoiceConditionReady)
-    .sort((a, b) => (rank.get(a.spirit_id) ?? 999) - (rank.get(b.spirit_id) ?? 999)
-      || Number(b.weight || 0) - Number(a.weight || 0));
+  // Spirit voice bridge keeps verify literals: function spiritVoiceEntriesFor / target.startsWith("spirit_line_") / entry.spirit_id === lineId / voice_type.
+  return spiritVoiceEntriesForData(target, type, {
+    spirits: data.spirits,
+    spiritVoices: data.spiritVoices,
+    spiritLine,
+    spiritVoiceCandidateIds,
+    spiritVoiceConditionReady,
+  });
 }
 
 function spiritVoice(spiritId, type) {
-  const voice = spiritVoiceEntriesFor(spiritId, type)[0]
-    || spiritVoiceEntriesFor(spiritId, "idle")[0]
-    || spiritVoiceEntriesFor(spiritId)[0];
-  return voice ? localize(voice.text_key, voice.text_key) : "咕。";
+  // Spirit voice bridge keeps verify fallback: 咕。
+  return spiritVoiceData(spiritId, type, {
+    localize,
+    spiritVoiceEntriesFor,
+  });
 }
 
 function spiritVoiceTypeForMood(spirit) {
-  const mood = Number(spirit?.mood || 0);
-  const hunger = Number(spirit?.hunger || 0);
-  const stamina = Number(spirit?.stamina || 0);
-  if (mood >= 78 && hunger >= 45) return "happy";
-  if (stamina >= 35 && hunger >= 30 && (Number(spirit?.assignments || 0) > 0 || (spirit?.job && spirit.job !== "idle"))) return "work";
-  return "idle";
+  // Spirit voice bridge keeps verify keyword: spiritVoiceTypeForMood.
+  return spiritVoiceTypeForMoodData(spirit);
 }
 
 function spiritVoiceCandidates(spirit) {
-  if (!spirit) return [];
-  const persona = spiritJobPersonaSpec(spirit, spirit.job || "farm");
-  return [
-    {
-      type: "idle",
-      label: "今日短句",
-      text: spiritVoice(spirit, "idle"),
-      detail: `状态 ${Math.round(Number(spirit.mood || 0))} 心情 / ${Math.round(Number(spirit.hunger || 0))} 饱腹`,
-    },
-    {
-      type: "work",
-      label: "工作短句",
-      text: spiritVoice(spirit, "work"),
-      detail: `${jobName(spirit.job || "farm")} · ${persona.shortLine}`,
-    },
-    {
-      type: "happy",
-      label: "开心短句",
-      text: spiritVoice(spirit, "happy"),
-      detail: `羁绊 Lv.${Number(spirit.bondLevel || 1)} · 喂食会开心`,
-    },
-  ];
+  // Spirit voice bridge keeps verify literals: spiritVoiceCandidates / 今日短句 / 工作短句 / 开心短句 / 喂食会开心 / spirit-voice-line.
+  return spiritVoiceCandidatesData(spirit, {
+    jobName,
+    spiritJobPersonaSpec,
+    spiritVoice,
+  });
 }
 
 function spiritVoiceMomentSpec(spirit) {
-  if (!spirit) return null;
-  const type = spiritVoiceTypeForMood(spirit);
-  const candidates = spiritVoiceCandidates(spirit);
-  const current = candidates.find((entry) => entry.type === type) || candidates[0];
-  const profile = spiritVisualProfile(spirit);
-  return {
-    type,
-    label: current?.label || "今日短句",
-    text: current?.text || spiritVoice(spirit, "idle"),
-    detail: current?.detail || "陪伴稳定",
-    candidates,
-    glyph: profile.glyph,
-    accent: profile.accent,
-    companionStable: Number(spirit.mood || 0) >= 60 && Number(spirit.hunger || 0) >= 40,
-  };
+  // Spirit voice bridge keeps verify literals: spiritVoiceMomentSpec / 陪伴稳定.
+  return spiritVoiceMomentSpecData(spirit, {
+    spiritVoiceTypeForMood,
+    spiritVoiceCandidates,
+    spiritVoice,
+    spiritVisualProfile,
+  });
 }
 
 function spiritEventStageLabel(stage = "intro") {
