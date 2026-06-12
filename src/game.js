@@ -18,6 +18,12 @@ import { applyVisiblePanelColumns, pulseFocusElement } from "./game/shared/focus
 import { selectorDataValue } from "./game/shared/selectors.js";
 import { createInitialGoalBookState, normalizeGoalBookState } from "./game/state/goal-book-state.js";
 import {
+  createInitialCohabStateData,
+  createInitialEcologyDailyStateData,
+  normalizeCohabStateData,
+  normalizeEcologyDailyStateData,
+} from "./game/state/life-cycle-state.js";
+import {
   createInitialRareSpiritLifeStateData,
   createInitialSpiritSproutStateData,
   normalizeRareSpiritLifeStateData,
@@ -3464,56 +3470,19 @@ function normalizeSpiritSproutState(spiritSproutState = {}) {
 }
 
 function createInitialCohabState() {
-  return {
-    dailySeen: {},
-    weeklyClaims: {},
-    festivalClaims: {},
-    activeBuffs: {},
-    history: [],
-  };
+  return createInitialCohabStateData();
 }
 
 function normalizeCohabState(cohabState = {}) {
-  const defaults = createInitialCohabState();
-  return {
-    ...defaults,
-    ...cohabState,
-    dailySeen: { ...(cohabState.dailySeen || {}) },
-    weeklyClaims: { ...(cohabState.weeklyClaims || {}) },
-    festivalClaims: { ...(cohabState.festivalClaims || {}) },
-    activeBuffs: { ...(cohabState.activeBuffs || {}) },
-    history: Array.isArray(cohabState.history) ? cohabState.history.map((entry) => ({ ...entry })) : [],
-  };
+  return normalizeCohabStateData(cohabState);
 }
 
 function createInitialEcologyDailyState() {
-  return {
-    lastEventDay: 0,
-    last: null,
-    history: [],
-    inspectionDay: 0,
-    inspectedCombos: [],
-    inspectionHistory: [],
-  };
+  return createInitialEcologyDailyStateData();
 }
 
 function normalizeEcologyDailyState(ecologyDailyState = {}) {
-  const defaults = createInitialEcologyDailyState();
-  const inspectionDay = Number(ecologyDailyState.inspectionDay || 0);
-  return {
-    ...defaults,
-    ...ecologyDailyState,
-    lastEventDay: Number(ecologyDailyState.lastEventDay || 0),
-    last: ecologyDailyState.last ? { ...ecologyDailyState.last } : null,
-    history: Array.isArray(ecologyDailyState.history) ? ecologyDailyState.history.map((entry) => ({ ...entry })).slice(0, 8) : [],
-    inspectionDay,
-    inspectedCombos: Array.isArray(ecologyDailyState.inspectedCombos)
-      ? [...new Set(ecologyDailyState.inspectedCombos.filter(Boolean))].slice(0, 12)
-      : [],
-    inspectionHistory: Array.isArray(ecologyDailyState.inspectionHistory)
-      ? ecologyDailyState.inspectionHistory.map((entry) => ({ ...entry })).slice(0, 12)
-      : [],
-  };
+  return normalizeEcologyDailyStateData(ecologyDailyState);
 }
 
 function createInitialTownLifeInteractionState() {
