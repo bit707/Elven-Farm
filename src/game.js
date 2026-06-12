@@ -147,6 +147,12 @@ import {
   shopDiagnosisRuntime,
 } from "./game/world/shop-diagnosis-runtime.js";
 import {
+  gridMetricsRuntime,
+  moveSelectionRuntime,
+  primaryActionRuntime,
+  spendStaminaRuntime,
+} from "./game/world/field-basic-actions.js";
+import {
   applyCohabRewardRuntime,
   cohabDailyMapForRuntime,
   cohabBuffValueRuntime,
@@ -40168,46 +40174,28 @@ function shopDiagnosis(report, goods, themeScore) {
 }
 
 function spendStamina(value) {
-  if (state.stamina < value) {
-    addLog("体力不足", "入夜结算可以恢复体力。");
-    return false;
-  }
-  state.stamina -= value;
-  return true;
+  return spendStaminaRuntime(value, { state, addLog });
 }
 
 function gridMetrics() {
-  const cols = state.plots.length > 36 ? 8 : 6;
-  return {
-    cols,
-    tile: cols === 8 ? 62 : 72,
-    gap: 8,
-    originX: cols === 8 ? 260 : 300,
-    originY: 142,
-  };
+  return gridMetricsRuntime(state.plots.length);
 }
 
 function moveSelection(dx, dy) {
-  const next = {
-    x: state.selected.x + dx,
-    y: state.selected.y + dy,
-  };
-  const plot = state.plots.find((entry) => entry.x === next.x && entry.y === next.y);
-  if (!plot) return false;
-  state.selected = next;
-  render();
-  return true;
+  return moveSelectionRuntime(dx, dy, { state, render });
 }
 
 function primaryAction() {
-  const plot = selectedPlot();
-  if (state.activeDialogue.length > 0) return skipCutscene();
-  if (!plot) return;
-  if (plot.debris) return clearDebris();
-  if (!plot.cropId) return plant();
-  if (plot.mature) return harvest();
-  if (!plot.watered) return water();
-  return sleep();
+  return primaryActionRuntime({
+    selectedPlot,
+    activeDialogue: state.activeDialogue,
+    skipCutscene,
+    clearDebris,
+    plant,
+    harvest,
+    water,
+    sleep,
+  });
 }
 
 function performAction(action) {
