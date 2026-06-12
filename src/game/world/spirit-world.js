@@ -1,3 +1,94 @@
+export function spiritJoinFeedbackSpecWorld(spirit = null, source = "first_join", {
+  day = 1,
+  now = () => 0,
+  spiritLine = () => "",
+  spiritVisualProfile = () => ({}),
+  jobName = (job = "") => job,
+} = {}) {
+  if (!spirit) return null;
+  const firstJoin = source === "first_join";
+  const visual = spiritVisualProfile(spirit);
+  const job = spirit.job || "farm";
+  return {
+    spiritId: spirit.id,
+    spiritName: spirit.name,
+    lineId: spirit.lineId || spiritLine(spirit.id),
+    job,
+    source,
+    label: firstJoin ? "第一只精怪入队" : "新精怪入队",
+    detail: firstJoin ? `${spirit.name}加入洞天，伙伴栏已开放` : `${spirit.name}加入洞天，新的岗位协作已开放`,
+    cta: job === "farm" ? "试试让它协助浇水" : `试试安排${jobName(job)}工作`,
+    visualLabel: visual.label,
+    createdAt: now(),
+    day,
+  };
+}
+
+export function spiritEvolutionFeedbackSpecWorld(spirit = null, previousSnapshot = {}, event = null, itemId = "", {
+  day = 1,
+  now = () => 0,
+  spiritLine = () => "",
+  spiritVisualProfile = () => ({}),
+  spiritWorkRangeSpec = () => ({ rangeX: 1, rangeY: 1, stage: 1, stageName: "", workPower: 1 }),
+  jobName = (job = "") => job,
+  itemName = (item = "") => item,
+  rareSpiritEventRewardText = () => "",
+} = {}) {
+  if (!spirit) return null;
+  const profile = spiritVisualProfile(spirit);
+  const beforeRange = {
+    x: Math.max(1, Number(previousSnapshot.workRangeX || 1)),
+    y: Math.max(1, Number(previousSnapshot.workRangeY || 1)),
+  };
+  const range = spiritWorkRangeSpec(spirit, spirit.job || "farm");
+  const previousStage = Math.max(1, Number(previousSnapshot.stage || 1));
+  const areaBefore = beforeRange.x * beforeRange.y;
+  const areaAfter = range.rangeX * range.rangeY;
+  return {
+    spiritId: spirit.id,
+    previousId: previousSnapshot.id || spirit.id,
+    spiritName: spirit.name,
+    previousName: previousSnapshot.name || spirit.name,
+    lineId: spirit.lineId || spiritLine(spirit.id),
+    job: spirit.job || "farm",
+    glyph: profile.glyph || "灵",
+    accent: profile.accent,
+    glow: profile.glow,
+    stageBefore: previousStage,
+    stageAfter: range.stage,
+    stageName: range.stageName,
+    rangeBefore: `${beforeRange.x}x${beforeRange.y}`,
+    rangeAfter: `${range.rangeX}x${range.rangeY}`,
+    areaDelta: Math.max(0, areaAfter - areaBefore),
+    workPower: range.workPower,
+    eventId: event?.entry_id || "",
+    eventStage: event?.event_stage || "evolution",
+    eventAction: event?.exclusive_action || "岗位灵纹扩张",
+    rewardText: itemId ? itemName(itemId) : rareSpiritEventRewardText(event),
+    title: `${spirit.name} · ${range.stageName}`,
+    detail: `${previousSnapshot.name || spirit.name}的岗位灵纹从 ${beforeRange.x}x${beforeRange.y} 扩到 ${range.rangeX}x${range.rangeY}`,
+    cta: `${jobName(spirit.job || "farm")}覆盖 +${Math.max(0, areaAfter - areaBefore)} 格 · 工力 ${Number(range.workPower || 0).toFixed(2)}`,
+    createdAt: now(),
+    day,
+  };
+}
+
+export function spiritFinaleFeedbackSpecWorld(spirit = null, event = null, rewardText = "", {
+  day = 1,
+  now = () => 0,
+  spiritFinaleCompanionSpec = () => null,
+} = {}) {
+  const finale = spiritFinaleCompanionSpec(spirit);
+  if (!spirit || !finale) return null;
+  return {
+    ...finale,
+    eventId: event?.spirit_event_id || finale.eventId,
+    rewardText: rewardText || finale.rewardText,
+    createdAt: now(),
+    day,
+  };
+}
+
 export function drawSpiritAuraWorld({
   ctx,
   x = 0,

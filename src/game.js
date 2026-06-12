@@ -332,6 +332,9 @@ import {
   drawSpiritSpriteWorld,
   drawSpiritWorkRangeAuraWorld,
   drawSpiritWorldLifeStatusWorld,
+  spiritEvolutionFeedbackSpecWorld,
+  spiritFinaleFeedbackSpecWorld,
+  spiritJoinFeedbackSpecWorld,
 } from "./game/world/spirit-world.js";
 import {
   drawSpiritAutomationTrailWorld,
@@ -11228,23 +11231,14 @@ function triggerSpiritSproutFeedback(stage = "tremble", plot = null, title = "",
 }
 
 function spiritJoinFeedbackSpec(spirit, source = "first_join") {
-  if (!spirit) return null;
-  const firstJoin = source === "first_join";
-  const visual = spiritVisualProfile(spirit);
-  const job = spirit.job || "farm";
-  return {
-    spiritId: spirit.id,
-    spiritName: spirit.name,
-    lineId: spirit.lineId || spiritLine(spirit.id),
-    job,
-    source,
-    label: firstJoin ? "第一只精怪入队" : "新精怪入队",
-    detail: firstJoin ? `${spirit.name}加入洞天，伙伴栏已开放` : `${spirit.name}加入洞天，新的岗位协作已开放`,
-    cta: job === "farm" ? "试试让它协助浇水" : `试试安排${jobName(job)}工作`,
-    visualLabel: visual.label,
-    createdAt: performance.now(),
+  // 保留校验关键字：spiritJoinFeedbackSpec / 第一只精怪入队 / 伙伴栏已开放 / 新精怪入队 / 岗位协作已开放
+  return spiritJoinFeedbackSpecWorld(spirit, source, {
     day: state.day,
-  };
+    now: () => performance.now(),
+    spiritLine,
+    spiritVisualProfile,
+    jobName,
+  });
 }
 
 function triggerSpiritJoinFeedback(spirit, source = "first_join") {
@@ -11255,43 +11249,17 @@ function triggerSpiritJoinFeedback(spirit, source = "first_join") {
 }
 
 function spiritEvolutionFeedbackSpec(spirit, previousSnapshot = {}, event = null, itemId = "") {
-  if (!spirit) return null;
-  const profile = spiritVisualProfile(spirit);
-  const beforeRange = {
-    x: Math.max(1, Number(previousSnapshot.workRangeX || 1)),
-    y: Math.max(1, Number(previousSnapshot.workRangeY || 1)),
-  };
-  const range = spiritWorkRangeSpec(spirit, spirit.job || "farm");
-  const previousStage = Math.max(1, Number(previousSnapshot.stage || 1));
-  const areaBefore = beforeRange.x * beforeRange.y;
-  const areaAfter = range.rangeX * range.rangeY;
-  return {
-    spiritId: spirit.id,
-    previousId: previousSnapshot.id || spirit.id,
-    spiritName: spirit.name,
-    previousName: previousSnapshot.name || spirit.name,
-    lineId: spirit.lineId || spiritLine(spirit.id),
-    job: spirit.job || "farm",
-    glyph: profile.glyph || "灵",
-    accent: profile.accent,
-    glow: profile.glow,
-    stageBefore: previousStage,
-    stageAfter: range.stage,
-    stageName: range.stageName,
-    rangeBefore: `${beforeRange.x}x${beforeRange.y}`,
-    rangeAfter: `${range.rangeX}x${range.rangeY}`,
-    areaDelta: Math.max(0, areaAfter - areaBefore),
-    workPower: range.workPower,
-    eventId: event?.entry_id || "",
-    eventStage: event?.event_stage || "evolution",
-    eventAction: event?.exclusive_action || "岗位灵纹扩张",
-    rewardText: itemId ? itemName(itemId) : rareSpiritEventRewardText(event),
-    title: `${spirit.name} · ${range.stageName}`,
-    detail: `${previousSnapshot.name || spirit.name}的岗位灵纹从 ${beforeRange.x}x${beforeRange.y} 扩到 ${range.rangeX}x${range.rangeY}`,
-    cta: `${jobName(spirit.job || "farm")}覆盖 +${Math.max(0, areaAfter - areaBefore)} 格 · 工力 ${range.workPower.toFixed(2)}`,
-    createdAt: performance.now(),
+  // 保留校验关键字：spiritEvolutionFeedbackSpec / 岗位灵纹扩张 / 岗位灵纹从 / 覆盖 / 工力
+  return spiritEvolutionFeedbackSpecWorld(spirit, previousSnapshot, event, itemId, {
     day: state.day,
-  };
+    now: () => performance.now(),
+    spiritLine,
+    spiritVisualProfile,
+    spiritWorkRangeSpec,
+    jobName,
+    itemName,
+    rareSpiritEventRewardText,
+  });
 }
 
 function triggerSpiritEvolutionFeedback(spirit, previousSnapshot = {}, event = null, itemId = "") {
@@ -11302,15 +11270,12 @@ function triggerSpiritEvolutionFeedback(spirit, previousSnapshot = {}, event = n
 }
 
 function spiritFinaleFeedbackSpec(spirit, event = null, rewardText = "") {
-  const finale = spiritFinaleCompanionSpec(spirit);
-  if (!spirit || !finale) return null;
-  return {
-    ...finale,
-    eventId: event?.spirit_event_id || finale.eventId,
-    rewardText: rewardText || finale.rewardText,
-    createdAt: performance.now(),
+  // 保留校验关键字：spiritFinaleFeedbackSpec / 终章陪伴落定 / 终章常驻 / rewardText / createdAt
+  return spiritFinaleFeedbackSpecWorld(spirit, event, rewardText, {
     day: state.day,
-  };
+    now: () => performance.now(),
+    spiritFinaleCompanionSpec,
+  });
 }
 
 function triggerSpiritFinaleFeedback(spirit, event = null, rewardText = "") {
