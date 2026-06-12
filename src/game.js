@@ -157,6 +157,15 @@ import {
   syncCohabStateRuntime,
 } from "./game/world/cohab-runtime.js";
 import {
+  cohabAfterglowWindowAtCanvasPointWorld,
+  cohabAfterglowWindowPaletteWorld,
+  cohabAfterglowWindowSpecWorld,
+  cohabLifeSummaryWorld,
+  cohabMomentTitleWorld,
+  cohabMomentWindowTextWorld,
+  cohabRouteLifeSnapshotWorld,
+} from "./game/world/cohab-afterglow-window.js";
+import {
   drawAmbientMotesWorld,
   drawCanalAndTownWorld,
   drawDroughtWorldOverlayWorld,
@@ -40087,185 +40096,60 @@ function triggerCohabFestivalEvents(termId = currentTermId()) {
 }
 
 function cohabMomentTitle(moment = null, route = null) {
-  if (moment?.eventName) return `${moment.routeName || route?.route_name || "同住生活"} · ${moment.eventName}`;
-  if (route) return `${route.route_name || "同住生活"} · 已安家`;
-  return "同住生活 · 家中有了新动静";
+  return cohabMomentTitleWorld(moment, route);
 }
 
 function cohabMomentWindowText(life = null) {
-  const latest = life?.latest || null;
-  const buff = life?.activeBuff || null;
-  if (latest && buff) return `${cohabMomentTitle(latest)}；余韵 ${buff.label} 至第 ${buff.expiresDay} 天。`;
-  if (latest) return `${cohabMomentTitle(latest)}；下一件小事等关系卡继续亮起。`;
-  if (buff) return `同住生活余韵 ${buff.label} 正在生效，持续到第 ${buff.expiresDay} 天。`;
-  return "同住生活已经接入庭院，下一件小事会随日常、周常或节气慢慢出现。";
+  return cohabMomentWindowTextWorld(life, { cohabMomentTitle });
 }
 
 function cohabRouteLifeSnapshot(routes = cohabUnlockedRoutes(), life = null) {
   syncCohabState();
-  const latest = life?.latest || (state.cohabState.history || [])[0] || null;
-  const activeBuff = life?.activeBuff || Object.entries(state.cohabState.activeBuffs || {})
-    .map(([buffId, info]) => ({
-      buffId,
-      label: cohabBuffSpec(buffId).label,
-      routeId: info.route || "",
-      routeName: data.cohabById.get(info.route)?.route_name || "",
-      expiresDay: Number(info.expiresDay || state.day),
-      value: Number(info.value || 0),
-    }))
-    .sort((a, b) => a.expiresDay - b.expiresDay)[0] || null;
-  const nextRoute = life?.nextRoute || routes.find((epilogue) => !latest || epilogue.epilogue_id !== latest.epilogueId) || routes[0] || null;
-  const nextEvent = life?.nextEvent || (nextRoute ? festivalEventFor(nextRoute.epilogue_id) || nextCohabEvent(nextRoute.epilogue_id) : null);
-  const latestRoute = latest?.epilogueId ? data.cohabById.get(latest.epilogueId) : nextRoute;
-  const latestTitle = latest ? cohabMomentTitle(latest, latestRoute) : `${routes.map((epilogue) => epilogue.route_name).slice(0, 2).join(" / ") || "同住生活"} 已安家`;
-  const nextTitle = nextEvent
-    ? `${nextRoute?.route_name || "同住生活"} · ${nextEvent.event_name || nextEvent.scene_key || "日常"}`
-    : "等下一次日夜流转";
-  const buffTitle = activeBuff ? `${activeBuff.label} 至第 ${activeBuff.expiresDay} 天` : "暂无余韵，先把日常过成节奏";
-  return {
-    routeCount: routes.length,
-    routeNames: routes.map((epilogue) => epilogue.route_name),
-    latest,
-    latestRoute,
-    latestTitle,
-    activeBuff,
-    nextRoute,
-    nextEvent,
-    nextTitle,
-    buffTitle,
-    windowText: cohabMomentWindowText({ latest, activeBuff, nextRoute, nextEvent }),
-  };
+  return cohabRouteLifeSnapshotWorld(routes, life, {
+    cohabState: state.cohabState,
+    dataCohabById: data.cohabById,
+    stateDay: state.day,
+    cohabBuffSpec,
+    festivalEventFor,
+    nextCohabEvent,
+    cohabMomentTitle,
+    cohabMomentWindowText,
+  });
 }
 
 function cohabLifeSummary(routes = cohabUnlockedRoutes()) {
   syncCohabState();
-  const latest = (state.cohabState.history || [])[0] || null;
-  const activeBuff = Object.entries(state.cohabState.activeBuffs || {})
-    .map(([buffId, info]) => ({
-      buffId,
-      label: cohabBuffSpec(buffId).label,
-      routeId: info.route || "",
-      routeName: data.cohabById.get(info.route)?.route_name || "",
-      expiresDay: Number(info.expiresDay || state.day),
-      value: Number(info.value || 0),
-    }))
-    .sort((a, b) => a.expiresDay - b.expiresDay)[0] || null;
-  const nextRoute = routes.find((epilogue) => !latest || epilogue.epilogue_id !== latest.epilogueId) || routes[0] || null;
-  const nextEvent = nextRoute ? festivalEventFor(nextRoute.epilogue_id) || nextCohabEvent(nextRoute.epilogue_id) : null;
-  const life = {
-    routeCount: routes.length,
-    routeNames: routes.map((epilogue) => epilogue.route_name),
-    latest,
-    activeBuff,
-    nextRoute,
-    nextEvent,
-  };
-  return {
-    ...life,
-    snapshot: cohabRouteLifeSnapshot(routes, life),
-  };
+  return cohabLifeSummaryWorld(routes, {
+    cohabState: state.cohabState,
+    dataCohabById: data.cohabById,
+    stateDay: state.day,
+    cohabBuffSpec,
+    festivalEventFor,
+    nextCohabEvent,
+    cohabRouteLifeSnapshot,
+  });
 }
 
 function cohabAfterglowWindowPalette(life = null) {
-  const buffId = life?.activeBuff?.buffId || "";
-  if (buffId === "buff_water_yield_up") return { accent: "#4d91a6", soft: "rgba(241, 249, 251, 0.94)", glow: "rgba(77, 145, 166, 0.2)", ink: "#17231d", badge: "水" };
-  if (buffId === "buff_night_guard_up") return { accent: "#be4f37", soft: "rgba(255, 240, 232, 0.94)", glow: "rgba(190, 79, 55, 0.18)", ink: "#5b3928", badge: "灯" };
-  if (buffId === "buff_trade_margin_up") return { accent: "#b47d2f", soft: "rgba(255, 248, 232, 0.96)", glow: "rgba(224, 182, 109, 0.24)", ink: "#5b3928", badge: "商" };
-  return { accent: "#286f58", soft: "rgba(237, 243, 223, 0.94)", glow: "rgba(40, 111, 88, 0.18)", ink: "#17231d", badge: "家" };
+  return cohabAfterglowWindowPaletteWorld(life);
 }
 
 function cohabAfterglowWindowSpec(livingState = currentLivingWorldState(), canvasWidth = refs.world?.width || 960, canvasHeight = refs.world?.height || 640) {
-  const life = livingState?.cohabLife || cohabLifeSummary();
-  if (!life || life.routeCount <= 0) return null;
-  const snapshot = life.snapshot || cohabRouteLifeSnapshot(cohabUnlockedRoutes(), life);
-  const latest = life.latest || null;
-  const buff = life.activeBuff || null;
-  const nextRoute = life.nextRoute || (latest?.epilogueId ? data.cohabById.get(latest.epilogueId) : null) || cohabUnlockedRoutes()[0] || null;
-  const latestRoute = latest?.epilogueId ? data.cohabById.get(latest.epilogueId) : nextRoute;
-  const buffRoute = buff?.routeId ? data.cohabById.get(buff.routeId) : nextRoute;
-  const nextEvent = life.nextEvent || null;
-  const palette = cohabAfterglowWindowPalette(life);
-  const width = 270;
-  const height = 142;
-  const rect = {
-    x: Math.max(18, Math.min(canvasWidth - width - 18, 42)),
-    y: Math.max(300, Math.min(canvasHeight - height - 18, 360)),
-    width,
-    height,
-  };
-  const nodeWidth = Math.floor((width - 44) / 3);
-  const latestText = snapshot.latestTitle;
-  const nextText = snapshot.nextTitle;
-  const buffText = snapshot.buffTitle;
-  const nodes = [
-    {
-      key: "latest",
-      badge: "昨",
-      label: "最近小事",
-      title: latestText,
-      text: latest ? `第 ${latest.day} 天留下「${latest.eventName}」。` : "家中已经有可发展的同住路线。",
-      detail: latest?.rewardText || "日常对话",
-      route: latestRoute,
-    },
-    {
-      key: "next",
-      badge: "明",
-      label: "下一件小事",
-      title: nextText,
-      text: nextEvent ? "下一段同住日常、周常或节气小事已经在关系卡中排队。" : "暂时没有可预告事件，等入夜、节气或相关玩法触发。",
-      detail: nextEvent?.note || nextEvent?.trigger_type || "自然流转",
-      route: nextRoute,
-    },
-    {
-      key: "buff",
-      badge: "余",
-      label: "余韵加成",
-      title: buffText,
-      text: buff ? "最近同住事件已经把生活余韵转成经营、种植或探索协作。" : "当前没有生效余韵，继续通过同住小事积累。",
-      detail: buff ? `数值 ${Math.round(Number(buff.value || 0) * 100)}% / ${Math.max(0, Number(buff.expiresDay || state.day) - state.day + 1)} 天` : "无消耗回看",
-      route: buffRoute,
-    },
-  ];
-  nodes.forEach((node, index) => {
-    node.rect = {
-      x: rect.x + 14 + index * (nodeWidth + 8),
-      y: rect.y + 100,
-      width: nodeWidth,
-      height: 28,
-    };
-    node.shortLabel = townLifeWorldBoardShortText(node.label, 6);
-    node.shortTitle = townLifeWorldBoardShortText(node.title, 8);
-    node.npcId = node.route?.npc_id || "";
-    node.selector = node.npcId ? `[data-npc-id="${selectorDataValue(node.npcId)}"]` : ".relationship-panel";
+  // cohabAfterglowWindowSpec bridge keeps verify keywords: 同住后日谈窗灯 / 最近小事 / 下一件小事 / 余韵加成 / 不会自动播放同住日常、推进周常、触发节庆事件、赠礼、接支线、交托付或消耗资源
+  return cohabAfterglowWindowSpecWorld(livingState, canvasWidth, canvasHeight, {
+    stateDay: state.day,
+    dataCohabById: data.cohabById,
+    cohabLifeSummary,
+    cohabRouteLifeSnapshot,
+    cohabUnlockedRoutes,
+    cohabAfterglowWindowPalette,
+    townLifeWorldBoardShortText,
+    selectorDataValue,
   });
-  return {
-    key: `${state.day}:cohab_afterglow:${latest?.epilogueId || nextRoute?.epilogue_id || "home"}:${latest?.eventName || "quiet"}:${buff?.buffId || "no_buff"}`,
-    life,
-    rect,
-    nodes,
-    palette,
-    snapshot,
-    latest,
-    buff,
-    nextRoute,
-    nextEvent,
-    routeCount: life.routeCount,
-    headline: latestText,
-    detail: latest ? `第 ${latest.day} 天 · ${latest.rewardText || snapshot.windowText || "日常对话"}` : snapshot.windowText || `今日院里多了 ${life.routeNames[0] || "熟悉的人"} 的动静`,
-    safety: "这里只定位同住关系卡，不会自动播放同住日常、推进周常、触发节庆事件、赠礼、接支线、交托付或消耗资源。",
-  };
 }
 
 function cohabAfterglowWindowAtCanvasPoint(px, py) {
-  const spec = cohabAfterglowWindowSpec();
-  if (!spec?.rect) return null;
-  const { rect } = spec;
-  if (px < rect.x || px > rect.x + rect.width || py < rect.y || py > rect.y + rect.height) return null;
-  const activeNode = spec.nodes.find((node) => {
-    const nodeRect = node.rect;
-    return nodeRect && px >= nodeRect.x && px <= nodeRect.x + nodeRect.width && py >= nodeRect.y && py <= nodeRect.y + nodeRect.height;
-  }) || spec.nodes[0];
-  return { ...spec, activeNode };
+  return cohabAfterglowWindowAtCanvasPointWorld(px, py, { cohabAfterglowWindowSpec });
 }
 
 function focusCohabAfterglowWindowFromCanvas(spec = cohabAfterglowWindowSpec()) {
