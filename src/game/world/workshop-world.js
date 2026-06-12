@@ -477,6 +477,38 @@ export function workshopAromaStoryWorldSpecFromRuntimeWorld({
   };
 }
 
+export function workshopAromaOrderWorldSpecFromRuntimeWorld({
+  aroma = null,
+  board = null,
+  itemName = (itemId = "") => itemId,
+} = {}) {
+  if (!aroma?.orderUnlocked) return null;
+  const orderMatch = aroma.liveFocus?.orderMatch || aroma.history?.[0]?.orderMatch || null;
+  const boardOrder = board?.top || null;
+  const orderId = orderMatch?.orderId || boardOrder?.orderId || "";
+  const orderTitleText = orderMatch?.orderTitle || boardOrder?.title || "第一张订单";
+  return {
+    aroma,
+    orderMatch,
+    boardOrder,
+    orderId,
+    outputLabel: aroma.itemName || itemName(aroma.itemId || "item_food_bailuobo_tang"),
+    orderTitle: orderTitleText,
+    ready: Boolean(orderMatch?.ready || boardOrder?.tone === "ready"),
+    path: [
+      { x: 804, y: 434 },
+      { x: 708, y: 470 },
+      { x: 618, y: 502 },
+      { x: 520, y: 522 },
+      { x: 492, y: 456 },
+      { x: 606, y: 418 },
+      { x: 742, y: 384 },
+    ],
+    ticketRect: { x: 666, y: 396, width: 144, height: 44 },
+    boardRect: { x: 682, y: 344, width: 216, height: 74 },
+  };
+}
+
 export function workshopAromaStoryWorldCopyFromRuntimeWorld(aromaSpec = null) {
   if (!aromaSpec?.aroma?.orderUnlocked) return null;
   const aroma = aromaSpec.aroma;

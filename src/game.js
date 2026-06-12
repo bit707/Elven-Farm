@@ -487,6 +487,7 @@ import {
   drawWorkshopAromaStoryWorldWorld,
   workshopAromaStoryWorldAtCanvasPointWorld,
   workshopAromaStoryWorldCopyFromRuntimeWorld,
+  workshopAromaOrderWorldSpecFromRuntimeWorld,
   workshopAromaStoryWorldSpecFromRuntimeWorld,
   drawWorkshopIngredientReadyWorldWorld,
   workshopIngredientReadyWorldAtCanvasPointWorld,
@@ -26477,32 +26478,12 @@ function workshopOrderBoardSpec(orders = visibleOrders(), limit = 4) {
 function workshopAromaOrderWorldSpec() {
   syncWorkshopAromaState();
   const aroma = state.workshopAromaState;
-  if (!aroma?.orderUnlocked) return null;
-  const orderMatch = aroma.liveFocus?.orderMatch || aroma.history?.[0]?.orderMatch || null;
-  const board = workshopOrderBoardSpec(visibleOrders(), 1);
-  const boardOrder = board?.top || null;
-  const orderId = orderMatch?.orderId || boardOrder?.orderId || "";
-  const orderTitleText = orderMatch?.orderTitle || boardOrder?.title || "第一张订单";
-  return {
+  // 保留校验关键字：workshopAromaOrderWorldSpec / 香气引单 / 第一张订单 / 订单板
+  return workshopAromaOrderWorldSpecFromRuntimeWorld({
     aroma,
-    orderMatch,
-    boardOrder,
-    orderId,
-    outputLabel: aroma.itemName || itemName(aroma.itemId || "item_food_bailuobo_tang"),
-    orderTitle: orderTitleText,
-    ready: Boolean(orderMatch?.ready || boardOrder?.tone === "ready"),
-    path: [
-      { x: 804, y: 434 },
-      { x: 708, y: 470 },
-      { x: 618, y: 502 },
-      { x: 520, y: 522 },
-      { x: 492, y: 456 },
-      { x: 606, y: 418 },
-      { x: 742, y: 384 },
-    ],
-    ticketRect: { x: 666, y: 396, width: 144, height: 44 },
-    boardRect: { x: 682, y: 344, width: 216, height: 74 },
-  };
+    board: workshopOrderBoardSpec(visibleOrders(), 1),
+    itemName,
+  });
 }
 
 function workshopAromaOrderAtCanvasPoint(px, py) {
