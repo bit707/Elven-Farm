@@ -1182,6 +1182,178 @@ export function spiritCompanionCareMarkupRuntime(spirit, care = null, {
   `;
 }
 
+export function canvasSpiritCareFocusSpecRuntime({
+  spirit = null,
+  focus = null,
+  day = 1,
+  care = null,
+  finaleRows = [],
+  spiritVoice = () => "嗯嗯。",
+} = {}) {
+  if (!spirit || !focus || !care) return null;
+  const moment = care.rareMoment;
+  const finaleEffect = care.finale
+    ? finaleRows.find((row) => row.lineId === care.finale.lineId && row.active)
+    : null;
+  const focusAge = Math.max(0, day - Number(focus.day || day));
+  const seasonalFocus = focus.seasonal || null;
+  const interactionEchoFocus = focus.interactionEcho || null;
+  const moodRepairScene = focus.moodRepairScene || null;
+  const careNeedScene = focus.careNeedScene || null;
+  const shiftTheaterScene = focus.shiftTheaterScene || null;
+  const identityNameplate = focus.identityNameplate || null;
+  const memoryTriptych = focus.memoryTriptych || null;
+  const sourceText = interactionEchoFocus
+    ? "刚从伙伴回应签点到它"
+    : memoryTriptych
+      ? "刚从伙伴记忆三拍签点到它"
+    : moodRepairScene
+      ? "刚从低落小事点到它"
+    : careNeedScene
+      ? "刚从照料提醒牌点到它"
+    : shiftTheaterScene
+      ? "刚从岗位班次小剧场点到它"
+    : identityNameplate
+      ? "刚从场景伙伴名牌点到它"
+    : focusAge > 0 ? `第 ${focus.day} 天点选，今天仍可继续照料` : "刚从主画面点到它";
+  const directAction = care.nextAction === "theater" && moment
+    ? { type: "theater", label: "看今日小剧场" }
+    : care.nextAction === "repair"
+      ? { type: "repair", label: "安抚小事" }
+    : care.nextAction === "feed"
+      ? { type: "feed", label: "喂食" }
+      : { type: "pet", label: "摸摸" };
+  const backupAction = directAction.type === "pet"
+    ? { type: "feed", label: "喂食" }
+    : { type: "pet", label: "摸摸" };
+  return {
+    spirit,
+    care,
+    sourceText,
+    seasonalFocus,
+    interactionEchoFocus,
+    moodRepairScene,
+    careNeedScene,
+    shiftTheaterScene,
+    identityNameplate,
+    memoryTriptych,
+    directAction,
+    backupAction,
+    detail: care.nextDetail,
+    finaleEffect,
+    quote: moment?.quote || spiritVoice(spirit.id, care.nextAction === "feed" ? "happy" : "idle"),
+  };
+}
+
+export function canvasSpiritCareFocusMarkupRuntime(focus = null) {
+  if (!focus) return "";
+  const { spirit, care, directAction, backupAction, finaleEffect, seasonalFocus, interactionEchoFocus, moodRepairScene, careNeedScene, shiftTheaterScene, identityNameplate, memoryTriptych } = focus;
+  const directButton = directAction.type === "theater"
+    ? `<button type="button" data-rare-spirit-theater="${spirit.id}" ${care.rareMoment ? "" : "disabled"}>${directAction.label}</button>`
+    : directAction.type === "repair"
+      ? `<button type="button" data-spirit-mood-repair="${spirit.id}">${directAction.label}</button>`
+    : `<button type="button" data-spirit-action="${directAction.type}" data-spirit-id="${spirit.id}">${directAction.label}</button>`;
+  const backupButton = `<button type="button" data-spirit-action="${backupAction.type}" data-spirit-id="${spirit.id}">${backupAction.label}</button>`;
+  const finaleButton = care.finale
+    ? `<button type="button" data-spirit-finale-replay="${spirit.id}">回看终章落定</button>`
+    : "";
+  const finaleMarkup = care.finale
+    ? `
+      <div class="spirit-canvas-finale-ticket">
+        <strong>${care.finale.title} · ${care.finale.anchorLabel}</strong>
+        <span>${finaleEffect ? `${finaleEffect.valueText} · ${finaleEffect.detail}` : care.finale.effectText}</span>
+        <small>${care.finale.memoryText} · ${care.finale.areaLabel} · “${care.finale.dialogueText}”</small>
+      </div>
+    `
+    : "";
+  const seasonalMarkup = seasonalFocus
+    ? `
+      <div class="spirit-canvas-seasonal-ticket">
+        <strong>节气岗位小景 · ${seasonalFocus.label}</strong>
+        <span>${seasonalFocus.weatherName || "今日天气"} · ${seasonalFocus.termName || "当前节气"} · ${seasonalFocus.prop}</span>
+        <small>${seasonalFocus.detail} · ${seasonalFocus.effect}</small>
+      </div>
+    `
+    : "";
+  const interactionEchoMarkup = interactionEchoFocus
+    ? `
+      <div class="spirit-canvas-seasonal-ticket">
+        <strong>${interactionEchoFocus.label}</strong>
+        <span>${interactionEchoFocus.motionText} · ${interactionEchoFocus.bondText}</span>
+        <small>“${interactionEchoFocus.quote}” · ${interactionEchoFocus.actionText}</small>
+      </div>
+    `
+    : "";
+  const memoryTriptychMarkup = memoryTriptych
+    ? `
+      <div class="spirit-canvas-seasonal-ticket">
+        <strong>${memoryTriptych.title}</strong>
+        <span>${memoryTriptych.routeText}</span>
+        <small>${memoryTriptych.recallLine} · ${memoryTriptych.safeNote}</small>
+      </div>
+    `
+    : "";
+  const moodRepairMarkup = moodRepairScene
+    ? `
+      <div class="spirit-mood-repair-ticket">
+        <strong>主世界低落小事 · ${moodRepairScene.headline}</strong>
+        <span>${moodRepairScene.detail}</span>
+        <small>安抚：${moodRepairScene.action} · ${moodRepairScene.advice}</small>
+      </div>
+    `
+    : "";
+  const careNeedMarkup = careNeedScene
+    ? `
+      <div class="spirit-canvas-seasonal-ticket">
+        <strong>主世界照料提醒 · ${careNeedScene.actionLabel}</strong>
+        <span>${careNeedScene.statusText}</span>
+        <small>${careNeedScene.detail}</small>
+      </div>
+    `
+    : "";
+  const shiftTheaterMarkup = shiftTheaterScene
+    ? `
+      <div class="spirit-canvas-seasonal-ticket">
+        <strong>岗位班次小剧场 · ${shiftTheaterScene.jobName}</strong>
+        <span>${shiftTheaterScene.actionText} · ${shiftTheaterScene.levelText} · ${shiftTheaterScene.efficiencyText}</span>
+        <small>${shiftTheaterScene.evidenceText} · ${shiftTheaterScene.nextHint}</small>
+      </div>
+    `
+    : "";
+  const identityMarkup = identityNameplate
+    ? `
+      <div class="spirit-canvas-seasonal-ticket">
+        <strong>场景伙伴名牌 · ${identityNameplate.spiritName}</strong>
+        <span>${identityNameplate.behaviorText} · ${identityNameplate.bondText}</span>
+        <small>${identityNameplate.memoryLine} · ${identityNameplate.safeNote}</small>
+      </div>
+    `
+    : "";
+  return `
+    <div class="spirit-canvas-care ${care.tone}" data-spirit-id="${spirit.id}">
+      <div class="spirit-canvas-care-title">
+        <strong>画面点选 · ${spirit.name}</strong>
+        <span>${care.status}</span>
+      </div>
+      <small>${focus.sourceText} · ${focus.detail}</small>
+      <small>它的回应：“${focus.quote}”</small>
+      ${moodRepairMarkup}
+      ${careNeedMarkup}
+      ${shiftTheaterMarkup}
+      ${identityMarkup}
+      ${interactionEchoMarkup}
+      ${memoryTriptychMarkup}
+      ${seasonalMarkup}
+      ${finaleMarkup}
+      <div class="spirit-canvas-care-actions">
+        ${directButton}
+        ${backupButton}
+        ${finaleButton}
+      </div>
+    </div>
+  `;
+}
+
 export function settleFarmSpiritJobRuntime(spirit = {}, report = [], power = 0, {
   state = {},
   addJobExp = () => null,
