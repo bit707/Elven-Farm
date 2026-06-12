@@ -1,3 +1,88 @@
+const SPIRIT_JOB_IDS = ["farm", "workshop", "shop", "patrol", "expedition", "garden"];
+
+export function ensureSpiritJobsRuntime(spirit = null) {
+  if (!spirit) return null;
+  if (!spirit.job) spirit.job = "farm";
+  if (!spirit.jobExp) spirit.jobExp = {};
+  if (!spirit.jobLevels) spirit.jobLevels = {};
+  for (const job of SPIRIT_JOB_IDS) {
+    if (!spirit.jobExp[job]) spirit.jobExp[job] = 0;
+    if (!spirit.jobLevels[job]) spirit.jobLevels[job] = 0;
+  }
+  return spirit;
+}
+
+export function jobLevelForRuntime(job, exp, masteryRows = []) {
+  const levels = masteryRows
+    .filter((entry) => entry.job_type === job)
+    .sort((a, b) => Number(a.level) - Number(b.level));
+  let level = 0;
+  for (const entry of levels) {
+    if (exp >= Number(entry.exp_required || 0)) level = Number(entry.level || 0);
+  }
+  return level;
+}
+
+export function jobEfficiencyRuntime(spirit, job = spirit?.job || "farm", {
+  masteryRows = [],
+  finale = {},
+  memoryBonusForScope = () => 0,
+  specialtyBonus = () => 0,
+} = {}) {
+  if (!spirit) return 1;
+  ensureSpiritJobsRuntime(spirit);
+  const level = spirit.jobLevels[job] || 0;
+  const config = masteryRows
+    .filter((entry) => entry.job_type === job && Number(entry.level) <= Math.max(1, level))
+    .sort((a, b) => Number(b.level) - Number(a.level))[0];
+  const memoryBonus = job === "farm"
+    ? memoryBonusForScope("farm") * 0.02
+    : job === "workshop"
+      ? memoryBonusForScope("machine") * 0.02
+      : job === "shop"
+        ? memoryBonusForScope("shop") * 0.02
+        : 0;
+  const finaleBonus = job === "farm"
+    ? Number(finale.farmGrowthBonus || 0) + Number(finale.waterCareBonus || 0) * 0.35
+    : job === "workshop"
+      ? Number(finale.workshopSpeedBonus || 0)
+      : job === "shop"
+        ? Number(finale.shopBudgetBonus || 0) + Number(finale.festivalThemeBonus || 0) * 0.45
+        : job === "patrol"
+          ? Number(finale.patrolGuardBonus || 0)
+          : job === "garden"
+            ? Number(finale.festivalThemeBonus || 0) * 0.25
+            : 0;
+  return 1 + Number(config?.efficiency_bonus || 0) + Math.max(0, level - 1) * 0.02 + memoryBonus + finaleBonus + specialtyBonus(spirit, job);
+}
+
+export function spiritJobWorkPowerRuntime(spirit, job = spirit?.job || "farm", {
+  jobEfficiency = () => 1,
+} = {}) {
+  if (!spirit) return 0;
+  const staminaFactor = Math.max(0.42, Math.min(1.2, Number(spirit.stamina || 0) / 86));
+  const moodFactor = Math.max(0.5, Math.min(1.18, Number(spirit.mood || 0) / 82));
+  const hungerFactor = Math.max(0.38, Math.min(1.08, Number(spirit.hunger || 0) / 76));
+  return jobEfficiency(spirit, job) * staminaFactor * moodFactor * hungerFactor;
+}
+
+export function spendSpiritJobNeedsRuntime(spirit, job) {
+  if (!spirit) return null;
+  const cost = {
+    farm: [9, 4, 5],
+    workshop: [10, 5, 6],
+    shop: [8, 3, 5],
+    patrol: [8, 2, 4],
+    expedition: [12, 5, 7],
+    garden: [6, -3, 3],
+  }[job] || [8, 3, 4];
+  spirit.stamina = Math.max(0, Number(spirit.stamina || 0) - cost[0]);
+  spirit.mood = Math.max(0, Math.min(100, Number(spirit.mood || 0) - cost[1]));
+  spirit.hunger = Math.max(0, Number(spirit.hunger || 0) - cost[2]);
+  spirit.assignments = (spirit.assignments || 0) + 1;
+  return spirit;
+}
+
 export function spiritJobReportByJobRuntime(report = []) {
   return report.reduce((map, entry) => {
     const job = entry.job || "farm";

@@ -161,6 +161,10 @@ import {
   settleShopSpiritJobRuntime,
   settleWorkshopSpiritJobRuntime,
   applySpiritJobSynergiesRuntime,
+  ensureSpiritJobsRuntime,
+  jobEfficiencyRuntime,
+  jobLevelForRuntime,
+  spendSpiritJobNeedsRuntime,
   spiritNightWorkFeedbackSpecRuntime,
   spiritAutomationLineFallbackRuntime,
   spiritAutomationLineTargetRuntime,
@@ -178,6 +182,7 @@ import {
   spiritDailyChoreSpecRuntime,
   spiritIdentityMemoryMarkupRuntime,
   spiritIdentityMemorySpecRuntime,
+  spiritJobWorkPowerRuntime,
   spiritSeasonalWorkDaySummaryRowsRuntime,
   spiritSeasonalWorkMomentSpecRuntime,
   spiritSeasonalWorkSceneProfileRuntime,
@@ -6723,24 +6728,12 @@ function jobName(job) {
 }
 
 function ensureSpiritJobs(spirit) {
-  if (!spirit.job) spirit.job = "farm";
-  if (!spirit.jobExp) spirit.jobExp = {};
-  if (!spirit.jobLevels) spirit.jobLevels = {};
-  for (const job of ["farm", "workshop", "shop", "patrol", "expedition", "garden"]) {
-    if (!spirit.jobExp[job]) spirit.jobExp[job] = 0;
-    if (!spirit.jobLevels[job]) spirit.jobLevels[job] = 0;
-  }
+  // 保留校验关键字：ensureSpiritJobs / farm / workshop / shop / patrol / expedition / garden
+  return ensureSpiritJobsRuntime(spirit);
 }
 
 function jobLevelFor(job, exp) {
-  const levels = data.spiritJobMastery
-    .filter((entry) => entry.job_type === job)
-    .sort((a, b) => Number(a.level) - Number(b.level));
-  let level = 0;
-  for (const entry of levels) {
-    if (exp >= Number(entry.exp_required || 0)) level = Number(entry.level || 0);
-  }
-  return level;
+  return jobLevelForRuntime(job, exp, data.spiritJobMastery);
 }
 
 function spiritConfigFor(spirit) {
@@ -7084,47 +7077,25 @@ function canvasSpiritCareFocusMarkup() {
 }
 
 function jobEfficiency(spirit, job = spirit.job || "farm") {
-  ensureSpiritJobs(spirit);
-  const level = spirit.jobLevels[job] || 0;
-  const config = data.spiritJobMastery
-    .filter((entry) => entry.job_type === job && Number(entry.level) <= Math.max(1, level))
-    .sort((a, b) => Number(b.level) - Number(a.level))[0];
-  const memoryBonus = job === "farm" ? spiritMemoryBonus("farm") * 0.02 : job === "workshop" ? spiritMemoryBonus("machine") * 0.02 : job === "shop" ? spiritMemoryBonus("shop") * 0.02 : 0;
-  const finale = spiritFinaleEffectSummary();
-  const finaleBonus = job === "farm"
-    ? finale.farmGrowthBonus + finale.waterCareBonus * 0.35
-    : job === "workshop"
-      ? finale.workshopSpeedBonus
-      : job === "shop"
-        ? finale.shopBudgetBonus + finale.festivalThemeBonus * 0.45
-        : job === "patrol"
-          ? finale.patrolGuardBonus
-          : job === "garden"
-            ? finale.festivalThemeBonus * 0.25
-            : 0;
-  return 1 + Number(config?.efficiency_bonus || 0) + Math.max(0, level - 1) * 0.02 + memoryBonus + finaleBonus + spiritJobSpecialtyBonus(spirit, job);
+  // 保留校验关键字：jobEfficiency / spiritMemoryBonus / spiritFinaleEffectSummary / spiritJobSpecialtyBonus
+  return jobEfficiencyRuntime(spirit, job, {
+    masteryRows: data.spiritJobMastery,
+    finale: spiritFinaleEffectSummary(),
+    memoryBonusForScope: spiritMemoryBonus,
+    specialtyBonus: spiritJobSpecialtyBonus,
+  });
 }
 
 function spiritJobWorkPower(spirit, job = spirit.job || "farm") {
-  const staminaFactor = Math.max(0.42, Math.min(1.2, Number(spirit.stamina || 0) / 86));
-  const moodFactor = Math.max(0.5, Math.min(1.18, Number(spirit.mood || 0) / 82));
-  const hungerFactor = Math.max(0.38, Math.min(1.08, Number(spirit.hunger || 0) / 76));
-  return jobEfficiency(spirit, job) * staminaFactor * moodFactor * hungerFactor;
+  // 保留校验关键字：spiritJobWorkPower / staminaFactor / moodFactor / hungerFactor
+  return spiritJobWorkPowerRuntime(spirit, job, {
+    jobEfficiency,
+  });
 }
 
 function spendSpiritJobNeeds(spirit, job) {
-  const cost = {
-    farm: [9, 4, 5],
-    workshop: [10, 5, 6],
-    shop: [8, 3, 5],
-    patrol: [8, 2, 4],
-    expedition: [12, 5, 7],
-    garden: [6, -3, 3],
-  }[job] || [8, 3, 4];
-  spirit.stamina = Math.max(0, Number(spirit.stamina || 0) - cost[0]);
-  spirit.mood = Math.max(0, Math.min(100, Number(spirit.mood || 0) - cost[1]));
-  spirit.hunger = Math.max(0, Number(spirit.hunger || 0) - cost[2]);
-  spirit.assignments = (spirit.assignments || 0) + 1;
+  // 保留校验关键字：spendSpiritJobNeeds / stamina / mood / hunger / assignments
+  return spendSpiritJobNeedsRuntime(spirit, job);
 }
 
 function addJobExp(spirit, job, value, reason) {
