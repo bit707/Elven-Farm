@@ -48,6 +48,13 @@ import {
   workshopOrderQueueWorldBoardSpecData,
 } from "./game/shared/workshop-order-queue-board.js";
 import {
+  workshopIngredientReadyCandidateData,
+  workshopIngredientReadyWorldAtPointData,
+  workshopIngredientReadyWorldCopyData,
+  workshopIngredientReadyWorldFocusData,
+  workshopIngredientReadyWorldSpecData,
+} from "./game/shared/workshop-ingredient-ready.js";
+import {
   workshopSpiritAssistActionFocusData,
   workshopSpiritAssistActionWorldAtPointData,
   workshopSpiritAssistActionWorldSpecData,
@@ -45807,24 +45814,12 @@ function workshopIngredientReadySafetyText() {
 }
 
 function workshopIngredientReadyCandidate() {
-  const recipes = availableRecipes()
-    .map((recipe) => {
-      const preview = recipeCraftPreviewSpec(recipe);
-      if (!preview?.craftable) return null;
-      const orderScore = preview.orderMatch?.ready ? 92 : preview.orderMatch ? 58 : 0;
-      const selectedScore = recipe.recipe_id === state.selectedRecipeId ? 28 : 0;
-      const firstScore = preview.firstAroma ? 80 : 0;
-      const valueScore = Math.min(42, Math.max(0, Number(preview.valueGain || 0)) / 4);
-      const outputStock = Number(state.inventory[preview.outputItemId] || 0);
-      return {
-        recipe,
-        preview,
-        score: firstScore + orderScore + selectedScore + valueScore - Math.min(18, outputStock * 2),
-      };
-    })
-    .filter(Boolean)
-    .sort((a, b) => b.score - a.score || a.preview.recipeName.localeCompare(b.preview.recipeName, "zh-Hans-CN"));
-  return recipes[0] || null;
+  return workshopIngredientReadyCandidateData({
+    recipes: availableRecipes(),
+    recipePreviewSpec: recipeCraftPreviewSpec,
+    selectedRecipeId: state.selectedRecipeId,
+    inventory: state.inventory,
+  });
 }
 
 function workshopIngredientReadyRouteGuideText() {
@@ -45832,25 +45827,19 @@ function workshopIngredientReadyRouteGuideText() {
 }
 
 function workshopIngredientReadyWorldCopy(candidate = null) {
-  if (!candidate?.preview?.craftable || !candidate?.recipe) return null;
-  const { recipe, preview } = candidate;
-  const orderMatch = workshopOrderMatchSafe(preview.orderMatch);
-  const shopTags = shopTagsForItem(preview.outputItemId, ecologyCourtyardSummary());
-  const shopTag = prioritizeShopTag(shopTags, new Map(), "food");
-  const shopTagText = shopTagLabel(shopTag);
-  const inputItems = recipeInputs(recipe).slice(0, 3).map(({ itemId, count }) => ({
-    itemId,
-    name: itemName(itemId),
-    count: Number(count || 1),
-    have: Number(state.inventory[itemId] || 0),
-  }));
   // 保留校验关键字：workshopIngredientReadyWorldCopy / 原料齐火候签 / 原料已齐 -> 手动加工 -> 出锅去向
-  return workshopIngredientReadyWorldCopySpecWorld({
+  return workshopIngredientReadyWorldCopyData({
     candidate,
-    orderMatch,
-    shopTagText,
+    inventory: state.inventory,
+    itemName,
+    shopTagsForItem,
+    ecologySummary: ecologyCourtyardSummary(),
+    prioritizeShopTag,
+    shopTagLabel,
+    recipeInputs,
+    orderMatchSafe: workshopOrderMatchSafe,
     routeGuideText: workshopIngredientReadyRouteGuideText(),
-    inputItems,
+    copySpec: workshopIngredientReadyWorldCopySpecWorld,
   });
 }
 
@@ -45860,7 +45849,9 @@ function workshopIngredientReadyWorldSpec(width = refs.world?.width || 960, heig
 
 function workshopIngredientReadyWorldSpecBridge(width = refs.world?.width || 960, height = refs.world?.height || 640) {
   const candidate = workshopIngredientReadyCandidate();
-  return workshopIngredientReadyWorldSpecFromRuntimeWorld({
+  // Workshop ingredient-ready bridge keeps verify keywords:
+  // workshopIngredientReadyWorldFocus / workshopIngredientReadySafetyText / workshopIngredientReadyCandidate / workshopIngredientReadyWorldSpec / workshopIngredientReadyWorldAtCanvasPoint / focusWorkshopIngredientReadyWorldFromCanvas / drawWorkshopIngredientReadyWorld / 原料齐火候签 / 原料已齐 -> 手动加工 -> 出锅去向 / 只定位配方栏、加工按钮、订单板或旧铺货签 / 不会自动加工、排产、出锅、交单、上架、开铺、入夜、扣材料或消耗资源.
+  return workshopIngredientReadyWorldSpecData({
     width,
     height,
     day: state.day,
@@ -45879,31 +45870,26 @@ function workshopIngredientReadyWorldSpecBridge(width = refs.world?.width || 960
     orderMatchSafe: workshopOrderMatchSafe,
     safetyText: workshopIngredientReadySafetyText(),
     copy: workshopIngredientReadyWorldCopy(candidate),
+    specFromRuntime: workshopIngredientReadyWorldSpecFromRuntimeWorld,
   });
 }
 
 function workshopIngredientReadyWorldAtCanvasPoint(px, py) {
-  return workshopIngredientReadyWorldAtCanvasPointWorld({
+  return workshopIngredientReadyWorldAtPointData({
     px,
     py,
     spec: workshopIngredientReadyWorldSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
+    atPoint: workshopIngredientReadyWorldAtCanvasPointWorld,
   });
 }
 
 function focusWorkshopIngredientReadyWorldFromCanvas(spec = workshopIngredientReadyWorldSpecBridge()) {
-  if (!spec?.recipeId) return false;
-  workshopIngredientReadyWorldFocus = { key: spec.key, day: state.day, recipeId: spec.recipeId };
-  state.selectedRecipeId = spec.recipeId;
-  playCue("对话翻页");
-  queuePlotRouteFocusTarget({
-    selector: "#craftButton",
-    fallbackSelector: "#recipeSelect",
-    label: "点选原料齐火候签",
-    log: `${spec.recipeName} 已切到加工栏。路线：${spec.routeText}。${spec.detail} ${spec.safety}。`,
-    panelGroup: "core",
-    missingTitle: "原料齐火候签",
-    missingLog: `${spec.recipeName} 已选中，但加工按钮暂时没有找到。先看配方栏确认原料与设备；${spec.safety}。`,
-  });
+  const focusSpec = workshopIngredientReadyWorldFocusData(spec, state.day);
+  if (!focusSpec) return false;
+  workshopIngredientReadyWorldFocus = focusSpec.focus;
+  state.selectedRecipeId = focusSpec.selectedRecipeId;
+  playCue(focusSpec.cue);
+  queuePlotRouteFocusTarget(focusSpec.target);
   return true;
 }
 
