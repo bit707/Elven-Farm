@@ -1997,6 +1997,50 @@ export function workshopFirstOrderProfitWorldAtCanvasPointWorld({
   return workshopValueLedgerWorldAtCanvasPointWorld({ px, py, spec });
 }
 
+export function workshopValueLedgerWorldCopySpecWorld({
+  aromaSpec = null,
+  recipe = null,
+  outputItemId = "",
+  outputCount = 1,
+  rawValue = 0,
+  outputValue = 0,
+  rewardGold = 0,
+  rewardFame = 0,
+  inputText = "",
+  recipeLabel = "当前配方",
+} = {}) {
+  if (!aromaSpec?.aroma?.orderUnlocked || !recipe || !outputItemId) return null;
+  const valueGain = Math.max(0, rewardGold - rawValue);
+  const orderPremium = rawValue > 0 ? Math.max(1, rewardGold / rawValue) : 1;
+  const outputGain = Math.max(0, outputValue - rawValue);
+  return {
+    premiumLabel: rewardGold > rawValue ? `订单约 ${orderPremium.toFixed(1)}x` : "订单看声望",
+    profitLabel: rewardGold > rawValue ? `多赚 ${valueGain} 灵石` : "声望关系补价值",
+    conclusion: rewardGold > rawValue ? "加工订单收益链成立" : "订单链偏关系收益",
+    title: "第一单利润对照签 · 可点",
+    legacyTitle: "第一锅增值账签 · 可点",
+    routeText: "原料裸卖 -> 出锅增值 -> 订单回款",
+    headline: `裸卖 ${rawValue} -> 订单 ${rewardGold}`,
+    detail: rewardGold > rawValue
+      ? `这单比原料裸卖多 ${valueGain} 灵石，订单收益高于裸卖。`
+      : `${aromaSpec.orderTitle || "订单"} 已接上这锅，继续用声望和关系收益补足价值。`,
+    cta: "去订单板手动交付",
+    safety: "只定位订单板、配方栏和成品去向，不会自动加工、交单、扣库存、发奖励或消耗材料",
+    steps: [
+      { label: "原料裸卖", value: `${rawValue} 灵石`, note: inputText || "原料" },
+      { label: "出锅增值", value: `+${outputGain} 灵石`, note: `${recipeLabel} x${outputCount}` },
+      { label: "订单回款", value: `${rewardGold} 灵石`, note: rewardFame ? `声望 +${rewardFame}` : "委托奖励" },
+    ],
+  };
+}
+
+export function workshopFirstOrderProfitWorldCopySpecWorld() {
+  return {
+    title: "第一单利润对照签 · 可点",
+    legacyTitle: "第一锅增值账签 · 可点",
+  };
+}
+
 export function drawWorkshopOutputStorageRouteWorldWorld({
   ctx,
   spec = null,
