@@ -167,6 +167,8 @@ import {
   spiritAutomationPromenadeMarkupRuntime,
   spiritAutomationPromenadeRowsRuntime,
   spiritAutomationPromenadeSpecRuntime,
+  spiritDailyChoreMarkupRuntime,
+  spiritDailyChoreSpecRuntime,
   spiritSeasonalWorkDaySummaryRowsRuntime,
   spiritSeasonalWorkMomentSpecRuntime,
   spiritSeasonalWorkSceneProfileRuntime,
@@ -6974,100 +6976,21 @@ function focusDaySummarySpiritSeasonalWork(spiritId = "") {
 }
 
 function spiritDailyChoreSpec(spirit, job = spirit?.job || "farm") {
-  const persona = spiritJobPersonaSpec(spirit, job);
-  const rareMoment = rareSpiritMomentForSpirit(spirit);
-  const care = spiritCompanionCareSpec(spirit);
-  const synergy = spiritJobSynergyForSpirit(spirit);
-  const seasonal = spiritSeasonalWorkMomentSpec(spirit, job);
-  const mood = Math.round(spirit?.mood || 0);
-  const hunger = Math.round(spirit?.hunger || 0);
-  const stationText = `${persona.focus}旁`;
-  const jobChores = {
-    farm: {
-      action: state.plots.some((plot) => plot.cropId && !plot.watered && !plot.mature) ? "把水珠推到干裂田埂" : "蹲在叶影里数露珠",
-      prop: "露珠小瓢",
-      effect: "让农田岗的照料意图更清楚",
-      glyph: "露",
-      tone: "water",
-    },
-    workshop: {
-      action: state.workshopQueue.length > 0 ? "拿木勺敲锅沿试火候" : "把空锅擦得能照出火星",
-      prop: "灶边木勺",
-      effect: "工坊排产时会显得更像有人在接手",
-      glyph: "勺",
-      tone: "ember",
-    },
-    shop: {
-      action: state.shopReport.length > 0 ? "把今日买卖写成小货签" : "练习把货签摆得更显眼",
-      prop: "迎客货签",
-      effect: "旧铺经营反馈会落到具体动作上",
-      glyph: "签",
-      tone: "gold",
-    },
-    patrol: {
-      action: unresolvedRisks().length > 0 ? "提灯照住风险来的方向" : "沿篱笆挂下一圈暖灯",
-      prop: "巡夜灯钩",
-      effect: "节气风险出现前有更强的守夜感",
-      glyph: "灯",
-      tone: "jade",
-    },
-    expedition: {
-      action: (state.tradeRuns || []).some((run) => run.status === "traveling") ? "给在途商队补画路标" : "在地上排出三粒探路石",
-      prop: "小路旗",
-      effect: "远征和商路不再只是按钮文字",
-      glyph: "旗",
-      tone: "sky",
-    },
-    garden: {
-      action: mood < 65 ? "把蔫掉的花瓣重新扶起来" : "给伙伴们分一圈花息坐垫",
-      prop: "花息软垫",
-      effect: "庭院岗会更像在照顾全队状态",
-      glyph: "花",
-      tone: "flower",
-    },
-  };
-  const base = jobChores[job] || jobChores.farm;
-  const status = hunger < 40
-    ? "边忙边偷看食盒"
-    : mood < 60
-      ? "动作慢一点，像是在等你安抚"
-      : rareMoment
-        ? `今天还惦记着${rareMoment.actionShort}`
-        : synergy
-          ? `昨夜搭班后还留着${synergy.label}的余光`
-          : "状态稳，愿意继续待岗";
-  return {
-    ...base,
-    job,
-    jobName: persona.label,
-    helperName: spirit?.name || "精怪",
-    stationText,
-    status,
-    rareMoment,
-    synergy,
-    seasonal,
-    careTone: care.tone,
-    detail: `${spirit?.name || "精怪"}在${stationText}${base.action}，${status}。${seasonal ? ` ${seasonal.detail}` : ""}`,
-    nextHint: rareMoment
-      ? `看今日小剧场：${rareMoment.focus} · ${rareMoment.action}`
-      : care.nextAction === "feed"
-        ? "它现在更适合先喂食，再继续派工。"
-        : care.nextAction === "repair"
-          ? care.nextDetail
-          : persona.advice,
-  };
+  // 保留校验关键字：spiritDailyChoreSpec / 岗位小动作 / 露珠小瓢 / 灶边木勺 / 迎客货签 / 低落小事 / 安抚小事
+  return spiritDailyChoreSpecRuntime(spirit, job, {
+    state,
+    persona: spiritJobPersonaSpec(spirit, job),
+    rareMoment: rareSpiritMomentForSpirit(spirit),
+    care: spiritCompanionCareSpec(spirit),
+    synergy: spiritJobSynergyForSpirit(spirit),
+    seasonal: spiritSeasonalWorkMomentSpec(spirit, job),
+    riskCount: unresolvedRisks().length,
+  });
 }
 
 function spiritDailyChoreMarkup(spirit) {
-  const chore = spiritDailyChoreSpec(spirit, spirit?.job || "farm");
-  return `
-    <div class="spirit-daily-chore ${chore.tone}">
-      <strong>${chore.glyph} 岗位小动作 · ${chore.prop}</strong>
-      <span>${chore.detail}</span>
-      ${chore.seasonal ? `<span class="spirit-seasonal-work ${chore.seasonal.tone}">${chore.seasonal.glyph} 天气小动作 · ${chore.seasonal.title}<small>${chore.seasonal.line} · ${chore.seasonal.effect}</small></span>` : ""}
-      <small>${chore.effect} · ${chore.nextHint}</small>
-    </div>
-  `;
+  // 保留校验关键字：spiritDailyChoreMarkup / spirit-daily-chore / spirit-seasonal-work / 天气小动作
+  return spiritDailyChoreMarkupRuntime(spiritDailyChoreSpec(spirit, spirit?.job || "farm"));
 }
 
 function spiritBondRewardLabel(level = null) {

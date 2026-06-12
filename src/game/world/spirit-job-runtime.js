@@ -775,6 +775,110 @@ export function spiritSeasonalWorkDaySummaryRowsRuntime(limit = 3, {
     .filter(Boolean);
 }
 
+export function spiritDailyChoreSpecRuntime(spirit, job = spirit?.job || "farm", {
+  state = {},
+  persona = {},
+  rareMoment = null,
+  care = {},
+  synergy = null,
+  seasonal = null,
+  riskCount = 0,
+} = {}) {
+  const mood = Math.round(spirit?.mood || 0);
+  const hunger = Math.round(spirit?.hunger || 0);
+  const stationText = `${persona.focus}旁`;
+  const plots = Array.isArray(state.plots) ? state.plots : [];
+  const workshopQueue = Array.isArray(state.workshopQueue) ? state.workshopQueue : [];
+  const shopReport = Array.isArray(state.shopReport) ? state.shopReport : [];
+  const tradeRuns = Array.isArray(state.tradeRuns) ? state.tradeRuns : [];
+  const jobChores = {
+    farm: {
+      action: plots.some((plot) => plot.cropId && !plot.watered && !plot.mature) ? "把水珠推到干裂田埂" : "蹲在叶影里数露珠",
+      prop: "露珠小瓢",
+      effect: "让农田岗的照料意图更清楚",
+      glyph: "露",
+      tone: "water",
+    },
+    workshop: {
+      action: workshopQueue.length > 0 ? "拿木勺敲锅沿试火候" : "把空锅擦得能照出火星",
+      prop: "灶边木勺",
+      effect: "工坊排产时会显得更像有人在接手",
+      glyph: "勺",
+      tone: "ember",
+    },
+    shop: {
+      action: shopReport.length > 0 ? "把今日买卖写成小货签" : "练习把货签摆得更显眼",
+      prop: "迎客货签",
+      effect: "旧铺经营反馈会落到具体动作上",
+      glyph: "签",
+      tone: "gold",
+    },
+    patrol: {
+      action: riskCount > 0 ? "提灯照住风险来的方向" : "沿篱笆挂下一圈暖灯",
+      prop: "巡夜灯钩",
+      effect: "节气风险出现前有更强的守夜感",
+      glyph: "灯",
+      tone: "jade",
+    },
+    expedition: {
+      action: tradeRuns.some((run) => run.status === "traveling") ? "给在途商队补画路标" : "在地上排出三粒探路石",
+      prop: "小路旗",
+      effect: "远征和商路不再只是按钮文字",
+      glyph: "旗",
+      tone: "sky",
+    },
+    garden: {
+      action: mood < 65 ? "把蔫掉的花瓣重新扶起来" : "给伙伴们分一圈花息坐垫",
+      prop: "花息软垫",
+      effect: "庭院岗会更像在照顾全队状态",
+      glyph: "花",
+      tone: "flower",
+    },
+  };
+  const base = jobChores[job] || jobChores.farm;
+  const status = hunger < 40
+    ? "边忙边偷看食盒"
+    : mood < 60
+      ? "动作慢一点，像是在等你安抚"
+      : rareMoment
+        ? `今天还惦记着${rareMoment.actionShort}`
+        : synergy
+          ? `昨夜搭班后还留着${synergy.label}的余光`
+          : "状态稳，愿意继续待岗";
+  return {
+    ...base,
+    job,
+    jobName: persona.label,
+    helperName: spirit?.name || "精怪",
+    stationText,
+    status,
+    rareMoment,
+    synergy,
+    seasonal,
+    careTone: care.tone,
+    detail: `${spirit?.name || "精怪"}在${stationText}${base.action}，${status}。${seasonal ? ` ${seasonal.detail}` : ""}`,
+    nextHint: rareMoment
+      ? `看今日小剧场：${rareMoment.focus} · ${rareMoment.action}`
+      : care.nextAction === "feed"
+        ? "它现在更适合先喂食，再继续派工。"
+        : care.nextAction === "repair"
+          ? care.nextDetail
+          : persona.advice,
+  };
+}
+
+export function spiritDailyChoreMarkupRuntime(chore = null) {
+  if (!chore) return "";
+  return `
+    <div class="spirit-daily-chore ${chore.tone}">
+      <strong>${chore.glyph} 岗位小动作 · ${chore.prop}</strong>
+      <span>${chore.detail}</span>
+      ${chore.seasonal ? `<span class="spirit-seasonal-work ${chore.seasonal.tone}">${chore.seasonal.glyph} 天气小动作 · ${chore.seasonal.title}<small>${chore.seasonal.line} · ${chore.seasonal.effect}</small></span>` : ""}
+      <small>${chore.effect} · ${chore.nextHint}</small>
+    </div>
+  `;
+}
+
 export function settleFarmSpiritJobRuntime(spirit = {}, report = [], power = 0, {
   state = {},
   addJobExp = () => null,
