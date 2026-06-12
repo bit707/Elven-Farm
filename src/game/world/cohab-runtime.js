@@ -192,3 +192,67 @@ export function recordCohabHistoryRuntime(type = "", epilogue = null, eventName 
   cohabState.history = cohabState.history.slice(0, limit);
   return cohabState;
 }
+
+export function triggerCohabDailySceneRuntime(timing = "on_day_start", {
+  stateDay = 1,
+  cohabUnlockedRoutes = () => [],
+  dataCohabDialogueByEpilogue = new Map(),
+  syncCohabState = () => ({}),
+  queueDialogueGroup = () => null,
+  addLog = () => null,
+  recordCohabHistory = () => null,
+} = {}) {
+  const maps = cohabUnlockedRoutes()
+    .flatMap((epilogue) => (dataCohabDialogueByEpilogue.get(epilogue.epilogue_id) || []).map((map) => ({ epilogue, map })))
+    .filter(({ map }) => map.trigger_timing === timing && map.repeat_cycle === "daily");
+  if (!maps.length) return false;
+  const pick = maps[(Math.max(1, stateDay) - 1) % maps.length];
+  const cohabState = syncCohabState();
+  const seenKey = `${pick.epilogue.epilogue_id}:${timing}`;
+  if (cohabState.dailySeen[seenKey] === stateDay) return false;
+  cohabState.dailySeen[seenKey] = stateDay;
+  queueDialogueGroup(pick.map.dialogue_group_id);
+  addLog("同住日常", `${pick.epilogue.route_name}：${pick.map.scene_key}`);
+  recordCohabHistory("daily", pick.epilogue, pick.map.scene_key, "日常对话");
+  return true;
+}
+
+export function cohabDailyMapForRuntime(epilogue = null, timing = "manual", {
+  dataCohabDialogueByEpilogue = new Map(),
+} = {}) {
+  const maps = dataCohabDialogueByEpilogue.get(epilogue?.epilogue_id || "") || [];
+  return maps.find((map) => map.trigger_timing === timing && map.repeat_cycle === "daily")
+    || maps.find((map) => map.repeat_cycle === "daily")
+    || maps[0]
+    || null;
+}
+
+export function playCohabDailySceneRuntime(npcId = "", {
+  stateDay = 1,
+  cohabStatusFor = () => null,
+  cohabRequirementText = () => "",
+  cohabDailyMapFor = () => null,
+  npcName = (id = "") => id,
+  syncCohabState = () => ({}),
+  queueDialogueGroup = () => null,
+  recordCohabHistory = () => null,
+  complete = () => null,
+  addLog = () => null,
+  render = () => null,
+} = {}) {
+  const cohab = cohabStatusFor(npcId);
+  if (!cohab?.epilogue) return addLog("后日谈未配置", "这位角色暂时没有同住后日谈路线。");
+  if (!cohab.unlocked) return addLog("后日谈未开启", `${npcName(npcId)} 还需要 ${cohabRequirementText(cohab)}。`);
+  const map = cohabDailyMapFor(cohab.epilogue);
+  if (!map) return addLog("后日谈暂无日常", `${cohab.epilogue.route_name} 还没有配置可播放的日常对话。`);
+  const cohabState = syncCohabState();
+  const seenKey = `${cohab.epilogue.epilogue_id}:manual_daily`;
+  if (cohabState.dailySeen[seenKey] === stateDay) return addLog("今日已经聊过", `${cohab.epilogue.route_name} 今天已经留下过一段生活小事，明天再来听新的。`);
+  cohabState.dailySeen[seenKey] = stateDay;
+  queueDialogueGroup(map.dialogue_group_id);
+  recordCohabHistory("daily", cohab.epilogue, map.scene_key, "主动日常");
+  complete("cohab_daily_manual");
+  addLog("同住日常", `${cohab.epilogue.route_name}：${map.scene_key}。`);
+  render();
+  return true;
+}
