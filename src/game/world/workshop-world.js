@@ -93,6 +93,45 @@ export function workshopCraftFeedbackSpecWorld(recipe = null, outputItemId = "",
   };
 }
 
+export function workshopOutputStorageRouteFeedbackSpecWorld(feedback = null, {
+  recipe = null,
+  orderMatch = null,
+  routeTags = [],
+  shopTag = "",
+  shopTagText = "",
+  currentStock = 0,
+  safety = "",
+  recipeName = (recipeRow = {}) => recipeRow?.recipe_id || "",
+  itemName = (itemId = "") => itemId,
+  day = 1,
+  now = () => 0,
+} = {}) {
+  if (!feedback?.outputItemId) return null;
+  const outputItemId = feedback.outputItemId;
+  const resolvedShopTag = shopTag || routeTags[0] || "food";
+  const createdAt = now();
+  return {
+    key: `${day}:${feedback.recipeId || recipe?.recipe_id || "recipe"}:${outputItemId}:${Number(feedback.outputCount || 1)}:${orderMatch?.orderId || resolvedShopTag}:${Math.round(createdAt)}`,
+    day,
+    recipeId: feedback.recipeId || recipe?.recipe_id || "",
+    recipeName: feedback.recipeName || (recipe ? recipeName(recipe) : "当前配方"),
+    outputItemId,
+    outputItemName: feedback.outputItemName || itemName(outputItemId),
+    outputCount: Number(feedback.outputCount || 1),
+    firstAroma: Boolean(feedback.firstAroma),
+    orderId: orderMatch?.orderId || "",
+    orderTitle: orderMatch?.orderTitle || "",
+    orderReady: Boolean(orderMatch?.ready),
+    orderMissingText: orderMatch?.missingText || "",
+    shopTag: resolvedShopTag,
+    shopTagText,
+    currentStock: Number(currentStock || 0),
+    source: feedback.source === "queued" ? "queued" : "manual",
+    safety,
+    createdAt,
+  };
+}
+
 export function drawWorkshopAromaStoryWorldWorld({
   ctx,
   spec = null,

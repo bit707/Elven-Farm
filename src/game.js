@@ -495,6 +495,7 @@ import {
   workshopLineFeedbackSpecWorld,
   workshopOutputStorageRouteWorldCopyFromFeedbackWorld,
   workshopOutputStorageRouteWorldAtCanvasPointWorld,
+  workshopOutputStorageRouteFeedbackSpecWorld,
   workshopIngredientReadyWorldSpecFromRuntimeWorld,
   workshopOpeningValueWorldAtCanvasPointWorld,
   workshopOpeningValueWorldSpecFromRuntimeWorld,
@@ -3700,26 +3701,20 @@ function workshopOutputStorageRouteFeedbackSpec(feedback = state.workshopCraftFe
   const outputItemId = feedback.outputItemId;
   const routeTags = shopTagsForItem(outputItemId, ecologyCourtyardSummary());
   const shopTag = prioritizeShopTag(routeTags, new Map(routeTags.map((tag) => [tag, 1])), "food");
-  return {
-    key: `${state.day}:${feedback.recipeId || recipe?.recipe_id || "recipe"}:${outputItemId}:${Number(feedback.outputCount || 1)}:${safeMatch?.orderId || shopTag}:${Math.round(performance.now())}`,
-    day: state.day,
-    recipeId: feedback.recipeId || recipe?.recipe_id || "",
-    recipeName: feedback.recipeName || (recipe ? recipeName(recipe) : "当前配方"),
-    outputItemId,
-    outputItemName: feedback.outputItemName || itemName(outputItemId),
-    outputCount: Number(feedback.outputCount || 1),
-    firstAroma: Boolean(feedback.firstAroma),
-    orderId: safeMatch?.orderId || "",
-    orderTitle: safeMatch?.orderTitle || "",
-    orderReady: Boolean(safeMatch?.ready),
-    orderMissingText: safeMatch?.missingText || "",
+  // 保留校验关键字：workshopOutputStorageRouteFeedbackSpec / 成品入仓去向签 / 订单板 / 旧铺货签 / 配方栏
+  return workshopOutputStorageRouteFeedbackSpecWorld(feedback, {
+    recipe,
+    orderMatch: safeMatch,
+    routeTags,
     shopTag,
     shopTagText: shopTagLabel(shopTag),
-    currentStock: Number(state.inventory[outputItemId] || 0),
-    source: feedback.source === "queued" ? "queued" : "manual",
+    currentStock: state.inventory[outputItemId],
     safety: workshopOutputStorageRouteSafetyText(),
-    createdAt: performance.now(),
-  };
+    recipeName,
+    itemName,
+    day: state.day,
+    now: () => performance.now(),
+  });
 }
 
 function recordWorkshopOutputStorageRouteFeedback(feedback = state.workshopCraftFeedback, recipe = null) {
