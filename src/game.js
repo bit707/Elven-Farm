@@ -16,6 +16,7 @@ import { drawCanvasCard } from "./game/shared/canvas.js";
 import { activeTimedFeedback } from "./game/shared/feedback.js";
 import { applyVisiblePanelColumns, pulseFocusElement } from "./game/shared/focus.js";
 import { selectorDataValue } from "./game/shared/selectors.js";
+import { createInitialGoalBookState, normalizeGoalBookState } from "./game/state/goal-book-state.js";
 import {
   cloneShopSeasonCycleStats,
   cloneShopSeasonSettlement,
@@ -1341,49 +1342,6 @@ const STORY_BEATS = [
     text: "第一段灵渠被修好，洞天边缘亮起水纹。凡仙镇和洞天的命运开始重新相连。",
   },
 ];
-
-function createInitialGoalBookState() {
-  return {
-    year2Claims: {},
-    freeplayClaims: {},
-    ecologyClaims: {},
-    lifeCodexFilter: "all",
-    daily: {
-      cycleKey: "day:1",
-      spiritCareCount: 0,
-      ordersDelivered: 0,
-      expeditionsSent: 0,
-    },
-    weekly: {
-      cycleKey: "week:0",
-      expeditionComplete: 0,
-    },
-    seasonal: {
-      cycleKey: "term:term_lichun",
-      flowerThemeCount: 0,
-      lanternDungeonClears: 0,
-    },
-    lifetime: {
-      expeditionComplete: 0,
-      solarTrialRankACount: 0,
-    },
-  };
-}
-
-function normalizeGoalBookState(goalBookState = {}) {
-  const defaults = createInitialGoalBookState();
-  return {
-    ...defaults,
-    ...goalBookState,
-    year2Claims: { ...(goalBookState.year2Claims || {}) },
-    freeplayClaims: { ...(goalBookState.freeplayClaims || {}) },
-    ecologyClaims: { ...(goalBookState.ecologyClaims || {}) },
-    daily: { ...defaults.daily, ...(goalBookState.daily || {}) },
-    weekly: { ...defaults.weekly, ...(goalBookState.weekly || {}) },
-    seasonal: { ...defaults.seasonal, ...(goalBookState.seasonal || {}) },
-    lifetime: { ...defaults.lifetime, ...(goalBookState.lifetime || {}) },
-  };
-}
 
 function createInitialRareSpiritLifeState() {
   return {
