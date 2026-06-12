@@ -2874,6 +2874,23 @@ export function workshopReadyOrderDispatchWorldCopyFromRuntimeWorld({
   };
 }
 
+export function workshopReadyOrderDispatchWorldCopySpecWorld(aromaSpec = null, rewardText = "订单奖励") {
+  return workshopReadyOrderDispatchWorldCopyFromRuntimeWorld({
+    aromaSpec,
+    rewardText,
+    copy: {
+      title: "主世界出锅可交单",
+      headline: "出锅交单车已装好",
+      detail: aromaSpec ? `${aromaSpec.outputLabel} -> ${aromaSpec.orderTitle}` : "",
+      routeLabel: "交单路线",
+      boardLabel: "订单板收款口",
+      manualLabel: "确认后手动点交付",
+      safety: "不会自动交单或消耗库存",
+      cta: "出锅交单 · 可点",
+    },
+  });
+}
+
 export function workshopReadyOrderDispatchWorldAtCanvasPointWorld({
   px,
   py,
