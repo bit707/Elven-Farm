@@ -46,22 +46,22 @@ import {
   townLifeGreetingSafetyText as townLifeGreetingSafetyTextHelper,
 } from "./game/world/town-life-social-keepsakes.js";
 import {
-  townLifeMemoryKeepsakeAtCanvasPoint as townLifeMemoryKeepsakeAtCanvasPointHelper,
-  townLifeMemoryKeepsakeCandidate as townLifeMemoryKeepsakeCandidateHelper,
-  townLifeMemoryKeepsakePalette as townLifeMemoryKeepsakePaletteHelper,
-  townLifeMemoryKeepsakeSpec as townLifeMemoryKeepsakeSpecHelper,
-  townLifeMemoryNewPageAtCanvasPoint as townLifeMemoryNewPageAtCanvasPointHelper,
-  townLifeMemoryNewPageEntry as townLifeMemoryNewPageEntryHelper,
-  townLifeMemoryNewPageNodes as townLifeMemoryNewPageNodesHelper,
-  townLifeMemoryNewPageSafetyText as townLifeMemoryNewPageSafetyTextHelper,
-  townLifeMemoryNewPageSpec as townLifeMemoryNewPageSpecHelper,
-  townLifeMemoryThresholdAction as townLifeMemoryThresholdActionHelper,
-  townLifeMemoryThresholdCandidate as townLifeMemoryThresholdCandidateHelper,
-  townLifeMemoryThresholdKeepsakeAtCanvasPoint as townLifeMemoryThresholdKeepsakeAtCanvasPointHelper,
-  townLifeMemoryThresholdKeepsakeNodes as townLifeMemoryThresholdKeepsakeNodesHelper,
-  townLifeMemoryThresholdKeepsakeSpec as townLifeMemoryThresholdKeepsakeSpecHelper,
-  townLifeMemoryThresholdSafetyText as townLifeMemoryThresholdSafetyTextHelper,
-} from "./game/world/town-life-memory-keepsakes.js";
+  townLifeMemoryKeepsakeAtCanvasPointRuntime,
+  townLifeMemoryKeepsakeCandidateRuntime,
+  townLifeMemoryKeepsakePaletteRuntime,
+  townLifeMemoryKeepsakeSpecRuntime,
+  townLifeMemoryNewPageAtCanvasPointRuntime,
+  townLifeMemoryNewPageEntryRuntime,
+  townLifeMemoryNewPageNodesRuntime,
+  townLifeMemoryNewPageSafetyTextRuntime,
+  townLifeMemoryNewPageSpecRuntime,
+  townLifeMemoryThresholdActionRuntime,
+  townLifeMemoryThresholdCandidateRuntime,
+  townLifeMemoryThresholdKeepsakeAtCanvasPointRuntime,
+  townLifeMemoryThresholdKeepsakeNodesRuntime,
+  townLifeMemoryThresholdKeepsakeSpecRuntime,
+  townLifeMemoryThresholdSafetyTextRuntime,
+} from "./game/world/town-life-memory-runtime.js";
 import {
   townLifeErrandDeliveryKeepsakeAtCanvasPoint as townLifeErrandDeliveryKeepsakeAtCanvasPointHelper,
   townLifeErrandDeliveryKeepsakeNodes as townLifeErrandDeliveryKeepsakeNodesHelper,
@@ -39649,11 +39649,11 @@ function townLifeRelationshipWorldBoardSpec(rows = townLifeRows(6), canvasWidth 
 
 function townLifeMemoryKeepsakePalette(tone = "seeded") {
   // townLifeMemoryKeepsakePalette bridge keeps verify keywords: 镇民关系心签 / 最近记忆 / 下一段记忆 / 终章伏笔 / 点选镇民关系心签 / 这里只翻看/定位关系册，不会自动打招呼、送礼、接支线、交托付、播放同居事件或消耗资源
-  return townLifeMemoryKeepsakePaletteHelper(tone);
+  return townLifeMemoryKeepsakePaletteRuntime(tone);
 }
 
 function townLifeMemoryKeepsakeCandidate(rows = townLifeRows(6)) {
-  return townLifeMemoryKeepsakeCandidateHelper(rows, {
+  return townLifeMemoryKeepsakeCandidateRuntime(rows, {
     syncTownLifeInteractionState,
     canvasTownLifeFocusRow,
     townLifeWorldPoint,
@@ -39670,7 +39670,7 @@ function townLifeMemoryKeepsakeCandidate(rows = townLifeRows(6)) {
 }
 
 function townLifeMemoryKeepsakeSpec(rows = townLifeRows(6), canvasWidth = refs.world?.width || 960, canvasHeight = refs.world?.height || 640) {
-  return townLifeMemoryKeepsakeSpecHelper(rows, canvasWidth, canvasHeight, {
+  return townLifeMemoryKeepsakeSpecRuntime(rows, canvasWidth, canvasHeight, {
     stateDay: state.day,
     townLifeMemoryKeepsakeCandidate,
     townLifeMemoryKeepsakePalette,
@@ -39680,7 +39680,7 @@ function townLifeMemoryKeepsakeSpec(rows = townLifeRows(6), canvasWidth = refs.w
 }
 
 function townLifeMemoryKeepsakeAtCanvasPoint(px, py) {
-  return townLifeMemoryKeepsakeAtCanvasPointHelper(px, py, {
+  return townLifeMemoryKeepsakeAtCanvasPointRuntime(px, py, {
     townLifeMemoryKeepsakeSpec,
   });
 }
@@ -39699,11 +39699,11 @@ function focusTownLifeMemoryKeepsakeFromCanvas(spec = townLifeMemoryKeepsakeSpec
 
 function townLifeMemoryNewPageSafetyText() {
   // townLifeMemoryNewPageSafetyText bridge keeps verify keywords: 关系记忆新页 · 可点 / 谁写下 / 记了什么 / 回看入口 / 点选关系记忆新页 / 只定位回看入口 · 不自动播放 / 不会自动打开记忆页、播放对白、推进剧情、写入完成标记或消耗资源
-  return townLifeMemoryNewPageSafetyTextHelper();
+  return townLifeMemoryNewPageSafetyTextRuntime();
 }
 
 function townLifeMemoryNewPageEntry() {
-  return townLifeMemoryNewPageEntryHelper({
+  return townLifeMemoryNewPageEntryRuntime({
     syncTownLifeInteractionState,
     activeFocus: townLifeMemoryNewPageWorldFocus,
     stateDay: state.day,
@@ -39711,7 +39711,7 @@ function townLifeMemoryNewPageEntry() {
 }
 
 function townLifeMemoryNewPageNodes(entry = null) {
-  return townLifeMemoryNewPageNodesHelper(entry, {
+  return townLifeMemoryNewPageNodesRuntime(entry, {
     npcName,
     selectorDataValue,
     stateDay: state.day,
@@ -39720,7 +39720,7 @@ function townLifeMemoryNewPageNodes(entry = null) {
 }
 
 function townLifeMemoryNewPageSpec(rows = townLifeRows(6), canvasWidth = refs.world?.width || 960, canvasHeight = refs.world?.height || 640) {
-  return townLifeMemoryNewPageSpecHelper(rows, canvasWidth, canvasHeight, {
+  return townLifeMemoryNewPageSpecRuntime(rows, canvasWidth, canvasHeight, {
     stateDay: state.day,
     townLifeMemoryNewPageEntry,
     canvasTownLifeFocusRow,
@@ -39734,7 +39734,7 @@ function townLifeMemoryNewPageSpec(rows = townLifeRows(6), canvasWidth = refs.wo
 }
 
 function townLifeMemoryNewPageAtCanvasPoint(px, py) {
-  return townLifeMemoryNewPageAtCanvasPointHelper(px, py, {
+  return townLifeMemoryNewPageAtCanvasPointRuntime(px, py, {
     townLifeMemoryNewPageSpec,
   });
 }
@@ -39753,11 +39753,11 @@ function focusTownLifeMemoryNewPageFromCanvas(spec = townLifeMemoryNewPageSpec()
 
 function townLifeMemoryThresholdSafetyText() {
   // townLifeMemoryThresholdSafetyText bridge keeps verify keywords: 关系记忆临门签 · 可点 / 当前来往 / 下一段记忆 / 推进入口 / 点选关系记忆临门签 / 只定位推进，不自动解锁记忆 / 不会自动寒暄、赠礼、交托付、解锁记忆或播放对白
-  return townLifeMemoryThresholdSafetyTextHelper();
+  return townLifeMemoryThresholdSafetyTextRuntime();
 }
 
 function townLifeMemoryThresholdAction(row = null, next = null) {
-  return townLifeMemoryThresholdActionHelper(row, next, {
+  return townLifeMemoryThresholdActionRuntime(row, next, {
     townLifeGreetingSeen,
     recommendedNpcGift,
     townLifeGiftSeen,
@@ -39767,7 +39767,7 @@ function townLifeMemoryThresholdAction(row = null, next = null) {
 }
 
 function townLifeMemoryThresholdCandidate(rows = townLifeRows(6)) {
-  return townLifeMemoryThresholdCandidateHelper(rows, {
+  return townLifeMemoryThresholdCandidateRuntime(rows, {
     nextTownLifeMemory,
     townLifeInteractionCounts,
     stateNpcFavor: state.npcFavor,
@@ -39781,7 +39781,7 @@ function townLifeMemoryThresholdCandidate(rows = townLifeRows(6)) {
 }
 
 function townLifeMemoryThresholdKeepsakeNodes(candidate = null) {
-  return townLifeMemoryThresholdKeepsakeNodesHelper(candidate, {
+  return townLifeMemoryThresholdKeepsakeNodesRuntime(candidate, {
     townLifeMemoryThresholdAction,
     selectorDataValue,
     townLifeMemoryProgressText,
@@ -39790,7 +39790,7 @@ function townLifeMemoryThresholdKeepsakeNodes(candidate = null) {
 }
 
 function townLifeMemoryThresholdKeepsakeSpec(rows = townLifeRows(6), canvasWidth = refs.world?.width || 960, canvasHeight = refs.world?.height || 640) {
-  return townLifeMemoryThresholdKeepsakeSpecHelper(rows, canvasWidth, canvasHeight, {
+  return townLifeMemoryThresholdKeepsakeSpecRuntime(rows, canvasWidth, canvasHeight, {
     stateDay: state.day,
     townLifeMemoryThresholdCandidate,
     townLifeMemoryThresholdKeepsakeNodes,
@@ -39800,7 +39800,7 @@ function townLifeMemoryThresholdKeepsakeSpec(rows = townLifeRows(6), canvasWidth
 }
 
 function townLifeMemoryThresholdKeepsakeAtCanvasPoint(px, py) {
-  return townLifeMemoryThresholdKeepsakeAtCanvasPointHelper(px, py, {
+  return townLifeMemoryThresholdKeepsakeAtCanvasPointRuntime(px, py, {
     townLifeMemoryThresholdKeepsakeSpec,
   });
 }
