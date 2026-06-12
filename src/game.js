@@ -72,6 +72,12 @@ import {
   readyOrderSealWorldSpecData,
 } from "./game/shared/ready-order-seal.js";
 import {
+  orderCraftPrepWorldBoardAtPointData,
+  orderCraftPrepWorldBoardFocusData,
+  orderCraftPrepWorldBoardSpecData,
+  orderCraftPrepWorldRowsData,
+} from "./game/shared/order-craft-prep-board.js";
+import {
   workshopSpiritAssistActionFocusData,
   workshopSpiritAssistActionWorldAtPointData,
   workshopSpiritAssistActionWorldSpecData,
@@ -25852,56 +25858,22 @@ function drawReadyOrderSealWorld(ctx, spec = readyOrderSealWorldSpecBridge(ctx.c
 }
 
 function orderCraftPrepWorldRows(limit = 3) {
-  const orders = visibleOrders();
-  if (orders.some((order) => canDeliverOrder(order))) return [];
-  return orders
-    .filter((order) => !canDeliverOrder(order))
-    .flatMap((order) => {
-      const status = orderNeedStatus(order);
-      const missingByItem = new Map(status.missing.map((entry) => [entry.itemId, entry]));
-      return orderProductionPlan(order)
-        .filter((entry) => missingByItem.has(entry.itemId) && entry.action?.type === "recipe" && !entry.action.disabled)
-        .map((entry) => {
-          const recipe = data.recipes.find((candidate) => candidate.recipe_id === entry.action.id);
-          if (!recipe || !recipeCraftReady(recipe)) return null;
-          const missing = missingByItem.get(entry.itemId);
-          const rewardGold = Number(order.reward_gold || 0);
-          const rewardFame = Number(order.reward_fame || 0);
-          const outputCount = Number(recipe.output_count || 1);
-          const outputHave = Number(state.inventory[entry.itemId] || 0);
-          const enoughAfterCraft = outputHave + outputCount >= Number(missing.count || 1);
-          const priority = (enoughAfterCraft ? 70 : 38)
-            + rewardGold / 25
-            + rewardFame * 9
-            + (String(order.order_id || "").startsWith("order_year2_") ? 20 : 0)
-            + Math.max(0, 18 - Number(recipe.base_process_time || 60) / 12);
-          return {
-            order,
-            orderId: order.order_id,
-            orderTitle: orderTitle(order),
-            npc: npcName(order.issuer_id || order.reward_favor_npc),
-            itemId: entry.itemId,
-            itemName: itemName(entry.itemId),
-            missingCount: Math.max(0, Number(missing.count || 1) - outputHave),
-            haveText: `${outputHave}/${Number(missing.count || 1)}`,
-            recipe,
-            recipeId: recipe.recipe_id,
-            recipeTitle: recipeName(recipe),
-            outputCount,
-            enoughAfterCraft,
-            inputText: recipeInputStatus(recipe, 3) || "原料已齐",
-            machineText: recipeMachineHint(recipe),
-            rewardText: [
-              rewardGold ? `${rewardGold} 灵石` : "",
-              rewardFame ? `声望 +${rewardFame}` : "",
-            ].filter(Boolean).join(" / ") || "订单奖励",
-            priority,
-          };
-        })
-        .filter(Boolean);
-    })
-    .sort((a, b) => b.priority - a.priority || a.orderTitle.localeCompare(b.orderTitle, "zh-Hans-CN"))
-    .slice(0, limit);
+  return orderCraftPrepWorldRowsData({
+    limit,
+    orders: visibleOrders(),
+    recipes: data.recipes,
+    inventory: state.inventory,
+    canDeliverOrder,
+    orderNeedStatus,
+    orderProductionPlan,
+    recipeCraftReady,
+    orderTitle,
+    npcName,
+    itemName,
+    recipeName,
+    recipeInputStatus,
+    recipeMachineHint,
+  });
 }
 
 function orderCraftPrepWorldBoardSpec(width = 960, height = 640) {
@@ -25915,29 +25887,33 @@ const ORDER_CRAFT_PREP_WORLD_BOARD_COPY = {
 
 function orderCraftPrepWorldBoardSpecBridge(width = 960, height = 640) {
   const rows = orderCraftPrepWorldRows(3);
-  return orderCraftPrepWorldBoardSpecWorld({
+  // Order craft prep bridge keeps verify keywords:
+  // orderCraftPrepWorldBoardSpec / orderCraftPrepWorldBoardAtCanvasPoint / focusOrderCraftPrepWorldBoardFromCanvas / drawOrderCraftPrepWorldBoard / 主世界订单缺口可入锅 / 缺口可入锅 / 点选订单缺口可入锅.
+  return orderCraftPrepWorldBoardSpecData({
     width,
     height,
     day: state.day,
     rows,
     copy: ORDER_CRAFT_PREP_WORLD_BOARD_COPY,
+    specWorld: orderCraftPrepWorldBoardSpecWorld,
   });
 }
 
 function orderCraftPrepWorldBoardAtCanvasPoint(px, py) {
-  return orderCraftPrepWorldBoardAtCanvasPointWorld({
+  return orderCraftPrepWorldBoardAtPointData({
     px,
     py,
     spec: orderCraftPrepWorldBoardSpecBridge(refs.world?.width || 960, refs.world?.height || 640),
+    atPoint: orderCraftPrepWorldBoardAtCanvasPointWorld,
   });
 }
 
 function focusOrderCraftPrepWorldBoardFromCanvas(spec = orderCraftPrepWorldBoardSpecBridge()) {
-  if (!spec?.top?.recipeId) return false;
-  const { top } = spec;
-  orderCraftPrepWorldBoardFocus = { key: spec.key, day: state.day, orderId: top.orderId, recipeId: top.recipeId };
-  addLog("点选订单缺口可入锅", `${top.orderTitle} 还差 ${top.itemName} ${top.haveText}，${top.recipeTitle} 已切到加工栏。做完这一锅后再回订单板看是否可交。`);
-  focusPlotRouteRecipe(top.recipeId);
+  const focusSpec = orderCraftPrepWorldBoardFocusData(spec, state.day);
+  if (!focusSpec) return false;
+  orderCraftPrepWorldBoardFocus = focusSpec.focus;
+  addLog(focusSpec.log.title, focusSpec.log.message);
+  focusPlotRouteRecipe(focusSpec.recipeId);
   return true;
 }
 
