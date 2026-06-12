@@ -496,7 +496,7 @@ import {
   workshopLineFeedbackSpecWorld,
   workshopOutputOrderMatchSpecWorld,
   workshopOrderMatchSafeWorld,
-  workshopOutputStorageRouteWorldCopyFromFeedbackWorld,
+  workshopOutputStorageRouteWorldCopySpecWorld,
   workshopOutputStorageRouteWorldAtCanvasPointWorld,
   workshopOutputStorageRouteFeedbackSpecWorld,
   workshopIngredientReadyWorldSpecFromRuntimeWorld,
@@ -3623,43 +3623,11 @@ function workshopOutputStorageRouteSafetyText() {
 }
 
 function workshopOutputStorageRouteCopy(feedback, stock = 0, orderVisible = false) {
-  return workshopOutputStorageRouteWorldCopyFromFeedbackWorld({
+  // 保留校验关键字：workshopOutputStorageRouteCopy / 成品入仓去向签 · 可点 / 旧铺货签 / 只定位订单板、旧铺货签、配方栏或背包
+  return workshopOutputStorageRouteWorldCopySpecWorld({
     feedback,
     stock,
     orderVisible,
-    copy: {
-      title: "成品入仓去向签 · 可点",
-      queuedReadyRouteText: "夜间排产 -> 成品入仓 -> 订单可交",
-      queuedLinkedRouteText: "夜间排产 -> 成品入仓 -> 订单接线",
-      queuedShopRoutePrefix: "夜间排产 -> 成品入仓 -> ",
-      manualReadyRouteText: "手动加工 -> 成品入仓 -> 订单可交",
-      manualLinkedRouteText: "手动加工 -> 成品入仓 -> 订单接线",
-      manualShopRoutePrefix: "手动加工 -> 成品入仓 -> ",
-      shopRouteSuffix: "货签",
-      readyHeadlineSuffix: " 已让订单可交",
-      linkedHeadlineSuffix: " 接上订单线",
-      shopHeadlineSuffix: " 适合摆旧铺",
-      readyDetailSuffix: " 库存已够，去订单板手动交付。",
-      linkedDetailPrefix: " 已接到这锅，还差 ",
-      linkedDetailSuffix: "。",
-      missingFallbackText: "余料",
-      shopDetailPrefix: "当前库存 ",
-      shopDetailMiddle: "，可按 ",
-      shopDetailSuffix: " 留作旧铺头排或继续备货。",
-      potBadge: "锅",
-      potTitle: "出锅",
-      stockBadge: "仓",
-      stockTitle: "入仓",
-      stockDetailPrefix: "库存 ",
-      orderBadge: "单",
-      orderReadyTitle: "可交",
-      orderLinkedTitle: "接线",
-      orderFallbackTitle: "订单板",
-      shopBadge: "铺",
-      shopTitle: "旧铺",
-      shopFallbackDetail: "货签",
-      shopTagText: feedback?.shopTagText || "货签",
-    },
   });
 }
 
