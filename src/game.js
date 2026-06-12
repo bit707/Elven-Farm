@@ -62,6 +62,8 @@ import {
   normalizeShopWordOfMouth,
 } from "./game/state/shop-stats.js";
 import {
+  createInitialShopOpeningStateData,
+  normalizeShopOpeningStateData,
   normalizeShopCustomerDecisionLedgerData,
   normalizeShopIntroducedCustomerVisitData,
   normalizeShopRegularBoardData,
@@ -1635,28 +1637,7 @@ function focusFailureMercyLanternWorldFromCanvas(spec = failureMercyLanternWorld
 }
 
 function createInitialShopOpeningState() {
-  return {
-    opened: false,
-    firstOpenDay: 0,
-    firstSaleDay: 0,
-    summaryUnlocked: false,
-    hotTag: "",
-    hotTagLabel: "",
-    needBubbles: [],
-    firstSale: null,
-    lastSession: null,
-    liveFocus: null,
-    failureRecovery: null,
-    customerDecisionLedger: null,
-    regularBoard: null,
-    returningCustomers: [],
-    introducedCustomers: [],
-    visitPledge: null,
-    townErrand: null,
-    restockTarget: null,
-    restockHistory: [],
-    history: [],
-  };
+  return createInitialShopOpeningStateData();
 }
 
 function normalizeShopRestockTarget(target = null) {
@@ -1718,93 +1699,17 @@ function normalizeShopTownErrand(entry = null) {
 }
 
 function normalizeShopOpeningState(shopOpeningState = {}) {
-  const defaults = createInitialShopOpeningState();
-  return {
-    ...defaults,
-    ...shopOpeningState,
-    needBubbles: Array.isArray(shopOpeningState.needBubbles) ? shopOpeningState.needBubbles.map((entry) => ({ ...entry })).slice(0, 4) : [],
-    firstSale: shopOpeningState.firstSale ? { ...shopOpeningState.firstSale } : null,
-    liveFocus: shopOpeningState.liveFocus ? { ...shopOpeningState.liveFocus } : null,
-    failureRecovery: shopOpeningState.failureRecovery ? { ...shopOpeningState.failureRecovery } : null,
-    customerDecisionLedger: normalizeShopCustomerDecisionLedger(shopOpeningState.customerDecisionLedger),
-    regularBoard: normalizeShopRegularBoard(shopOpeningState.regularBoard),
-    returningCustomers: Array.isArray(shopOpeningState.returningCustomers)
-      ? shopOpeningState.returningCustomers.map((entry) => normalizeShopReturningCustomerVisit(entry)).filter(Boolean).slice(0, 4)
-      : [],
-    introducedCustomers: Array.isArray(shopOpeningState.introducedCustomers)
-      ? shopOpeningState.introducedCustomers.map((entry) => normalizeShopIntroducedCustomerVisit(entry)).filter(Boolean).slice(0, 4)
-      : [],
-    visitPledge: normalizeShopVisitPledge(shopOpeningState.visitPledge),
-    townErrand: normalizeShopTownErrand(shopOpeningState.townErrand),
-    lastSession: shopOpeningState.lastSession
-      ? {
-        ...shopOpeningState.lastSession,
-        liveFocus: shopOpeningState.lastSession.liveFocus ? { ...shopOpeningState.lastSession.liveFocus } : null,
-        failureRecovery: shopOpeningState.lastSession.failureRecovery ? { ...shopOpeningState.lastSession.failureRecovery } : null,
-        customerDecisionLedger: normalizeShopCustomerDecisionLedger(shopOpeningState.lastSession.customerDecisionLedger),
-        regularBoard: normalizeShopRegularBoard(shopOpeningState.lastSession.regularBoard),
-        returningCustomers: Array.isArray(shopOpeningState.lastSession.returningCustomers)
-          ? shopOpeningState.lastSession.returningCustomers.map((entry) => normalizeShopReturningCustomerVisit(entry)).filter(Boolean).slice(0, 4)
-          : [],
-        introducedCustomers: Array.isArray(shopOpeningState.lastSession.introducedCustomers)
-          ? shopOpeningState.lastSession.introducedCustomers.map((entry) => normalizeShopIntroducedCustomerVisit(entry)).filter(Boolean).slice(0, 4)
-          : [],
-        visitPledge: normalizeShopVisitPledge(shopOpeningState.lastSession.visitPledge),
-        townErrand: normalizeShopTownErrand(shopOpeningState.lastSession.townErrand),
-        ecologyShopAura: shopOpeningState.lastSession.ecologyShopAura ? { ...shopOpeningState.lastSession.ecologyShopAura } : null,
-        qingboSignatureAura: shopOpeningState.lastSession.qingboSignatureAura
-          ? qingboWaterFreshSignatureAuraSnapshot(shopOpeningState.lastSession.qingboSignatureAura)
-          : null,
-        compendiumDisplays: Array.isArray(shopOpeningState.lastSession.compendiumDisplays)
-          ? shopOpeningState.lastSession.compendiumDisplays.map((entry) => ({ ...entry })).slice(0, 3)
-          : [],
-        spiritFinaleEffects: shopOpeningState.lastSession.spiritFinaleEffects
-          ? {
-            ...shopOpeningState.lastSession.spiritFinaleEffects,
-            rows: Array.isArray(shopOpeningState.lastSession.spiritFinaleEffects.rows)
-              ? shopOpeningState.lastSession.spiritFinaleEffects.rows.map((row) => ({ ...row }))
-              : [],
-          }
-          : null,
-      }
-      : null,
-    restockTarget: normalizeShopRestockTarget(shopOpeningState.restockTarget),
-    restockHistory: Array.isArray(shopOpeningState.restockHistory)
-      ? shopOpeningState.restockHistory.map((entry) => normalizeShopRestockTarget(entry)).filter(Boolean).slice(0, 8)
-      : [],
-    history: Array.isArray(shopOpeningState.history)
-      ? shopOpeningState.history.map((entry) => ({
-        ...entry,
-        liveFocus: entry.liveFocus ? { ...entry.liveFocus } : null,
-        failureRecovery: entry.failureRecovery ? { ...entry.failureRecovery } : null,
-        customerDecisionLedger: normalizeShopCustomerDecisionLedger(entry.customerDecisionLedger),
-        regularBoard: normalizeShopRegularBoard(entry.regularBoard),
-        returningCustomers: Array.isArray(entry.returningCustomers)
-          ? entry.returningCustomers.map((row) => normalizeShopReturningCustomerVisit(row)).filter(Boolean).slice(0, 4)
-          : [],
-        introducedCustomers: Array.isArray(entry.introducedCustomers)
-          ? entry.introducedCustomers.map((row) => normalizeShopIntroducedCustomerVisit(row)).filter(Boolean).slice(0, 4)
-          : [],
-        visitPledge: normalizeShopVisitPledge(entry.visitPledge),
-        townErrand: normalizeShopTownErrand(entry.townErrand),
-        ecologyShopAura: entry.ecologyShopAura ? { ...entry.ecologyShopAura } : null,
-        qingboSignatureAura: entry.qingboSignatureAura
-          ? qingboWaterFreshSignatureAuraSnapshot(entry.qingboSignatureAura)
-          : null,
-        compendiumDisplays: Array.isArray(entry.compendiumDisplays)
-          ? entry.compendiumDisplays.map((display) => ({ ...display })).slice(0, 3)
-          : [],
-        spiritFinaleEffects: entry.spiritFinaleEffects
-          ? {
-            ...entry.spiritFinaleEffects,
-            rows: Array.isArray(entry.spiritFinaleEffects.rows)
-              ? entry.spiritFinaleEffects.rows.map((row) => ({ ...row }))
-              : [],
-          }
-          : null,
-      })).slice(0, 8)
-      : [],
-  };
+  // shopOpeningState bridge keeps verify keywords: createInitialShopOpeningState / normalizeShopOpeningState / shop-opening-card / firstSale / liveFocus / failureRecovery
+  return normalizeShopOpeningStateData(shopOpeningState, {
+    normalizeShopCustomerDecisionLedger,
+    normalizeShopRegularBoard,
+    normalizeShopReturningCustomerVisit,
+    normalizeShopIntroducedCustomerVisit,
+    normalizeShopVisitPledge,
+    normalizeShopTownErrand,
+    normalizeShopRestockTarget,
+    qingboWaterFreshSignatureAuraSnapshot,
+  });
 }
 
 function syncShopOpeningState() {

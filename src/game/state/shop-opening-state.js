@@ -1,3 +1,28 @@
+export function createInitialShopOpeningStateData() {
+  return {
+    opened: false,
+    firstOpenDay: 0,
+    firstSaleDay: 0,
+    summaryUnlocked: false,
+    hotTag: "",
+    hotTagLabel: "",
+    needBubbles: [],
+    firstSale: null,
+    lastSession: null,
+    liveFocus: null,
+    failureRecovery: null,
+    customerDecisionLedger: null,
+    regularBoard: null,
+    returningCustomers: [],
+    introducedCustomers: [],
+    visitPledge: null,
+    townErrand: null,
+    restockTarget: null,
+    restockHistory: [],
+    history: [],
+  };
+}
+
 export function normalizeShopRestockTargetData(target = null, options = {}) {
   if (!target) return null;
   const itemId = target.itemId || "";
@@ -186,5 +211,92 @@ export function normalizeShopTownErrandData(entry = null, options = {}) {
     fulfilledDay: Number(entry.fulfilledDay || 0),
     expiredDay: Number(entry.expiredDay || 0),
     tone: entry.tone || "mid",
+  };
+}
+
+export function normalizeShopOpeningStateData(shopOpeningState = {}, options = {}) {
+  const normalizeShopCustomerDecisionLedgerFor = typeof options.normalizeShopCustomerDecisionLedger === "function"
+    ? options.normalizeShopCustomerDecisionLedger
+    : (entry) => normalizeShopCustomerDecisionLedgerData(entry, options);
+  const normalizeShopRegularBoardFor = typeof options.normalizeShopRegularBoard === "function"
+    ? options.normalizeShopRegularBoard
+    : (entry) => normalizeShopRegularBoardData(entry, options);
+  const normalizeShopReturningCustomerVisitFor = typeof options.normalizeShopReturningCustomerVisit === "function"
+    ? options.normalizeShopReturningCustomerVisit
+    : (entry) => normalizeShopReturningCustomerVisitData(entry, options);
+  const normalizeShopIntroducedCustomerVisitFor = typeof options.normalizeShopIntroducedCustomerVisit === "function"
+    ? options.normalizeShopIntroducedCustomerVisit
+    : (entry) => normalizeShopIntroducedCustomerVisitData(entry, options);
+  const normalizeShopVisitPledgeFor = typeof options.normalizeShopVisitPledge === "function"
+    ? options.normalizeShopVisitPledge
+    : (entry) => normalizeShopVisitPledgeData(entry, options);
+  const normalizeShopTownErrandFor = typeof options.normalizeShopTownErrand === "function"
+    ? options.normalizeShopTownErrand
+    : (entry) => normalizeShopTownErrandData(entry, options);
+  const normalizeShopRestockTargetFor = typeof options.normalizeShopRestockTarget === "function"
+    ? options.normalizeShopRestockTarget
+    : (entry) => normalizeShopRestockTargetData(entry, options);
+  const qingboWaterFreshSignatureAuraSnapshotFor = typeof options.qingboWaterFreshSignatureAuraSnapshot === "function"
+    ? options.qingboWaterFreshSignatureAuraSnapshot
+    : (entry) => (entry ? { ...entry } : null);
+  const normalizeSession = (entry = null) => {
+    if (!entry) return null;
+    return {
+      ...entry,
+      liveFocus: entry.liveFocus ? { ...entry.liveFocus } : null,
+      failureRecovery: entry.failureRecovery ? { ...entry.failureRecovery } : null,
+      customerDecisionLedger: normalizeShopCustomerDecisionLedgerFor(entry.customerDecisionLedger),
+      regularBoard: normalizeShopRegularBoardFor(entry.regularBoard),
+      returningCustomers: Array.isArray(entry.returningCustomers)
+        ? entry.returningCustomers.map((row) => normalizeShopReturningCustomerVisitFor(row)).filter(Boolean).slice(0, 4)
+        : [],
+      introducedCustomers: Array.isArray(entry.introducedCustomers)
+        ? entry.introducedCustomers.map((row) => normalizeShopIntroducedCustomerVisitFor(row)).filter(Boolean).slice(0, 4)
+        : [],
+      visitPledge: normalizeShopVisitPledgeFor(entry.visitPledge),
+      townErrand: normalizeShopTownErrandFor(entry.townErrand),
+      ecologyShopAura: entry.ecologyShopAura ? { ...entry.ecologyShopAura } : null,
+      qingboSignatureAura: entry.qingboSignatureAura
+        ? qingboWaterFreshSignatureAuraSnapshotFor(entry.qingboSignatureAura)
+        : null,
+      compendiumDisplays: Array.isArray(entry.compendiumDisplays)
+        ? entry.compendiumDisplays.map((display) => ({ ...display })).slice(0, 3)
+        : [],
+      spiritFinaleEffects: entry.spiritFinaleEffects
+        ? {
+          ...entry.spiritFinaleEffects,
+          rows: Array.isArray(entry.spiritFinaleEffects.rows)
+            ? entry.spiritFinaleEffects.rows.map((row) => ({ ...row }))
+            : [],
+        }
+        : null,
+    };
+  };
+  const defaults = createInitialShopOpeningStateData();
+  return {
+    ...defaults,
+    ...shopOpeningState,
+    needBubbles: Array.isArray(shopOpeningState.needBubbles) ? shopOpeningState.needBubbles.map((entry) => ({ ...entry })).slice(0, 4) : [],
+    firstSale: shopOpeningState.firstSale ? { ...shopOpeningState.firstSale } : null,
+    liveFocus: shopOpeningState.liveFocus ? { ...shopOpeningState.liveFocus } : null,
+    failureRecovery: shopOpeningState.failureRecovery ? { ...shopOpeningState.failureRecovery } : null,
+    customerDecisionLedger: normalizeShopCustomerDecisionLedgerFor(shopOpeningState.customerDecisionLedger),
+    regularBoard: normalizeShopRegularBoardFor(shopOpeningState.regularBoard),
+    returningCustomers: Array.isArray(shopOpeningState.returningCustomers)
+      ? shopOpeningState.returningCustomers.map((entry) => normalizeShopReturningCustomerVisitFor(entry)).filter(Boolean).slice(0, 4)
+      : [],
+    introducedCustomers: Array.isArray(shopOpeningState.introducedCustomers)
+      ? shopOpeningState.introducedCustomers.map((entry) => normalizeShopIntroducedCustomerVisitFor(entry)).filter(Boolean).slice(0, 4)
+      : [],
+    visitPledge: normalizeShopVisitPledgeFor(shopOpeningState.visitPledge),
+    townErrand: normalizeShopTownErrandFor(shopOpeningState.townErrand),
+    lastSession: normalizeSession(shopOpeningState.lastSession),
+    restockTarget: normalizeShopRestockTargetFor(shopOpeningState.restockTarget),
+    restockHistory: Array.isArray(shopOpeningState.restockHistory)
+      ? shopOpeningState.restockHistory.map((entry) => normalizeShopRestockTargetFor(entry)).filter(Boolean).slice(0, 8)
+      : [],
+    history: Array.isArray(shopOpeningState.history)
+      ? shopOpeningState.history.map((entry) => normalizeSession(entry)).filter(Boolean).slice(0, 8)
+      : [],
   };
 }
