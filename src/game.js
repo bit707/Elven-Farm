@@ -107,6 +107,10 @@ import {
   focusTownLifeNpcFromCanvasWorld,
 } from "./game/world/town-life-canvas-focus.js";
 import {
+  canvasTownLifeFocusRowWorld,
+  townLifeNextMemoryPreviewWorld,
+} from "./game/world/town-life-context.js";
+import {
   EARLY_NPC_ROADMAP_LINES as EARLY_NPC_ROADMAP_LINES_WORLD,
   earlyNpcRoadmapMarkupWorld,
   earlyNpcRoadmapSpecWorld,
@@ -39406,28 +39410,22 @@ function focusTownLifePassalongLanternFromCanvas(target = null, options = {}) {
 }
 
 function canvasTownLifeFocusRow(npcId = "") {
-  const row = townLifeRows(12).find((entry) => entry.npc.npc_id === npcId);
-  if (row) return row;
-  const npc = data.npcsById.get(npcId);
-  if (!npc || npc.npc_id === "npc_system") return null;
-  const schedule = currentScheduleFor(npcId);
-  const fallbackRow = {
-    npc,
-    schedule,
-    value: state.npcFavor[npcId] || 0,
-    level: favorLevel(state.npcFavor[npcId] || 0),
-    status: townLifeStatus(schedule, npcId),
-    area: schedule ? areaName(schedule.area_id) : "镇中未见",
-    action: scheduleActionLabel(schedule),
-    bark: npcTownLifeBark(npc, schedule),
-    shopReputationBark: null,
-    shopMomentBark: null,
-  };
-  fallbackRow.shopReputationBark = shopReputationTownBarkSpec(fallbackRow);
-  fallbackRow.shopMomentBark = townLifeShopMomentBarkSpec(fallbackRow);
-  fallbackRow.careChainBark = careChainEchoSpec(state.careChainState, fallbackRow);
-  fallbackRow.weatherMoment = townLifeWeatherMomentSpec(fallbackRow);
-  return fallbackRow;
+  return canvasTownLifeFocusRowWorld(npcId, {
+    townLifeRows,
+    dataNpcsById: data.npcsById,
+    currentScheduleFor,
+    stateNpcFavor: state.npcFavor,
+    favorLevel,
+    townLifeStatus,
+    areaName,
+    scheduleActionLabel,
+    npcTownLifeBark,
+    shopReputationTownBarkSpec,
+    townLifeShopMomentBarkSpec,
+    careChainEchoSpec,
+    stateCareChainState: state.careChainState,
+    townLifeWeatherMomentSpec,
+  });
 }
 
 function focusTownLifeNpcFromCanvas(row) {
@@ -39490,15 +39488,11 @@ function canvasTownLifeFocusMarkup() {
 }
 
 function townLifeNextMemoryPreview(npcId = "") {
-  const memories = TOWN_LIFE_MEMORY_BOOK[npcId] || [];
-  const remembered = syncTownLifeInteractionState().memoryByNpc?.[npcId] || {};
-  const runtimePlan = npcRuntime()?.nextRelationshipMemory({
-    npcId,
-    memories,
-    rememberedMemoryIds: Object.keys(remembered),
+  return townLifeNextMemoryPreviewWorld(npcId, {
+    townLifeMemoryBook: TOWN_LIFE_MEMORY_BOOK,
+    syncTownLifeInteractionState,
+    npcRuntime,
   });
-  if (runtimePlan && "memory" in runtimePlan) return runtimePlan.memory || null;
-  return memories.find((memory) => !remembered[memory.id]) || null;
 }
 
 const EARLY_NPC_ROADMAP_LINES = EARLY_NPC_ROADMAP_LINES_WORLD;
@@ -39592,7 +39586,7 @@ function townLifeOpportunityRows(rows = townLifeRows(8), limit = 4) {
 }
 
 function townLifeOpportunityBoardMarkup(rows = townLifeRows(8)) {
-  // townLifeOpportunityBoardMarkup bridge keeps verify keywords: data-town-opportunity-board / 今日关系机会 / data-town-opportunity-greet
+  // townLifeOpportunityBoardMarkup bridge keeps verify keywords: townLifeOpportunityRows / townLifeOpportunityActionMarkup / data-town-opportunity-board / data-town-opportunity-greet / data-town-opportunity-errand / data-town-opportunity-errand-route / data-town-opportunity-gift / data-town-opportunity-side-quest / data-town-opportunity-memory-id / town-life-opportunity-board / town-life-opportunity-list / town-life-opportunity / 今日关系机会 / 关系记忆临门
   return townLifeOpportunityBoardMarkupHelper(rows, {
     townLifeOpportunityRows,
     townLifeOpportunityActionMarkup,
