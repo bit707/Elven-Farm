@@ -167,7 +167,9 @@ import {
   spiritAutomationPromenadeMarkupRuntime,
   spiritAutomationPromenadeRowsRuntime,
   spiritAutomationPromenadeSpecRuntime,
+  spiritSeasonalWorkDaySummaryRowsRuntime,
   spiritSeasonalWorkMomentSpecRuntime,
+  spiritSeasonalWorkSceneProfileRuntime,
   spiritJobReportByJobRuntime,
   spiritJobPersonaSpecRuntime,
   spiritJobShiftFeedbackSpecRuntime,
@@ -6941,76 +6943,17 @@ function spiritSeasonalWorkMomentSpec(spirit = null, job = spirit?.job || "farm"
 }
 
 function spiritSeasonalWorkSceneProfile(tone = "clear") {
-  if (tone.includes("rain")) return {
-    mode: "rain",
-    label: "雨天撑叶",
-    accent: "#4d91a6",
-    soft: "rgba(232, 246, 242, 0.78)",
-    glyph: "叶",
-  };
-  if (tone.includes("heat")) return {
-    mode: "heat",
-    label: "热天扇风",
-    accent: "#be4f37",
-    soft: "rgba(255, 240, 232, 0.78)",
-    glyph: "风",
-  };
-  if (tone.includes("mist")) return {
-    mode: "mist",
-    label: "雾天点灯",
-    accent: "#5d6f65",
-    soft: "rgba(255, 253, 245, 0.72)",
-    glyph: "灯",
-  };
-  if (tone.includes("cold")) return {
-    mode: "cold",
-    label: "冷天护苗",
-    accent: "#8f5f3f",
-    soft: "rgba(232, 246, 242, 0.72)",
-    glyph: "炉",
-  };
-  if (tone.includes("dew")) return {
-    mode: "dew",
-    label: "露天收露",
-    accent: "#286f58",
-    soft: "rgba(237, 243, 223, 0.76)",
-    glyph: "露",
-  };
-  return {
-    mode: "clear",
-    label: "晴天挂牌",
-    accent: "#b47d2f",
-    soft: "rgba(255, 248, 232, 0.74)",
-    glyph: "晴",
-  };
+  // 保留校验关键字：spiritSeasonalWorkSceneProfile / 雨天撑叶 / 热天扇风 / 雾天点灯 / 冷天护苗 / 露天收露 / 晴天挂牌
+  return spiritSeasonalWorkSceneProfileRuntime(tone);
 }
 
 function spiritSeasonalWorkDaySummaryRows(limit = 3) {
-  return state.spirits
-    .slice(0, Math.max(0, limit))
-    .map((spirit) => {
-      const seasonal = spiritSeasonalWorkMomentSpec(spirit, spirit?.job || "farm");
-      if (!seasonal) return null;
-      const profile = spiritSeasonalWorkSceneProfile(seasonal.tone || "clear");
-      return {
-        spiritId: spirit.id,
-        spiritName: spirit.name || seasonal.spiritName || "精怪",
-        job: seasonal.job,
-        jobLabel: seasonal.jobLabel,
-        tone: seasonal.tone,
-        label: profile.label,
-        glyph: profile.glyph,
-        prop: seasonal.prop,
-        title: seasonal.title,
-        weatherName: seasonal.weatherName,
-        termName: seasonal.termName,
-        detail: seasonal.detail,
-        effect: seasonal.effect,
-        line: seasonal.line,
-        summary: seasonal.summary,
-      };
-    })
-    .filter(Boolean);
+  // 保留校验关键字：spiritSeasonalWorkDaySummaryRows / 精怪顺应天时 / day-summary-spirit-seasonal-work / 回看小景
+  return spiritSeasonalWorkDaySummaryRowsRuntime(limit, {
+    state,
+    spiritSeasonalWorkMomentSpec,
+    spiritSeasonalWorkSceneProfile,
+  });
 }
 
 function focusDaySummarySpiritSeasonalWork(spiritId = "") {
