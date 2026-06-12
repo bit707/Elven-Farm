@@ -1,3 +1,37 @@
+export function patternMatchesKeyData(pattern = "", key = "") {
+  return pattern.split("|").some((part) => {
+    const normalized = part.trim();
+    if (!normalized) return false;
+    const regex = new RegExp(`^${normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\\\*/g, ".*")}$`);
+    return regex.test(key);
+  });
+}
+
+export function collectLocalizationKeysForPlanData(plan = {}, context = {}) {
+  const data = context.data || {};
+  const patternMatchesKey = typeof context.patternMatchesKey === "function"
+    ? context.patternMatchesKey
+    : patternMatchesKeyData;
+  const keys = new Set();
+  const pushKey = (value) => {
+    if (typeof value === "string" && value && patternMatchesKey(plan.key_pattern, value)) keys.add(value);
+  };
+  const scanRows = (rows) => {
+    for (const row of rows || []) {
+      for (const [field, value] of Object.entries(row)) {
+        if (field.endsWith("_key") || field.includes("subtitle") || field.includes("toast")) pushKey(value);
+      }
+    }
+  };
+
+  for (const tableName of String(plan.source_table || "").split("|")) {
+    const rows = data[tableName.trim()];
+    if (rows) scanRows(rows);
+  }
+  for (const text of data.localization || []) pushKey(text.text_key);
+  return [...keys];
+}
+
 export function localizationCoverageForData(plan = {}, context = {}) {
   const collectLocalizationKeysForPlan = typeof context.collectLocalizationKeysForPlan === "function"
     ? context.collectLocalizationKeysForPlan

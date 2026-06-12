@@ -23,8 +23,10 @@ import {
 import {
   communityAssetReadyData,
   communityCalendarSummaryData,
+  collectLocalizationKeysForPlanData,
   localizationCoverageForData,
   localizationSummaryData,
+  patternMatchesKeyData,
 } from "./game/state/release-readiness-state.js";
 import {
   careChainStageForStreakData,
@@ -4632,33 +4634,15 @@ function localize(key, fallback = key) {
 }
 
 function patternMatchesKey(pattern = "", key = "") {
-  return pattern.split("|").some((part) => {
-    const normalized = part.trim();
-    if (!normalized) return false;
-    const regex = new RegExp(`^${normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\\\*/g, ".*")}$`);
-    return regex.test(key);
-  });
+  return patternMatchesKeyData(pattern, key);
 }
 
 function collectLocalizationKeysForPlan(plan) {
-  const keys = new Set();
-  const pushKey = (value) => {
-    if (typeof value === "string" && value && patternMatchesKey(plan.key_pattern, value)) keys.add(value);
-  };
-  const scanRows = (rows) => {
-    for (const row of rows || []) {
-      for (const [field, value] of Object.entries(row)) {
-        if (field.endsWith("_key") || field.includes("subtitle") || field.includes("toast")) pushKey(value);
-      }
-    }
-  };
-
-  for (const tableName of String(plan.source_table || "").split("|")) {
-    const rows = data[tableName.trim()];
-    if (rows) scanRows(rows);
-  }
-  for (const text of data.localization) pushKey(text.text_key);
-  return [...keys];
+  // Release readiness bridge keeps verify keywords: patternMatchesKey / collectLocalizationKeysForPlan / localizationCoverageFor / key_pattern / localization_text.csv
+  return collectLocalizationKeysForPlanData(plan, {
+    data,
+    patternMatchesKey,
+  });
 }
 
 function localizationCoverageFor(plan) {
