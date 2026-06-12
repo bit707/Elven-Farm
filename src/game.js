@@ -157,10 +157,12 @@ import {
   festivalEventForRuntime,
   nextCohabEventRuntime,
   playCohabDailySceneRuntime,
+  playCohabFestivalEventRuntime,
   playCohabWeeklyEventRuntime,
   recordCohabHistoryRuntime,
   syncCohabStateRuntime,
   triggerCohabDailySceneRuntime,
+  triggerCohabFestivalEventsRuntime,
   triggerCohabWeeklyEventsRuntime,
 } from "./game/world/cohab-runtime.js";
 import {
@@ -40011,28 +40013,24 @@ function playCohabWeeklyEvent(npcId = "") {
 }
 
 function playCohabFestivalEvent(npcId = "") {
-  const cohab = cohabStatusFor(npcId);
-  if (!cohab?.epilogue) return addLog("后日谈未配置", "这位角色暂时没有同住节庆路线。");
-  if (!cohab.unlocked) return addLog("后日谈未开启", `${npcName(npcId)} 还需要 ${cohabRequirementText(cohab)}。`);
-  syncCohabState();
-  const termId = currentTermId();
-  const cycleKey = currentCohabFestivalKey(termId);
-  const events = data.cohabFestivalByEpilogue.get(cohab.epilogue.epilogue_id) || [];
-  const event = events.find((entry) => (
-    entry.trigger_param === termId
-    && conditionMet(entry.condition_group)
-    && state.cohabState.festivalClaims[entry.festival_event_id] !== cycleKey
-  ))
-    || events.find((entry) => conditionMet(entry.condition_group) && state.cohabState.festivalClaims[entry.festival_event_id] !== cycleKey)
-    || null;
-  if (!event) return addLog("本节气暂无同住节庆", `${cohab.epilogue.route_name} 这个节气没有新的节庆小事，等下个节气再看家里会不会添一盏灯。`);
-  state.cohabState.festivalClaims[event.festival_event_id] = cycleKey;
-  if (event.dialogue_group_id) queueDialogueGroup(event.dialogue_group_id);
-  const rewardText = applyCohabReward(event, cohab.epilogue);
-  recordCohabHistory("festival", cohab.epilogue, event.event_name, rewardText);
-  complete(`cohab_festival_${event.festival_event_id}`);
-  addLog("同住节庆", `${npcName(npcId)} · ${event.event_name}：${rewardText}。`);
-  render();
+  // playCohabFestivalEvent bridge keeps verify keywords: 同住节庆 / 本节气暂无同住节庆 / cohab_festival_
+  return playCohabFestivalEventRuntime(npcId, {
+    cohabStatusFor,
+    cohabRequirementText,
+    currentTermId,
+    currentCohabFestivalKey,
+    dataCohabFestivalByEpilogue: data.cohabFestivalByEpilogue,
+    cohabState: state.cohabState,
+    conditionMet,
+    npcName,
+    syncCohabState,
+    queueDialogueGroup,
+    applyCohabReward,
+    recordCohabHistory,
+    complete,
+    addLog,
+    render,
+  });
 }
 
 function triggerCohabWeeklyEvents(source, payload = {}) {
@@ -40056,26 +40054,22 @@ function triggerCohabWeeklyEvents(source, payload = {}) {
 }
 
 function triggerCohabFestivalEvents(termId = currentTermId()) {
-  let triggered = 0;
-  syncCohabState();
-  const cycleKey = currentCohabFestivalKey(termId);
-  for (const epilogue of cohabUnlockedRoutes()) {
-    const events = data.cohabFestivalByEpilogue.get(epilogue.epilogue_id) || [];
-    for (const event of events) {
-      if (event.trigger_type !== "on_term_change") continue;
-      if (!conditionMet(event.condition_group)) continue;
-      if (!cohabEventTimingMet(event.trigger_type, event.trigger_param, { termId })) continue;
-      if (state.cohabState.festivalClaims[event.festival_event_id] === cycleKey) continue;
-      state.cohabState.festivalClaims[event.festival_event_id] = cycleKey;
-      if (event.dialogue_group_id) queueDialogueGroup(event.dialogue_group_id);
-      const rewardText = applyCohabReward(event, epilogue);
-      addLog("同住节庆", `${npcName(epilogue.npc_id)} · ${event.event_name}：${rewardText}。`);
-      recordCohabHistory("festival", epilogue, event.event_name, rewardText);
-      complete(`cohab_festival_${event.festival_event_id}`);
-      triggered += 1;
-    }
-  }
-  return triggered;
+  // triggerCohabFestivalEvents bridge keeps verify keywords: 同住节庆 / cohab_festival_
+  return triggerCohabFestivalEventsRuntime(termId, {
+    cohabUnlockedRoutes,
+    dataCohabFestivalByEpilogue: data.cohabFestivalByEpilogue,
+    cohabState: state.cohabState,
+    currentCohabFestivalKey,
+    conditionMet,
+    cohabEventTimingMet,
+    npcName,
+    syncCohabState,
+    queueDialogueGroup,
+    applyCohabReward,
+    recordCohabHistory,
+    complete,
+    addLog,
+  });
 }
 
 function cohabMomentTitle(moment = null, route = null) {

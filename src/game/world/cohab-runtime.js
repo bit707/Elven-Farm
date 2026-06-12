@@ -330,3 +330,84 @@ export function triggerCohabWeeklyEventsRuntime(source = "", payload = {}, {
   }
   return triggered;
 }
+
+export function playCohabFestivalEventRuntime(npcId = "", {
+  cohabStatusFor = () => null,
+  cohabRequirementText = () => "",
+  currentTermId = () => "",
+  currentCohabFestivalKey = () => "",
+  dataCohabFestivalByEpilogue = new Map(),
+  cohabState = {},
+  conditionMet = () => false,
+  npcName = (id = "") => id,
+  syncCohabState = () => ({}),
+  queueDialogueGroup = () => null,
+  applyCohabReward = () => "",
+  recordCohabHistory = () => null,
+  complete = () => null,
+  addLog = () => null,
+  render = () => null,
+} = {}) {
+  const cohab = cohabStatusFor(npcId);
+  if (!cohab?.epilogue) return addLog("后日谈未配置", "这位角色暂时没有同住节庆路线。");
+  if (!cohab.unlocked) return addLog("后日谈未开启", `${npcName(npcId)} 还需要 ${cohabRequirementText(cohab)}。`);
+  const syncedState = syncCohabState();
+  const festivalClaims = syncedState.festivalClaims || cohabState.festivalClaims || {};
+  const termId = currentTermId();
+  const cycleKey = currentCohabFestivalKey(termId);
+  const events = dataCohabFestivalByEpilogue.get(cohab.epilogue.epilogue_id) || [];
+  const event = events.find((entry) => (
+    entry.trigger_param === termId
+    && conditionMet(entry.condition_group)
+    && festivalClaims[entry.festival_event_id] !== cycleKey
+  ))
+    || events.find((entry) => conditionMet(entry.condition_group) && festivalClaims[entry.festival_event_id] !== cycleKey)
+    || null;
+  if (!event) return addLog("本节气暂无同住节庆", `${cohab.epilogue.route_name} 这个节气没有新的节庆小事，等下个节气再看家里会不会添一盏灯。`);
+  festivalClaims[event.festival_event_id] = cycleKey;
+  if (event.dialogue_group_id) queueDialogueGroup(event.dialogue_group_id);
+  const rewardText = applyCohabReward(event, cohab.epilogue);
+  recordCohabHistory("festival", cohab.epilogue, event.event_name, rewardText);
+  complete(`cohab_festival_${event.festival_event_id}`);
+  addLog("同住节庆", `${npcName(npcId)} · ${event.event_name}：${rewardText}。`);
+  render();
+  return true;
+}
+
+export function triggerCohabFestivalEventsRuntime(termId = "", {
+  cohabUnlockedRoutes = () => [],
+  dataCohabFestivalByEpilogue = new Map(),
+  cohabState = {},
+  currentCohabFestivalKey = () => "",
+  conditionMet = () => false,
+  cohabEventTimingMet = () => false,
+  npcName = (id = "") => id,
+  syncCohabState = () => ({}),
+  queueDialogueGroup = () => null,
+  applyCohabReward = () => "",
+  recordCohabHistory = () => null,
+  complete = () => null,
+  addLog = () => null,
+} = {}) {
+  let triggered = 0;
+  const syncedState = syncCohabState();
+  const festivalClaims = syncedState.festivalClaims || cohabState.festivalClaims || {};
+  const cycleKey = currentCohabFestivalKey(termId);
+  for (const epilogue of cohabUnlockedRoutes()) {
+    const events = dataCohabFestivalByEpilogue.get(epilogue.epilogue_id) || [];
+    for (const event of events) {
+      if (event.trigger_type !== "on_term_change") continue;
+      if (!conditionMet(event.condition_group)) continue;
+      if (!cohabEventTimingMet(event.trigger_type, event.trigger_param, { termId })) continue;
+      if (festivalClaims[event.festival_event_id] === cycleKey) continue;
+      festivalClaims[event.festival_event_id] = cycleKey;
+      if (event.dialogue_group_id) queueDialogueGroup(event.dialogue_group_id);
+      const rewardText = applyCohabReward(event, epilogue);
+      addLog("同住节庆", `${npcName(epilogue.npc_id)} · ${event.event_name}：${rewardText}。`);
+      recordCohabHistory("festival", epilogue, event.event_name, rewardText);
+      complete(`cohab_festival_${event.festival_event_id}`);
+      triggered += 1;
+    }
+  }
+  return triggered;
+}
